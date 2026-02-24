@@ -10,6 +10,7 @@
 
 #ifndef __PLATFORM_ERROR_DEFINE_H__
 #define __PLATFORM_ERROR_DEFINE_H__
+#include <cstdint>
 
 constexpr uint32_t PLATFORM_FAILED = 0xFFFFFFFF;
 constexpr uint32_t PLATFORM_SUCCESS = 0;

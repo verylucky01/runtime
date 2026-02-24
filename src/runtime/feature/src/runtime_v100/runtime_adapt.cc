@@ -35,7 +35,6 @@
 #include "toolchain/prof_acl_api.h"
 #include "thread_local_container.hpp"
 #include "inner_thread_local.hpp"
-#include "prof_api.h"
 #include "profiling_agent.hpp"
 #include "task_submit.hpp"
 #include "atrace_log.hpp"

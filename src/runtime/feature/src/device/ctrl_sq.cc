@@ -184,12 +184,12 @@ rtError_t CtrlSQ::SendModelAbortMsg(Model * const mdl)
     return RT_ERROR_NONE;
 }
 
-rtError_t CtrlSQ::SendModelLoadCompleteMsg(Model * const mdl, uint32_t firstTaskId)
+rtError_t CtrlSQ::SendModelLoadCompleteMsg(const Model * const mdl, uint32_t firstTaskId)
 {
     RtCtrlMsgParam param = {};
     GetStream()->SetLatestModlId(static_cast<int32_t>(mdl->Id_()));
     param.taskType = TS_TASK_TYPE_MODEL_MAINTAINCE;
-    param.modelMaintenanceParam = { MMT_MODEL_PRE_PROC, mdl, GetStream(), RT_MODEL_HEAD_STREAM, firstTaskId };
+    param.modelMaintenanceParam = { MMT_MODEL_PRE_PROC, RtPtrToUnConstPtr<Model *>(mdl), GetStream(), RT_MODEL_HEAD_STREAM, firstTaskId };
     
     const rtError_t error = CreateCtrlMsg(RtCtrlMsgType::RT_CTRL_MSG_MODEL_LOAD_COMPLETE, param);
     ERROR_RETURN_MSG_INNER(error, "Ctrl msg send failed, retCode=%#x", static_cast<uint32_t>(error));

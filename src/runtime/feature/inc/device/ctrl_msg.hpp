@@ -119,7 +119,7 @@ rtError_t CtrlMsgStreamRecycleInit(TaskInfo *taskInfo, const RtCtrlMsgParam &par
 
 rtError_t CtrlMsgNotifyResetInit(TaskInfo *taskInfo, const RtCtrlMsgParam &param);
 
-rtError_t CtrlMsgModelTaskInit(TaskInfo *taskInfo, const RtCtrlMsgParam &param);
+rtError_t CtrlMsgModelTaskInit(TaskInfo * const taskInfo, const RtCtrlMsgParam &param);
 
 rtError_t CtrlMsgAicpuModelInit(TaskInfo *taskInfo, const RtCtrlMsgParam &param);
 

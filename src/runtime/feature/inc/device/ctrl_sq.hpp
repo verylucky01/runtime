@@ -49,7 +49,7 @@ public:
 
     rtError_t SendModelAbortMsg(Model * const mdl);
 
-    rtError_t SendModelLoadCompleteMsg(Model * const mdl, uint32_t firstTaskId);
+    rtError_t SendModelLoadCompleteMsg(const Model * const mdl, uint32_t firstTaskId);
 
     rtError_t SendAicpuModelMsg(RtCtrlMsgType msgType, const RtAicpuModelParam &aicpuModelParam);
 

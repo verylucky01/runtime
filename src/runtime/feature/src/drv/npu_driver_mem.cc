@@ -1711,7 +1711,7 @@ static void ExtractDrvMemGetInfo(const rtMemType_t type, rtMemInfo_t * const inf
             info->addrInfo.flag = drvMemInfo->addr_info.flag;
             RT_LOG(RT_LOG_DEBUG, "[%s] addr=%" PRIu64 ", cnt=%d, memType=%u, flag=%u",
                 typeDesc[type - 1U],
-                (uint64_t)(uintptr_t)(info->addrInfo.addr),
+                RtPtrToValue(info->addrInfo.addr),
                 info->addrInfo.cnt,
                 info->addrInfo.memType,
                 info->addrInfo.flag);

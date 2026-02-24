@@ -32,7 +32,6 @@
 #include "dvpp_grp.hpp"
 #include "driver/ascend_hal.h"
 #include "task_submit.hpp"
-#include "runtime/rt_preload_task.h"
 #include "platform/platform_info.h"
 #include "stream_factory.hpp"
 #include "device/device_error_proc.hpp"

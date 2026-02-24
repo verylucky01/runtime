@@ -14,6 +14,12 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
     if (EXISTS "${ABL_CSEC}" AND IS_DIRECTORY "${ABL_CSEC}")
         message(STATUS "abl/libc_sec detected")
         add_subdirectory(${ABL_CSEC} ${CMAKE_BINARY_DIR}/libc_sec)
+        target_compile_options(static_c_sec PRIVATE -fstack-protector-strong)
+        target_link_options(static_c_sec PRIVATE -Wl,-z,now)
+        target_link_options(static_c_sec PRIVATE -s)
+        target_compile_options(shared_c_sec PRIVATE -fstack-protector-strong)
+        target_link_options(shared_c_sec PRIVATE -Wl,-z,now)
+        target_link_options(shared_c_sec PRIVATE -s)
         set(LIBC_SEC_HEADER ${ABL_CSEC}/include)
         add_library(c_sec ALIAS shared_c_sec)
         install(TARGETS static_c_sec OPTIONAL DESTINATION runtime/lib)
@@ -24,6 +30,9 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
         set(STATIC_NEW_NAME libc_sec.a)
         set(CSEC_DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/libc_sec)
         set(CSEC_SOURCE_DIR ${CMAKE_BINARY_DIR}/libc_sec/source)
+        set(CSEC_EXTRA_CFLAGS "-fstack-protector-strong")
+        set(CSEC_EXTRA_LDFLAGS "-Wl,-z,now -s")
+
         if(EXISTS "${LOCAL_SRC_DIR}" AND IS_DIRECTORY "${LOCAL_SRC_DIR}")
             message(STATUS "using local csec source: ${LOCAL_SRC_DIR}")
             if(NOT EXISTS "${CSEC_SOURCE_DIR}/Makefile")
@@ -41,6 +50,8 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
                     CC=${CMAKE_C_COMPILER}
                     AR=${CMAKE_AR}
                     LINK=${CMAKE_C_COMPILER}
+                    CFLAGS="${CSEC_EXTRA_CFLAGS}" 
+                    LDFLAGS="${CSEC_EXTRA_LDFLAGS}"
                 INSTALL_COMMAND ""
                 # 禁用更新和下载
                 UPDATE_DISCONNECTED 1
@@ -64,6 +75,8 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
                     CC=${CMAKE_C_COMPILER}
                     AR=${CMAKE_AR}
                     LINK=${CMAKE_C_COMPILER}
+                    CFLAGS="${CSEC_EXTRA_CFLAGS}" 
+                    LDFLAGS="${CSEC_EXTRA_LDFLAGS}"
                 INSTALL_COMMAND ""
             )
         endif()

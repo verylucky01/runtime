@@ -20,6 +20,7 @@
 #include "runtime/rt_mem_queue.h"
 #include "runtime/rt_preload_task.h"
 #include "runtime/elf_base.h"
+#include "runtime/rt_inner_dfx.h"
 #include "dqs/task_dqs.hpp"
 
 namespace cce {
@@ -798,6 +799,8 @@ public:
     virtual rtError_t BinarySetExceptionCallback(Program *binHandle, void *callback, void *userData) = 0;
 
     virtual rtError_t GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info, Kernel ** const funcHandle) = 0;
+
+    virtual rtError_t SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func) = 0;
 };
 }
 }

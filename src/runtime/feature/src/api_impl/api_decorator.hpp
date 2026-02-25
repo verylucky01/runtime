@@ -690,6 +690,7 @@ public:
     rtError_t BinarySetExceptionCallback(Program *binHandle, void *callback, void *userData) override;
     rtError_t GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info, Kernel ** const funcHandle) override;
 
+    rtError_t SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func) override;
 protected:
     Api *impl_;
 };

@@ -28,6 +28,7 @@
 #include "task_abort.hpp"
 #include "global_state_manager.hpp"
 #include "platform_manager_v2.h"
+#include "kernel_dfx_info.hpp"
 
 using namespace cce::runtime;
 namespace cce {
@@ -1373,6 +1374,16 @@ rtError_t rtGetSocSpec(const char* label, const char* key, char* val, const uint
     const errno_t rtn = memcpy_s(val, maxLen, result.c_str(), result.size() + 1U);
     COND_RETURN_ERROR_WITH_EXT_ERRCODE((ret != EOK), RT_ERROR_INVALID_VALUE,
         "Get soc spec, memcpy failed, retCode=%#x", static_cast<uint32_t>(rtn));
+    return ACL_RT_SUCCESS;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtSetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func)
+{
+    Api * const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    const rtError_t error = apiInstance->SetKernelDfxInfoCallback(type, func);
+    ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
 

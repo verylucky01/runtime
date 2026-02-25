@@ -171,6 +171,7 @@ set(libruntime_v200_src_files_exclude_for_tiny
     src/dfx/fp16_t.cpp
     src/dfx/hifloat.cpp
     src/dfx/printf.cc
+    src/dfx/kernel_dfx_info.cc
     src/drv/npu_driver_standard_soc.cc
     src/engine/hwts/direct_hwts_engine.cc
     src/engine/hwts/hwts_engine.cc

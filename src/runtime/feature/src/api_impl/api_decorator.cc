@@ -2517,5 +2517,10 @@ rtError_t ApiDecorator::GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *
     return impl_->GetFuncHandleFromExceptionInfo(info, funcHandle);
 }
 
+rtError_t ApiDecorator::SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func)
+{
+    return impl_->SetKernelDfxInfoCallback(type, func);
+}
+
 }  // namespace runtime
 }  // namespace cce

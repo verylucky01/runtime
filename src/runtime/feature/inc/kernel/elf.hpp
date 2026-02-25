@@ -50,7 +50,7 @@ constexpr uint32_t KERNEL_CUSTOM_STACK_SIZE_MAX_MINI_V3 = 7864320U; // 7680KB
 constexpr uint32_t KERNEL_CUSTOM_STACK_SIZE_MAX_DAVID = 131072U; // 128KB
 
 constexpr uint32_t PRINT_SIMD = 0U;
-constexpr uint32_t PRINT_SIMT = 1U;
+constexpr uint32_t PRINT_SIMT = 2U;
 
 #define MAX_BUF_NUM 2048
 #define DEFAULT_TASK_RATION 2U

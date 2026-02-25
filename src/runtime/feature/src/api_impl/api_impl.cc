@@ -51,6 +51,7 @@
 #include "global_state_manager.hpp"
 #include "mem_type.hpp"
 #include "inner_kernel.h"
+#include "kernel_dfx_info.hpp"
 
 #define RT_DRV_FAULT_CNT 25U
 #define NULL_STREAM_PTR_RETURN_MSG(STREAM)     NULL_PTR_RETURN_MSG((STREAM), RT_ERROR_STREAM_NULL)
@@ -8914,5 +8915,16 @@ rtError_t ApiImpl::GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info,
     return RT_ERROR_NONE;
 }
 
+rtError_t ApiImpl::SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func)
+{
+    KernelDfxInfo *kernelDfxInfoInstance = KernelDfxInfo::Instance();
+    NULL_PTR_RETURN(kernelDfxInfoInstance, RT_ERROR_INSTANCE_NULL);
+    const rtError_t error = kernelDfxInfoInstance->SetKernelDfxInfoCallback(type, func);
+    if (error != RT_ERROR_NONE) {
+        RT_LOG(RT_LOG_ERROR, "SetKernelDfxInfoCallback failed, retCode=%#x", error);
+        return error;
+    }
+    return RT_ERROR_NONE;
+}
 }  // namespace runtime
 }  // namespace cce

@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "thread_local_container.hpp"
+#include "runtime/rt_inner_dfx.h"
 #undef protected
 #undef private
 
@@ -153,4 +154,17 @@ TEST_F(ApiCloudDisableThreadDfxTest, streamCreateFail1)
 
     EXPECT_EQ(error1, ACL_ERROR_RT_LOST_HEARTBEAT);
     GlobalMockObject::verify();
+}
+
+TEST_F(ApiCloudDisableThreadDfxTest, test_rtSetKernelDfxInfoCallback)
+{
+    auto func = [](rtKernelDfxInfoType type, uint32_t coreType, uint32_t coreId, const uint8_t *buffer, size_t length){};
+    rtError_t err = rtSetKernelDfxInfoCallback(RT_KERNEL_DFX_INFO_INVALID, func);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+    err = rtSetKernelDfxInfoCallback(RT_KERNEL_DFX_INFO_DEFAULT, nullptr);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+    err = rtSetKernelDfxInfoCallback(RT_KERNEL_DFX_INFO_DEFAULT, func);
+    EXPECT_EQ(err, ACL_RT_SUCCESS);
+    err = rtSetKernelDfxInfoCallback(RT_KERNEL_DFX_INFO_DEFAULT, func);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
 }

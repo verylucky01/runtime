@@ -250,6 +250,7 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/feature/src/dfx/hifloat.cpp
     ${TOP_DIR}/src/runtime/feature/src/dfx/pctrace.cc
     ${TOP_DIR}/src/runtime/feature/src/dfx/printf.cc
+    ${TOP_DIR}/src/runtime/feature/src/dfx/kernel_dfx_info.cc
     ${TOP_DIR}/src/runtime/feature/src/utils/subscribe.cc
     ${TOP_DIR}/src/runtime/feature/src/profiler/onlineprof.cc
     ${TOP_DIR}/src/runtime/feature/src/device/device_error_proc.cc
@@ -394,6 +395,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/pkg_inc
     ${TOP_DIR}/src/queue_schedule/dgwclient/inc
     ${TOP_DIR}/src/dfx/msprof/include/external/runtime/rts
+    ${TOP_DIR}/src/inc
     ${TOP_DIR}/src/inc/external
     ${TOP_DIR}/src/inc/runtime
     ${TOP_DIR}/include/external/acl

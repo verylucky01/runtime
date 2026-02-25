@@ -6285,5 +6285,13 @@ rtError_t ApiErrorDecorator::GetFuncHandleFromExceptionInfo(const rtExceptionInf
     return impl_->GetFuncHandleFromExceptionInfo(info, funcHandle);
 }
 
+rtError_t ApiErrorDecorator::SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func)
+{
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM((type < RT_KERNEL_DFX_INFO_DEFAULT || type > RT_KERNEL_DFX_INFO_BLOCK_INFO),
+        RT_ERROR_INVALID_VALUE, type, "[" + std::to_string(RT_KERNEL_DFX_INFO_DEFAULT) + ", " + std::to_string(RT_KERNEL_DFX_INFO_BLOCK_INFO) + "]");
+    NULL_PTR_RETURN_MSG_OUTER(func, RT_ERROR_INVALID_VALUE);
+    return impl_->SetKernelDfxInfoCallback(type, func);
+}
+
 }  // namespace runtime
 }  // namespace cce

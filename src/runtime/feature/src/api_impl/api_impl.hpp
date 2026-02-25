@@ -714,6 +714,7 @@ public:
     rtError_t BinarySetExceptionCallback(Program *binHandle, void *callback, void *userData) override;
     rtError_t GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info, Kernel ** const funcHandle) override;
 
+    rtError_t SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func) override;
 protected:
     virtual rtError_t GetDeviceSimtInfo(uint32_t deviceId, rtDevAttr attr, int64_t *val);
     virtual rtError_t GetDevRunningStreamSnapshotMsg(const rtGetMsgCallback callback);

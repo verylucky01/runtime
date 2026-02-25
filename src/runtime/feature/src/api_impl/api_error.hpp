@@ -679,6 +679,8 @@ public:
 
     rtError_t BinarySetExceptionCallback(Program *binHandle, void *callback, void *userData) override;
     rtError_t GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info, Kernel ** const funcHandle) override;
+
+    rtError_t SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func) override;
 private:
     rtError_t CheckArgs(const rtArgsEx_t * const argsInfo) const;
     rtError_t CheckCfg(const rtTaskCfgInfo_t * const cfgInfo) const;

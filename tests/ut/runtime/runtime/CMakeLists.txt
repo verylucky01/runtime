@@ -308,6 +308,7 @@ set(runtimeut_src_tiny_include_list
     ${TOP_DIR}/src/runtime/feature/src/api_impl/v100/api_impl_v100.cc
     ${TOP_DIR}/src/runtime/feature/src/context/context_tiny_stub.cc
     ${TOP_DIR}/src/runtime/feature/src/dfx/printf_tiny_stub.cc
+    ${TOP_DIR}/src/runtime/feature/src/dfx/kernel_dfx_info.cc
     ${TOP_DIR}/src/runtime/feature/src/drv/npu_driver_tiny_stub.cc
     ${TOP_DIR}/src/runtime/feature/src/engine/engine_factory_tiny_stub.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/binary_loader_tiny_stub.cc
@@ -401,6 +402,7 @@ set(runtimeut_src_list
     ${TOP_DIR}/src/runtime/feature/src/dfx/hifloat.cpp
     ${TOP_DIR}/src/runtime/feature/src/dfx/pctrace.cc
     ${TOP_DIR}/src/runtime/feature/src/dfx/printf.cc
+    ${TOP_DIR}/src/runtime/feature/src/dfx/kernel_dfx_info.cc
     ${TOP_DIR}/src/runtime/feature/src/utils/subscribe.cc
     ${TOP_DIR}/src/runtime/feature/src/profiler/onlineprof.cc
     ${TOP_DIR}/src/runtime/feature/src/device/device_error_proc.cc
@@ -535,6 +537,7 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/feature/src/dfx/hifloat.cpp
     ${TOP_DIR}/src/runtime/feature/src/dfx/pctrace.cc
     ${TOP_DIR}/src/runtime/feature/src/dfx/printf.cc
+    ${TOP_DIR}/src/runtime/feature/src/dfx/kernel_dfx_info.cc
     ${TOP_DIR}/src/runtime/feature/src/utils/subscribe.cc
     ${TOP_DIR}/src/runtime/feature/src/profiler/onlineprof.cc
     ${TOP_DIR}/src/runtime/feature/src/device/device_error_proc.cc
@@ -577,6 +580,7 @@ add_library(runtime_ut_david_static_lib STATIC ${runtimeut_david_src_list})
 target_include_directories(
     runtime_ut_david_static_lib PUBLIC 
     ${RUNTIME_DIR}/src/inc/runtime
+    ${TOP_DIR}/src/inc
     ${TOP_DIR}/src/runtime/tprt/inc/external
     ${TOP_DIR}/src/runtime/tprt/feature/inc
     ${TOP_DIR}/abl/slog/inc
@@ -650,7 +654,6 @@ add_library(runtimeut_camodel_src_v200_static_lib STATIC
     ${TOP_DIR}/src/runtime/feature/src/device/raw_device_res_camodel.cc
     ${TOP_DIR}/src/runtime/feature/src/task/v200_base/task_proc_func_register.cc
 )
-
 
 target_compile_definitions(runtimeut_camodel_src_v200_static_lib PUBLIC
     TEMP_PERFORMANCE
@@ -1138,6 +1141,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/pkg_inc
     ${TOP_DIR}/src/queue_schedule/dgwclient/inc
     ${TOP_DIR}/src/dfx/msprof/include/external/runtime/rts
+    ${TOP_DIR}/src/inc
     ${TOP_DIR}/src/inc/external
     ${TOP_DIR}/src/inc/runtime
     ${TOP_DIR}/include/external/acl
@@ -1326,6 +1330,7 @@ set(runtimeut_v201_src_list
     ${TOP_DIR}/src/runtime/feature/src/dfx/fp16_t.cpp
     ${TOP_DIR}/src/runtime/feature/src/dfx/hifloat.cpp
     ${TOP_DIR}/src/runtime/feature/src/dfx/printf.cc
+    ${TOP_DIR}/src/runtime/feature/src/dfx/kernel_dfx_info.cc
     ${TOP_DIR}/src/runtime/feature/src/dfx/pctrace.cc
     ${TOP_DIR}/src/runtime/feature/src/utils/subscribe.cc
     ${TOP_DIR}/src/runtime/feature/src/profiler/onlineprof.cc

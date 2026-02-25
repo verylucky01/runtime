@@ -25,7 +25,7 @@ struct BlockInfo {
     uint32_t blockNum = 0;    // 本次总共的核数
     uint32_t remainLen = 0;   // 可打印的总长度
     uint16_t magic = 0xAE86;  // 信息校验数 // 0xAE86
-    uint16_t flag = 0;        // falg 0: simd, 1: simt
+    uint16_t flag = 0;        // flag value, 0:simd-aic, 1:simd-aiv, 2:simt
     uint32_t rsv = 0;         // DUMP EXC FLAG
     uint64_t dumpAddr = 0;    // 起始printf的地址
     uint32_t resv[6] = {0U};
@@ -46,11 +46,6 @@ enum class DumpType : uint32_t  {
     DUMP_SIMT_ASSERT = 0xF0E00F0E,
     DUMP_SIMT_PRINTF = 0xF0F00F0F,
     DUMP_WAIT = 0xF0A55A0F
-};
-
-enum class ParallelismModel : uint32_t {
-    PRINT_SIMD         = 0U,
-    PRINT_SIMT         = 1U,
 };
 
 #pragma pack(push, 1)
@@ -103,6 +98,10 @@ struct DumpShapeInfo {
     uint32_t shape[8U] = {0U};     
     uint32_t resv;                
 };
+
+constexpr uint32_t RT_KERNEL_DFX_INFO_CORE_TYPE_AIC = 0U;
+constexpr uint32_t RT_KERNEL_DFX_INFO_CORE_TYPE_AIV = 1U;
+constexpr uint32_t RT_KERNEL_DFX_INFO_CORE_TYPE_SIMT = 2U;
 
 rtError_t InitPrintf(void *addr, const size_t blockSize, Driver *curDrv);
 rtError_t InitSimtPrintf(void *addr, const size_t blockSize, Driver *curDrv);

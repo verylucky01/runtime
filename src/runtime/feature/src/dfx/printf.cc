@@ -10,6 +10,7 @@
 
 #include "printf.hpp"
 #include "prof_ctrl_callback_manager.hpp"
+#include "kernel_dfx_info.hpp"
 
 #include <sstream>
 #include <string>
@@ -21,6 +22,8 @@
 #include "bfloat16.h"
 #include "hifloat.h"
 #include "external/graph/types.h"
+#include "runtime/rt_inner_dfx.h"
+
 namespace cce {
 namespace runtime {
 namespace {
@@ -35,6 +38,9 @@ constexpr uint16_t INT16_SIZE = 2U;
 constexpr uint16_t INT32_SIZE = 4U;
 constexpr uint16_t INT64_SIZE = 8U;
 constexpr size_t ONE_LINE_NUM = 30U;
+constexpr uint32_t CORE_NUMBER_MAX = 1024U;
+bool IsDumpSimdBlockInfo[CORE_NUMBER_MAX]{false};
+bool IsDumpSimtBlockInfo = false;
 
 template<typename T>
 std::string ToHex(T num)
@@ -811,6 +817,110 @@ void PrintDumpTensor(const DumpInfoHead *dumpHead, std::vector<size_t> &shape)
     }
 }
 
+static rtKernelDfxInfoType GetrtKernelDfxInfoType(const DumpType type)
+{
+    switch (type) {
+        case DumpType::DUMP_SCALAR:
+        case DumpType::DUMP_SIMT_PRINTF:
+            return RT_KERNEL_DFX_INFO_PRINTF;
+        case DumpType::DUMP_ASSERT:
+        case DumpType::DUMP_SIMT_ASSERT:
+            return RT_KERNEL_DFX_INFO_ASSERT;
+        case DumpType::DUMP_TENSOR:
+        case DumpType::DUMP_SHAPE:
+            return RT_KERNEL_DFX_INFO_TENSOR;
+        case DumpType::DUMP_TIMESTAMP:
+            return RT_KERNEL_DFX_INFO_TIME_STAMP;
+        default:
+            return RT_KERNEL_DFX_INFO_INVALID;
+    }
+}
+
+static void DumpBlockInfo(KernelDfxInfo * kernelDfxInfoInstance, const uint8_t * blockAddr, uint32_t coreType, uint32_t coreId)
+{
+    auto dumpInfo = [&]() -> void
+    {
+        const rtKernelDfxInfoType type = kernelDfxInfoInstance->GetValidBlockInfoType();
+        if (type != RT_KERNEL_DFX_INFO_INVALID) {
+            RT_LOG(RT_LOG_INFO, "Dump BlockInfo, rtKernelDfxInfoType=%d, coreType=%u, coreId=%u, blockAddr=%p, blockInfoSize=%zu",
+                type, coreType, coreId, blockAddr, sizeof(BlockInfo));
+            kernelDfxInfoInstance->ExecuteKernelDfxInfoFunc(type, coreType, coreId, blockAddr, sizeof(BlockInfo));
+        }
+    };
+    if (!IsDumpSimdBlockInfo[coreId] && coreType != RT_KERNEL_DFX_INFO_CORE_TYPE_SIMT) {
+        dumpInfo();
+        IsDumpSimdBlockInfo[coreId] = true;
+    }
+    if (!IsDumpSimtBlockInfo && coreType == RT_KERNEL_DFX_INFO_CORE_TYPE_SIMT) {
+        dumpInfo();
+        IsDumpSimtBlockInfo = true;
+    }
+}
+
+rtError_t ExecuteKernelDfxInfoFunc(const uint8_t *blockAddr, const uint8_t *dumpReadStartAddr, uint64_t totalReadBufLen,
+                                   uint32_t coreType, uint32_t coreId)
+{
+    rtKernelDfxInfoType type = RT_KERNEL_DFX_INFO_INVALID;
+    KernelDfxInfo * kernelDfxInfoInstance = KernelDfxInfo::Instance();
+    NULL_PTR_RETURN(kernelDfxInfoInstance, RT_ERROR_INSTANCE_NULL);
+
+    DumpBlockInfo(kernelDfxInfoInstance, blockAddr, coreType, coreId);
+    if (kernelDfxInfoInstance->isSupportAllKernelDfxInfo()) {
+        type = RT_KERNEL_DFX_INFO_DEFAULT;
+        RT_LOG(RT_LOG_INFO, "rtKernelDfxInfoType=%d, coreType=%u, coreId=%u, dumpReadStartAddr=%p, totalReadBufLen=%llu",
+            type, coreType, coreId, dumpReadStartAddr, totalReadBufLen);
+        kernelDfxInfoInstance->ExecuteKernelDfxInfoFunc(type, coreType, coreId, dumpReadStartAddr, totalReadBufLen);
+        return RT_ERROR_NONE;
+    }
+    uint64_t dataLen = 0U;
+    uint64_t dumpInfoLen = 0U;
+    while (dataLen < totalReadBufLen) {
+        const DumpInfoHead *dumpHead = RtPtrToPtr<const DumpInfoHead *>(dumpReadStartAddr + dataLen);
+        dumpInfoLen = sizeof(DumpInfoHead) + static_cast<uint64_t>(dumpHead->infoLen);
+        dataLen += dumpInfoLen;
+        type = GetrtKernelDfxInfoType(dumpHead->type);
+        if (type != RT_KERNEL_DFX_INFO_INVALID) {
+            RT_LOG(RT_LOG_INFO, "rtKernelDfxInfoType=%d, coreType=%u, coreId=%u, dumpReadStartAddr=%p, totalReadBufLen=%llu",
+                type, coreType, coreId, dumpReadStartAddr, totalReadBufLen);
+            kernelDfxInfoInstance->ExecuteKernelDfxInfoFunc(type, coreType, coreId, RtPtrToPtr<const uint8_t *>(dumpHead), dumpInfoLen);
+        }
+    }
+    
+    return RT_ERROR_NONE;
+}
+
+rtError_t GetReadLenAndAddr(uint8_t *blockAddr, const size_t blockSize, uint64_t &totalReadBufLen,
+                            const uint8_t *&dumpReadStartAddr, std::vector<uint8_t> &dumpInfoVec) {
+    const BlockInfo *blockInfo = RtPtrToPtr<const BlockInfo *>(blockAddr);
+    BlockReadInfo *readInfo = RtPtrToPtr<BlockReadInfo *>(blockAddr + sizeof(BlockInfo));
+    const BlockWriteInfo *writeInfo =
+    RtPtrToPtr<const BlockWriteInfo *>(blockAddr + blockSize - sizeof(BlockWriteInfo));
+    const uint8_t *dumpStartAddr = blockAddr + sizeof(BlockInfo) + sizeof(BlockReadInfo);
+
+    const uint64_t readIdx = readInfo->readIdx % blockInfo->remainLen;
+    const uint64_t writeIdx = writeInfo->writeIdx % blockInfo->remainLen;
+
+    if (writeInfo->writeIdx - readInfo->readIdx > blockInfo->remainLen) {
+        totalReadBufLen = blockInfo->remainLen;
+        dumpInfoVec.resize(totalReadBufLen, 0);
+        (void)memcpy_s(dumpInfoVec.data(), blockInfo->remainLen - readIdx, dumpStartAddr + readIdx, blockInfo->remainLen - readIdx);
+        (void)memcpy_s(dumpInfoVec.data() + blockInfo->remainLen - readIdx, readIdx, dumpStartAddr, readIdx);
+        dumpReadStartAddr = dumpInfoVec.data();
+    } else {
+        if (readIdx > writeIdx) {
+            totalReadBufLen = blockInfo->remainLen - readIdx + writeIdx;
+            dumpInfoVec.resize(totalReadBufLen, 0);
+            (void)memcpy_s(dumpInfoVec.data(), blockInfo->remainLen - readIdx, dumpStartAddr + readIdx, blockInfo->remainLen - readIdx);
+            (void)memcpy_s(dumpInfoVec.data() + blockInfo->remainLen - readIdx, writeIdx, dumpStartAddr, writeIdx);
+            dumpReadStartAddr = dumpInfoVec.data();
+        } else {
+            totalReadBufLen = writeIdx - readIdx;
+            dumpReadStartAddr = dumpStartAddr + readIdx;
+        }
+    }
+    return RT_ERROR_NONE;
+}
+
 void PrintDumpInfo(const DumpInfoHead *dumpHead, std::vector<size_t> &shapeInfo, std::vector<MsprofAicTimeStampInfo> &timeStampInfo)
 {
     switch (dumpHead->type) {
@@ -980,6 +1090,13 @@ rtError_t ParsePrintf(void *addr, const size_t blockSize, Driver *curDrv)
             continue;
         }
 
+        // 如果涉及回绕，直接申请成连续的内存;
+        uint64_t totalReadBufLen = 0U;
+        const uint8_t *dumpReadStartAddr;
+        std::vector<uint8_t> dumpInfoVec;
+        ret = GetReadLenAndAddr(blockAddr, blockSize, totalReadBufLen, dumpReadStartAddr, dumpInfoVec);
+        COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "Get read buffer len and addr failed, ret=%u", ret);
+
         // 更新读指针
         const uint64_t readIdx = readInfo->readIdx;
         readInfo->readIdx = writeInfo->writeIdx;
@@ -989,6 +1106,9 @@ rtError_t ParsePrintf(void *addr, const size_t blockSize, Driver *curDrv)
         COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "MemCopySync h2d failed, ret=%u", ret);
 
         PrintBlockInfo(blockAddr, readIdx, writeInfo->writeIdx, timeStampInfo);
+        const uint32_t coreType = blockInfo->flag;
+        ret = ExecuteKernelDfxInfoFunc(blockAddr, dumpReadStartAddr, totalReadBufLen, coreType, blockInfo->coreId);
+        COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "Execute kernel dfx info func failed, ret=%u", ret);
     }
     ReportTimeStampInfo(timeStampInfo);
     return RT_ERROR_NONE;
@@ -1015,38 +1135,6 @@ static rtError_t CollectDumpInfoFromBuffer(const uint8_t* dumpReadStartAddr,
         dumpInfoHolds.emplace_back(dumpHead);
         processedLen += dumpInfoLen;
         device->AddSimtPrintTlvCnt(1U);
-    }
-    return RT_ERROR_NONE;
-}
-
-rtError_t GetReadLenAndAddr(uint8_t *blockAddr, const size_t blockSize, uint64_t &totalReadBufLen,
-                            const uint8_t *&dumpReadStartAddr, std::vector<uint8_t> &dumpInfoVec) {
-    const BlockInfo *blockInfo = RtPtrToPtr<const BlockInfo *>(blockAddr);
-    BlockReadInfo *readInfo = RtPtrToPtr<BlockReadInfo *>(blockAddr + sizeof(BlockInfo));
-    const BlockWriteInfo *writeInfo =
-    RtPtrToPtr<const BlockWriteInfo *>(blockAddr + blockSize - sizeof(BlockWriteInfo));
-    const uint8_t *dumpStartAddr = blockAddr + sizeof(BlockInfo) + sizeof(BlockReadInfo);
-
-    const uint64_t readIdx = readInfo->readIdx % blockInfo->remainLen;
-    const uint64_t writeIdx = writeInfo->writeIdx % blockInfo->remainLen;
-
-    if (writeInfo->writeIdx - readInfo->readIdx > blockInfo->remainLen) {
-        totalReadBufLen = blockInfo->remainLen;
-        dumpInfoVec.resize(totalReadBufLen, 0);
-        (void)memcpy_s(dumpInfoVec.data(), blockInfo->remainLen - readIdx, dumpStartAddr + readIdx, blockInfo->remainLen - readIdx);
-        (void)memcpy_s(dumpInfoVec.data() + blockInfo->remainLen - readIdx, readIdx, dumpStartAddr, readIdx);
-        dumpReadStartAddr = dumpInfoVec.data();
-    } else {
-        if (readIdx > writeIdx) {
-            totalReadBufLen = blockInfo->remainLen - readIdx + writeIdx;
-            dumpInfoVec.resize(totalReadBufLen, 0);
-            (void)memcpy_s(dumpInfoVec.data(), blockInfo->remainLen - readIdx, dumpStartAddr + readIdx, blockInfo->remainLen - readIdx);
-            (void)memcpy_s(dumpInfoVec.data() + blockInfo->remainLen - readIdx, writeIdx, dumpStartAddr, writeIdx);
-            dumpReadStartAddr = dumpInfoVec.data();
-        } else {
-            totalReadBufLen = writeIdx - readIdx;
-            dumpReadStartAddr = dumpStartAddr + readIdx;
-        }
     }
     return RT_ERROR_NONE;
 }
@@ -1095,6 +1183,8 @@ rtError_t ParseSimtPrintf(void *addr, const size_t blockSize, Driver *curDrv, co
     for (const DumpInfoHead *dumpHead : dumpInfoHolds) {
         PrintSimtDumpInfo(dumpHead);
     }
+    ret = ExecuteKernelDfxInfoFunc(blockAddr, dumpReadStartAddr, totalReadBufLen, RT_KERNEL_DFX_INFO_CORE_TYPE_SIMT, 0);
+    COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "Execute kernel dfx info func failed, ret=%u", ret);
 
     return RT_ERROR_NONE;
 }

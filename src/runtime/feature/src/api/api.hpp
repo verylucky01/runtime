@@ -10,7 +10,6 @@
 #ifndef CCE_RUNTIME_API_HPP
 #define CCE_RUNTIME_API_HPP
 
-#include "rts/rts.h"
 #include "runtime.hpp"
 #include "ipc_event.hpp"
 #include "model.hpp"

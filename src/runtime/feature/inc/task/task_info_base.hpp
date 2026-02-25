@@ -18,6 +18,7 @@
 #include "module.hpp"
 #include "stars_base.hpp"
 #include "starsv2_base.hpp"
+#include "kernel.h"
 #define RTS_LITE_PCIE_BAR_COPY_SIZE (1024U)
 #define UB_DIRECT_WQE_MIN_LEN (64)
 #define UB_DIRECT_WQE_MAX_LEN (128)

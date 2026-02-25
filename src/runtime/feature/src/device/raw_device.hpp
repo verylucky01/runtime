@@ -20,7 +20,7 @@
 #include "event_expanding.hpp"
 #include "ctrl_sq.hpp"
 #include "program.hpp"
-
+#include "mmpa/mmpa_api.h"
 namespace cce {
 namespace runtime {
 

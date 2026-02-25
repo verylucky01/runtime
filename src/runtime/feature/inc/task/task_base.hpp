@@ -146,6 +146,7 @@ typedef enum tagTsTaskType {
     TS_TASK_TYPE_BARRIER = 54,             /* CMO task, CMO type is Barrier */
     TS_TASK_TYPE_WRITE_VALUE = 55,         /* stars write value task */
     TS_TASK_TYPE_MULTIPLE_TASK = 56,       /* for dvpp launch multiple task */
+    TS_TASK_TYPE_TASK_SQE_UPDATE = 57,     /* update task tiling and args */
     TS_TASK_TYPE_PROFILING_ENABLE = 64,    /* profiling enable task */
     TS_TASK_TYPE_PROFILING_DISABLE = 65,   /* profiling disable task */
     TS_TASK_TYPE_KERNEL_AIVEC = 66,        /* AI vector task */
@@ -215,7 +216,6 @@ typedef enum tagTsTaskType {
     TS_TASK_TYPE_IPC_WAIT  = 130,  /* ipc wait task */
     TS_TASK_TYPE_DQS_CONDITION_COPY = 131, /* dqs condition copy*/
     TS_TASK_TYPE_DQS_FRAME_ALIGN = 132, /* dqs frame align */
-    TS_TASK_TYPE_TASK_SQE_UPDATE = 133, /* update task tiling and args */
     TS_TASK_TYPE_RESERVED
 } tsTaskType_t;
 

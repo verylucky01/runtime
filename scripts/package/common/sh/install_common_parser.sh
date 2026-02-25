@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
 # This program is free software, you can redistribute it and/or modify it under the terms and conditions of
@@ -945,10 +945,6 @@ do_del_cann_uninstall() {
 
 # 删除ascend_install.info文件
 del_ascend_install_info() {
-    local install_path="$1"
-    local package="$2"
-    local package_dirpath
-
     rm -f "$curpath/../ascend_install.info"
 }
 
@@ -1212,7 +1208,7 @@ do_remove() {
         ret="$?" && [ $ret -ne 0 ] && return $ret
 
         if [ "$REMOVE_INSTALL_INFO" = "y" ]; then
-             del_ascend_install_info "$install_path"
+            del_ascend_install_info
         fi
     fi
 
@@ -1945,7 +1941,7 @@ IS_RECREATE_SOFTLINK=""
 WITH_DOCKER_ROOT_PREFIX=""
 FEATURE_EXCLUDE_ALL="n"
 REMOVE_INSTALL_INFO="n"  # 卸载时移除ascend_install.info文件
-USE_SHARE_INFO="n" # 包信息安装到share/info下
+USE_SHARE_INFO="n"
 CHIP="all"
 FEATURE="all"
 INCREMENT="n"  # 增量安装

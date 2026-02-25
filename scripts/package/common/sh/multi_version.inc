@@ -125,7 +125,7 @@ notify_latest_manager() {
         return 1
     fi
 
-    if [ "$USE_SHARE_INFO" = "y" ]; then    
+    if [ "${USE_SHARE_INFO}" == "y" ]; then
         ext_params="$ext_params --use-share-info"
     fi
 
@@ -300,5 +300,6 @@ multi_version_uninstall() {
         remove_dir_icp "${install_path}/${version_dir}"
         ret="$?" && [ $ret -ne 0 ] && total_ret="1"
     fi
+
     return ${total_ret}
 }

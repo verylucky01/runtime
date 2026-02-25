@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- coding: UTF-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
 # This program is free software, you can redistribute it and/or modify it under the terms and conditions of
@@ -13,13 +13,16 @@
 import os
 import shutil
 import subprocess
+import shlex
 from argparse import Namespace
 from itertools import chain
+from pathlib import Path
 from subprocess import PIPE, STDOUT
 from typing import Callable, Dict, List, NamedTuple, Optional, Tuple, Union
 
 from .utils.comm_log import CommLog
 from .utils.pkg_utils import CompressError
+from .pkg_parser import PkgSoftlink
 
 
 class PackageName:
@@ -88,6 +91,8 @@ def remove_ascend(text):
     if text is None:
         return None
     text_lower = text.lower()
+    if text_lower == "ascend910_93":
+        return "A3"
     if "ascend" in text_lower:
         return text_lower.replace("ascend", "")
     return text_lower
@@ -96,6 +101,16 @@ def remove_ascend(text):
 def get_func_name(func_name: str, package_attr) -> str:
     """获取包func_name。"""
     return func_name or package_attr.get('func_name')
+
+
+def softlink_before_package(pkg_soft_links: List[PkgSoftlink], release_dir: Union[str, Path]):
+    """打包前创建包内文件软链。"""
+    for pkg_softlink in pkg_soft_links:
+        src_path = os.path.join(release_dir, pkg_softlink.src_path)
+        dst_path = os.path.join(release_dir, pkg_softlink.dst_path)
+        os.symlink(
+            os.path.relpath(src_path, os.path.dirname(dst_path)), dst_path
+        )
 
 
 def get_compress_tool() -> str:
@@ -201,6 +216,48 @@ def create_run_package_command(params: MakeselfPkgParams
     return compose_makeself_command(params), None
 
 
+def _parse_env_and_cmd(tokens, env):
+    """
+    从一组 token 中提取环境变量并返回命令列表
+    """
+    cmd_list = []
+    for token in tokens:
+        if '=' in token and not cmd_list:
+            key, val = token.split('=', 1)
+            env[key] = os.getcwd() if val.upper() in ['$PWD', '$PWD/'] else val
+            continue
+        cmd_list.append(token)
+    return cmd_list
+
+
+def run_complex_cmd(cmd_str):
+    """
+    处理cmd命令
+    """
+    parts = cmd_str.split('&&')
+    cwd, env = None, os.environ.copy()
+    final_cmd = None
+
+    for part in parts:
+        tokens = shlex.split(part.strip())
+        if not tokens:
+            continue
+
+        if tokens[0] == 'cd':
+            cwd = tokens[1] if len(tokens) > 1 else cwd
+            continue
+
+        final_cmd = _parse_env_and_cmd(tokens, env)
+
+    if not final_cmd:
+        return None
+
+    return subprocess.run(
+        final_cmd, cwd=cwd, env=env, shell=False,
+        check=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+    )
+
+
 def exec_pack_cmd(delivery_dir: str,
                  pack_cmd: str,
                  package_name: str) -> str: 
@@ -210,8 +267,8 @@ def exec_pack_cmd(delivery_dir: str,
     else:
         cmd = pack_cmd
     CommLog.cilog_info("package cmd:%s", cmd)
-    result = subprocess.run(cmd, shell=True, check=False, stdout=PIPE, stderr=STDOUT)
-    output = result.stdout.decode()
+    result = run_complex_cmd(cmd)
+    output = result.stdout
     if result.returncode != 0:
         CommLog.cilog_error(__file__, "compress package(%s) failed! %s.", package_name, output)
         raise CompressError(package_name)

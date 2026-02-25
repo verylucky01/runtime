@@ -557,11 +557,11 @@ check_pkg_ver_deps() {
 check_install_path_valid() {
     local install_path="$1"
     # 黑名单设置，不允许//，...这样的路径
-    if echo "${install_path}" | grep -Eq '\/{2,}|\.{3,}'; then
+    if echo "${install_path}" | grep -Eq '/{2,}|\.{3,}'; then
         return 1
     fi
     # 白名单设置，只允许常见字符
-    if echo "${install_path}" | grep -Eq '^\~?[a-zA-Z0-9./_-]*$'; then
+    if echo "${install_path}" | grep -Eq '^~?[a-zA-Z0-9./_-]*$'; then
         return 0
     else
         return 1
@@ -747,27 +747,16 @@ does_pkg_installed() {
     local install_path="$1"
     local pkgname="$2"
     local varname="$3"
-    local result="true"
-    local pkg_path="${install_path}/${pkgname}"
-    local script_path="${pkg_path}/script"
+    local result="false"
+    local pkg_path="${install_path}/share/info/${pkgname}"
 
-    if [ -L "${pkg_path}" ]; then
-        result="false"
+    if [ -d "${pkg_path}" ]; then
+        result="true"
     fi
 
-    if [ ! -d "${pkg_path}" ]; then
-        result="false"
-    fi
-
-    if [ -L "${script_path}" ]; then
-        result="false"
-    fi
-
-    if [ ! -d "${script_path}" ]; then
-        result="false"
-    fi
-
-    eval "${varname}=\"${result}\""
+    read -r "$varname" <<EOF
+$result
+EOF
 }
 
 
@@ -1007,11 +996,8 @@ preinstall_process() {
         real_install_path="${docker_root}/${install_path}"
     fi
 
-    version_info_path="$(pwd)/version.info"
-
-    _check_version_compatiable "${version_info_path}" "${real_install_path}" "${script_dir}"
-    ret=$?
-    if [ $ret -ne 0 ]; then
+    _check_version_compatiable "$package" "${real_install_path}" "${script_dir}"
+    if [ $? -ne 0 ]; then
         return 1
     fi
 

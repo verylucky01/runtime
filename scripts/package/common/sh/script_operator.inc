@@ -65,6 +65,19 @@ __create_setenv_file() {
     if [ ! -f "${file}" ]; then
         echo "#!/usr/bin/env ${shell_type}" > ${file}
         ret="$?" && [ $ret -ne 0 ] && return $ret
+
+        if [ "${add_multi_version_param}" = "true" ]; then
+            if [ "${shell_type}" = "bash" ]; then
+                echo "export ASCEND_HOME_PATH=\"${install_path}\"" >> "${file}"
+                ret="$?" && [ $ret -ne 0 ] && return $ret
+            elif [ "${shell_type}" = "fish" ]; then
+                echo "set -gx ASCEND_HOME_PATH \"${install_path}\"" >> "${file}"
+                ret="$?" && [ $ret -ne 0 ] && return $ret
+            elif [ "${shell_type}" = "csh" ]; then
+                echo "setenv ASCEND_HOME_PATH \"${install_path}\"" >> "${file}"
+                ret="$?" && [ $ret -ne 0 ] && return $ret
+            fi
+        fi
     fi
     return 0
 }
@@ -136,19 +149,6 @@ add_setenv_cmd() {
 
     change_mod "${config_path}" "${SETENV_WRITEABLE_MOD}" ""
     ret="$?" && [ $ret -ne 0 ] && return $ret
-
-    if ! grep " ASCEND_HOME_PATH"  "${config_path}" > /dev/null; then
-        if [ "${shell_type}" = "bash" ]; then
-            echo "export ASCEND_HOME_PATH=\"${install_path}\"" >> "${config_path}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-        elif [ "${shell_type}" = "fish" ]; then
-            echo "set -gx ASCEND_HOME_PATH \"${install_path}\"" >> "${config_path}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-        elif [ "${shell_type}" = "csh" ]; then
-            echo "setenv ASCEND_HOME_PATH \"${install_path}\"" >> "${config_path}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-        fi
-    fi
 
     __remove_path_regex "${path_regex}" "${config_path}"
     ret="$?" && [ $ret -ne 0 ] && return $ret
@@ -223,6 +223,81 @@ __create_config_file() {
     return 0
 }
 
+# 为bash添加rc配置
+add_bash_env_rc() {
+    local userpath="$1"
+    local username="$2"
+    local usergroup="$3"
+    local path_regex="$4"
+    local setenv_filepath="$5"
+    local config_path="${userpath}/.bashrc"
+    local ret
+
+    __create_config_dir "${userpath}" "${username}" "${usergroup}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    __create_config_file "${config_path}" "${username}" "${usergroup}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    __remove_path_regex "${path_regex}" "${config_path}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    echo "source ${setenv_filepath}" >> "${config_path}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+}
+
+# 为fish添加rc配置
+add_fish_env_rc() {
+    local userpath="$1"
+    local username="$2"
+    local usergroup="$3"
+    local path_regex="$4"
+    local setenv_filepath="$5"
+    local config_path="${userpath}/.config/fish/config.fish"
+    local ret
+
+    __create_config_dir "${userpath}" "${username}" "${usergroup}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    __create_config_dir "${userpath}/.config" "${username}" "${usergroup}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    __create_config_dir "${userpath}/.config/fish" "${username}" "${usergroup}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    __create_config_file "${config_path}" "${username}" "${usergroup}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    __remove_path_regex "${path_regex}" "${config_path}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    echo "source ${setenv_filepath}" >> "${config_path}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+}
+
+# 为csh添加rc配置
+add_csh_env_rc() {
+    local userpath="$1"
+    local username="$2"
+    local usergroup="$3"
+    local path_regex="$4"
+    local setenv_filepath="$5"
+    local config_path="${userpath}/.cshrc"
+    local ret
+
+    __create_config_dir "${userpath}" "${username}" "${usergroup}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    __create_config_file "${config_path}" "${username}" "${usergroup}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    __remove_path_regex "${path_regex}" "${config_path}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+
+    echo "set argv=(\"${setenv_filepath}\"); source ${setenv_filepath}" >> "${config_path}"
+    ret="$?" && [ $ret -ne 0 ] && return $ret
+}
+
 # 添加source setenv.[shell]脚本到rc文件中
 add_env_rc() {
     local install_path="$1"
@@ -261,59 +336,16 @@ add_env_rc() {
 
     if [ "${setenv}" = "y" ]; then
         __set_userpath "${username}" "${docker_root}"
-
-        if [ "${shell_type}" = "bash" ]; then
-            config_path="${userpath}/.bashrc"
-            __create_config_dir "${userpath}" "${username}" "${usergroup}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            __create_config_file "${config_path}" "${username}" "${usergroup}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            __remove_path_regex "${path_regex}" "${config_path}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            echo "source ${setenv_filepath}" >> "${config_path}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-        elif [ "${shell_type}" = "fish" ]; then
-            config_path="${userpath}/.config/fish/config.fish"
-            __create_config_dir "${userpath}" "${username}" "${usergroup}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            __create_config_dir "${userpath}/.config" "${username}" "${usergroup}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            __create_config_dir "${userpath}/.config/fish" "${username}" "${usergroup}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            __create_config_file "${config_path}" "${username}" "${usergroup}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            __remove_path_regex "${path_regex}" "${config_path}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            echo "source ${setenv_filepath}" >> "${config_path}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-        elif [ "${shell_type}" = "csh" ]; then
-            config_path="${userpath}/.cshrc"
-            __create_config_dir "${userpath}" "${username}" "${usergroup}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            __create_config_file "${config_path}" "${username}" "${usergroup}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            __remove_path_regex "${path_regex}" "${config_path}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-
-            echo "set argv=(\"${setenv_filepath}\"); source ${setenv_filepath}" >> "${config_path}"
-            ret="$?" && [ $ret -ne 0 ] && return $ret
-        fi
+        case "${shell_type}" in
+            bash) add_bash_env_rc "${userpath}" "${username}" "${usergroup}" "${path_regex}" "${setenv_filepath}" ;;
+            fish) add_fish_env_rc "${userpath}" "${username}" "${usergroup}" "${path_regex}" "${setenv_filepath}" ;;
+            csh)  add_csh_env_rc "${userpath}" "${username}" "${usergroup}" "${path_regex}" "${setenv_filepath}" ;;
+        esac
+        ret="$?" && [ $ret -ne 0 ] && return $ret
     fi
 
-    if [ ! -d "${install_path}/bin" ]; then
-        # 如果bin目录不存在，则不处理
-        return 0
-    fi
+    # 如果bin目录不存在，则不处理
+    [ ! -d "${install_path}/bin" ] && return 0
 
     add_setenv_cmd "${install_path}" "${setenv_filepath}" "${package}" "${shell_type}" "${username}" "${usergroup}" "${add_multi_version_param}"
 }
@@ -424,6 +456,7 @@ get_shell_path_and_shell_path_real() {
 
     eval "${_outvar}=\"${_shell_path} ${_shell_path_real}\""
 }
+
 
 # 增加prereq_check
 add_prereq_check() {

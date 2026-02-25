@@ -306,13 +306,13 @@ get_package_dir() {
     local _package="$2"
     local _is_under_tools _result
 
-    if [ "$USE_SHARE_INFO" = "y" ]; then
+    if [ "${USE_SHARE_INFO}" == "y" ]; then
         _result="share/info"
     else
         is_package_under_tools "_is_under_tools" "${_package}"
-        if [ "${_is_under_tools}" = "true" ]; then  
+        if [ "${_is_under_tools}" = "true" ]; then
             _result="tools"
-        else   
+        else
             _result=""
         fi
     fi
@@ -325,13 +325,13 @@ get_package_dirpath() {
     local _package="$2"
     local _is_under_tools _result
 
-    if [ "$USE_SHARE_INFO" = "y" ]; then
+    if [ "${USE_SHARE_INFO}" == "y" ]; then
         _result="share/info/${_package}"
     else
         is_package_under_tools "_is_under_tools" "${_package}"
-        if [ "${_is_under_tools}" = "true" ]; then  
+        if [ "${_is_under_tools}" = "true" ]; then
             _result="tools/${_package}"
-        else   
+        else
             _result="${_package}"
         fi
     fi

@@ -30,20 +30,26 @@ if(EXISTS "${OPEN_SOURCE_MAKESELF_PATH}/makeself-header.sh" AND
     endif()
 
 else()
-    # 从网络下载 makeself
-    set(MAKESELF_URL "https://gitcode.com/cann-src-third-party/makeself/releases/download/release-2.5.0-patch1.0/makeself-release-2.5.0-patch1.tar.gz")
-    set(MAKESELF_TAR "${CMAKE_BINARY_DIR}/makeself.tar.gz")
     set(EXTRACT_TEMP_DIR "${CMAKE_BINARY_DIR}/makeself-tmp")
 
-    message(STATUS "Downloading ${MAKESELF_NAME} from ${MAKESELF_URL}")
+    if(EXISTS "${OPEN_SOURCE_DIR}/makeself-release-2.5.0-patch1.tar.gz")
+        message(STATUS "Using local makeself tar.gz: ${OPEN_SOURCE_DIR}/makeself-release-2.5.0-patch1.tar.gz")
+        set(MAKESELF_TAR "${OPEN_SOURCE_DIR}/makeself-release-2.5.0-patch1.tar.gz")
+    else()
+        # 从网络下载 makeself
+        set(MAKESELF_URL "https://gitcode.com/cann-src-third-party/makeself/releases/download/release-2.5.0-patch1.0/makeself-release-2.5.0-patch1.tar.gz")
+        set(MAKESELF_TAR "${CMAKE_BINARY_DIR}/makeself.tar.gz")
 
-    # 1. 下载 tar.gz
-    file(DOWNLOAD
-        "${MAKESELF_URL}"
-        "${MAKESELF_TAR}"
-        EXPECTED_HASH SHA256=bfa730a5763cdb267904a130e02b2e48e464986909c0733ff1c96495f620369a
-        SHOW_PROGRESS
-    )
+        message(STATUS "Downloading ${MAKESELF_NAME} from ${MAKESELF_URL}")
+
+        # 1. 下载 tar.gz
+        file(DOWNLOAD
+            "${MAKESELF_URL}"
+            "${MAKESELF_TAR}"
+            EXPECTED_HASH SHA256=bfa730a5763cdb267904a130e02b2e48e464986909c0733ff1c96495f620369a
+            SHOW_PROGRESS
+        )
+    endif()
 
     # 2. 创建临时解压目录
     file(MAKE_DIRECTORY "${EXTRACT_TEMP_DIR}")

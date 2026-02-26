@@ -12,8 +12,13 @@ set(BOOST_PATH ${OPEN_SOURCE_DIR}/boost-1.87.0)
 
 # 默认配置的boost不存在则下载
 if (NOT EXISTS "${BOOST_PATH}/boost/config.hpp")
-    message("boost not use cache, start download")
-    set(BOOST_URL "https://gitcode.com/cann-src-third-party/boost/releases/download/v1.87.0/boost_1_87_0.tar.gz")
+    if (EXISTS "${OPEN_SOURCE_DIR}/boost_1_87_0.tar.gz")
+        message("boost use local tar.gz")
+        set(BOOST_URL "${OPEN_SOURCE_DIR}/boost_1_87_0.tar.gz")
+    else()
+        message("boost not use cache, start download")
+        set(BOOST_URL "https://gitcode.com/cann-src-third-party/boost/releases/download/v1.87.0/boost_1_87_0.tar.gz")
+    endif()
     message(STATUS "Downloading ${BOOST_NAME} from ${BOOST_URL}")
 
     include(FetchContent)

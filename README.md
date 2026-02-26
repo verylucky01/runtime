@@ -126,13 +126,55 @@
     git clone https://gitcode.com/cann/runtime.git
     ```
 
+> [!NOTE] 注意
+> gitcode平台在使用HTTPS协议的时候要配置并使用个人访问令牌代替登录密码进行克隆，推送等操作。  
+
+若您的编译环境无法访问网络，由于无法通过`git`指令下载代码，须在联网环境中下载源码后，手动上传至目标环境。
+- 在联网环境中，进入[本项目主页](https://gitcode.com/cann/runtime.git), 通过`下载ZIP`或`clone`按钮，根据指导，完成源码下载。
+- 连接至离线环境中，上传源码至您指定的目录下。若下载的为源码压缩包，还需进行解压。
+
+#### 开源第三方软件依赖
+
+Runtime在编译时，依赖的第三方开源软件列表如下：
+
+| 开源软件 | 版本 | 下载地址 |
+|---|---|---|
+| abseil-cpp | 20230802.1 | [abseil-cpp-20230802.1.tar.gz](https://gitcode.com/cann-src-third-party/abseil-cpp/releases/download/20230802.1/abseil-cpp-20230802.1.tar.gz) |
+| acl-compat (x86_64) | 8.5.0 | [acl-compat_8.5.0_linux-x86_64.tar.gz](https://mirrors.huaweicloud.com/artifactory/cann-run/8.5.0/inner/x86_64/acl-compat_8.5.0_linux-x86_64.tar.gz) |
+| acl-compat (aarch64) | 8.5.0 | [acl-compat_8.5.0_linux-aarch64.tar.gz](https://mirrors.huaweicloud.com/artifactory/cann-run/8.5.0/inner/aarch64/acl-compat_8.5.0_linux-aarch64.tar.gz) |
+| boost | 1.87.0 | [boost_1_87_0.tar.gz](https://gitcode.com/cann-src-third-party/boost/releases/download/v1.87.0/boost_1_87_0.tar.gz) |
+| eigen | 5.0.0 | [eigen-5.0.0.tar.gz](https://gitcode.com/cann-src-third-party/eigen/releases/download/5.0.0/eigen-5.0.0.tar.gz) |
+| googletest | 1.14.0 | [googletest-1.14.0.tar.gz](https://gitcode.com/cann-src-third-party/googletest/releases/download/v1.14.0/googletest-1.14.0.tar.gz) |
+| json | 3.11.3 | [include.zip](https://gitcode.com/cann-src-third-party/json/releases/download/v3.11.3/include.zip) |
+| libboundscheck | 1.1.16 | [libboundscheck-v1.1.16.tar.gz](https://gitcode.com/cann-src-third-party/libboundscheck/releases/download/v1.1.16/libboundscheck-v1.1.16.tar.gz) |
+| libseccomp | 2.5.4 | [libseccomp-2.5.4.tar.gz](https://gitcode.com/cann-src-third-party/libseccomp/releases/download/v2.5.4/libseccomp-2.5.4.tar.gz) |
+| mockcpp | 2.7-h2 | [mockcpp-2.7.tar.gz](https://gitcode.com/cann-src-third-party/mockcpp/releases/download/v2.7-h2/mockcpp-2.7.tar.gz) |
+| mockcpp_patch | 2.7-h2 | [mockcpp-2.7_py3.patch](https://gitcode.com/cann-src-third-party/mockcpp/releases/download/v2.7-h2/mockcpp-2.7_py3.patch) |
+| openssl | 3.0.9 | [openssl-openssl-3.0.9.tar.gz](https://gitcode.com/cann-src-third-party/openssl/releases/download/openssl-3.0.9/openssl-openssl-3.0.9.tar.gz) |
+| protobuf | 25.1 | [protobuf-25.1.tar.gz](https://gitcode.com/cann-src-third-party/protobuf/releases/download/v25.1/protobuf-25.1.tar.gz) |
+| makeself | 2.5.0 | [makeself-release-2.5.0-patch1.tar.gz](https://gitcode.com/cann-src-third-party/makeself/releases/download/release-2.5.0-patch1.0/makeself-release-2.5.0-patch1.tar.gz) |
+
+> [!NOTE]注意
+> 如果您从其他地址下载，请确保版本号一致。
+
 #### 编译安装
 
-`Runtime`提供一键式编译能力，可通过如下命令进行编译：
+若您的编译环境可以访问网络，编译过程中将自动下载上述开源第三方软件，可以使用如下命令进行编译：
 
 ```bash
 export CMAKE_TLS_VERIFY=0
 bash build.sh
+```
+
+若您的编译环境无法访问网络，可以直接调用脚本获取开源组件压缩包，脚本将自动下载至当前新建的 `third_party` 目录中：
+
+```bash
+python download_3rd_party.py
+```
+
+下载完成后，可以使用如下命令进行编译：
+```bash
+bash build.sh --cann_3rd_lib_path=third_party
 ```
 更多编译参数可以通过`bash build.sh -h`查看。
 
@@ -171,11 +213,12 @@ bash build.sh
 编译执行`UT`测试用例：
 
 ```bash
-bash tests/build_ut.sh --ut=acl --target=ascendcl_utest -c
+bash tests/build_ut.sh --ut=acl --target=ascendcl_utest -c --cann_3rd_lib_path={your_3rd_party_path}
 ```
 - `--ut`可以指定需要执行的`tests/ut`目录下的用例文件，例如`acl、runtime`等;
 - `--target`可以指定需要执行的用例文件编译出来的目标二进制文件（可能有多个），例如acl用例可以使用`tests/ut/acl/CMakeLists.txt`文件中定义的`ascendcl_utest`；runtime用例可以使用`tests/ut/runtime/runtime/CMakeLists.txt`文件中定义的`runtime_utest_task_910B`，执行runtime全量用例则需要指定target为`runtime_ut`;
 - `-c`可以获取覆盖率（如无需获取覆盖率，可省略此参数）。
+- `--cann_3rd_lib_path`指定第三方依赖的路径，若在联网环境中，可省略此参数。
 
 UT测试用例编译输出目录为`build`，如果想清除历史编译记录，可以执行如下操作：
 

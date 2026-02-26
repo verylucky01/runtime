@@ -49,9 +49,12 @@ set(BOOST_INCLUDE_DIRS ${OPEN_SOURCE_DIR}/boost-1.87.0)
 
 message(STATUS "mock cmake install prefix ${CMAKE_INSTALL_PREFIX}")
 if (NOT EXISTS "${OPEN_SOURCE_DIR}/mockcpp/lib/libmockcpp.a" OR TRUE)
-    set(PATCH_FILE ${OPEN_SOURCE_DIR}/mockcpp-2.7/mockcpp-2.7_py3test.patch)
-    if (TRUE)
-        message(STATUS, "mockcpp patch not use cache.")
+    if (EXISTS "${OPEN_SOURCE_DIR}/mockcpp-2.7_py3.patch")
+        set(PATCH_FILE "${OPEN_SOURCE_DIR}/mockcpp-2.7_py3.patch")
+        message(STATUS "mockcpp patch use cache: ${PATCH_FILE}")
+    else()
+        set(PATCH_FILE ${OPEN_SOURCE_DIR}/mockcpp-2.7/mockcpp-2.7_py3test.patch)
+        message(STATUS "mockcpp patch not use cache.")
         file(DOWNLOAD
             "https://gitcode.com/cann-src-third-party/mockcpp/releases/download/v2.7-h2/mockcpp-2.7_py3.patch"
             ${PATCH_FILE}
@@ -61,8 +64,13 @@ if (NOT EXISTS "${OPEN_SOURCE_DIR}/mockcpp/lib/libmockcpp.a" OR TRUE)
     include(ExternalProject)
     message(STATUS, "CMAKE_COMMAND is ${CMAKE_COMMAND}")
     if (NOT EXISTS "${URL_FILE}")
-        set(URL_FILE "https://gitcode.com/cann-src-third-party/mockcpp/releases/download/v2.7-h2/mockcpp-2.7.tar.gz")
-        message("mockcpp not use cache, new url file: ${URL_FILE}")
+        if(EXISTS "${OPEN_SOURCE_DIR}/mockcpp-2.7.tar.gz")
+            set(URL_FILE "${OPEN_SOURCE_DIR}/mockcpp-2.7.tar.gz")
+            message("mockcpp use local tar.gz: ${URL_FILE}")
+        else()
+            set(URL_FILE "https://gitcode.com/cann-src-third-party/mockcpp/releases/download/v2.7-h2/mockcpp-2.7.tar.gz")
+            message("mockcpp not use cache, new url file: ${URL_FILE}")
+        endif()
     endif()
     ExternalProject_Add(mockcpp
         URL ${URL_FILE}

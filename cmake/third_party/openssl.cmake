@@ -26,7 +26,11 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
         include(ExternalProject)
 
         # ========== 基本路径配置 ==========
-        set(OPENSSL_TARBALL https://gitcode.com/cann-src-third-party/openssl/releases/download/openssl-3.0.9/openssl-openssl-3.0.9.tar.gz)   # 源码包
+        if (EXISTS "${OPEN_SOURCE_DIR}/openssl-openssl-3.0.9.tar.gz")
+            set(OPENSSL_TARBALL ${OPEN_SOURCE_DIR}/openssl-openssl-3.0.9.tar.gz)
+        else()
+            set(OPENSSL_TARBALL https://gitcode.com/cann-src-third-party/openssl/releases/download/openssl-3.0.9/openssl-openssl-3.0.9.tar.gz)
+        endif()
         set(OPENSSL_SRC_DIR ${CMAKE_BINARY_DIR}/openssl-src)        # 解压后的源码路径
         set(OPENSSL_INSTALL_DIR ${CMAKE_BINARY_DIR}/openssl-install) # 安装路径
         set(OPENSSL_INSTALL_LIBDIR ${OPENSSL_INSTALL_DIR}/lib)

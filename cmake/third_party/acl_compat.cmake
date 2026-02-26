@@ -23,7 +23,12 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG AND NOT EXISTS "${CMAKE_BINARY_DIR}
         message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
     endif()
 
-    set(REQ_URL "https://mirrors.huaweicloud.com/artifactory/cann-run/8.5.0/inner/${TARGET_ARCH}/acl-compat_8.5.0_linux-${TARGET_ARCH}.tar.gz")
+    set(LOCAL_TAR_FILE "${OPEN_SOURCE_DIR}/acl-compat_8.5.0_linux-${TARGET_ARCH}.tar.gz")
+    if (EXISTS "${LOCAL_TAR_FILE}")
+        set(REQ_URL "${LOCAL_TAR_FILE}")
+    else()
+        set(REQ_URL "https://mirrors.huaweicloud.com/artifactory/cann-run/8.5.0/inner/${TARGET_ARCH}/acl-compat_8.5.0_linux-${TARGET_ARCH}.tar.gz")
+    endif()
     include(ExternalProject)
     ExternalProject_Add(acl_compat_tar
             URL ${REQ_URL}

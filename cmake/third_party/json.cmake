@@ -13,11 +13,16 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
 
     set(JSON_SRC_DIR ${OPEN_SOURCE_DIR}/json) 
     if (NOT EXISTS "${JSON_SRC_DIR}")
-        message("json not use cache.")
         set(JSON_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/json")
         set(JSON_INCLUDE "${CMAKE_BINARY_DIR}/json/include")
         set(JSON_SOURCE "${CMAKE_BINARY_DIR}/json/include/nlohmann")
-        set(REQ_URL "https://gitcode.com/cann-src-third-party/json/releases/download/v3.11.3/include.zip")
+        if (EXISTS "${OPEN_SOURCE_DIR}/include.zip")
+            message("json use local include.zip")
+            set(REQ_URL "${OPEN_SOURCE_DIR}/include.zip")
+        else()
+            message("json not use cache.")
+            set(REQ_URL "https://gitcode.com/cann-src-third-party/json/releases/download/v3.11.3/include.zip")
+        endif()
         include(ExternalProject)
         ExternalProject_Add(third_party_json
             URL ${REQ_URL}

@@ -20,7 +20,7 @@ elseif (IS_DIRECTORY "${OPEN_SOURCE_DIR}/eigen")
   set(REQ_URL "${OPEN_SOURCE_DIR}/eigen")
 else()
   message("The eigen package needs to be downloaded.")
-  set(REQ_URL "https://gitcode.com/cann-src-third-party/eigen/releases/download/5.0.0/eigen-5.0.0.tar.gz")
+  set(REQ_URL "https://gitcode.com/cann-src-third-party/eigen/releases/download/5.0.0-h0.trunk/eigen-5.0.0.tar.gz")
 endif()
 
 include(ExternalProject)

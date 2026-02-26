@@ -1847,7 +1847,6 @@ aclError aclrtMemGetAllocationPropertiesFromHandleImpl(aclrtDrvMemHandle handle,
 
     rtDrvMemProp_t rtProp = {};
     const rtError_t rtErr = rtMemGetAllocationPropertiesFromHandle(reinterpret_cast<rtDrvMemHandle>(handle), &rtProp);
-
     if (rtErr != ACL_RT_SUCCESS) {
         ACL_LOG_CALL_ERROR("get handle failed, runtime result = %d", static_cast<int32_t>(rtErr));
         return ACL_GET_ERRCODE_RTS(rtErr);

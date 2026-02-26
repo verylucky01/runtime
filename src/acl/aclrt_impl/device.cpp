@@ -525,7 +525,6 @@ aclError aclrtGetResInCurrentThreadImpl(aclrtDevResLimitType type, uint32_t *val
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(value);
     const rtError_t rtErr = rtsGetResInCurrentThread(static_cast<rtDevResLimitType_t>(type), value);
     if (rtErr != RT_ERROR_NONE) {
-
         ACL_LOG_CALL_ERROR("call rtsGetResInCurrentThread failed, runtime result = %d.", static_cast<int32_t>(rtErr));
         return ACL_GET_ERRCODE_RTS(rtErr);
     }

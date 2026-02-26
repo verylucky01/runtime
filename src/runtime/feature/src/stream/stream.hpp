@@ -44,6 +44,14 @@ constexpr uint32_t STREAM_TO_FULL_CNT = 64U;
 constexpr uint32_t CAPTURE_TASK_RESERVED_NUM = 32U;
 constexpr uint32_t STREAM_SQE_BUFFER_MAX_SIZE = 2 * 1024 * 1024;  // 2M, max sq depth 32768
 constexpr uint32_t STREAM_SQ_MAX_DEPTH = 32768U;
+constexpr float NOP_TASK_DURATION = 0.5f;
+constexpr float RECORD_TASK_DURATION = 4.5f;
+constexpr float WAIT_TASK_DURATION = 14.5f;
+constexpr float DEFAULT_TASK_DURATION = 9.5f;
+constexpr uint32_t NOP_TASK_E2E_DURATION = 1U;
+constexpr uint32_t RECORD_TASK_E2E_DURATION = 5U;
+constexpr uint32_t WAIT_TASK_E2E_DURATION = 15U;
+constexpr uint32_t DEFAULT_TASK_E2E_DURATION = 10U;
 
 namespace cce {
 namespace runtime {

@@ -4473,7 +4473,7 @@ void Stream::DebugJsonPrintForModelStm(std::ofstream& outputFile, const uint32_t
     std::vector<uint16_t>::iterator it;
     std::vector<TraceEvent> recordArray;
     pid_t pid = getpid();
-    uint32_t taskDur = 0;
+    uint32_t taskDur = 0U;
     for (it = delayRecycleTaskid_.begin(); it != delayRecycleTaskid_.end(); ++it) {
         TraceEvent record;
         const uint16_t taskId = *it;
@@ -4527,17 +4527,17 @@ void Stream::DebugJsonPrintForModelStm(std::ofstream& outputFile, const uint32_t
         record.tid = "stream" + std::to_string(streamId_);
         record.ts = taskDur;
         if (taskType == "NOP") {
-            record.dur = 0.5f;
-            taskDur += 1;
+            record.dur = NOP_TASK_DURATION;
+            taskDur += NOP_TASK_E2E_DURATION;
         } else if (taskType.find("RECORD") != std::string::npos) {
-            record.dur = 4.5f;
-            taskDur += 5;
+            record.dur = RECORD_TASK_DURATION;
+            taskDur += RECORD_TASK_E2E_DURATION;
         } else if (taskType.find("WAIT") != std::string::npos) {
-            record.dur = 14.5f;
-            taskDur += 15;
+            record.dur = WAIT_TASK_DURATION;
+            taskDur += WAIT_TASK_E2E_DURATION;
         } else {
-            record.dur = 9.5f;
-            taskDur += 10;
+            record.dur = DEFAULT_TASK_DURATION;
+            taskDur += DEFAULT_TASK_E2E_DURATION;
         }
         record.ph =  "X";	
         record.args.modelId = modelId;

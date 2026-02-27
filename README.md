@@ -229,6 +229,10 @@ rm -rf build_ut/ output/ build/
 
 **接下来可参考[样例运行](example/README.md)尝试运行样例**。
 
+## 学习教程
+
+Runtime提供了开发指南、API参考，详细可参见 [Runtime 参考资料](./docs/README.md)。
+
 ## 相关信息
 - [贡献指南](CONTRIBUTING.md)
 - [安全声明](SECURITY.md)

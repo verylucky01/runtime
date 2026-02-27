@@ -130,7 +130,7 @@ else
 fi
 INSTALL_DIR="$(get_install_dir)/cann"
 prepend_env PATH "$INSTALL_DIR/bin:$INSTALL_DIR/tools/ccec_compiler/bin:$INSTALL_DIR/tools/profiler/bin:$INSTALL_DIR/tools/ascend_system_advisor/asys:$INSTALL_DIR/tools/show_kernel_debug_data:$INSTALL_DIR/tools/msobjdump"
-prepend_env LD_LIBRARY_PATH "$INSTALL_DIR/lib64:$INSTALL_DIR/lib64/plugin/opskernel:$INSTALL_DIR/lib64/plugin/nnengine:$INSTALL_DIR/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/$architecture:$INSTALL_DIR/tools/aml/lib64:$INSTALL_DIR/tools/aml/lib64/plugin"
+prepend_env LD_LIBRARY_PATH "$INSTALL_DIR/lib64:$INSTALL_DIR/lib64/plugin/opskernel:$INSTALL_DIR/lib64/plugin/nnengine:$INSTALL_DIR/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/$architecture"
 export PYTHONPATH="$INSTALL_DIR/python/site-packages:$INSTALL_DIR/opp/built-in/op_impl/ai_core/tbe:$PYTHONPATH"
 export ASCEND_OPP_PATH="$INSTALL_DIR/opp"
 

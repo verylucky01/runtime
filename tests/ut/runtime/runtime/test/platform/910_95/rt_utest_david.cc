@@ -1260,6 +1260,55 @@ TEST_F(DavidTaskTest, check_prefetch_cnt_on_construct_davidsqe_for_aicaiv_nomix_
     delete kernel;
 }
 
+TEST_F(DavidTaskTest, config_schem_mode_on_construct_davidsqe_for_aic_mix_task)
+{
+    TaskInfo task = {};
+    rtDavidSqe_t sqe;
+    InitByStream(&task, stream_);
+
+    const void *stubFunc = (void *)0x02;
+    const char *stubName = "abc";
+    Kernel *kernel = NULL;
+    PlainProgram stubProg(Program::MACH_AI_CORE);
+    Program *program = &stubProg;
+    program->kernelNames_ = {'a', 'b', 'c', 'd', '\0'};
+    kernel = new (std::nothrow) Kernel(stubFunc, stubName, "", program, 0);
+    ((Runtime *)Runtime::Instance())->kernelTable_.Add(kernel);
+
+    AicTaskInit(&task, Program::MACH_AI_CORE, 1, 1, nullptr);
+    EXPECT_EQ(task.type, TS_TASK_TYPE_KERNEL_AICORE);
+    task.id = 0;
+    task.u.aicTaskInfo.kernel = kernel;
+    kernel->SetMixType(MIX_AIC);
+    stubProg.SetIsDcacheLockOp(true);
+
+    task.u.aicTaskInfo.comm.dim = 10;
+    // 优先级配置校验1:cfg schemMode>算子.o
+    task.u.aicTaskInfo.schemMode = RT_SCHEM_MODE_NORMAL;
+    kernel->SetSchedMode(RT_SCHEM_MODE_BATCH);
+    ToConstructDavidSqe(&task, &sqe, 0U);
+    EXPECT_EQ(sqe.aicAivSqe.schem, RT_SCHEM_MODE_NORMAL);
+    // 优先级配置校验2
+    task.u.aicTaskInfo.schemMode = RT_SCHEM_MODE_END;
+    kernel->SetSchedMode(RT_SCHEM_MODE_BATCH);
+    ToConstructDavidSqe(&task, &sqe, 0U);
+    EXPECT_EQ(sqe.aicAivSqe.schem, RT_SCHEM_MODE_BATCH);
+    // AIV场景优先级配置
+    AicTaskInit(&task, Program::MACH_AI_VECTOR, 1, 1, nullptr);
+    EXPECT_EQ(task.type, TS_TASK_TYPE_KERNEL_AIVEC);
+    kernel->SetMixType(MIX_AIV);
+    ToConstructDavidSqe(&task, &sqe, 0U);
+    EXPECT_EQ(sqe.aicAivSqe.schem, RT_SCHEM_MODE_BATCH);
+    // MIX_MAIN_AIC场景优先级配置
+    AicTaskInit(&task, Program::MACH_AI_CORE, 1, 1, nullptr);
+    kernel->SetMixType(MIX_AIC_AIV_MAIN_AIC);
+    EXPECT_EQ(task.type, TS_TASK_TYPE_KERNEL_AICORE);
+    ToConstructDavidSqe(&task, &sqe, 0U);
+    EXPECT_EQ(sqe.aicAivSqe.schem, RT_SCHEM_MODE_BATCH);
+    TaskUnInitProc(&task);
+    delete kernel;
+}
+
 TEST_F(DavidTaskTest, construct_davidsqe_for_memcpy_async)
 {
     void *src = nullptr;

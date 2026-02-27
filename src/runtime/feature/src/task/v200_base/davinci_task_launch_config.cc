@@ -36,7 +36,12 @@ rtError_t GetLaunchConfigAttr(rtLaunchAttribute_t* attr, LaunchTaskCfgInfo_t* la
             launchTaskCfg->partId = attr->value.partId;
             break;
         case RT_LAUNCH_ATTRIBUTE_SCHEMMODE:
-            launchTaskCfg->schemMode = attr->value.schemMode;
+            if (attr->value.schemMode >= RT_SCHEM_MODE_END) {
+                RT_LOG_OUTER_MSG_INVALID_PARAM(attr->value.schemMode, "[0, " + std::to_string(RT_SCHEM_MODE_END) + ")");
+                error = RT_ERROR_INVALID_VALUE;
+            } else {
+                launchTaskCfg->schemMode = attr->value.schemMode;
+            }
             break;
         case RT_LAUNCH_ATTRIBUTE_BLOCKDIM_OFFSET:
             launchTaskCfg->blockDimOffset = attr->value.blockDimOffset;
@@ -55,11 +60,6 @@ rtError_t GetLaunchConfigAttr(rtLaunchAttribute_t* attr, LaunchTaskCfgInfo_t* la
 
 static rtError_t CheckLaunchCfg(const LaunchTaskCfgInfo_t* const launchTaskCfg)
 {
-    if (launchTaskCfg->schemMode >= RT_SCHEM_MODE_END) {
-        RT_LOG_OUTER_MSG_INVALID_PARAM(launchTaskCfg->schemMode, "[0, " + std::to_string(RT_SCHEM_MODE_END) + ")");
-        return RT_ERROR_INVALID_VALUE;
-    }
-
     const uint32_t blockDim = launchTaskCfg->blockDim;
     const uint32_t groupDim = launchTaskCfg->Group.groupDim;
     const uint32_t groupBlockDim = launchTaskCfg->Group.groupBlockDim;
@@ -97,6 +97,7 @@ static rtError_t CheckLaunchCfg(const LaunchTaskCfgInfo_t* const launchTaskCfg)
 rtError_t GetLaunchConfigInfo(const rtLaunchConfig_t * const launchConfig, LaunchTaskCfgInfo_t* launchTaskCfg)
 {
     rtError_t error = RT_ERROR_NONE;
+    launchTaskCfg->schemMode = static_cast<uint8_t>(RT_SCHEM_MODE_END);
     for (uint32_t i = 0U; i < launchConfig->numAttrs; i++) {
         rtLaunchAttribute_t* attr = &(launchConfig->attrs[i]);
         error = GetLaunchConfigAttr(attr, launchTaskCfg);

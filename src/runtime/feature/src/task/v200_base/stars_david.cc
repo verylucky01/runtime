@@ -71,6 +71,39 @@ rtDavidSqe_t *GetSqPosAddr(uint64_t sqBaseAddr, uint32_t pos)
     return RtValueToPtr<rtDavidSqe_t *>(sqBaseAddr + (temp << SHIFT_SIX_SIZE));
 }
 
+static uint16_t GetSchemMode(const Kernel * const kernel, uint8_t schemMode)
+{
+    // cfg配置的优先级最高 其次是meta section段配置 最后是默认的 normal mode
+    if (schemMode == RT_SCHEM_MODE_END) {
+        if (kernel != nullptr) {
+            return static_cast<uint16_t>(kernel->GetSchedMode());
+        } else {
+            return static_cast<uint16_t>(RT_SCHEM_MODE_NORMAL);
+        }
+    }
+    return static_cast<uint16_t>(schemMode);
+}
+
+static void CheckBlockDim(const Stream *const stm, const uint16_t sqeType, const uint16_t blockDim)
+{
+    rtDevResLimitType_t coreType = RT_DEV_RES_TYPE_MAX;
+    if (sqeType == RT_DAVID_SQE_TYPE_AIC) {
+        coreType = RT_DEV_RES_CUBE_CORE;
+    } else if (sqeType == RT_DAVID_SQE_TYPE_AIV) {
+        coreType = RT_DEV_RES_VECTOR_CORE;
+    } else {
+        return;
+    }
+
+    const uint32_t coreNum = stm->Device_()->GetResInitValue(coreType);
+    COND_RETURN_VOID_WARN(blockDim > coreNum,
+        "blockDim exceeds coreNum, drv deviceId=%u, coreType=%d, blockDim=%hu, coreNum=%u",
+        stm->Device_()->Id_(),
+        coreType,
+        blockDim,
+        coreNum);
+}
+
 void ToConstructDavidSqe(TaskInfo *taskInfo, rtDavidSqe_t * const davidSqe, uint64_t sqBaseAddr)
 {
     taskInfo->bindFlag = taskInfo->stream->GetBindFlag();
@@ -1183,12 +1216,15 @@ static void ConfigDieFriendly(const TaskInfo* taskInfo, RtDavidStarsAicAivKernel
 }
 
 template<typename T>
-static void ConstructAivSqePart(const T * const kernelInfo, RtDavidStarsAicAivKernelSqe * const sqe, uint64_t addr)
+static void ConstructAivSqePart(const T * const kernelInfo, RtDavidStarsAicAivKernelSqe * const sqe, uint64_t addr,
+    const Stream *const stm)
 {
     const uint64_t funcAddr = kernelInfo->funcAddr;
+    uint8_t schemMode = kernelInfo->schemMode;
+    const Kernel *kernel = kernelInfo->kernel;
     uint32_t prefetchCnt1 = 0U;
-    if (kernelInfo->kernel != nullptr) {
-        prefetchCnt1 = kernelInfo->kernel->PrefetchCnt1_();
+    if (kernel != nullptr) {
+        prefetchCnt1 = kernel->PrefetchCnt1_();
     }
     /* word0-1 */
     sqe->header.type = RT_DAVID_SQE_TYPE_AIV;
@@ -1210,10 +1246,14 @@ static void ConstructAivSqePart(const T * const kernelInfo, RtDavidStarsAicAivKe
     sqe->aivQos = kernelInfo->qos;
     sqe->aivWrrRd = RT_DAVID_AIV_WRR_RD;
     sqe->aivWrrWr = RT_DAVID_AIV_WRR_WR;
-    sqe->schem = kernelInfo->schemMode == static_cast<uint8_t>(RT_SCHEM_MODE_END) ?
-        static_cast<uint16_t>(RT_SCHEM_MODE_NORMAL) : static_cast<uint16_t>(kernelInfo->schemMode);
+    uint16_t curSchemMode = GetSchemMode(kernel, schemMode);
+    sqe->schem = curSchemMode;
+    if (curSchemMode == RT_SCHEM_MODE_BATCH) {
+        const uint16_t sqeType = sqe->header.type;
+        const uint16_t blockDim = sqe->header.blockDim;
+        CheckBlockDim(stm, sqeType, blockDim);
+    }
     sqe->ratio = 1U;            // only ratio is 1.
-    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, sqe_schem=%u, ratio=%u", kernelInfo->schemMode, sqe->schem, sqe->ratio);
 
     /* word8-9 */
     sqe->aicStartPcLow = 0U;
@@ -1229,8 +1269,8 @@ static void ConstructAivSqePart(const T * const kernelInfo, RtDavidStarsAicAivKe
     sqe->aicTaskParamPtrHigh = 0U;
     sqe->aivTaskParamPtrLow = static_cast<uint32_t>(addr);
     sqe->aivTaskParamPtrHigh = (sqe->aivTaskParamPtrHigh & 0xFFF00000U) | static_cast<uint32_t>(addr >> UINT32_BIT_NUM);
-    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, ratio=%u, aivSimtDcuSmSize=%u.", kernelInfo->schemMode,
-        sqe->ratio, sqe->aivSimtDcuSmSize);
+    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, sqe_schem=%u, ratio=%u, aivSimtDcuSmSize=%u.",
+        schemMode, sqe->schem, sqe->ratio, sqe->aivSimtDcuSmSize);
 }
 
 template<typename T>
@@ -1414,12 +1454,15 @@ static void ConstructMixSqePart(T * const kernelInfo, RtDavidStarsAicAivKernelSq
 }
 
 template<typename T>
-static void ConstructAicSqePart(T * const kernelInfo, RtDavidStarsAicAivKernelSqe * const sqe, uint64_t addr)
+static void ConstructAicSqePart(T * const kernelInfo, RtDavidStarsAicAivKernelSqe * const sqe, uint64_t addr,
+    const Stream *const stm)
 {
+    uint8_t schemMode = kernelInfo->schemMode;
+    const Kernel *kernel = kernelInfo->kernel;
     const uint64_t funcAddr = kernelInfo->funcAddr;
     uint32_t prefetchCnt1 = 0U;
-    if (kernelInfo->kernel != nullptr) {
-        prefetchCnt1 = kernelInfo->kernel->PrefetchCnt1_();
+    if (kernel != nullptr) {
+        prefetchCnt1 = kernel->PrefetchCnt1_();
     }
     /* word0-1 */
     sqe->header.type = RT_DAVID_SQE_TYPE_AIC;
@@ -1441,10 +1484,15 @@ static void ConstructAicSqePart(T * const kernelInfo, RtDavidStarsAicAivKernelSq
     sqe->aivQos = 0U;
     sqe->aivWrrRd = 0U;
     sqe->aivWrrWr = 0U;
-    sqe->schem = kernelInfo->schemMode == static_cast<uint8_t>(RT_SCHEM_MODE_END) ?
-        static_cast<uint16_t>(RT_SCHEM_MODE_NORMAL) : static_cast<uint16_t>(kernelInfo->schemMode);
+    uint16_t curSchemMode = GetSchemMode(kernel, schemMode);
+    sqe->schem = curSchemMode;
+    if (curSchemMode == RT_SCHEM_MODE_BATCH) {
+        const uint16_t sqeType = sqe->header.type;
+        const uint16_t blockDim = sqe->header.blockDim;
+        CheckBlockDim(stm, sqeType, blockDim);
+    }
     sqe->ratio = 1U;            // only ratio is 1.
-    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, sqe_schem=%u, ratio=%u", kernelInfo->schemMode, sqe->schem, sqe->ratio);
+    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, sqe_schem=%u, ratio=%u", schemMode, sqe->schem, sqe->ratio);
 
     /* word8-9 */
     sqe->aicStartPcLow = static_cast<uint32_t>(funcAddr);
@@ -1481,7 +1529,8 @@ static void ConstructDavidAICoreSqeForDavinciTask(TaskInfo *taskInfo, rtDavidSqe
     RtDavidStarsAicAivKernelSqe *sqe = &(command->aicAivSqe);
     AicTaskInfo *aicTaskInfo = &(taskInfo->u.aicTaskInfo);
     const uint64_t addr = RtPtrToValue(aicTaskInfo->comm.args);
-    ConstructAicSqePart(aicTaskInfo, sqe, addr);
+    Stream * const stm = taskInfo->stream;
+    ConstructAicSqePart(aicTaskInfo, sqe, addr, stm);
 
     PrintDavidSqe(command, "AICore Task");
     return;
@@ -1493,7 +1542,8 @@ static void ConstructDavidAivSqeForDavinciTask(TaskInfo *taskInfo, rtDavidSqe_t 
     RtDavidStarsAicAivKernelSqe *sqe = &(command->aicAivSqe);
     AicTaskInfo *aicTaskInfo = &(taskInfo->u.aicTaskInfo);
     const uint64_t addr = RtPtrToValue(aicTaskInfo->comm.args);
-    ConstructAivSqePart(aicTaskInfo, sqe, addr);
+    Stream * const stm = taskInfo->stream;
+    ConstructAivSqePart(aicTaskInfo, sqe, addr, stm);
 
     PrintDavidSqe(command, "AIV Task");
     return;
@@ -1512,13 +1562,16 @@ static void ConstructDavidMixSqeForDavinciTask(TaskInfo *taskInfo, rtDavidSqe_t 
 {
     ConstructDavidCommonSqeForDavinciTask(taskInfo, command, sqBaseAddr);
     RtDavidStarsAicAivKernelSqe *sqe = &(command->aicAivSqe);
+    Stream * const stm = taskInfo->stream;
     AicTaskInfo *aicTaskInfo = &(taskInfo->u.aicTaskInfo);
     uint8_t taskRation = 0U;
     uint8_t mixType = static_cast<uint8_t>(NO_MIX);
-    if (aicTaskInfo->kernel != nullptr) {
-        taskRation = static_cast<uint8_t>(aicTaskInfo->kernel->GetTaskRation());
-        mixType = aicTaskInfo->kernel->GetMixType();
-        Program *programPtr = aicTaskInfo->kernel->Program_();
+    uint8_t schemMode = aicTaskInfo->schemMode;
+    const Kernel *kernel = aicTaskInfo->kernel;
+    if (kernel != nullptr) {
+        taskRation = static_cast<uint8_t>(kernel->GetTaskRation());
+        mixType = kernel->GetMixType();
+        Program *programPtr = kernel->Program_();
         if (programPtr != nullptr && programPtr->IsDcacheLockOp()) {
             sqe->header.preP = RT_STARS_SQE_INT_DIR_TO_TSCPU;
             sqe->header.postP = RT_STARS_SQE_INT_DIR_TO_TSCPU;
@@ -1534,19 +1587,23 @@ static void ConstructDavidMixSqeForDavinciTask(TaskInfo *taskInfo, rtDavidSqe_t 
     }
 
     SetMixStartPcAndParam(taskInfo, command);
-    sqe->schem = aicTaskInfo->schemMode == static_cast<uint8_t>(RT_SCHEM_MODE_END) ?
-        static_cast<uint16_t>(RT_SCHEM_MODE_NORMAL) : static_cast<uint16_t>(aicTaskInfo->schemMode);
+    uint16_t curSchemMode = GetSchemMode(kernel, schemMode);
+    sqe->schem = curSchemMode;
+    if (curSchemMode == RT_SCHEM_MODE_BATCH) {
+        const uint16_t sqeType = sqe->header.type;
+        const uint16_t blockDim = sqe->header.blockDim;
+        CheckBlockDim(stm, sqeType, blockDim);
+    }
     sqe->ratio = 1U;            // only ratio is 1.
-    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, sqe_schem=%u, ratio=%u", aicTaskInfo->schemMode, sqe->schem, sqe->ratio);
     if (sqe->mix == 1U) {
         sqe->ratio = taskRation;    // ratio from elf
         if ((sqe->header.type == RT_DAVID_SQE_TYPE_AIC) && (sqe->ratio == DEFAULT_TASK_RATION)) {
             sqe->loose = 0U;
         }
     }
-    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, taskType=%u, ratio=%u, mix=%u, loose=%u, piMix=%u, "
-        "aivSimtDcuSmSize=%u, featureFlag=0x%x.", aicTaskInfo->schemMode, taskInfo->type, sqe->ratio, sqe->mix, sqe->loose,
-        sqe->piMix, sqe->aivSimtDcuSmSize, sqe->featureFlag);
+    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, sqe_schem=%u, taskType=%u, ratio=%u, mix=%u, loose=%u, piMix=%u,"
+        "aivSimtDcuSmSize=%u, featureFlag=0x%x.", schemMode, sqe->schem, taskInfo->type, sqe->ratio,
+        sqe->mix, sqe->loose, sqe->piMix, sqe->aivSimtDcuSmSize, sqe->featureFlag);
 
     PrintDavidSqe(command, "MIX Task");
 
@@ -1648,7 +1705,8 @@ static void ConstructAicSubSqe(const TaskInfo *taskInfo, rtDavidSqe_t * const da
     RtDavidStarsAicAivKernelSqe *sqe = &(sqeAddr->aicAivSqe);
     const FusionTaskInfo * const fusionKernelTask = &(taskInfo->u.fusionKernelTask);
     const uint64_t addr = RtPtrToValue(fusionKernelTask->args);
-    ConstructAicSqePart(&(fusionKernelTask->aicPart), sqe, addr);
+    Stream * const stm = taskInfo->stream;
+    ConstructAicSqePart(&(fusionKernelTask->aicPart), sqe, addr, stm);
 
     PrintDavidSqe(sqeAddr, "FusionKernelTask-Aic");
     return;
@@ -1666,7 +1724,8 @@ static void ConstructAivSubSqe(const TaskInfo *taskInfo, rtDavidSqe_t * const da
     RtDavidStarsAicAivKernelSqe *sqe = &(sqeAddr->aicAivSqe);
     const FusionTaskInfo * const fusionKernelTask = &(taskInfo->u.fusionKernelTask);
     const uint64_t addr = RtPtrToValue(fusionKernelTask->args);
-    ConstructAivSqePart(&(fusionKernelTask->aicPart), sqe, addr);
+    Stream * const stm = taskInfo->stream;
+    ConstructAivSqePart(&(fusionKernelTask->aicPart), sqe, addr, stm);
 
     PrintDavidSqe(sqeAddr, "FusionKernelTask-Aiv");
     return;
@@ -1693,13 +1752,16 @@ static void ConstructMixSubSqe(const TaskInfo *const taskInfo, rtDavidSqe_t * co
     ConstructCommonAicAivSubSqe(taskInfo, sqeAddr);
 
     RtDavidStarsAicAivKernelSqe *sqe = &(sqeAddr->aicAivSqe);
+    Stream * const stm = taskInfo->stream;
     const FusionTaskInfo * const fusionKernelTask = &(taskInfo->u.fusionKernelTask);
     const FusionTaskInfoAicPart *aicPart = &(fusionKernelTask->aicPart);
     uint8_t taskRation = 0U;
     uint8_t mixType = static_cast<uint8_t>(NO_MIX);
-    if (aicPart->kernel != nullptr) {
-        taskRation = static_cast<uint8_t>(aicPart->kernel->GetTaskRation());
-        mixType = aicPart->kernel->GetMixType();
+    uint8_t schemMode = aicPart->schemMode;
+    const Kernel *kernel = aicPart->kernel;
+    if (kernel != nullptr) {
+        taskRation = static_cast<uint8_t>(kernel->GetTaskRation());
+        mixType = kernel->GetMixType();
     }
 
     /* word0-1 */
@@ -1711,18 +1773,22 @@ static void ConstructMixSubSqe(const TaskInfo *const taskInfo, rtDavidSqe_t * co
 
     SetMixStartPcAndParamForFusionKernel(taskInfo, sqeAddr);
 
-    sqe->schem = aicPart->schemMode == static_cast<uint8_t>(RT_SCHEM_MODE_END) ?
-        static_cast<uint16_t>(RT_SCHEM_MODE_NORMAL) : static_cast<uint16_t>(aicPart->schemMode);
+    uint16_t curSchemMode = GetSchemMode(kernel, schemMode);
+    sqe->schem = curSchemMode;
+    if (curSchemMode == RT_SCHEM_MODE_BATCH) {
+        const uint16_t sqeType = sqe->header.type;
+        const uint16_t blockDim = sqe->header.blockDim;
+        CheckBlockDim(stm, sqeType, blockDim);
+    }
     sqe->ratio = 1U;            // only ratio is 1.
-    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, sqe_schem=%u, ratio=%u", aicPart->schemMode, sqe->schem, sqe->ratio);
     if (sqe->mix == 1U) {
         sqe->ratio = taskRation;    // ratio from elf
         if ((sqe->header.type == RT_DAVID_SQE_TYPE_AIC) && (sqe->ratio == DEFAULT_TASK_RATION)) {
             sqe->loose = 0U;
         }
     }
-    RT_LOG(RT_LOG_INFO, "sqeIndex=%u, mixType=%u, schemMode=%hu, ratio=%hhu, loose=%u, piMix=%u, "
-        "aivSimtDcuSmSize=%u.", idx, mixType, sqe->schem, sqe->ratio, sqe->loose, sqe->piMix,
+    RT_LOG(RT_LOG_INFO, "sqeIndex=%u, mixType=%u, cfgInfo schemMode=%u, sqe_schem=%hu, ratio=%hhu, loose=%u, piMix=%u, "
+        "aivSimtDcuSmSize=%u.", idx, mixType, schemMode, sqe->schem, sqe->ratio, sqe->loose, sqe->piMix,
         sqe->aivSimtDcuSmSize);
 
     PrintDavidSqe(sqeAddr, "FusionKernelTask-Mix");

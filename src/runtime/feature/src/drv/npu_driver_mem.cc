@@ -1223,7 +1223,7 @@ rtError_t NpuDriver::DevMemAllocOffline(void **dptr, const uint64_t size,
     RT_LOG(RT_LOG_DEBUG, "device offline alloc size=%" PRIu64 ", type=%u, device_id=%u, chipType=%d!",
            size, type, deviceId, chipType_);
 
-    COND_RETURN_ERROR_MSG_INNER(!IsOfflineSupportMemType(type), RT_ERROR_FEATURE_NOT_SUPPORT,
+    COND_RETURN_ERROR_MSG_INNER(IsOfflineNotSupportMemType(type), RT_ERROR_FEATURE_NOT_SUPPORT,
         "Offline mode does not support memType=%d", static_cast<int>(type));
     if (memPolicy == RT_MEMORY_POLICY_HUGE1G_PAGE_ONLY) {
         const rtError_t ret = CheckIfSupport1GHugePage();
@@ -1285,14 +1285,12 @@ rtError_t NpuDriver::DevMemAlloc(void ** const dptr, const uint64_t size, const 
 {
     rtError_t temptRet = RT_ERROR_DRV_ERR;
     const uint32_t devRunMode = GetRunMode();
-    constexpr uint32_t p2PTypeSet = RT_MEMORY_POLICY_HUGE_PAGE_FIRST_P2P |
-        RT_MEMORY_POLICY_HUGE_PAGE_ONLY_P2P | RT_MEMORY_POLICY_DEFAULT_PAGE_ONLY_P2P;
 
     RT_LOG(RT_LOG_DEBUG, "device_id=%d, type=%u, size=%" PRIu64 ", mode=%u.", deviceId, type, size, devRunMode);
     if (devRunMode == static_cast<uint32_t>(RT_RUN_MODE_ONLINE)) {
         temptRet = DevMemAllocOnline(dptr, size, type, deviceId, moduleId, isLogError, readOnlyFlag, starsTillingFlag,
             isNewApi, cpOnlyFlag);
-    } else if ((devRunMode == static_cast<uint32_t>(RT_RUN_MODE_OFFLINE)) && ((type & p2PTypeSet) != 0U)) {
+    } else if ((devRunMode == static_cast<uint32_t>(RT_RUN_MODE_OFFLINE)) && (IsOfflineNotSupportMemType(type))) {
         RT_LOG_OUTER_MSG_WITH_FUNC(ErrorCode::EE1006, "P2P memory type at OFFLINE mode");
         return RT_ERROR_FEATURE_NOT_SUPPORT;
     } else if ((devRunMode == static_cast<uint32_t>(RT_RUN_MODE_OFFLINE)) ||

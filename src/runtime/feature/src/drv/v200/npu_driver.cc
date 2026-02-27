@@ -42,10 +42,10 @@ rtError_t GetDrvSentinelMode(void)
     return RT_ERROR_NONE;
 }
 
-bool IsOfflineSupportMemType(const rtMemType_t &type)
+bool IsOfflineNotSupportMemType(const rtMemType_t &type)
 {
     UNUSED(type);
-    return true;
+    return false;
 }
 }  // namespace runtime
 }  // namespace cce

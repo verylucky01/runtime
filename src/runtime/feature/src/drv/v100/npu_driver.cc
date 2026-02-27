@@ -29,9 +29,16 @@ rtError_t GetDrvSentinelMode(void)
     return RT_ERROR_NONE;
 }
 
-bool IsOfflineSupportMemType(const rtMemType_t &type)
+bool IsOfflineNotSupportMemType(const rtMemType_t &type)
 {
-    return (type != RT_MEMORY_P2P_HBM) && (type != RT_MEMORY_P2P_DDR);
+    constexpr uint32_t RT_MEMORY_POLICY_P2P_MASK = RT_MEMORY_POLICY_HUGE_PAGE_FIRST_P2P |
+        RT_MEMORY_POLICY_HUGE_PAGE_ONLY_P2P | RT_MEMORY_POLICY_DEFAULT_PAGE_ONLY_P2P;
+
+    if ((type == RT_MEMORY_P2P_HBM) || (type == RT_MEMORY_P2P_DDR)) {
+        return true;
+    } else {
+        return (static_cast<uint32_t>(type) & RT_MEMORY_POLICY_P2P_MASK) != 0U;
+    }
 }
 }  // namespace runtime
 }  // namespace cce

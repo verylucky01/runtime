@@ -629,7 +629,7 @@ private:
 rtError_t GetConnectUbFlagFromDrv(const uint32_t deviceId, bool &connectUbFlag);
 rtError_t InitDrvEventThread(const uint32_t deviceId);
 rtError_t GetDrvSentinelMode(void);
-bool IsOfflineSupportMemType(const rtMemType_t &type);
+bool IsOfflineNotSupportMemType(const rtMemType_t &type);
 }  // namespace runtime
 }  // namespace cce
 

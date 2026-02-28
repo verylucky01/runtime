@@ -3679,8 +3679,8 @@ typedef unsigned long long dma_addr_t;
 #define CHANNEL_BIU_GROUP24_AIV0 (97)
 #define CHANNEL_BIU_GROUP24_AIV1 (98)
 
-#define CHANNEL_STARS1_STREAM_LOG (126)  // IO die
-#define CHANNEL_STARS0_STREAM_LOG (127)  // AI die
+#define CHANNEL_IO_STARS_STREAM_LOG (126)
+#define CHANNEL_AI_STARS_STREAM_LOG (127)
 #define CHANNEL_TSCPU_MAX (128)
 #define CHANNEL_ROCE (129)
 #define CHANNEL_NPU_APP_MEM (130) /* HBM and DDR used on app level */

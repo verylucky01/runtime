@@ -15,7 +15,6 @@
 #include "utils.h"
 #include "program.hpp"
 #include "context.hpp"
-#include "binary_loader_c.hpp"
 #include "json_parse.hpp"
 
 namespace cce {
@@ -432,6 +431,7 @@ PlainProgram *BinaryLoader::LoadCpuMode1Program()
     }
 
     prog->RegCpuProgInfo(binaryBuffer_, binarySize_, soName_, cpuKernelMode_, isLoadFromFile_);
+    prog->SetBinPath(binRealPath_);
 
     return prog;
 }
@@ -492,15 +492,6 @@ rtError_t BinaryLoader::Load(Program **prog)
     }
 
     if (isLoadCpu_) {
-        const Runtime * const runtime = Runtime::Instance();
-        NULL_PTR_RETURN_MSG(runtime, RT_ERROR_INSTANCE_NULL);
-        Context * const curCtx = runtime->CurrentContext();
-        CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-        const Device * const dev = curCtx->Device_();
-        NULL_PTR_RETURN_MSG(dev, RT_ERROR_DEVICE_NULL);
-        if (IS_SUPPORT_CHIP_FEATURE(dev->GetChipType(), RtOptionalFeatureType::RT_FEATURE_XPU)) {
-            return XpuBinaryLoadFromFile(this, prog);
-        }
         return LoadCpu(prog);
     }
 

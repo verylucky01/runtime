@@ -11,43 +11,33 @@
 #include "base.hpp"
 namespace cce {
 namespace runtime {
-// XPU 注册CPU算子
-rtError_t Program::XpuRegisterCpuKernel(const std::vector<CpuKernelInfo> &kernelInfos)
+
+rtError_t Program::XpuSetKernelLiteralNameDevAddr(Kernel *kernel, const uint32_t devId)
 {
-    constexpr uint64_t defaultTilingKey = 0ULL; // cpu kernel不使用tiling key，所以默认填值0
-    kernelMapLock_.Lock();
+    void *funcPc = nullptr;
 
-    for (auto kernelInfo : kernelInfos) {	
-        const std::string key = kernelInfo.key;
-        const auto it = kernelNameMap_.find(key); // 如果已经注册，不重复注册
-        if (it != kernelNameMap_.end()) {
-            RT_LOG(RT_LOG_WARNING, "[%s] has been registered, continue", key.c_str());
-            continue;
-        }
-
-        Kernel *kernel = new (std::nothrow) Kernel(nullptr, key.c_str(), defaultTilingKey, this, 0U, 0U);
-        if (unlikely(kernel == nullptr)) {
-            RT_LOG(RT_LOG_ERROR, "kernel new failed, continue");
-            continue;
-        }
-
-        SetCpuKernelAttr(kernel, kernelInfo, key);
-
-        void *funcPc = mmDlsym(binHandle_, key.c_str());
-        if (unlikely(funcPc == nullptr)) {
-            RT_LOG(RT_LOG_ERROR, "The func symbol[%s] cannot be found", key.c_str());
-            DELETE_O(kernel);
-            kernelMapLock_.Unlock();
-            return RT_ERROR_INVALID_VALUE;
-        }
-        kernel->SetKernelLiteralNameDevAddr(nullptr, funcPc, 0U);
-
-        kernelNameMap_[key] = kernel;
-        RT_LOG(RT_LOG_DEBUG, "cpu kernel info: functionName[%s], kernelSo[%s], opType[%s]",
-            kernel->GetCpuFuncName().c_str(), kernel->GetCpuKernelSo().c_str(), key.c_str());
+    if (kernel == nullptr) {
+        RT_LOG(RT_LOG_ERROR, "kernel new failed, continue");
+        return RT_ERROR_KERNEL_NULL;
     }
 
-    kernelMapLock_.Unlock();
+    std::string binPath = GetBinPath();
+    binHandle_ = mmDlopen(binPath.c_str(), RTLD_LAZY);
+    if (binHandle_ == nullptr) {
+        RT_LOG(RT_LOG_ERROR, "Open binary file[%s] failed", binPath.c_str());
+        return RT_ERROR_INVALID_VALUE;
+    }
+
+    funcPc = mmDlsym(binHandle_, kernel->Name_().c_str());
+    if (funcPc == nullptr) {
+        RT_LOG(RT_LOG_ERROR, "The func symbol[%s] cannot be found", kernel->Name_().c_str());
+        return RT_ERROR_INVALID_VALUE;
+    }
+
+    kernel->SetKernelLiteralNameDevAddr(nullptr, funcPc, devId);
+    RT_LOG(RT_LOG_INFO, "Get function symbol[%s] in binary file[%s], binHandle: %p, funcPc: %p, devId: %u.",
+                         kernel->Name_().c_str(), binPath.c_str() , binHandle_, funcPc, devId);
+
     return RT_ERROR_NONE;
 }
 

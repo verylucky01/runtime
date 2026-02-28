@@ -206,7 +206,6 @@ set(libruntime_cmodel_src_files_optional
     src/engine/hwts/shm_cq.cc
     src/engine/engine_factory.cc
     src/kernel/binary_loader.cc
-    src/kernel/v100/binary_loader_c.cc
     src/kernel/json_parse.cc
     src/profiler/api_profile_decorator_standard_soc.cc
     src/profiler/api_profile_log_decoratoc_standard_soc.cc
@@ -272,7 +271,6 @@ set(libruntime_cmodel_src_files
     src/kernel/args/para_convertor.cc
     src/kernel/v100/kernel.cc
     src/kernel/v100/program_plat.cc
-    src/kernel/v100/binary_loader_plat.cc
     src/kernel/elf.cc
     src/kernel/kernel.cc
     src/kernel/module.cc
@@ -374,7 +372,6 @@ set(libruntime_cmodel_v200_src_files
     src/kernel/elf.cc
     src/kernel/kernel.cc
     src/kernel/v100/program_plat.cc
-    src/kernel/v100/binary_loader_plat.cc
     src/kernel/module.cc
     src/kernel/program.cc
     src/kernel/program_common.cc

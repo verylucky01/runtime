@@ -687,9 +687,6 @@ TEST_F(TinyStubTest, binary_stub)
     BinaryLoader binaryLoader1(nullptr, 0, nullptr);
     ret = binaryLoader1.Load(nullptr);
     EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
-    BinaryLoader binaryLoaderXpu(nullptr, 0, nullptr);
-    ret = binaryLoaderXpu.XpuLoad(nullptr);
-    EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
 }
 
 TEST_F(TinyStubTest, ipc_event_stub)

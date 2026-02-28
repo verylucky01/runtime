@@ -135,7 +135,6 @@ set(libruntime_src_files_include_for_tiny
     src/engine/engine_factory_tiny_stub.cc
     src/kernel/binary_loader.cc
     src/kernel/json_parse.cc
-    src/kernel/v100/binary_loader_c.cc
     src/task/tiny/rdma_task_tiny_stub.cc
     src/task/tiny/ffts_task_tiny_stub.cc
     src/task/tiny/task_tiny_stub.cc

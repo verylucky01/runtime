@@ -5388,6 +5388,7 @@ rtError_t Runtime::BinaryGetFunction(const Program * const prog, const uint64_t 
 rtError_t Runtime::BinaryGetFunctionByName(const Program * const binHandle, const char *kernelName,
                                            Kernel ** const funcHandle) const
 {
+    rtError_t ret;
     const Program * const prog = binHandle;
     Program * const progTmp = const_cast<Program *>(prog);
 
@@ -5396,14 +5397,20 @@ rtError_t Runtime::BinaryGetFunctionByName(const Program * const binHandle, cons
     const Device * const dev = curCtx->Device_();
     NULL_PTR_RETURN_MSG(dev, RT_ERROR_DEVICE_NULL);
     if (!IS_SUPPORT_CHIP_FEATURE(dev->GetChipType(), RtOptionalFeatureType::RT_FEATURE_XPU)) {
-        rtError_t ret = progTmp->CopySoAndNameToCurrentDevice();
+        ret = progTmp->CopySoAndNameToCurrentDevice();
         ERROR_RETURN(ret, "copy program to, failed retCode=%#x.", ret);
     }
 
-    const Kernel *kernel = progTmp->GetKernelByName(kernelName);
+    Kernel *kernel = const_cast<Kernel*>(progTmp->GetKernelByName(kernelName));
+    const uint32_t devId = static_cast<uint32_t>(dev->Id_());
     COND_RETURN_ERROR_MSG_INNER(kernel == nullptr, RT_ERROR_KERNEL_NULL,
-        "Can not find kernel by name = %s.", kernelName);
-    *funcHandle = const_cast<Kernel *>(kernel);
+                                "Can not find kernel by name = %s.", kernelName);
+
+    *funcHandle = kernel;
+    if (IS_SUPPORT_CHIP_FEATURE(dev->GetChipType(), RtOptionalFeatureType::RT_FEATURE_XPU)) {
+        ret = progTmp->XpuSetKernelLiteralNameDevAddr(kernel, devId);
+        ERROR_RETURN(ret, "Set xpu kernel litera name dev addr failed, retCode=%#x.", ret);
+    }
     return RT_ERROR_NONE;
 }
 

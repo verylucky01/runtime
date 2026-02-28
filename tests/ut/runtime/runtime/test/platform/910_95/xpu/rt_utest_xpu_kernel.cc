@@ -50,7 +50,7 @@ protected:
 };
 
 
-TEST_F(XpuKernelTest, rtsBinaryLoadFromFile_JsonAndSo_Success_01)
+TEST_F(XpuKernelTest, rtsBinaryLoadFromFile_JsonAndSo_fail)
 {
     char* binPath = "stub";
     void *binHandle = &binPath;
@@ -66,44 +66,6 @@ TEST_F(XpuKernelTest, rtsBinaryLoadFromFile_JsonAndSo_Success_01)
     MOCKER(mmDlclose)
     .stubs()
     .will(returnValue(EN_OK));
-    char *path = "../tests/ut/runtime/runtime/test/data/libcust_aicpu_kernels.json";
-    rtLoadBinaryConfig_t cfg;
-    rtLoadBinaryOption_t option;
-    option.optionId = RT_LOAD_BINARY_OPT_CPU_KERNEL_MODE;
-    option.value.cpuKernelMode = 1; //  0:only json;1:json+so;2:from data
-    cfg.numOpt = 1;
-    cfg.options = &option;
-    rtBinHandle handle;
-    rtError_t error = rtsBinaryLoadFromFile(path, &cfg, &handle);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    Program * prog = reinterpret_cast<Program*>(handle);
-    EXPECT_NE(prog->GetKernelByName("AddBlockCust"), nullptr);
-
-    EXPECT_NE(prog->GetKernelByName("ReshapeCust"), nullptr);
-
-    EXPECT_NE(prog->GetKernelByName("UniqueCust"), nullptr);
-
-    error = rtsBinaryUnload(handle);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-}
-
-TEST_F(XpuKernelTest, BinaryLoadFromFile_JsonAndSo_mmDlopenNull)
-{
-    char* binPath = "stub";
-    void *binHandle = nullptr;
-    MOCKER(mmDlopen)
-    .stubs()
-    .will(returnValue(binHandle));
-
-    void *funcPc = &binPath;
-    MOCKER(mmDlsym)
-    .stubs()
-    .will(returnValue(funcPc));
-
-    MOCKER(mmDlclose)
-    .stubs()
-    .will(returnValue(EN_OK));
-
     char *path = "../tests/ut/runtime/runtime/test/data/libcust_aicpu_kernels.json";
     rtLoadBinaryConfig_t cfg;
     rtLoadBinaryOption_t option;
@@ -116,10 +78,20 @@ TEST_F(XpuKernelTest, BinaryLoadFromFile_JsonAndSo_mmDlopenNull)
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
 }
 
-TEST_F(XpuKernelTest, BinaryLoadFromFile_JsonAndSo_FuncPcNull)
+TEST_F(XpuKernelTest, rtsXpuSetKernelLiteralNameDevAddr_kernel_null)
+{
+    PlainProgram stubProg(Program::MACH_AI_CPU);
+    Program *program = &stubProg;
+
+    rtError_t error = program->XpuSetKernelLiteralNameDevAddr(nullptr, 0);
+    EXPECT_EQ(error, RT_ERROR_KERNEL_NULL);
+}
+
+TEST_F(XpuKernelTest, rtsXpuSetKernelLiteralNameDevAddr_funcPc_null)
 {
     char* binPath = "stub";
     void *binHandle = &binPath;
+
     MOCKER(mmDlopen)
     .stubs()
     .will(returnValue(binHandle));
@@ -132,23 +104,22 @@ TEST_F(XpuKernelTest, BinaryLoadFromFile_JsonAndSo_FuncPcNull)
     MOCKER(mmDlclose)
     .stubs()
     .will(returnValue(EN_OK));
+    PlainProgram stubProg(Program::MACH_AI_CPU);
+    Program *program = &stubProg;
+    const char* stub = "";
+    void* stubFunc = nullptr;
+    Kernel *kernel = new (std::nothrow) Kernel(stubFunc, stub, static_cast<uint64_t>(0), program, 0);
 
-    char *path = "../tests/ut/runtime/runtime/test/data/libcust_aicpu_kernels.json"; // json so文件路径都可以，SetCpuBinInfo会处理so路径 遗留问题：./test/lib/device/lib64/librts_aicpulaunch.so需要改下名字，以及需要check下路径
-    rtLoadBinaryConfig_t cfg;
-    rtLoadBinaryOption_t option;
-    option.optionId = RT_LOAD_BINARY_OPT_CPU_KERNEL_MODE;
-    option.value.cpuKernelMode = 1; //  0:only json;1:json+so;2:from data
-    cfg.numOpt = 1;
-    cfg.options = &option;
-    void *handle = nullptr;
-    rtError_t error = rtsBinaryLoadFromFile(path, &cfg, &handle);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+    rtError_t error = program->XpuSetKernelLiteralNameDevAddr(kernel, 0);
+    delete kernel;
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
 }
 
-TEST_F(XpuKernelTest, BinaryLoadFromFile_JsonAndSo_CpuKernelMode0)
+TEST_F(XpuKernelTest, rtsXpuSetKernelLiteralNameDevAddr_binhandle_null)
 {
     char* binPath = "stub";
-    void *binHandle = &binPath;
+    void *binHandle = nullptr;
+
     MOCKER(mmDlopen)
     .stubs()
     .will(returnValue(binHandle));
@@ -161,23 +132,22 @@ TEST_F(XpuKernelTest, BinaryLoadFromFile_JsonAndSo_CpuKernelMode0)
     MOCKER(mmDlclose)
     .stubs()
     .will(returnValue(EN_OK));
+    PlainProgram stubProg(Program::MACH_AI_CPU);
+    Program *program = &stubProg;
+    const char* stub = "";
+    void* stubFunc = nullptr;
+    Kernel *kernel = new (std::nothrow) Kernel(stubFunc, stub, static_cast<uint64_t>(0), program, 0);
 
-    char *path = "../tests/ut/runtime/runtime/test/data/libcust_aicpu_kernels.json"; // json so文件路径都可以，SetCpuBinInfo会处理so路径 遗留问题：./test/lib/device/lib64/librts_aicpulaunch.so需要改下名字，以及需要check下路径
-    rtLoadBinaryConfig_t cfg;
-    rtLoadBinaryOption_t option;
-    option.optionId = RT_LOAD_BINARY_OPT_CPU_KERNEL_MODE;
-    option.value.cpuKernelMode = 0; //  0:only json;1:json+so;2:from data
-    cfg.numOpt = 1;
-    cfg.options = &option;
-    void *handle = nullptr;
-    rtError_t error = rtsBinaryLoadFromFile(path, &cfg, &handle);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+    rtError_t error = program->XpuSetKernelLiteralNameDevAddr(kernel, 0);
+    delete kernel;
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
 }
 
-TEST_F(XpuKernelTest, rtsBinaryLoadFromFile_JsonAndSo_GetJsonObj_Fail)
+TEST_F(XpuKernelTest, rtsXpuSetKernelLiteralNameDevAddr_funcPc_not_null)
 {
     char* binPath = "stub";
     void *binHandle = &binPath;
+
     MOCKER(mmDlopen)
     .stubs()
     .will(returnValue(binHandle));
@@ -190,18 +160,13 @@ TEST_F(XpuKernelTest, rtsBinaryLoadFromFile_JsonAndSo_GetJsonObj_Fail)
     MOCKER(mmDlclose)
     .stubs()
     .will(returnValue(EN_OK));
-    MOCKER(GetJsonObj)
-    .stubs()
-    .will(returnValue(RT_ERROR_INVALID_VALUE));
-    
-    char *path = "../tests/ut/runtime/runtime/test/data/libcust_aicpu_kernels.json";
-    rtLoadBinaryConfig_t cfg;
-    rtLoadBinaryOption_t option;
-    option.optionId = RT_LOAD_BINARY_OPT_CPU_KERNEL_MODE;
-    option.value.cpuKernelMode = 1; //  0:only json;1:json+so;2:from data
-    cfg.numOpt = 1;
-    cfg.options = &option;
-    rtBinHandle handle;
-    rtError_t error = rtsBinaryLoadFromFile(path, &cfg, &handle);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+    PlainProgram stubProg(Program::MACH_AI_CPU);
+    Program *program = &stubProg;
+    const char* stub = "";
+    void* stubFunc = nullptr;
+    Kernel *kernel = new (std::nothrow) Kernel(stubFunc, stub, static_cast<uint64_t>(0), program, 0);
+
+    rtError_t error = program->XpuSetKernelLiteralNameDevAddr(kernel, 0);
+    delete kernel;
+    EXPECT_EQ(error, RT_ERROR_NONE);
 }

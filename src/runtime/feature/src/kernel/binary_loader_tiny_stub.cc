@@ -34,10 +34,5 @@ rtError_t BinaryLoader::Load(Program ** prog)
     return RT_ERROR_FEATURE_NOT_SUPPORT;
 }
 
-rtError_t BinaryLoader::XpuLoad(Program **prog) const
-{
-    UNUSED(prog);
-    return RT_ERROR_FEATURE_NOT_SUPPORT;
-}
 } // runtime
 } // cce

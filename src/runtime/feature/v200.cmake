@@ -31,11 +31,9 @@ set(xpu_tprt_src_file
     src/kernel/arg_loader/arg_loader_xpu.cc
     src/kernel/arg_loader/arg_manage_xpu.cc
     src/launch/xpu_aicpu_c.cc
-    src/kernel/xpu/binary_loader_plat.cc
     src/kernel/xpu/program_plat.cc
     src/kernel/json_parse.cc
     src/api_impl/v200/api_impl_v200.cc
-    src/kernel/v200_base/binary_loader_c.cc
 )
 
 set(david_series_common_task_src_file
@@ -320,9 +318,7 @@ set(libruntime_v201_src_files
     src/common/ioctl/v201/ioctl_utils.cc
     src/drv/v201/npu_driver.cc
     src/task/v201/stars_dqs_cond_isa_helper.cc
-    src/kernel/v100/binary_loader_c.cc
     src/kernel/v100/program_plat.cc
-    src/kernel/v100/binary_loader_plat.cc
     src/device/device_snapshot.cc
     ${libruntime_v201_task_src_files}
     ${libruntime_v200_context_src_files}

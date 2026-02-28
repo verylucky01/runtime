@@ -375,12 +375,12 @@ set(runtimeut_src_list
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/args_handle_allocator.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/binary_loader.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/v100/binary_loader_c.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/elf.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/json_parse.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/kernel.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/module.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program_common.cc
+    ${TOP_DIR}/src/runtime/feature/src/kernel/v100/program_plat.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/label.cc
     ${TOP_DIR}/src/runtime/feature/src/device/aicpu_err_msg.cc
@@ -512,7 +512,6 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/v200_base/kernel.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/binary_loader.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/v200_base/binary_loader_c.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/elf.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/kernel.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/module.cc
@@ -567,11 +566,9 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/feature/src/drv/npu_driver_queue.cc
     ${TOP_DIR}/src/runtime/feature/src/runtime_v200/runtime_adapt.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/xpu/program_plat.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/xpu/binary_loader_plat.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program_common.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/json_parse.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/v200_base/binary_loader_c.cc
     ${runtimeut_src_common_list}
     ${runtimeut_platform_list}
 )
@@ -955,8 +952,6 @@ add_executable(runtime_utest_task_normal
     ${TOP_DIR}/src/runtime/feature/src/drv/v100/npu_driver.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/v100/kernel.cc
     ${TOP_DIR}/src/runtime/feature/src/task/v100/stub_task.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/v100/binary_loader_plat.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/v100/program_plat.cc
     stub/hal_stub.cc
     test/main.cc
     test/rt_utest_task.cc
@@ -1030,6 +1025,7 @@ set(runtimeut_src_tiny_list_all
     ${TOP_DIR}/src/runtime/feature/src/runtime.cc
     ${TOP_DIR}/src/runtime/feature/src/memory/mem_type.cc
     ${TOP_DIR}/src/runtime/feature/src/task/v100/stub_task.cc
+    ${TOP_DIR}/src/runtime/feature/src/kernel/v100/program_plat.cc
 )
 
 list(REMOVE_ITEM runtimeut_src_tiny_list_all
@@ -1301,14 +1297,12 @@ set(runtimeut_v201_src_list
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/v200_base/kernel.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/binary_loader.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/v200_base/binary_loader_c.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program_common.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/json_parse.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/elf.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/module.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/kernel.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/xpu/binary_loader_plat.cc
     ${TOP_DIR}/src/runtime/feature/src/runtime_v200/runtime_adapt.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/xpu/program_plat.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/label.cc

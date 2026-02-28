@@ -11,9 +11,10 @@
 namespace cce {
 namespace runtime {
 
-rtError_t Program::XpuRegisterCpuKernel(const std::vector<CpuKernelInfo> &kernelInfos)
+rtError_t Program::XpuSetKernelLiteralNameDevAddr(Kernel *kernel, const uint32_t devId)
 {
-    UNUSED(kernelInfos);
+    UNUSED(kernel);
+    UNUSED(devId);
     return RT_ERROR_NONE;
 }
 

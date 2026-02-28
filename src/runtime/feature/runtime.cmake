@@ -144,7 +144,6 @@ set(libruntime_src_files_optional
     src/event/ipc_event.cc
     src/kernel/binary_loader.cc
     src/kernel/json_parse.cc
-    src/kernel/v100/binary_loader_c.cc
     src/profiler/api_profile_decorator_standard_soc.cc
     src/profiler/api_profile_log_decoratoc_standard_soc.cc
     src/task/task_to_sqe.cc
@@ -208,7 +207,6 @@ set(libruntime_v100_src_files
     src/kernel/elf.cc
     src/kernel/kernel.cc
     src/kernel/v100/program_plat.cc
-    src/kernel/v100/binary_loader_plat.cc
     src/kernel/module.cc
     src/kernel/program.cc
     src/kernel/program_common.cc

@@ -229,6 +229,7 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/feature/src/kernel/elf.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/kernel.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/module.cc
+    ${TOP_DIR}/src/runtime/feature/src/kernel/v100/program_plat.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/label.cc
     ${TOP_DIR}/src/runtime/feature/src/device/aicpu_err_msg.cc
@@ -283,7 +284,6 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/feature/src/api_impl/api_error_xpu.cc
     ${TOP_DIR}/src/runtime/feature/src/api_impl/api_impl_creator.cc
  	${TOP_DIR}/src/runtime/feature/src/api_impl/v100/api_impl_creator_c.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/v100/binary_loader_c.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/json_parse.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program_common.cc
     ${TOP_DIR}/src/runtime/feature/src/runtime_v100/runtime_adapt.cc

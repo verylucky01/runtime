@@ -24,7 +24,6 @@
 #include "count_notify.hpp"
 #include "ffts_task.h"
 #include "kernel.hpp"
-#include "binary_loader_c.hpp"
 #include "binary_loader.hpp"
 #include "program_common.hpp"
 #undef protected
@@ -2955,24 +2954,6 @@ TEST_F(TaskTest, DoCompleteSuccessForDavinciTask)
     task.pcTrace = pcTrace;
     DoCompleteSuccessForDavinciTask(&task, 10);
     EXPECT_EQ(task.u.aicTaskInfo.descBuf, nullptr);
-}
-
-TEST_F(TaskTest, XpuBinaryLoadFromFile)
-{
-    EXPECT_EQ(XpuBinaryLoadFromFile(nullptr,nullptr), RT_ERROR_FEATURE_NOT_SUPPORT);
-}
-
-TEST_F(TaskTest, XpuLoad)
-{
-    BinaryLoader *bl;
-    EXPECT_EQ(bl->XpuLoad(nullptr), RT_ERROR_NONE);
-}
-
-TEST_F(TaskTest, XpuRegisterCpuKernel)
-{
-    Program *pg;
-    std::vector<CpuKernelInfo> kernelInfos;
-    EXPECT_EQ(pg->XpuRegisterCpuKernel(kernelInfos), RT_ERROR_NONE);
 }
 
 TEST_F(TaskTest, SetStarsResultForDavinciTask)

@@ -191,14 +191,14 @@ public:
         return baseAddr_[deviceId];
     }
 
-    void SetBinHandle(void *hanlde)
+    void SetBinPath(const std::string &binPath)
     {
-        binHandle_ = hanlde;
+        binPath_ = binPath;
     }
 
-    void *GetBinHandle() const
+    const std::string &GetBinPath() const
     {
-        return binHandle_;
+        return binPath_;
     }
 
     bool GetSupportMix() const
@@ -268,7 +268,7 @@ public:
     rtError_t Register(const void *data, const uint64_t length, const bool isLoadFromFile = false);
     // register only cpu kernel by json
     rtError_t RegisterCpuKernel(const std::vector<CpuKernelInfo> &kernelInfos);
-    rtError_t XpuRegisterCpuKernel(const std::vector<CpuKernelInfo> &kernelInfos);
+    rtError_t XpuSetKernelLiteralNameDevAddr(Kernel *kernel, const uint32_t devId);
     // register only cpu kernel by single cpu info
     rtError_t RegisterSingleCpuKernel(const char *const funcName, const char *const kernelName,
         Kernel **kernelHandle);
@@ -361,7 +361,8 @@ private:
     SpinLock kernelMapLock_;
     void *baseAddr_[RT_MAX_DEV_NUM] = {nullptr};
     void *baseAddrAlign_[RT_MAX_DEV_NUM] = {nullptr};
-	void *binHandle_{nullptr};
+    void *binHandle_{nullptr};
+	std::string binPath_;
     std::map<std::string, Kernel *> kernelNameMap_;
     uint64_t stackSize_{0ULL};        // 算子的栈大小，32k/16k
     SpinLock load2DeviceLock_;

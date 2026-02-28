@@ -11,14 +11,20 @@
 #define __CCE_TPRT_DEVICE_HPP__
 
 #include "tprt_worker.hpp"
+#include "tprt_timer.hpp"
 #include <map>
 
 namespace cce {
 namespace tprt {
+typedef enum TimeoutStatus {
+    WAIT_TASK_IS_FINISHED,
+    WAIT_TASK_IS_WORKING,
+    WAIT_TASK_IS_TIMEOUT
+} TimeoutStatus_t;
 
 class TprtDevice {
 public:
-    TprtDevice(uint32_t devId);
+    TprtDevice(uint32_t devId, uint32_t timeoutMonitorUint = 0);
     ~TprtDevice();
     uint32_t TprtDeviceStop();
     uint32_t TprtSqCqAlloc(const uint32_t sqId, const uint32_t cqId);
@@ -33,12 +39,20 @@ public:
     {
         return devId_;
     }
+    void RunCheckTaskTimeout();
+    uint32_t TprtGetSqHandleSharedPtrById(const uint32_t sqId, std::shared_ptr<TprtSqHandle> &sharedSqHandle);
+    void GetAllSqHandleId(std::vector<uint32_t> &SqHandleIdList);
+
 private:
     uint32_t devId_;
     std::mutex sqCqWorkerMapLock_;
     std::unordered_map<uint32_t, TprtSqHandle *> sqHandleMap_;      // key is sqId, value is Stream
     std::unordered_map<uint32_t, TprtCqHandle *> cqHandleMap_;
     std::unordered_map<TprtSqHandle *, TprtWorker *> workerMap_;
+    TprtTimer* timer_;
+    std::mutex sqHandleMapLock_;
+
+    void ProcessWaitingTask(uint32_t sqId, TprtSqHandle* sqHandle);
 };
 }
 }

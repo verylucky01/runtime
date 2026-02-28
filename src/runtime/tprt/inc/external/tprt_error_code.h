@@ -34,6 +34,7 @@ extern "C" {
 #define  TPRT_WORKER_INVALID         0x12
 #define  TPRT_WORKER_NEW_FAILED      0x13
 #define  TPRT_START_WORKER_FAILED    0x14
+#define  TPRT_TASK_TIMEOUT           0x15
 #ifdef __cplusplus
 }
 #endif

@@ -39,8 +39,13 @@ public:
     {
         return sqcqMaxNum_;
     }
+    uint32_t TprtGetDefaultExeTimeout() const
+    {
+        return defaultExeTimeout_;
+    }
     bool IsQueueFull(const uint16_t head, const uint16_t tail, const uint32_t allocNum) const;
     static TprtManage *tprt_;
+
 private:
     uint32_t sqcqMaxNum_{0U};
     uint32_t sqcqMaxDepth_{0U};
@@ -48,6 +53,7 @@ private:
     uint32_t defaultExeTimeout_{0U};  // unit:ms
     std::mutex deviceIdToDeviceMapLock_;
     std::unordered_map<uint32_t, TprtDevice *> deviceMap_;      // key is deviceId, value is device
+
 };
 }
 }

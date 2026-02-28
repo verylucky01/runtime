@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include <map>
+#include <chrono>
 #include "tprt_sqhandle.hpp"
 #include "tprt.hpp"
 #include "tprt_type.h"
@@ -30,6 +31,14 @@ TprtSqHandle::~TprtSqHandle()
     isExistCqe_ = false;
     sqHead_.store(0U);
     sqTail_.store(0U);
+}
+
+void TprtSqHandle::Destructor() {
+    if (myself == nullptr) {
+        delete this;
+    } else {
+        myself.reset();
+    }
 }
 
 void TprtSqHandle::TprtSetSqState(const TprtSqState_t status)
@@ -117,6 +126,41 @@ uint32_t TprtSqHandle::SqExeTask(const TprtSqe_t *sqe)
         result = TPRT_SQE_TYPE_IS_INVALID;
     }
     return result;
+}
+
+uint32_t TprtSqHandle::GetTaskTimeout(TprtSqe_t* headTask)
+{
+    constexpr uint32_t MICROSECONDS_PER_SECOND = 1000000U;
+    constexpr uint32_t MILLISECONDS_PER_SECOND = 1000U;
+
+    if (headTask->aicpuSqe.timeout != 0U) {
+        // Use task-specific timeout (convert microseconds to seconds, round up)
+        return static_cast<uint16_t>(
+            (headTask->aicpuSqe.timeout + MICROSECONDS_PER_SECOND - 1) / MICROSECONDS_PER_SECOND);
+    } else {
+        // Use default timeout (convert milliseconds to seconds, round up)
+        uint32_t defaultTimeoutMs = TprtManage::Instance()->TprtGetDefaultExeTimeout();
+        return static_cast<uint16_t>((defaultTimeoutMs + MILLISECONDS_PER_SECOND - 1) / MILLISECONDS_PER_SECOND);
+    }
+}
+
+void TprtSqHandle::SetTimeoutWaitInfo()
+{
+    TprtSqe_t headTask = {};
+    uint32_t ret = SqPeekTask(&headTask); 
+    if (ret != TPRT_SUCCESS) {
+        return;
+    }
+    uint32_t timeout = GetTaskTimeout(&headTask);
+    if (timeout == 0U) {
+        waitInfo_.isNeedProcess = false;
+        return;
+    }
+    waitInfo_.isNeedProcess = true;
+    waitInfo_.timeStamp = std::chrono::steady_clock::now();
+    waitInfo_.waitSqHead = sqHead_;
+    waitInfo_.waitTaskSn = headTask.commonSqe.sqeHeader.taskSn;
+    waitInfo_.timeout = timeout;
 }
 }
 }

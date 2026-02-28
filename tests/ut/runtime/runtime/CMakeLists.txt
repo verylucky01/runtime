@@ -452,6 +452,7 @@ set(runtime_xpu_src
     ${TOP_DIR}/src/runtime/tprt/feature/src/tprt_log.cc
     ${TOP_DIR}/src/runtime/tprt/feature/src/tprt_sqhandle.cc
     ${TOP_DIR}/src/runtime/tprt/feature/src/tprt_worker.cc
+    ${TOP_DIR}/src/runtime/tprt/feature/src/tprt_timer.cc
     ${TOP_DIR}/src/runtime/feature/src/task/task_res_manage/v200/task_res_da.cc
     ${TOP_DIR}/src/runtime/feature/src/task/task_recycle/xpu/task_xpu_recycle.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/arg_loader/arg_manage_david.cc

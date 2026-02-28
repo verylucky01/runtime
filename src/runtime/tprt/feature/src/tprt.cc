@@ -45,7 +45,7 @@ uint32_t TprtManage::TprtDeviceOpen(const uint32_t devId, const TprtCfgInfo_t *c
 
     auto devInfo = deviceMap_.find(devId);
     if (devInfo == deviceMap_.end()) {
-        TprtDevice *device = new TprtDevice(devId);
+        TprtDevice *device = new (std::nothrow) TprtDevice(devId, timeoutMonitorUint_);
         if (device == nullptr) {
             TPRT_LOG(TPRT_LOG_ERROR, "TprtDeviceOpen failed, device_id=%u.", devId);
             return TPRT_DEVICE_NEW_FAILED;

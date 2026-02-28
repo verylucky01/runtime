@@ -72,11 +72,23 @@ static uint32_t TprtProcConfigSq(TprtDevice *dev, TprtSqCqOpInfo_t *opInfo)
     return error;
 }
 
-TprtDevice::TprtDevice(uint32_t devId) : devId_(devId)
-{}
+TprtDevice::TprtDevice(uint32_t devId, uint32_t timeoutMonitorUint) : devId_(devId)
+{
+    timer_ = new (std::nothrow) TprtTimer();
+    if (timer_ != nullptr) {
+        timer_->SetDevice(this); 
+        timer_->Start(timeoutMonitorUint);    // 定时器启动
+    } else {
+        TPRT_LOG(TPRT_LOG_ERROR, "[tprt] Failed to create timer for device_id[%u].", devId_);
+    }
+}
 
 TprtDevice::~TprtDevice()
 {
+    if (timer_ != nullptr) {
+        timer_->Stop();
+        DELETE_O(timer_);
+    }
     TPRT_LOG(TPRT_LOG_EVENT, "~TprtDevice.");
 }
 
@@ -173,7 +185,7 @@ uint32_t TprtDevice::TprtSqCqDeAlloc(const uint32_t sqId, const uint32_t cqId)
         } else {
             TPRT_LOG(TPRT_LOG_WARNING, "work handle does not exist, sq_id=%u.", sqId);
         }
-        DELETE_O(sqHandle);
+        sqHandle->Destructor();
     } else {
         TPRT_LOG(TPRT_LOG_WARNING, "sq does not exist, sq_id=%u.", sqId);
     }
@@ -249,6 +261,97 @@ uint32_t TprtDevice::TprtDevOpSqCqInfo(TprtSqCqOpInfo_t *opInfo)
                 error);
     }
     return error;
+}
+
+static TimeoutStatus_t waitSqIsTimeout(TprtSqHandle* sqHandle, TprtSqe_t* headTask)
+{
+    uint16_t curSqHead = sqHandle->SqGetSqHead();
+    uint32_t curTaskSn = headTask->commonSqe.sqeHeader.taskSn;
+    if ((curSqHead != sqHandle->GetTimeoutWaitInfo().waitSqHead) ||
+        (curTaskSn != sqHandle->GetTimeoutWaitInfo().waitTaskSn)) {
+        return WAIT_TASK_IS_FINISHED;
+    }
+    auto curTime = std::chrono::steady_clock::now();
+    auto timeoutDuration = std::chrono::seconds(sqHandle->GetTimeoutWaitInfo().timeout);
+    auto elapsed = curTime - sqHandle->GetTimeoutWaitInfo().timeStamp;
+    auto elapsedSeconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
+    TPRT_LOG(TPRT_LOG_DEBUG, 
+        "[tprt]waitSqIsTimeout: curTime since epoch: %ld ms, startTime since epoch: %ld ms, elapsed: %ld ms, elapsedSeconds: %ld, timeout setting: %d seconds",
+        std::chrono::duration_cast<std::chrono::milliseconds>(curTime.time_since_epoch()).count(),
+        std::chrono::duration_cast<std::chrono::milliseconds>(sqHandle->GetTimeoutWaitInfo().timeStamp.time_since_epoch()).count(),
+        std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count(),
+        elapsedSeconds,
+        sqHandle->GetTimeoutWaitInfo().timeout);
+    if (curTime - sqHandle->GetTimeoutWaitInfo().timeStamp >= timeoutDuration) {
+        return WAIT_TASK_IS_TIMEOUT;
+    }
+    return WAIT_TASK_IS_WORKING;
+}
+
+void TprtDevice::ProcessWaitingTask(uint32_t sqId, TprtSqHandle* sqHandle)
+{
+    TprtSqe_t headTask = {};
+    uint32_t ret = sqHandle->SqPeekTask(&headTask);
+    if (ret != TPRT_SUCCESS) {
+        TPRT_LOG(TPRT_LOG_ERROR, "Failed to peek task, sqId=%u, ret=%u.", sqId, ret);
+        return;
+    }
+    TimeoutStatus_t taskStatus = waitSqIsTimeout(sqHandle, &headTask);
+    if (taskStatus == WAIT_TASK_IS_FINISHED) {
+        sqHandle->SetTimeoutWaitInfo();
+    } else if (taskStatus == WAIT_TASK_IS_TIMEOUT) {
+        TprtWorker* worker = this->TprtGetWorkHandleBySqHandle(sqHandle);
+        if (worker == nullptr) {
+            return;
+        }
+        worker->TprtWorkerProcessErrorCqe(TPRT_EXIST_TIMEOUT, TPRT_TASK_TIMEOUT, &headTask);
+    }
+}
+
+uint32_t TprtDevice::TprtGetSqHandleSharedPtrById(const uint32_t sqId, std::shared_ptr<TprtSqHandle>& sharedSqHandle)
+{
+    const std::lock_guard<std::mutex> stmLock(sqHandleMapLock_);
+    const auto it = sqHandleMap_.find(sqId);
+    if (it != sqHandleMap_.end()) {
+        sharedSqHandle = it->second->GetSharedPtr();
+        return TPRT_SUCCESS;
+    }
+    return TPRT_SQ_HANDLE_INVALID;
+}
+
+void TprtDevice::GetAllSqHandleId(std::vector<uint32_t>& SqHandleIdList)
+{
+    const std::lock_guard<std::mutex> stmLock(sqHandleMapLock_);
+    for (const auto& item : sqHandleMap_) {
+        SqHandleIdList.emplace_back(item.first);
+    }
+}
+
+void TprtDevice::RunCheckTaskTimeout()
+{
+    std::vector<uint32_t> sqHandleIdList;
+    std::shared_ptr<TprtSqHandle> sqHandle = nullptr;
+    (void)GetAllSqHandleId(sqHandleIdList);
+    if (sqHandleIdList.empty()) {
+        return;
+    }
+    for (const auto& sqId : sqHandleIdList) {
+        uint32_t ret = TprtGetSqHandleSharedPtrById(sqId, sqHandle);
+        if ((ret != TPRT_SUCCESS) || (sqHandle == nullptr) || 
+            (sqHandle.get()->SqGetSqState() != TPRT_SQ_STATE_IS_RUNNING)) {
+            continue;
+        }
+        uint16_t curSqHead = sqHandle.get()->SqGetSqHead();
+        if (curSqHead == sqHandle.get()->SqGetSqTail()) {
+            continue;
+        }
+        if (sqHandle.get()->GetTimeoutWaitInfo().isNeedProcess) {
+            ProcessWaitingTask(sqId, sqHandle.get());
+        } else {
+            sqHandle.get()->SetTimeoutWaitInfo();
+        }
+        sqHandle.reset();
+    }
 }
 }  // namespace tprt
 }  // namespace cce

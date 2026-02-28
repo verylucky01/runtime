@@ -20,7 +20,6 @@ protected:
     static void SetUpTestCase()
     {
         std::cout << "TprtSqHandleTest SetUP" << std::endl;
-
         std::cout << "TprtSqHandleTest start" << std::endl;
     }
 
@@ -43,4 +42,37 @@ TEST_F(TprtSqHandleTest, create_TprtSqHandle_Success_01)
     TprtSqHandle *sqHdl = new TprtSqHandle(0, 0);
     EXPECT_EQ(sqHdl->sqState_, TPRT_SQ_STATE_IS_RUNNING);
     DELETE_O(sqHdl);
+}
+
+TEST_F(TprtSqHandleTest, GetTaskTimeout_TaskSpecificTimeout)
+{
+    TprtSqHandle *sqHdl = new TprtSqHandle(0, 0);
+
+    TprtSqe_t headTask = {};
+    headTask.aicpuSqe.timeout = 1500000U; 
+
+    uint32_t timeout = sqHdl->GetTaskTimeout(&headTask);
+    EXPECT_EQ(timeout, 2U);
+
+    DELETE_O(sqHdl);
+}
+
+
+TEST_F(TprtSqHandleTest, SetTimeoutWaitInfo_Success)
+{
+    TprtSqHandle *sqHandle = new TprtSqHandle(0, 0);
+    sqHandle->sqHead_ = 0U;
+    sqHandle->sqTail_ = 1U;
+    TprtSqe_t headTask = {};
+    headTask.commonSqe.sqeHeader.taskSn = 1;
+    headTask.aicpuSqe.timeout = 5000000U; 
+    sqHandle->sqQueue_[sqHandle->sqHead_] = headTask;
+
+    sqHandle->SetTimeoutWaitInfo();
+
+    EXPECT_TRUE(sqHandle->waitInfo_.isNeedProcess);
+    EXPECT_EQ(sqHandle->waitInfo_.waitTaskSn, 1);
+    EXPECT_EQ(sqHandle->waitInfo_.timeout, 5U); 
+
+    DELETE_O(sqHandle);
 }

@@ -14,12 +14,13 @@
 #include "kernel.hpp"
 #include "inner_thread_local.hpp"
 #include "stream_xpu_c.hpp"
+#include "para_convertor.hpp"
 
 namespace cce {
 namespace runtime {
 
 static rtError_t XpuStreamLaunchCpuKernelExWithArgs(const uint32_t coreDim, const rtAicpuArgsEx_t * const argsInfo,
-    Stream * const stm, const Kernel * const kernel)
+    Stream * const stm, const Kernel * const kernel, const TaskCfg * const taskCfg)
 {
     constexpr uint32_t flag = RT_KERNEL_DEFAULT;
     const int32_t streamId = stm->Id_();
@@ -60,7 +61,7 @@ static rtError_t XpuStreamLaunchCpuKernelExWithArgs(const uint32_t coreDim, cons
     aicpuTask->kernel = newKernel;
     aicpuTask->aicpuFlags = flag;
     aicpuTask->aicpuKernelType = static_cast<uint8_t>(kernel->KernelType_());
-    aicpuTask->timeout = argsInfo->timeout;
+    aicpuTask->timeout = ConvertAicpuTimeout(argsInfo, taskCfg, flag);
     RT_LOG(RT_LOG_INFO, "kernel type=%u, flag=0x%x, timeout=%hus, kernelFlag=0x%x, blkdim=%u, argsSize=%u.", kernel->KernelType_(),
            flag, aicpuTask->timeout, aicpuTask->comm.kernelFlag, aicpuTask->comm.dim, argsInfo->argsSize);
     error = XpuSendTask(kernelTask, stm);
@@ -96,7 +97,8 @@ rtError_t XpuLaunchKernelV2(Kernel * const kernel, uint32_t blockDim, const RtAr
     const rtError_t error = XpuStreamLaunchCpuKernelExWithArgs(blockDim,
         &argsWithType->args.cpuArgsInfo->baseArgs,
         stm,
-        kernel);
+        kernel,
+        &taskCfg);
 
     ERROR_RETURN_MSG_INNER(
         error, "Cpu kernel launch ex with args failed, error=%#x.", error);

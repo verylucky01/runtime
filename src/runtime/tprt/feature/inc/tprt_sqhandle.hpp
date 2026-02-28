@@ -15,17 +15,29 @@
 
 namespace cce {
 namespace tprt {
+struct TimeoutWaitInfo {
+    uint8_t isNeedProcess{false};
+    uint16_t waitSqHead{0};
+    uint32_t waitTaskSn{0};
+    uint16_t timeout{0};  //单位为s
+    std::chrono::steady_clock::time_point timeStamp{};
+};
 
 class TprtSqHandle {
 public:
     explicit TprtSqHandle(const uint32_t devId, const uint32_t sqId);
     ~TprtSqHandle();
+    void Destructor();
     void TprtSetSqState(const TprtSqState_t status);
     uint32_t SqPushTask(const uint8_t *sqeAddr, const uint32_t sqeNum);
     uint32_t SqPeekTask(TprtSqe_t *sqe);
     uint16_t SqGetSqHead() const
     {
         return sqHead_.load();
+    }
+    uint16_t SqGetSqTail() const
+    {
+        return sqTail_.load();
     }
     void SqSetSqTailToHead()
     {
@@ -69,6 +81,19 @@ public:
                 cmd[i + 7U]);
         }
     }
+    const TimeoutWaitInfo& GetTimeoutWaitInfo() const 
+    { 
+        return waitInfo_; 
+    }
+    void SetTimeoutWaitInfo();
+    uint32_t GetTaskTimeout(TprtSqe_t* headTask);
+    std::shared_ptr<TprtSqHandle> GetSharedPtr() {
+        if (myself == nullptr) {
+            myself.reset(this);
+        }
+        return myself;
+    }
+
 private:
     uint32_t devId_{0xFFFFFFFFU};
     uint32_t sqId_{0xFFFFFFFFU};
@@ -78,6 +103,8 @@ private:
     std::atomic<uint16_t> sqTail_{0U};
     std::mutex sqQueueLock_;
     std::array<TprtSqe_t, SQCQ_MAX_DEPTH> sqQueue_;
+    TimeoutWaitInfo waitInfo_;
+    std::shared_ptr<TprtSqHandle> myself = nullptr;
 };
 }
 }

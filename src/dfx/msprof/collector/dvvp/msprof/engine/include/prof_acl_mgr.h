@@ -85,6 +85,7 @@ const std::vector<std::string> ACLJSON_CONFIG_VECTOR = {
 const std::vector<std::string> GEOPTION_CONFIG_VECTOR = {
     "output",
     "training_trace",
+    "task_trace",
     "task_time",
     "aicpu",
     "fp_point",

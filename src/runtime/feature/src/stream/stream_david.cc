@@ -1245,12 +1245,6 @@ uint32_t DavidStream::GetArgPos()
     return UINT32_MAX;
 }
 
-bool DavidStream::IsSeparateSendAndRecycle()
-{
-    return device_->IsStarsPlatform() && device_->GetIsChipSupportRecycleThread() &&
-        !IsBindDvppGrp() && !IsSoftwareSqEnable() && ((Flags() & (RT_STREAM_AICPU | RT_STREAM_CP_PROCESS_USE)) == 0U);
-}
-
 bool DavidStream::IsTaskExcuted(const uint32_t executeEndTaskid, const uint32_t taskId)
 {
     return IsWaitFinish(executeEndTaskid, taskId);

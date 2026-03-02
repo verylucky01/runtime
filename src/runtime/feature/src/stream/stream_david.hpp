@@ -28,7 +28,6 @@ public:
     rtError_t AddTaskToList(const TaskInfo * const tsk) override;
     rtError_t CreateStreamTaskRes(void) override;
     rtError_t TearDown(const bool terminal = false, bool flag = true) override;
-    bool IsSeparateSendAndRecycle() override;
     virtual rtError_t SetupByFlagAndCheck(void);
     rtError_t Setup(void) override;
     void StarsShowPublicQueueDfxInfo(void) override;
@@ -92,7 +91,6 @@ public:
     void ArgReleaseSingleTask(TaskInfo * const taskInfo, bool freeStmPool);
     void ArgReleaseStmPool(TaskInfo * const taskInfo);
     void ArgReleaseMultipleTask(TaskInfo * const taskInfo);
-    Atomic<uint16_t> latestConcernedTaskId{MAX_UINT16_NUM};
 protected:
     bool isHasArgPool_{false};
 

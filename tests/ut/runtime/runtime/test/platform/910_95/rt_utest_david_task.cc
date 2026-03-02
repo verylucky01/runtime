@@ -1391,7 +1391,7 @@ TEST_F(TaskTestDavid, TestNonSeparateSendAndRecycleCase)
     ret = rtStreamCreate(&stream, 0);
     Stream *stm = (Stream *)stream;
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    MOCKER_CPP_VIRTUAL((DavidStream*)stm, &DavidStream::IsSeparateSendAndRecycle).stubs().will(returnValue(false));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(false));
 }
 
 TEST_F(TaskTestDavid, TestSeparateSendAndRecycleSuccess) {
@@ -1404,13 +1404,8 @@ TEST_F(TaskTestDavid, TestSeparateSendAndRecycleSuccess) {
     EXPECT_EQ(ret, RT_ERROR_NONE);
     stm = (Stream *)stream;
     dev = stm->Device_();
- 
-    bool isNeedStreamSync = true;
-    bool IsSeparateSendAndRecycle = true;
-    MOCKER_CPP_VIRTUAL((DavidStream*)stream, &DavidStream::IsSeparateSendAndRecycle)
-        .stubs()
-        .will(returnValue(true));
-    
+
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
     MOCKER(SyncTaskForSeparateSendAndRecycle).stubs().will(returnValue(RT_ERROR_NONE));
     ret = SubmitTaskPostProc(stm, 0, true, 100);
     EXPECT_EQ(ret, RT_ERROR_NONE);
@@ -1429,12 +1424,7 @@ TEST_F(TaskTestDavid, TestSeparateSendAndRecycleSuccess3) {
     stm = (Stream *)stream;
     dev = stm->Device_();
 
-    bool isNeedStreamSync = true;
-    bool IsSeparateSendAndRecycle = true;
-
-    MOCKER_CPP_VIRTUAL((DavidStream*)stream, &DavidStream::IsSeparateSendAndRecycle)
-        .stubs()
-        .will(returnValue(true));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
     MOCKER(SyncTaskForSeparateSendAndRecycle).stubs().will(returnValue(RT_ERROR_NONE));
     ret = SubmitTaskPostProc(stm, 0, true, 100);
     EXPECT_EQ(ret, RT_ERROR_NONE);
@@ -1475,7 +1465,7 @@ TEST_F(TaskTestDavid, TestTaskInfoAllocationWithQueueFull)
     ret = rtStreamCreate(&stream, 0);
     TaskResManageDavid *taskResMang = ((TaskResManageDavid *)(static_cast<Stream *>(stream)->taskResMang_));
     MOCKER_CPP(&TaskResManageDavid::AllocTaskInfoAndPos).stubs().will(returnValue(RT_ERROR_TASKRES_QUEUE_FULL)).then(returnValue(RT_ERROR_NONE));
-    MOCKER_CPP_VIRTUAL((DavidStream*)stream, &DavidStream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
     MOCKER_CPP(&Runtime::AllocTaskSn).stubs().will(ignoreReturnValue());
 
     uint32_t pos = 0;
@@ -1498,7 +1488,7 @@ TEST_F(TaskTestDavid, TestTaskInfoAllocationWithQueueFull2)
     ret = rtStreamCreate(&stream, 0);
     TaskResManageDavid *taskResMang = ((TaskResManageDavid *)(static_cast<Stream *>(stream)->taskResMang_));
     MOCKER_CPP(&TaskResManageDavid::AllocTaskInfoAndPos).stubs().will(returnValue(RT_ERROR_TASKRES_QUEUE_FULL)).then(returnValue(RT_ERROR_NONE));
-    MOCKER_CPP_VIRTUAL((DavidStream*)stream, &DavidStream::IsSeparateSendAndRecycle).stubs().will(returnValue(false));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(false));
     MOCKER_CPP(&Runtime::AllocTaskSn).stubs().will(ignoreReturnValue());
 
     uint32_t pos = 0;

@@ -1253,8 +1253,7 @@ TEST_F(CloudV2TaskTest1, AicpuKernelArgsRelease)
     AicpuTaskInfo *aicpuTaskInfo = &(task.u.aicpuTaskInfo);
     aicpuTaskInfo->kernel = nullptr;
     aicpuTaskInfo->comm.argHandle = reinterpret_cast<void*>(0x1U);
-
-    MOCKER_CPP_VIRTUAL(stm, &Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
     DavinciTaskUnInit(&task);
     stm->SetArgHandle(reinterpret_cast<void*>(0x0U));
 
@@ -1275,7 +1274,7 @@ TEST_F(CloudV2TaskTest1, AicpuKernelArgsRelease2)
     aicpuTaskInfo->kernel = nullptr;
     aicpuTaskInfo->comm.argHandle = reinterpret_cast<void*>(0x1U);
 
-    MOCKER_CPP_VIRTUAL(stm, &Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(false));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(false));
     MOCKER_CPP_VIRTUAL(dev->ArgLoader_(), &ArgLoader::Release).stubs().will(returnValue(RT_ERROR_NONE));
     DavinciTaskUnInit(&task);
 

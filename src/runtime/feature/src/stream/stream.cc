@@ -811,7 +811,6 @@ rtError_t Stream::SetupWithoutBindSq()
         "sq id mem alloc failed, device_id=%u, stream_id=%d.", device_->Id_(), Id_());
 
     SetSqIdMemAddr(sqIdMemAddr);
-
     RT_LOG(RT_LOG_INFO, "stream setup end, stream_id=%d, IsTaskSink=%d, sqId=%u, cqId=%u, deviceId=%u, streamResId=%u, sqAddr=0x%llx",
            streamId_, static_cast<int32_t>(IsTaskSink()), sqId_, cqId_, device_->Id_(), streamResId, sqAddr_);
 
@@ -1680,8 +1679,9 @@ rtError_t Stream::Synchronize(const bool isNeedWaitSyncCq, int32_t timeout)
         if (!IsSeparateSendAndRecycle() || GetBindFlag()) {
             error = StarsWaitForTask(lastTaskId_, isNeedWaitSyncCq, timeout);
         } else {
-            RT_LOG(RT_LOG_DEBUG, "lastTaskId_=%u, latestConcernedTaskId=%u", static_cast<uint16_t>(lastTaskId_), latestConcernedTaskId.Value());
-            error = SynchronizeImpl(lastTaskId_, latestConcernedTaskId.Value(), timeout);
+            if (!IsSyncFinished()) {
+                error = SynchronizeImpl(lastTaskId_, latestConcernedTaskId.Value(), timeout);
+            }
         }
         if (context_ != nullptr) {
             context_->PopContextErrMsg();
@@ -3702,7 +3702,8 @@ void Stream::EnterFailureAbort()
 }
 bool Stream::IsSeparateSendAndRecycle()
 {
-    return device_->IsStarsPlatform() && device_->GetIsChipSupportRecycleThread() && !IsBindDvppGrp() && !IsSoftwareSqEnable();
+    return device_->IsStarsPlatform() && device_->GetIsChipSupportRecycleThread() &&
+         !IsBindDvppGrp() && !IsSoftwareSqEnable() && ((Flags() & (RT_STREAM_AICPU | RT_STREAM_CP_PROCESS_USE)) == 0U);
 }
 
 void Stream::EraseEventTask(TaskInfo* const tsk)

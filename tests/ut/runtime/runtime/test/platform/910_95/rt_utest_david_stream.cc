@@ -763,9 +763,7 @@ TEST_F(DavidStreamTest, IsTaskExcuted_Test)
 TEST_F(DavidStreamTest, SeparateSendAndRecycleError)
 {
     DavidStream *stream = (DavidStream *)stream_;
-    MOCKER_CPP_VIRTUAL((DavidStream*)stream, &DavidStream::IsSeparateSendAndRecycle)
-        .stubs()
-        .will(returnValue(true));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
 
     rtError_t error = stream->ResClear();
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -774,9 +772,7 @@ TEST_F(DavidStreamTest, SeparateSendAndRecycleError)
 TEST_F(DavidStreamTest, TestSeparateSendAndRecycle3) {
     DavidStream *stream = (DavidStream *)stream_;
     rtError_t ret;
-    MOCKER_CPP_VIRTUAL((DavidStream*)stream, &DavidStream::IsSeparateSendAndRecycle)
-        .stubs()
-        .will(returnValue(true));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
     stream->SetBindFlag(false);
     ret = SubmitTaskPostProc(stream, 0, true, 100);
 
@@ -802,9 +798,7 @@ TEST_F(DavidStreamTest, GetTaskPosTail_taskResMangIsNull)
 TEST_F(DavidStreamTest, SeparateSendAndRecycleError2)
 {
     DavidStream *stream = (DavidStream *)stream_;
-    MOCKER_CPP_VIRTUAL((DavidStream*)stream, &DavidStream::IsSeparateSendAndRecycle)
-        .stubs()
-        .will(returnValue(true));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
     
     rtError_t error = stream->ResClear();
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -814,9 +808,7 @@ TEST_F(DavidStreamTest, TestSeparateSendAndRecycle4)
 {
     DavidStream *stream = (DavidStream *)stream_;
     rtError_t ret;
-    MOCKER_CPP_VIRTUAL((DavidStream*)stream, &DavidStream::IsSeparateSendAndRecycle)
-        .stubs()
-        .will(returnValue(true));
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
     stream->SetBindFlag(false);
     ret = SubmitTaskPostProc(stream, 0, true, 100);
     EXPECT_EQ(ret, RT_ERROR_NONE); 

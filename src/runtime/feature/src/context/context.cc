@@ -558,18 +558,8 @@ rtError_t Context::SyncStreamsWithTimeout(const std::list<Stream *> &streams, in
     rtError_t error;
     rtError_t firstError = RT_ERROR_NONE;
     int32_t remainTime = timeout;
-    COND_RETURN_ERROR_MSG_INNER(IsProcessTimeout(start, timeout, &remainTime), RT_ERROR_STREAM_SYNC_TIMEOUT,
-        "Sync stream timeout, before sync stream.");
-
     for (const auto &syncStream : streams) {
-        if (device_->GetDeviceStatus() == RT_ERROR_DEVICE_TASK_ABORT) {
-            RT_LOG(RT_LOG_ERROR, "device is abort, device_id=%d.", device_->Id_());
-            return RT_ERROR_DEVICE_TASK_ABORT;
-        }
-        if (syncStream->IsSyncFinished()) {
-            continue;
-        }
-
+        COND_PROC(syncStream->IsSyncFinished(), continue;);
         error = syncStream->Synchronize(false, remainTime);
         COND_RETURN_ERROR_MSG_INNER(IsProcessTimeout(start, timeout, &remainTime), RT_ERROR_STREAM_SYNC_TIMEOUT,
             "Sync stream timeout, stream_id=%d.", syncStream->Id_());
@@ -583,16 +573,13 @@ rtError_t Context::SyncStreamsWithTimeout(const std::list<Stream *> &streams, in
             }
         }
     }
-
-    error = defaultStream_->Synchronize(false, remainTime);
-    COND_RETURN_ERROR_MSG_INNER(IsProcessTimeout(start, timeout, &remainTime), RT_ERROR_STREAM_SYNC_TIMEOUT,
-        "Sync stream timeout, default stream.");
-
-    if (unlikely((error != RT_ERROR_NONE) && (firstError == RT_ERROR_NONE))) {
-        firstError = error;
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Synchronize defaultStream fail, retCode=%#x.", error);
+    if (!defaultStream_->IsSyncFinished()) {
+        error = defaultStream_->Synchronize(false, remainTime);
+        if (unlikely((error != RT_ERROR_NONE) && (firstError == RT_ERROR_NONE))) {
+            firstError = error;
+            RT_LOG_INNER_MSG(RT_LOG_ERROR, "Synchronize defaultStream fail, retCode=%#x.", error);
+        }
     }
-
     return firstError;
 }
 
@@ -695,13 +682,13 @@ rtError_t Context::SyncAllStreamToGetError()
 
 rtError_t Context::Synchronize(int32_t timeout)
 {
+    const mmTimespec startTime = mmGetTickCount();
     const Stream *defaultStream = defaultStream_;
     NULL_PTR_RETURN_MSG(defaultStream, RT_ERROR_CONTEXT_DEFAULT_STREAM_NULL);
 
     TIMESTAMP_NAME(__func__);
-    const std::unique_lock<std::mutex> taskLock(streamLock_);
     std::list<Stream *> syncStreams;
-
+    const std::unique_lock<std::mutex> taskLock(streamLock_);
     for (const auto &syncStream : streams_) {
         if (IsStreamNotSync(syncStream->Flags())) {
             continue;
@@ -712,15 +699,10 @@ rtError_t Context::Synchronize(int32_t timeout)
         COND_PROC(syncStream->IsSyncFinished(), continue;);
         syncStreams.push_back(syncStream);
     }
-
-    const mmTimespec startTime = mmGetTickCount();
-
     // TaskReclaim
     (void)TaskReclaimforSyncDevice(startTime, timeout);
-
     const rtError_t error = CheckStatus();
     ERROR_RETURN(error, "context is abort, status=%#x.", static_cast<uint32_t>(error));
-
     return SyncStreamsWithTimeout(syncStreams, timeout, startTime);
 }
 

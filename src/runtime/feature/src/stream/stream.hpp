@@ -201,7 +201,7 @@ public:
     virtual rtError_t TearDown(const bool terminal = false, bool flag = true);
 
     virtual void EnterFailureAbort();
-    virtual bool IsSeparateSendAndRecycle();
+    bool IsSeparateSendAndRecycle();
     // use ctrlsq to recycle task in stream
     rtError_t RecycleTaskWithCtrlsq(Device * const dev, const uint32_t logicCqId, const uint32_t recycleCnt);
 

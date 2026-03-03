@@ -5174,12 +5174,6 @@ rtError_t ApiErrorDecorator::MemSetAccess(void *virPtr, size_t size, rtMemAccess
 {
     NULL_PTR_RETURN_MSG(virPtr, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG(desc, RT_ERROR_INVALID_VALUE);
-    // convert acl location type to drv side
-    for (size_t i = 0; i < count; ++i) {
-        if (desc[i].location.type == NUMA_TYPE) {
-            desc[i].location.type = static_cast<rtMemLocationType>(DRV_MEM_HOST_NUMA_SIDE);
-        }
-    }
     return impl_->MemSetAccess(virPtr, size, desc, count);
 }
 

@@ -33,6 +33,7 @@
 #include "config_define.hpp"
 #include "task_res.hpp"
 #include "davinci_kernel_task.h"
+#include "dvpp_c.hpp"
 using namespace testing;
 using namespace cce::runtime;
 
@@ -860,7 +861,7 @@ TEST_F(StarsTaskTest, WriteValueTaskTest)
     rtError_t ret;
 
     vpcSqe.sqeHeader.type = RT_STARS_SQE_TYPE_VPC;
-    ctx_->StarsLaunch((void*)&vpcSqe, sizeof(cce::runtime::rtStarsCommonSqe_t), stream_, 0);
+    StarsLaunch((void*)&vpcSqe, sizeof(cce::runtime::rtStarsCommonSqe_t), stream_, 0);
 
     uint8_t value[WRITE_VALUE_SIZE_MAX_LEN] = {};
     rtStarsSqe_t cmd;

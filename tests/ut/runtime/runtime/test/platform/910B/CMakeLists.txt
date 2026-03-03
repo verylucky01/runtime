@@ -237,6 +237,7 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/feature/src/launch/label_common.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/label_stars.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/memcpy_stars.cc
+    ${TOP_DIR}/src/runtime/feature/src/launch/dvpp_stars.cc
     ${TOP_DIR}/src/runtime/feature/src/device/aicpu_err_msg.cc
     ${TOP_DIR}/src/runtime/feature/src/notify/notify.cc
     ${TOP_DIR}/src/runtime/feature/src/event/event.cc

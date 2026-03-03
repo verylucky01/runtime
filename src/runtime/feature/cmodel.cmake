@@ -46,6 +46,7 @@ set(libruntime_cmodel_v100_task_src_files
     src/task/v100/task_checker.cc
     src/task/v100/memory_task.cc
     src/launch/memcpy_stars.cc
+    src/launch/dvpp_stars.cc
 )
 
 set(david_series_common_task_src_file_cmodel
@@ -422,7 +423,7 @@ set(libruntime_cmodel_v200_src_files
     src/launch/aix_c.cc
     src/launch/aicpu_c.cc
     src/launch/fusion_c.cc
-    src/launch/dvpp_c.cc
+    src/launch/dvpp_starsv2.cc
     src/launch/cond_david.cc
     src/launch/label_david.cc
     src/device/v200_base/device_error_proc_c.cc

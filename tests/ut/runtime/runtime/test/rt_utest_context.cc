@@ -22,6 +22,7 @@
 #include "context.hpp"
 #include "cond_c.hpp"
 #include "label_c.hpp"
+#include "dvpp_c.hpp"
 #include "context_protect.hpp"
 #include "raw_device.hpp"
 #include "kernel.hpp"
@@ -828,13 +829,13 @@ TEST_F(ContextTest, StarsLaunchDvppRRProcess_Test)
     stmPtr->failureMode_ = STOP_ON_FAILURE;
     stmPtr->flags_ = 0;
     ctx->streams_.push_back(stmPtr);
-    error = ctx->StarsLaunchDvppRRProcess(stmPtr);
+    error = StarsLaunchDvppRRProcess(stmPtr);
     TaskResManage mTaskResManage;
     mTaskResManage.taskPoolNum_ = 1;
     stmPtr->taskResMang_ = &mTaskResManage;
     Device *device = new RawDevice(1);
     MOCKER_CPP_VIRTUAL(device, &Device::SubmitTask).stubs().will(returnValue(RT_ERROR_DRV_ERR));
-    error = ctx->StarsLaunchDvppRRProcess(stmPtr);
+    error = StarsLaunchDvppRRProcess(stmPtr);
     EXPECT_EQ(error, RT_ERROR_DRV_ERR);
     GlobalMockObject::verify();
     stmPtr->taskResMang_ = nullptr;
@@ -4366,14 +4367,13 @@ TEST_F(ContextTest, LaunchMultipleTaskInfo_test)
     MOCKER_CPP_VIRTUAL(ctx->device_, &Device::SubmitTask).stubs().will(returnValue(1)).then(returnValue(RT_ERROR_NONE));
     MOCKER_CPP(&TaskFactory::Recycle).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER(DavinciMultipleTaskInit).stubs().will(returnValue(RT_ERROR_NONE));
-    error = ctx->LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
+    error = LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
     EXPECT_NE(error, RT_ERROR_NONE);
-    error = ctx->LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
+    error = LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);	 
+    EXPECT_EQ(error, RT_ERROR_NONE); 
+    MOCKER_CPP(StarsLaunchDvppRRProcess).stubs().will(returnValue(1)); 
+    error = LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    MOCKER_CPP(&Context::StarsLaunchDvppRRProcess).stubs().will(returnValue(1));
-    error = ctx->LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
     (void)((Runtime *)Runtime::Instance())->PrimaryContextRelease(devId);
     stream->taskResMang_ = preVal;
     delete stream;

@@ -126,10 +126,6 @@ public:
     rtError_t LaunchCpuKernelExWithArgs(const Kernel * const kernel, const uint32_t coreDim,
         const rtCpuKernelArgs_t * const cpuKernelArgs, const TaskCfg &taskCfg,
         Stream * const stm, const uint32_t flag) const;
-
-    rtError_t LaunchMultipleTaskInfo(const rtMultipleTaskInfo_t * const multipleTaskInfo, Stream * const stm,
-        const uint32_t flag);
-
     rtError_t DatadumpInfoLoad(const void * const dumpInfo, const uint32_t length, const uint32_t flag);
 
     rtError_t AicpuInfoLoad(const void * const aicpuInfo, const uint32_t length);
@@ -351,8 +347,6 @@ public:
     rtError_t AdcProfiler(Stream * const stm, const uint64_t addr, const uint32_t length);
     rtError_t LabelSwitchListCreate(Label ** const labels, const size_t num, void ** const labelList) const;
 
-    rtError_t StarsLaunchDvppRRProcess(Stream * const stm);
-    rtError_t StarsLaunch(const void * const sqe, const uint32_t sqeLen, Stream * const stm, const uint32_t flag);
     rtError_t FftsPlusTaskLaunch(const rtFftsPlusTaskInfo_t * const fftsPlusTaskInfo, Stream * const stm,
                                  const uint32_t flag);
     rtError_t CmoTaskLaunch(const rtCmoTaskInfo_t * const taskInfo, Stream * const stm,
@@ -376,7 +370,6 @@ public:
     rtError_t GetSatStatusForStars(const uint64_t outputSize, Stream * const curStm);
     rtError_t SetUpdateAddrTask(uint64_t devAddr, uint64_t len, Stream *stm);
 
-    rtError_t LaunchDvppTask(const void * const sqe, const uint32_t sqeLen, Stream * const stm, rtDvppCfg_t *cfg = nullptr);
     rtError_t LaunchRandomNumTask(const rtRandomNumTaskInfo_t *taskInfo, Stream * const stm, const void *reserve) const;
 
     void ContextInUse()

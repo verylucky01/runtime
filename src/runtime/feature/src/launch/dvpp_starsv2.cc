@@ -20,7 +20,7 @@ namespace cce {
 namespace runtime {
 
 // for dvpp task, submit write value task, don't update last taskId
-static rtError_t StarsLaunchDvppRRProcess(Stream * const stm)
+rtError_t StarsLaunchDvppRRProcess(Stream * const stm)
 {
     const int32_t streamId = stm->Id_();
     static uint8_t value[WRITE_VALUE_SIZE_MAX_LEN] = {};

@@ -1387,6 +1387,26 @@ rtError_t rtSetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoPr
     return ACL_RT_SUCCESS;
 }
 
+VISIBILITY_DEFAULT
+rtError_t rtsNotifySetImportPid(rtNotify_t notify, int32_t pid[], int num)
+{
+    // notify to ipc name
+    const Runtime * const rtInstance = Runtime::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
+    const rtChipType_t chipType = rtInstance->GetChipType();
+    if (!IS_SUPPORT_CHIP_FEATURE(chipType, RtOptionalFeatureType::RT_FEATURE_IPC_NOTIFY)) {
+        RT_LOG(RT_LOG_WARNING, "chip type(%d) not support NotifySetImportPid.",
+            static_cast<int32_t>(chipType));
+        return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_FEATURE_NOT_SUPPORT);
+    }
+    Api * const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    Notify * const notifyPtr = static_cast<Notify *>(notify);
+    PARAM_NULL_RETURN_ERROR_WITH_EXT_ERRCODE(notifyPtr, RT_ERROR_INVALID_VALUE);
+    const rtError_t error = apiInstance->SetIpcNotifyPid(notifyPtr->GetIpcName().c_str(), pid, num);
+    ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    return ACL_RT_SUCCESS;
+}
 #ifdef __cplusplus
 }
 #endif // __cplusplus

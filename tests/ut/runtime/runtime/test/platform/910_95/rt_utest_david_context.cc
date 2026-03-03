@@ -32,7 +32,6 @@
 #include "rdma_task.h"
 #include "device_sq_cq_pool.hpp"
 #include "sq_addr_memory_pool.hpp"
-
 using namespace testing;
 using namespace cce::runtime;
 

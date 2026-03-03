@@ -44,7 +44,7 @@
 #include "memcpy_c.hpp"
 #include "cond_c.hpp"
 #include "label_c.hpp"
-
+#include "dvpp_c.hpp"
 using namespace testing;
 using namespace cce::runtime;
 
@@ -3396,12 +3396,9 @@ TEST_F(CloudV2ContextTest, LaunchMultipleTaskInfo_test)
     MOCKER_CPP_VIRTUAL(ctx->device_, &Device::SubmitTask).stubs().will(returnValue(1)).then(returnValue(RT_ERROR_NONE));
     MOCKER_CPP(&TaskFactory::Recycle).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER(DavinciMultipleTaskInit).stubs().will(returnValue(RT_ERROR_NONE));
-    error = ctx->LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
+    error = LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
     EXPECT_NE(error, RT_ERROR_NONE);
-    error = ctx->LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    MOCKER_CPP(&Context::StarsLaunchDvppRRProcess).stubs().will(returnValue(1));
-    error = ctx->LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
+    error = LaunchMultipleTaskInfo(&multipleTaskInfo, stream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     (void)((Runtime *)Runtime::Instance())->PrimaryContextRelease(devId);

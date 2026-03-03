@@ -216,6 +216,7 @@ set(libruntime_v100_src_files
     src/launch/cond_stars.cc
     src/launch/label_common.cc
     src/launch/label_stars.cc
+    src/launch/dvpp_stars.cc
     src/event/event.cc
     src/notify/notify.cc
     src/engine/logger.cc

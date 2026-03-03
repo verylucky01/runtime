@@ -960,6 +960,15 @@ rtError_t rtLaunchDqsTask(const rtStream_t stm, const rtDqsTaskCfg_t* const task
     UNUSED(taskCfg);
     return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
 }
+
+VISIBILITY_DEFAULT
+rtError_t rtsNotifySetImportPid(rtNotify_t notify, int32_t pid[], int num)
+{
+    UNUSED(notify);
+    UNUSED(pid);
+    UNUSED(num);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
 #ifdef __cplusplus
 }
 #endif // __cplusplus

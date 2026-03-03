@@ -9,6 +9,8 @@
  */
 #include "cond_c.hpp"
 #include "label_c.hpp"
+#include "dvpp_c.hpp"
+#include "stars_common_task.h"
 #include "api_impl.hpp"
 #include "base.hpp"
 #include "stream.hpp"
@@ -708,7 +710,7 @@ rtError_t ApiImpl::MultipleTaskInfoLaunch(const rtMultipleTaskInfo_t * const tas
     COND_RETURN_ERROR_MSG_INNER(curStm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
         "task info launch failed, stream is not in current ctx, stream_id=%d.", curStm->Id_());
 
-    return curCtx->LaunchMultipleTaskInfo(taskInfo, curStm, flag);
+    return LaunchMultipleTaskInfo(taskInfo, curStm, flag);
 }
 
 rtError_t ApiImpl::CalcLaunchArgsSize(size_t const argsSize, size_t const hostInfoTotalSize, size_t hostInfoNum,
@@ -6052,7 +6054,7 @@ rtError_t ApiImpl::StarsTaskLaunch(const void * const sqe, const uint32_t sqeLen
     COND_RETURN_ERROR_MSG_INNER(curStm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
                                 "Stars task launch failed, stream is not in current ctx");
 
-    return curCtx->StarsLaunch(sqe, sqeLen, curStm, flag);
+    return StarsLaunch(sqe, sqeLen, curStm, flag);
 }
 
 bool ApiImpl::IsDevSupportGetDevMsg(const Device * const dev)
@@ -8155,9 +8157,15 @@ rtError_t ApiImpl::LaunchDvppTask(const void * const sqe, const uint32_t sqeLen,
     COND_RETURN_ERROR_MSG_INNER(curStm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
         "stream is not in current ctx, stream_id=%d.", curStm->Id_());
 
-    const rtError_t error = curCtx->LaunchDvppTask(sqe, sqeLen, curStm, cfg);
-    ERROR_RETURN(error, "Stars launch dvpp task failed.");
-    return error;
+    bool isCmdListNotFree = false; 
+    rtError_t error = GetIsCmdListNotFreeValByDvppCfg(cfg, isCmdListNotFree); 
+    ERROR_RETURN_MSG_INNER(error, "Failed to get dvpp cmdlist not free flag, streamId=%u, retCode=%#x", 
+        curStm->Id_(), error); 
+    const uint32_t flag = isCmdListNotFree ? RT_KERNEL_CMDLIST_NOT_FREE : RT_KERNEL_DEFAULT; 
+    error = StarsLaunch(sqe, sqeLen, curStm, flag); 
+    ERROR_RETURN_MSG_INNER(error, "Failed to launch dvpp task, streamId=%u, retCode=%#x", curStm->Id_(), error); 
+
+    return RT_ERROR_NONE;
 }
 
 rtError_t ApiImpl::LaunchRandomNumTask(const rtRandomNumTaskInfo_t *taskInfo, Stream * const stm, void *reserve)

@@ -6601,7 +6601,6 @@ TEST_F(AICPUScheduleTEST, Start_002) {
     std::string ch = "000000000000000000000000000000000000000000000000";
     std::vector<uint32_t> deviceVec;
     deviceVec.push_back(1);
-    MOCKER_CPP(&FeatureCtrl::LoadKernelSo).stubs().will(returnValue(true));
     MOCKER_CPP(&ComputeProcess::StartTdtServer)
         .stubs()
         .will(returnValue(0));

@@ -163,7 +163,7 @@ int32_t ComputeProcess::Start(const std::vector<uint32_t> &deviceVec,
         }
     }
 
-    if (FeatureCtrl::LoadKernelSo()) {
+    if (AicpuScheduleInterface::GetInstance().NeedLoadKernelSo()) {
         LoadKernelSo();
     }
 

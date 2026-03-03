@@ -47,7 +47,6 @@ TEST_F(AICPUScheduleOpenTEST, Check_default_feature) {
     EXPECT_FALSE(FeatureCtrl::IsNoNeedDumpOpDebugProduct());
     EXPECT_FALSE(FeatureCtrl::IsDoubleDieProduct());
     EXPECT_FALSE(FeatureCtrl::BindCpuOnlyOneDevice());
-    EXPECT_TRUE(FeatureCtrl::LoadKernelSo());
     EXPECT_FALSE(FeatureCtrl::IfCheckEventSender());
     EXPECT_FALSE(FeatureCtrl::IsUseMsqV2());
     EXPECT_TRUE(FeatureCtrl::ShouldInitDrvThread());

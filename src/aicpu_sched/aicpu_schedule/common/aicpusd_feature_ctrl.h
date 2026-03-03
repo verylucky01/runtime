@@ -41,8 +41,6 @@ public:
 
     static bool BindCpuOnlyOneDevice();
 
-    static bool LoadKernelSo();
-
     static bool IfCheckEventSender();
 
     static bool IsUseMsqV2();
@@ -105,16 +103,6 @@ public:
         isSetTsMsgVersion_ = false;
     }
 
-    static inline void NotNeedBatchLoadSo() 
-    {
-        isNeedBatchLoadSo_ = false;
-    }
-
-    static inline bool GetNeedBathLoadSo() 
-    {
-        return isNeedBatchLoadSo_;
-    }
-
 private:
     FeatureCtrl() = default;
     ~FeatureCtrl() = default;
@@ -124,7 +112,6 @@ private:
     FeatureCtrl(FeatureCtrl&&) = delete;
     FeatureCtrl& operator=(FeatureCtrl&&) = delete;
 
-    static bool isNeedBatchLoadSo_;
     static bool aicpuFeatureBindPidByHal_;
     static bool aicpuFeatureDoubleDieProduct_;
     static bool aicpuFeatureCheckEventSender_;

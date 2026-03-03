@@ -99,6 +99,8 @@ namespace AicpuSchedule {
         __attribute__((visibility("default"))) int32_t StopAICPUScheduler(const std::vector<uint32_t> &deviceVec,
                                                                           const pid_t hostPid);
 
+        __attribute__((visibility("default"))) void SetBatchLoadMode(const uint32_t aicpuProcNum);
+
         int32_t StopAICPUSchedulerWithFlag(const std::vector<uint32_t> &deviceVec, const pid_t hostPid,
             bool waitThreadStop);
 
@@ -141,6 +143,8 @@ namespace AicpuSchedule {
         void SetAicpuSdProcId(const pid_t aicpuSdPid);
 
         int32_t ProcessException(const DataFlowExceptionNotify *const exceptionInfo) const;
+
+        bool NeedLoadKernelSo() const;
     private:
         AicpuScheduleInterface();
 
@@ -198,6 +202,8 @@ namespace AicpuSchedule {
         std::map<uint32_t, bool> aicpusdInitFlagMap_;
 
         std::atomic<int32_t> aicpuCustSdPid_;
+
+        bool isNeedBatchLoadSo_;
     };
 }
 #endif

@@ -39,7 +39,6 @@
 namespace AicpuSchedule {
 namespace {
 constexpr int32_t SUCCESS_VALUE = 0;
-constexpr uint32_t MAX_AICPU_PROC_NUM = 48U;
 const std::string ERROR_MSG_INVALID_PARAM = "E39001";
 const std::string ERROR_MSG_DRV_ERROR = "E39002";
 const std::string ERROR_MSG_CGROUP_FAILED = "E30007";
@@ -308,17 +307,6 @@ AicpuSchedMode GetAicpuSchedMode(const uint32_t deviceId, const uint32_t vfId, c
 
     return schedMode;
 }
-
-void SetBatchLoadMode(const uint32_t aicpuProcNum) 
-{
-    if (aicpuProcNum > MAX_AICPU_PROC_NUM) {
-        FeatureCtrl::NotNeedBatchLoadSo();
-        aicpusd_run_info("Not need batch load so, aicpuProcNum[%u], max num [%u], load so flag[%d]",
-        aicpuProcNum,
-        MAX_AICPU_PROC_NUM,
-        FeatureCtrl::GetNeedBathLoadSo());
-    }
-}
 }
 }
 
@@ -346,7 +334,7 @@ int32_t ComputeProcessMain(int32_t argc, char* argv[])
         const pid_t pid = startParams.GetHostPid();
         const uint32_t deviceId = startParams.GetDeviceId();
         const uint32_t aicpuProcNum = startParams.GetAicpuProcNum();
-        AicpuSchedule::SetBatchLoadMode(aicpuProcNum);
+        AicpuSchedule::AicpuScheduleInterface::GetInstance().SetBatchLoadMode(aicpuProcNum);
         if (!AicpuSchedule::AddToCgroup(deviceId, vfId)) {
             AicpuSchedule::ReportErrorMsg(AicpuSchedule::AICPU_SCHEDULE_ERROR_CGROUP_FAILED,
                                           deviceId, static_cast<uint32_t>(pid), vfId);

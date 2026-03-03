@@ -91,11 +91,6 @@ bool FeatureCtrl::BindCpuOnlyOneDevice()
     return false;
 }
 
-bool FeatureCtrl::LoadKernelSo()
-{
-    return isNeedBatchLoadSo_;
-}
-
 bool FeatureCtrl::IfCheckEventSender()
 {
     return aicpuFeatureCheckEventSender_;

@@ -65,6 +65,8 @@ namespace {
     // max number of eatch device can split
     constexpr const uint32_t DEVICE_MAX_SPLIT_NUM = 16U;
 
+    constexpr uint32_t MAX_AICPU_PROC_NUM = 48U;
+
     const std::string TSKERNEL_PREFIX = "tsKernel:";
 }
 namespace AicpuSchedule {
@@ -78,7 +80,8 @@ namespace AicpuSchedule {
           initFlag_(false),
           eventBitMap_(0U),
           runMode_(aicpu::AicpuRunMode::THREAD_MODE),
-          aicpuCustSdPid_(-1) {}
+          aicpuCustSdPid_(-1),
+          isNeedBatchLoadSo_(true) {}
 
     /**
      * @ingroup AicpuScheduleCore
@@ -701,4 +704,18 @@ namespace AicpuSchedule {
         aicpusd_info("Success to process kernel data exception event.");
         return AICPU_SCHEDULE_OK;
     }
+
+    void AicpuScheduleInterface::SetBatchLoadMode(const uint32_t aicpuProcNum) 
+    {
+        if (aicpuProcNum >= MAX_AICPU_PROC_NUM) {
+            isNeedBatchLoadSo_ = false;
+            aicpusd_run_info("Not need batch load so, aicpuProcNum[%u], max num[%u]",
+                             aicpuProcNum, MAX_AICPU_PROC_NUM);
+        }
+    }
+
+    bool AicpuScheduleInterface::NeedLoadKernelSo() const
+    {
+        return isNeedBatchLoadSo_;
+    } 
 }

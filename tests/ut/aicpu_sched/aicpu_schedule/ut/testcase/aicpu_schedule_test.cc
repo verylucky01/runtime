@@ -5653,7 +5653,6 @@ TEST_F(AICPUScheduleTEST, Start_002) {
     MOCKER_CPP(&ComputeProcess::StartTdtServer)
         .stubs()
         .will(returnValue(0));
-    MOCKER_CPP(&FeatureCtrl::LoadKernelSo).stubs().will(returnValue(true));;
     const AicpuSchedMode schedMode = SCHED_MODE_INTERRUPT;
     int ret = ComputeProcess::GetInstance().Start(deviceVec, 100, ch, PROFILING_OPEN, 0, aicpu::PROCESS_PCIE_MODE, schedMode);
     EXPECT_EQ(ret, AICPU_SCHEDULE_OK);

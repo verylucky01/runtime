@@ -152,6 +152,7 @@ set(profilerSrcFile
     test/platform_utest.cpp
     test/msprof_dynamic_utest.cpp
     test/msprofiler_adapter_utest.cpp
+    test/info_json_utest.cpp
     ../stub/drv_stub.cpp
     ../stub/mmpa_stub.cpp
     ../stub/prof_api_stub.cpp

@@ -115,17 +115,6 @@ public:
     rtError_t LaunchKernelGetPrefetchCnt(const Kernel * const kernelPtr, const Program * const prog,
         uint32_t &icachePrefetchCnt1, uint32_t &icachePrefetchCnt2, uint8_t &mixType) const;
 
-    rtError_t LaunchKernelEx(const void * const args, const uint32_t argsSize, const uint32_t flags,
-        Stream * const stm);
-
-    rtError_t LaunchCpuKernel(const rtKernelLaunchNames_t * const launchNames, const uint32_t coreDim,
-        const rtArgsEx_t * const argsInfo, Stream * const stm, const uint32_t flag);
-
-    rtError_t LaunchCpuKernelExWithArgs(const uint32_t coreDim, const rtAicpuArgsEx_t * const argsInfo,
-        Stream * const stm, const uint32_t flag, const uint32_t kernelType);
-    rtError_t LaunchCpuKernelExWithArgs(const Kernel * const kernel, const uint32_t coreDim,
-        const rtCpuKernelArgs_t * const cpuKernelArgs, const TaskCfg &taskCfg,
-        Stream * const stm, const uint32_t flag) const;
     rtError_t DatadumpInfoLoad(const void * const dumpInfo, const uint32_t length, const uint32_t flag);
 
     rtError_t AicpuInfoLoad(const void * const aicpuInfo, const uint32_t length);

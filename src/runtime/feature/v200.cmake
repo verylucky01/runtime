@@ -270,7 +270,7 @@ set(libruntime_v200_v201_common_src_files
     src/task/v200_base/stars_david.cc
     src/notify/count_notify.cc
     src/launch/aix_c.cc
-    src/launch/aicpu_c.cc
+    src/launch/aicpu_starsv2.cc
     src/launch/fusion_c.cc
     src/launch/dvpp_starsv2.cc
     src/launch/cond_david.cc

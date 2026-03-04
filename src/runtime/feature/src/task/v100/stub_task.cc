@@ -29,17 +29,6 @@ rtError_t TaskReclaimByStream(Stream *const stm, const bool limited, const bool 
     return RT_ERROR_FEATURE_NOT_SUPPORT;
 }
 
-rtError_t StreamLaunchCpuKernel(const rtKernelLaunchNames_t *const launchNames, const uint32_t coreDim,
-    const rtArgsEx_t *const argsInfo, Stream *const stm, const uint32_t flag)
-{
-    UNUSED(launchNames);
-    UNUSED(coreDim);
-    UNUSED(argsInfo);
-    UNUSED(stm);
-    UNUSED(flag);
-    return RT_ERROR_FEATURE_NOT_SUPPORT;
-}
-
 void ProfStart(Profiler * const profiler, const uint64_t profConfig, const uint32_t devId, const Device * const dev)
 {
     profiler->TsProfilerStart(profConfig, devId, const_cast<Device*>(dev));

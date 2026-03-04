@@ -532,8 +532,6 @@ TEST_F(TinyStubTest, task_stub)
     EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
     ret = TaskReclaimByStream(nullptr, true, true);
     EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
-    ret = StreamLaunchCpuKernel(nullptr, 0, nullptr, nullptr, 0);
-    EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
     ret = SetTimeoutConfigTaskSubmitDavid(nullptr, RT_TIMEOUT_TYPE_OP_WAIT, 0);
     EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
     ret = AicpuMdlDestroy(nullptr);

@@ -281,6 +281,7 @@ set(libruntime_cmodel_src_files
     src/kernel/program.cc
     src/kernel/program_common.cc
     src/launch/label.cc
+    src/launch/aicpu_stars.cc
     src/event/event.cc
     src/notify/notify.cc
     src/engine/logger.cc
@@ -421,7 +422,7 @@ set(libruntime_cmodel_v200_src_files
     src/task/v200_base/stars_david.cc
     src/notify/count_notify.cc
     src/launch/aix_c.cc
-    src/launch/aicpu_c.cc
+    src/launch/aicpu_starsv2.cc
     src/launch/fusion_c.cc
     src/launch/dvpp_starsv2.cc
     src/launch/cond_david.cc

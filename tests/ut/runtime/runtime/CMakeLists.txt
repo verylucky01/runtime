@@ -113,7 +113,7 @@ set(runtimeut_src_api_list
 
 set(runtimeut_src_david_series_common_c_list
     ${TOP_DIR}/src/runtime/feature/src/launch/aix_c.cc
-    ${TOP_DIR}/src/runtime/feature/src/launch/aicpu_c.cc
+    ${TOP_DIR}/src/runtime/feature/src/launch/aicpu_starsv2.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/dvpp_starsv2.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/fusion_c.cc
 
@@ -390,6 +390,7 @@ set(runtimeut_src_list
     ${TOP_DIR}/src/runtime/feature/src/launch/label_common.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/label_stars.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/memcpy_stars.cc
+    ${TOP_DIR}/src/runtime/feature/src/launch/aicpu_stars.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/dvpp_stars.cc
     ${TOP_DIR}/src/runtime/feature/src/device/aicpu_err_msg.cc
     ${TOP_DIR}/src/runtime/feature/src/notify/notify.cc

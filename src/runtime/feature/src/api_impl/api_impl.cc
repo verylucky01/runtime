@@ -57,6 +57,7 @@
 #include "mem_type.hpp"
 #include "inner_kernel.h"
 #include "kernel_dfx_info.hpp"
+#include "aicpu_c.hpp"
 
 #define RT_DRV_FAULT_CNT 25U
 #define NULL_STREAM_PTR_RETURN_MSG(STREAM)     NULL_PTR_RETURN_MSG((STREAM), RT_ERROR_STREAM_NULL)
@@ -563,7 +564,7 @@ rtError_t ApiImpl::KernelLaunchEx(const char_t * const opName, const void * cons
     ERROR_RETURN_MSG_INNER(rtInstance->StartAicpuSd(curCtx->Device_()),
         "Cpu kernel launch ex with args failed, check and start tsd open aicpu sd error.");
 
-    return curCtx->LaunchKernelEx(args, argsSize, flags, curStm);
+    return StreamLaunchKernelEx(args, argsSize, flags, curStm);
 }
 
 rtError_t ApiImpl::CpuKernelLaunch(const rtKernelLaunchNames_t * const launchNames, const uint32_t coreDim,
@@ -592,7 +593,7 @@ rtError_t ApiImpl::CpuKernelLaunch(const rtKernelLaunchNames_t * const launchNam
     ERROR_RETURN_MSG_INNER(rtInstance->StartAicpuSd(curCtx->Device_()),
         "Cpu kernel launch failed, check and start tsd open aicpu sd error.");
 
-    return curCtx->LaunchCpuKernel(launchNames, coreDim, argsInfo, curStm, flag);
+    return StreamLaunchCpuKernel(launchNames, coreDim, argsInfo, curStm, flag);
 }
 
 rtError_t ApiImpl::CpuKernelLaunchEx(const Kernel * const kernel, const uint32_t coreDim,
@@ -620,7 +621,8 @@ rtError_t ApiImpl::CpuKernelLaunchEx(const Kernel * const kernel, const uint32_t
     ERROR_RETURN_MSG_INNER(rtInstance->StartAicpuSd(curCtx->Device_()),
         "Cpu kernel launch ex with args failed, check and start tsd open aicpu sd error.");
 
-    return curCtx->LaunchCpuKernelExWithArgs(kernel, coreDim, argsInfo, taskCfg, stm, flag);
+    return StreamLaunchCpuKernelExWithArgs(coreDim, &argsInfo->baseArgs, &taskCfg, curStm, flag,
+        kernel->KernelType_(), kernel, argsInfo->cpuParamHeadOffset);
 }
 
 rtError_t ApiImpl::CpuKernelLaunchExWithArgs(const char_t * const opName, const uint32_t coreDim,
@@ -663,7 +665,7 @@ rtError_t ApiImpl::CpuKernelLaunchExWithArgs(const char_t * const opName, const 
     ERROR_RETURN_MSG_INNER(rtInstance->StartAicpuSd(curCtx->Device_()),
         "Cpu kernel launch ex with args failed, check and start tsd open aicpu sd error.");
 
-    return curCtx->LaunchCpuKernelExWithArgs(coreDim, argsInfo, curStm, flag, kernelType);
+    return StreamLaunchCpuKernelExWithArgs(coreDim, argsInfo, nullptr, curStm, flag, kernelType, nullptr);
 }
 
 rtError_t ApiImpl::MultipleTaskInfoLaunch(const rtMultipleTaskInfo_t * const taskInfo, Stream * const stm,
@@ -2950,7 +2952,7 @@ rtError_t ApiImpl::LaunchSqeUpdateTask(uint32_t streamId, uint32_t taskId, void 
         argsInfo.argsSize = argsSize;
         argsInfo.args = args;
 
-        error = curCtx->LaunchCpuKernelExWithArgs(1U, &argsInfo, curStm, RT_KERNEL_DEFAULT, KERNEL_TYPE_AICPU_KFC);
+        error = StreamLaunchCpuKernelExWithArgs(1U, &argsInfo, nullptr, curStm, RT_KERNEL_DEFAULT, KERNEL_TYPE_AICPU_KFC, nullptr);
         COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "update dsa failed, due to launch cpu task failed.");
         RT_LOG(RT_LOG_INFO, "launch dsa update cpu task success.");
         // LaunchSqeUpdateTask only update sqe from offset=DSA_SQE_UPDATE_OFFSET, so need add offset.

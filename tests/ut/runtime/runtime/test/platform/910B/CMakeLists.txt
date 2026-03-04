@@ -237,6 +237,7 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/feature/src/launch/label_common.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/label_stars.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/memcpy_stars.cc
+    ${TOP_DIR}/src/runtime/feature/src/launch/aicpu_stars.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/dvpp_stars.cc
     ${TOP_DIR}/src/runtime/feature/src/device/aicpu_err_msg.cc
     ${TOP_DIR}/src/runtime/feature/src/notify/notify.cc
@@ -571,6 +572,7 @@ add_executable(runtime_utest_api_910B
     rt_utest_npu_driver.cc
     rt_utest_device.cc
     rt_utest_aicpu_err_msg.cc
+    rt_utest_aicpu_kernel_launch.cc
     rt_utest_runtime.cc
     rt_utest_snapshot.cc
     rt_utest_ipc_event.cc

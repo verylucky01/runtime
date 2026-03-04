@@ -486,6 +486,14 @@ constexpr int32_t RT_ERROR_HOST_MEMORY_NOT_REGISTERED                  = 0x071E0
 
 constexpr int32_t RT_ERROR_PLATFORM_PARSE_FILE_FAILED                  = 0x071F0001;
 
+constexpr int32_t RT_ERROR_MEM_POOL_NULL                               = 0x07200000;
+constexpr int32_t RT_ERROR_POOL_OP_INVALID                             = 0x07200001;
+constexpr int32_t RT_ERROR_POOL_PROP_INVALID                           = 0x07200002;
+constexpr int32_t RT_ERROR_POOL_UNSUPPORTED                            = 0x07200003;
+constexpr int32_t RT_ERROR_POOL_PTR_NOTFOUND                           = 0x07200004;
+constexpr int32_t RT_ERROR_POOL_DOUBLE_REGISTED                        = 0x07200005;
+constexpr int32_t RT_ERROR_MEM_POOL_ALLOC                              = 0x07200006;
+
 enum class DeviceFaultType : uint8_t {
     L2_BUFFER_ERROR,
     HBM_UCE_ERROR,

@@ -270,5 +270,34 @@ rtError_t ApiImpl::IpcOpenEventHandle(rtIpcEventHandle_t *handle, IpcEvent** con
     UNUSED(handle);
     return RT_ERROR_FEATURE_NOT_SUPPORT;
 }
+
+rtError_t ApiImpl::StreamMemPoolCreate(rtMemPool_t *memPool, const rtMemPoolProps *poolProps)
+{
+    UNUSED(memPool);
+    UNUSED(poolProps);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
+rtError_t ApiImpl::StreamMemPoolDestroy(const rtMemPool_t memPool)
+{
+    UNUSED(memPool);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
+rtError_t ApiImpl::StreamMemPoolSetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value)
+{
+    UNUSED(memPool);
+    UNUSED(attr);
+    UNUSED(value);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
+rtError_t ApiImpl::StreamMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value)
+{
+    UNUSED(memPool);
+    UNUSED(attr);
+    UNUSED(value);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
 }
 }

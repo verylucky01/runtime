@@ -891,6 +891,19 @@ rtError_t aclStub::rtMemGetAddressRange(void *ptr, void **pbase, size_t *psize) 
     return RT_ERROR_NONE;
 }
 
+rtError_t aclStub::rtMemPoolCreate(rtMemPool_t *memPool, const rtMemPoolProps *poolProps) {
+    return RT_ERROR_NONE;
+}
+rtError_t aclStub::rtMemPoolDestroy(const rtMemPool_t memPool) {
+    return RT_ERROR_NONE;
+}
+rtError_t aclStub::rtMemPoolSetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value) {
+    return RT_ERROR_NONE;
+}
+rtError_t aclStub::rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value) {
+    return RT_ERROR_NONE;
+}
+
 rtError_t aclStub::rtMapMem(void *devPtr, size_t size, size_t offset, rtDrvMemHandle handle, uint64_t flags) {
     return RT_ERROR_NONE;
 }
@@ -3177,6 +3190,22 @@ rtError_t rtMemGetAllocationPropertiesFromHandle(rtDrvMemHandle handle, rtDrvMem
 
 rtError_t rtMemGetAddressRange(void *ptr, void **pbase, size_t *psize) {
     return MockFunctionTest::aclStubInstance().rtMemGetAddressRange(ptr, pbase, psize);
+}
+
+rtError_t rtMemPoolCreate(rtMemPool_t *memPool, const rtMemPoolProps *poolProps) {
+    return MockFunctionTest::aclStubInstance().rtMemPoolCreate(memPool, poolProps);
+}
+
+rtError_t rtMemPoolDestroy(const rtMemPool_t memPool) {
+    return MockFunctionTest::aclStubInstance().rtMemPoolDestroy(memPool);
+}
+
+rtError_t rtMemPoolSetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value) {
+    return MockFunctionTest::aclStubInstance().rtMemPoolSetAttr(memPool, attr, value);
+}
+
+rtError_t rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value) {
+    return MockFunctionTest::aclStubInstance().rtMemPoolGetAttr(memPool, attr, value);
 }
 
 rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags) {

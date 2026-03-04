@@ -239,7 +239,7 @@ rtError_t rtKernelGetAddrAndPrefCntV2(void *hdl, const uint64_t tilingKey,
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
     const rtChipType_t chipType = rtInstance->GetChipType();
     if (!IS_SUPPORT_CHIP_FEATURE(chipType, RtOptionalFeatureType::RT_FEATURE_KERNEL_ADDR_PREFETCH_CNT)) {
-        RT_LOG(RT_LOG_DEBUG, "chip type(%d) does not support, return.", static_cast<int32_t>(rtInstance->GetChipType()));
+        RT_LOG(RT_LOG_DEBUG, "chip type(%d) does not support.", static_cast<int32_t>(rtInstance->GetChipType()));
         return ACL_RT_SUCCESS;
     }
     Api * const apiInstance = Api::Instance();
@@ -1553,7 +1553,6 @@ rtError_t rtSetMsprofReporterCallback(MsprofReporterCallback callback)
 VISIBILITY_DEFAULT
 rtError_t rtProfSetProSwitch(void *data, uint32_t len)
 {
-    RT_LOG(RT_LOG_DEBUG, "len:%u.", len);
     PARAM_NULL_RETURN_ERROR_WITH_EXT_ERRCODE(data, RT_ERROR_INVALID_VALUE);
  
     if (len != sizeof(rtProfCommandHandle_t)) {
@@ -3482,7 +3481,7 @@ rtError_t rtBinaryLoadWithoutTilingKey(const void *data, const uint64_t length, 
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
     const rtChipType_t chipType = rtInstance->GetChipType();
     if (!IS_SUPPORT_CHIP_FEATURE(chipType, RtOptionalFeatureType::RT_FEATURE_KERNEL_BINARY_LOAD_DOT_WITHOUT_TILING)) {
-        RT_LOG(RT_LOG_WARNING, "chip type(%d) does not support, return.", static_cast<int32_t>(chipType));
+        RT_LOG(RT_LOG_WARNING, "chip type(%d) does not support.", static_cast<int32_t>(chipType));
         return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_FEATURE_NOT_SUPPORT);
     }
 
@@ -3502,7 +3501,7 @@ rtError_t rtBinaryGetFunctionByName(rtBinHandle binHandle, const char *kernelNam
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
     const rtChipType_t chipType = rtInstance->GetChipType();
     if (!IS_SUPPORT_CHIP_FEATURE(chipType, RtOptionalFeatureType::RT_FEATURE_KERNEL_BINARY_LOAD_DOT_WITHOUT_TILING)) {
-        RT_LOG(RT_LOG_WARNING, "chip type(%d) does not support, return.", static_cast<int32_t>(chipType));
+        RT_LOG(RT_LOG_WARNING, "chip type(%d) does not support.", static_cast<int32_t>(chipType));
         return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_FEATURE_NOT_SUPPORT);
     }
 

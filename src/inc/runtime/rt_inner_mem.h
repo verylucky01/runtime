@@ -1,0 +1,99 @@
+/**
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+ * CANN Open Software License Agreement Version 2.0 (the "License").
+ * Please refer to the License for details. You may not use this file except in compliance with the License.
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+ * See LICENSE in the root of the software repository for the full text of the License.
+ */
+
+#ifndef CCE_RUNTIME_RT_INNER_MEM_H
+#define CCE_RUNTIME_RT_INNER_MEM_H
+
+#include "base.h"
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+
+typedef struct {
+    uint32_t side;
+    uint32_t devId;
+    rtDrvMemHandleType handleType;
+    size_t maxSize;
+    uint64_t reserve;
+} rtMemPoolProps;
+
+typedef void *rtMemPool_t;
+
+typedef enum rtMemPoolAttr {
+    rtMemPoolReuseFollowEventDependencies = 0x1,
+    rtMemPoolReuseAllowOpportunistic = 0x2,
+    rtMemPoolReuseAllowInternalDependencies = 0x3,
+    rtMemPoolAttrReleaseThreshold = 0x4,
+    rtMemPoolAttrReservedMemCurrent = 0x5,
+    rtMemPoolAttrReservedMemHigh = 0x6,
+    rtMemPoolAttrUsedMemCurrent = 0x7,
+    rtMemPoolAttrUsedMemHigh = 0x8
+} rtMemPoolAttr;
+
+typedef enum rtGraphMemAttributeType {
+    rtGraphMemAttrReservedMemCurrent = 0x0,
+    rtGraphMemAttrReservedMemHigh = 0x1,
+    rtGraphMemAttrUsedMemCurrent = 0x2,
+    rtGraphMemAttrUsedMemHigh = 0x3
+} rtGraphMemAttributeType;
+
+typedef enum rtMemPoolReleaseFlag {
+    rtMemPoolReleaseFlagSingle = 0x0,
+    rtMemPoolReleaseFlagForce = 0x1,
+    rtMemPoolReleaseFlagAll = 0x2
+} rtMemPoolReleaseFlag;
+
+/**
+* @ingroup rt_mem
+* @brief Create new memory pool.
+* @param [IN] poolProps The memory pool parameters.
+* @param [OUT] memPool Pointer to memory pool handle.
+* @return RT_ERROR_NONE for ok
+* @return RT_ERROR_INVALID_VALUE for error input
+*/
+RTS_API rtError_t rtMemPoolCreate(rtMemPool_t *memPool, const rtMemPoolProps *poolProps);
+
+/**
+* @ingroup rt_mem
+* @brief Destroy the memory pool.
+* @param [IN] memPool Virtual mem pool handle.
+* @return RT_ERROR_NONE for ok
+* @return RT_ERROR_INVALID_VALUE for error input
+*/
+RTS_API rtError_t rtMemPoolDestroy(const rtMemPool_t memPool);
+
+/**
+* @ingroup rt_mem
+* @brief Set specific attribute of the memory pool.
+* @param [IN] memPool Virtual mem pool handle.
+* @param [IN] attr The Memory pool attribute to be modified.
+* @param [IN] value The value to be modified.
+* @return RT_ERROR_NONE for ok
+* @return RT_ERROR_INVALID_VALUE for error input
+*/
+RTS_API rtError_t rtMemPoolSetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value);
+
+/**
+* @ingroup rt_mem
+* @brief Get specific attribute of the memory pool.
+* @param [IN] memPool Virtual mem pool handle.
+* @param [IN] attr The Memory pool attribute to be obtained.
+* @param [OUT] value The value to be obtained.
+* @return RT_ERROR_NONE for ok
+* @return RT_ERROR_INVALID_VALUE for error input
+*/
+RTS_API rtError_t rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value);
+
+#if defined(__cplusplus)
+}
+#endif
+#endif // CCE_RUNTIME_RT_INNER_MEM_H

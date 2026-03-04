@@ -281,6 +281,8 @@ set(libruntime_cmodel_src_files
     src/kernel/module.cc
     src/kernel/program.cc
     src/kernel/program_common.cc
+    src/memory/soma.cc
+    src/memory/stream_mem_pool.cc
     src/launch/label.cc
     src/launch/aicpu_stars.cc
     src/event/event.cc
@@ -384,6 +386,8 @@ set(libruntime_cmodel_v200_src_files
     src/kernel/module.cc
     src/kernel/program.cc
     src/kernel/program_common.cc
+    src/memory/soma.cc
+    src/memory/stream_mem_pool.cc
     src/launch/label.cc
     src/event/event.cc
     src/event/event_david.cc

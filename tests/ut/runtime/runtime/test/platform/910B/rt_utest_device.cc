@@ -27,6 +27,7 @@
 #include "api_impl.hpp"
 #include "aicpu_err_msg.hpp"
 #include "thread_local_container.hpp"
+#include "stream_mem_pool.hpp"
 #undef private
 #undef protected
 #include "rdma_task.h"
@@ -2914,4 +2915,10 @@ TEST_F(CloudV2DeviceTest, IllegalResType)
     EXPECT_EQ(ret, 0);
 
     delete device;
+}
+
+TEST_F(CloudV2DeviceTest, BlockFree_test)
+{
+    SegmentManager segManager(nullptr, 0U, true);
+    segManager.SegmentFree(0U);
 }

@@ -187,6 +187,8 @@ drvError_t __attribute__((weak)) halGetMemUsageInfo(uint32_t dev_id, struct mem_
 drvError_t __attribute__((weak)) halGetTsegInfoByVa(uint32_t devid, uint64_t va, uint64_t size, uint32_t flag,
     struct halTsegInfo *tsegInfo);
 drvError_t __attribute__((weak)) halPutTsegInfo(uint32_t devid, struct halTsegInfo *tsegInfo);
+drvError_t __attribute__((weak)) halMemPoolCreate(uint32_t devId, uint64_t poolId, uint64_t va, uint64_t size);
+drvError_t __attribute__((weak)) halMemPoolDestroy(uint32_t devId, uint64_t poolId);
 };
 
 namespace cce {

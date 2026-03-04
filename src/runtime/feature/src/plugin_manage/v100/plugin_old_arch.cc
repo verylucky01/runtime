@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include "runtime_keeper.h"
+#include "stream_mem_pool.hpp"
 
 extern "C" {
 VISIBILITY_DEFAULT cce::runtime::Runtime* ConstructRuntimeImpl()
@@ -28,5 +29,10 @@ VISIBILITY_DEFAULT void DestructorRuntimeImpl(cce::runtime::Runtime *rt)
     cce::runtime::Runtime::runtime_ = nullptr;
     RT_LOG(RT_LOG_INFO, "RuntimeImpl destructor success");
     return;
+}
+
+VISIBILITY_DEFAULT void DestroyPoolRegistryImpl()
+{
+    PoolRegistry::DestroyPoolRegistry();
 }
 }

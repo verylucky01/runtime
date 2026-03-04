@@ -21,6 +21,7 @@ include_directories(${TOP_DIR}/pkg_inc/runtime/runtime)
 include_directories(${CMAKE_BINARY_DIR}/include_acl)
 include_directories(${CMAKE_BINARY_DIR}/include_acl/tdt)
 include_directories(${TOP_DIR}/src/dfx/error_manager)
+include_directories(${TOP_DIR}/src/inc)
 include_directories(${BASE_DIR}/tests/depends)
 
 include_directories(${BASE_DIR}/pkg_inc)

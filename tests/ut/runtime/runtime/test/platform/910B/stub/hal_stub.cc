@@ -1572,8 +1572,10 @@ drvError_t halEschedQueryInfo(unsigned int devId, ESCHED_QUERY_TYPE type, struct
     return DRV_ERROR_NONE;
 }
 
+#define DEVICE_SOMA_BASE_VADDR 0x290040000000UL
 drvError_t halMemAddressReserve(void **pp, size_t size, size_t alignment, void *addr, uint64_t flag)
 {
+    *pp = reinterpret_cast<void *>(DEVICE_SOMA_BASE_VADDR);
     return DRV_ERROR_NONE;
 }
 
@@ -1925,6 +1927,21 @@ TraStatus AtraceEventReportSync(TraEventHandle eventHandle)
 }
 
 drvError_t halMemGetAddressRange(DVdeviceptr ptr, DVdeviceptr *pbase, size_t *pszie)
+{
+    return DRV_ERROR_NONE;
+}
+
+drvError_t halMemPoolCreate(uint32_t devId, uint64_t poolId, uint64_t va, uint64_t size)
+{
+    return DRV_ERROR_NONE;
+}
+
+drvError_t halMemPoolDestroy(uint32_t devId, uint64_t poolId)
+{
+    return DRV_ERROR_NONE;
+}
+
+drvError_t halMemPoolSetWatermark(uint32_t deviceId, uint64_t poolId, uint64_t size)
 {
     return DRV_ERROR_NONE;
 }

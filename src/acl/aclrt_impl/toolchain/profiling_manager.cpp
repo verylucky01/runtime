@@ -273,6 +273,10 @@ namespace acl {
         {AclProfType::AclrtReserveMemAddressNoUCMemory,         "aclrtReserveMemAddressNoUCMemory"},
         {AclProfType::AclrtMemGetAddressRange,                  "aclrtMemGetAddressRange"},
         {AclProfType::AclrtMemAllocManaged,                     "aclrtMemAllocManaged"},
+        {AclProfType::AclrtMemPoolCreate,                       "aclrtMemPoolCreate"},
+        {AclProfType::AclrtMemPoolDestroy,                      "aclrtMemPoolDestroy"},
+        {AclProfType::AclrtMemPoolSetAttr,                      "aclrtMemPoolSetAttr"},
+        {AclProfType::AclrtMemPoolGetAttr,                      "aclrtMemPoolGetAttr"},
 };
 
 aclError RegisterType(const uint32_t index) {

@@ -969,6 +969,40 @@ rtError_t rtsNotifySetImportPid(rtNotify_t notify, int32_t pid[], int num)
     UNUSED(num);
     return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
 }
+
+VISIBILITY_DEFAULT
+rtError_t rtMemPoolCreate(rtMemPool_t *memPool, const rtMemPoolProps *poolProps)
+{
+    UNUSED(memPool);
+    UNUSED(poolProps);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtMemPoolDestroy(const rtMemPool_t memPool)
+{
+    UNUSED(memPool);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtMemPoolSetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value)
+{
+    UNUSED(memPool);
+    UNUSED(attr);
+    UNUSED(value);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value)
+{
+    UNUSED(memPool);
+    UNUSED(attr);
+    UNUSED(value);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

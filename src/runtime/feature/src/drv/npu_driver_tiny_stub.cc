@@ -184,5 +184,22 @@ rtError_t NpuDriver::PutTsegInfo(uint32_t devid, struct halTsegInfo *tsegInfo)
     UNUSED(tsegInfo);
     return RT_ERROR_FEATURE_NOT_SUPPORT;
 }
+
+rtError_t NpuDriver::StreamMemPoolCreate(const uint32_t deviceId, const uint64_t poolId, const uint64_t va, const uint64_t size, bool isGraphPool)
+{
+    UNUSED(deviceId);
+    UNUSED(poolId);
+    UNUSED(va);
+    UNUSED(size);
+    UNUSED(isGraphPool);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
+rtError_t NpuDriver::StreamMemPoolDestroy(const uint32_t deviceId, const uint64_t poolId)
+{
+    UNUSED(deviceId);
+    UNUSED(poolId);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
 }
 }

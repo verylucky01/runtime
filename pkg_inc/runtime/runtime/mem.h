@@ -1026,6 +1026,7 @@ typedef struct MemAccessDesc {
 
 typedef enum DrvMemHandleType {
     RT_MEM_HANDLE_TYPE_NONE = 0x0,
+    RT_MEM_HANDLE_TYP_POSIX = 0x1,
 } rtDrvMemHandleType;
 
 typedef enum rtMemSharedHandleType {

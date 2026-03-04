@@ -21,6 +21,7 @@
 #include "thread_local_container.hpp"
 #include "dev_info_manage.h"
 #include "global_state_manager.hpp"
+#include "stream_mem_pool.hpp"
 #ifdef XPU_UT
 #include "tprt.hpp"
 #endif
@@ -107,10 +108,19 @@ static void DestroyRuntimeImpl(Runtime *rt, const void *soHandle)
         cce::tprt::TprtManage::tprt_ = nullptr;
     #endif
 }
+
+static void DestroyPoolRegistryImpl(void *soHandle)
+{
+    UNUSED(soHandle);
+    PoolRegistry::DestroyPoolRegistry();
+    return;
+}
+
 #else
 static const std::string LIBRUNTIME_SO_NAME = "libruntime_v100.so";  // default so name
 using ConstructFunc = Runtime *(*)();
 using DesConstructFunc = void (*)(Runtime *);
+using DesConstructPool = void (*)();
 
 static rtChipType_t g_chipType = CHIP_BEGIN;
 rtChipType_t Runtime::GetChipType()
@@ -175,6 +185,23 @@ static Runtime *CreateRuntimeImpl(void **soHandle)
     return rt;
 }
 
+static void DestroyPoolRegistryImpl(void *soHandle)
+{
+    if (soHandle == nullptr) {
+        RT_LOG(RT_LOG_INFO, "soHandle is nullptr.");
+        return;
+    }
+    DesConstructPool const func = RtPtrToPtr<DesConstructPool, void *>(mmDlsym(soHandle, "DestroyPoolRegistryImpl"));
+    if (func == nullptr) {
+        const std::string libSoName = GetLibRuntimeSoName();
+        RT_LOG(RT_LOG_ERROR, "No symbol found in %s.", libSoName.c_str());
+        return;
+    }
+    func();
+    RT_LOG(RT_LOG_INFO, "Destroy PoolRegistry success.");
+    return;
+}
+
 static void DestroyRuntimeImpl(Runtime *rt, void *soHandle)
 {
     if ((soHandle == nullptr) || (rt == nullptr)) {
@@ -220,6 +247,7 @@ RuntimeKeeper::~RuntimeKeeper()
 {
     g_isRuntimeKeeperExiting = true;
     try {
+        DestroyPoolRegistryImpl(soHandle_);
         DestroyRuntimeImpl(runtime_, soHandle_);
     } catch (...) {}
 

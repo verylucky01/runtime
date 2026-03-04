@@ -21,6 +21,7 @@
 #include "runtime/event.h"
 #include "runtime/rts/rts_event.h"
 #include "runtime/mem.h"
+#include "runtime/rt_inner_mem.h"
 #include "runtime/rts/rts_mem.h"
 #include "runtime/kernel.h"
 #include "runtime/base.h"
@@ -34,7 +35,6 @@
 #include "runtime/rts/rts_stars.h"
 #include "runtime/rt_ras.h"
 #include "runtime/rts/rts_snapshot.h"
-
 #include "adx_datadump_server.h"
 #include "adump_pub.h"
 #include "mmpa/mmpa_api.h"
@@ -254,6 +254,10 @@ public:
     virtual rtError_t rtMemGetAllocationPropertiesFromHandle(rtDrvMemHandle handle, rtDrvMemProp_t* prop);
     virtual rtError_t rtReserveMemAddress(void **devPtr, size_t size, size_t alignment, void *devAddr, uint64_t flags);
     virtual rtError_t rtMemGetAddressRange(void *ptr, void **pbase, size_t *psize);
+    virtual rtError_t rtMemPoolCreate(rtMemPool_t *memPool, const rtMemPoolProps *poolProps);
+    virtual rtError_t rtMemPoolDestroy(const rtMemPool_t memPool);
+    virtual rtError_t rtMemPoolSetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value);
+    virtual rtError_t rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value);
     virtual rtError_t rtReleaseMemAddress(void *devPtr);
     virtual rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags);
     virtual rtError_t rtFreePhysical(rtDrvMemHandle handle);

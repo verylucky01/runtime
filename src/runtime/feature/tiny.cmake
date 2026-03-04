@@ -302,6 +302,7 @@ set(libruntime_v100_src_files
     src/launch/memcpy_stars.cc
     src/launch/cmo_barrier_common.cc
     src/launch/cmo_barrier_stars.cc
+    src/launch/memcpy_stars.cc
     src/launch/label.cc
     src/launch/cond_stars.cc
     src/launch/label_common.cc

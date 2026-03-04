@@ -18,6 +18,7 @@
 #include "runtime/rts/rts_device.h"
 #include "runtime/rt_stars.h"
 #include "runtime/rt_mem_queue.h"
+#include "runtime/rt_inner_mem.h"
 #include "common/log_inner.h"
 #include "common/error_codes_inner.h"
 #include "common/prof_reporter.h"
@@ -1944,5 +1945,87 @@ aclError aclrtMemGetAddressRangeImpl(void *ptr, void **pbase, size_t *psize)
         return ACL_GET_ERRCODE_RTS(rtErr);
     }
     ACL_LOG_INFO("successfully execute aclrtMemGetAddressRange");
+    return ACL_SUCCESS;
+}
+
+aclError aclrtMemPoolCreateImpl(aclrtMemPool *memPool, const aclrtMemPoolProps *poolProps)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclrtMemPoolCreate);
+    ACL_LOG_INFO("start to execute aclrtMemPoolCreate.");
+    ACL_REQUIRES_NOT_NULL_WITH_INNER_REPORT(memPool);
+    ACL_REQUIRES_NOT_NULL_WITH_INNER_REPORT(poolProps);
+
+    if (poolProps->allocType != aclrtMemAllocationType::ACL_MEM_ALLOCATION_TYPE_PINNED) {
+        ACL_LOG_ERROR("[Check]param:poolProp.allocType must be ACL_MEM_ALLOCATION_TYPE_PINNED, but got: %d.",
+            poolProps->allocType);
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
+    if (poolProps->location.type != aclrtMemLocationType::ACL_MEM_LOCATION_TYPE_DEVICE) {
+        ACL_LOG_ERROR("[Check]param:poolProp.location.type must be ACL_MEM_LOCATION_TYPE_DEVICE, but got: %d.",
+            poolProps->location.type);
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
+    rtMemPoolProps rtPoolProps;
+    rtPoolProps.side = ACL_MEM_LOCATION_TYPE_DEVICE;
+    rtPoolProps.devId = poolProps->location.id;
+    rtPoolProps.handleType = static_cast<rtDrvMemHandleType>(poolProps->handleType);
+    rtPoolProps.maxSize = poolProps->maxSize;
+    rtPoolProps.reserve = 0;
+
+    uint8_t zeros[sizeof(poolProps->reserved)] = {0};
+    if (memcmp(poolProps->reserved, zeros, sizeof(poolProps->reserved)) != 0) {
+        ACL_LOG_CALL_ERROR("poolProps reserve invaild.");
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
+    const auto rtErr = rtMemPoolCreate(reinterpret_cast<rtMemPool_t*>(memPool), &rtPoolProps);
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("call rtMemPoolCreate failed, runtime result = %d.", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    return ACL_SUCCESS;
+}
+
+aclError aclrtMemPoolDestroyImpl(const aclrtMemPool memPool)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclrtMemPoolDestroy);
+    ACL_LOG_INFO("start to execute aclrtMemPoolDestroy.");
+    ACL_REQUIRES_NOT_NULL_WITH_INNER_REPORT(memPool);
+
+    const auto rtErr = rtMemPoolDestroy(static_cast<rtMemPool_t>(memPool));
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("call rtMemPoolDestroy failed, runtime result = %d.", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    return ACL_SUCCESS;
+}
+
+aclError aclrtMemPoolSetAttrImpl(aclrtMemPool memPool, aclrtMemPoolAttr attr, void *value)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclrtMemPoolSetAttr);
+    ACL_LOG_INFO("start to execute aclrtMemPoolSetAttr.");
+    ACL_REQUIRES_NOT_NULL_WITH_INNER_REPORT(memPool);
+
+    const auto rtErr = rtMemPoolSetAttr(static_cast<rtMemPool_t>(memPool), static_cast<rtMemPoolAttr>(attr), value);
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("call rtMemPoolSetAttr failed, runtime result = %d.", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    return ACL_SUCCESS;
+}
+
+aclError aclrtMemPoolGetAttrImpl(aclrtMemPool memPool, aclrtMemPoolAttr attr, void *value)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclrtMemPoolGetAttr);
+    ACL_LOG_INFO("start to execute aclrtMemPoolGetAttr.");
+    ACL_REQUIRES_NOT_NULL_WITH_INNER_REPORT(memPool);
+
+    const auto rtErr = rtMemPoolGetAttr(static_cast<rtMemPool_t>(memPool), static_cast<rtMemPoolAttr>(attr), value);
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("call rtMemPoolGetAttr failed, runtime result = %d.", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
     return ACL_SUCCESS;
 }

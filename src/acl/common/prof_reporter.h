@@ -277,6 +277,10 @@ namespace acl {
         AclrtReserveMemAddressNoUCMemory,
         AclrtMemGetAddressRange,
         AclrtMemAllocManaged,
+        AclrtMemPoolCreate,
+        AclrtMemPoolDestroy,
+        AclrtMemPoolSetAttr,
+        AclrtMemPoolGetAttr,
         // this is the end, can not add after AclRtProfTypeEnd
         AclRtProfTypeEnd
     };

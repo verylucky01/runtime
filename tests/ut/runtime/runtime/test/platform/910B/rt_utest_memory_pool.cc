@@ -19,6 +19,8 @@
 #include "raw_device.hpp"
 #include "memory_pool.hpp"
 #include "memory_pool_manager.hpp"
+#include "stream_mem_pool.hpp"
+#include "soma.hpp"
 #undef private
 #include "runtime.hpp"
 #include "event.hpp"
@@ -278,4 +280,314 @@ TEST_F(MemoryPoolManagerTest, kernel_memory_pool_add_pool_fail)
     delete kernelMemPoolMng;
     delete rawDrv;
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
+}
+
+TEST_F(MemoryPoolManagerTest, streamMemSegmentManagerNullptr)
+{
+    SegmentManager segManeger(nullptr, 0U, true);
+}
+
+TEST_F(MemoryPoolManagerTest, MemPoolTest)
+{
+    SegmentManager *memPool = nullptr;
+    rtError_t error = PoolRegistry::Instance().CreateMemPool(64U, 0U, true, memPool);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    uint64_t size = 8U;
+    Segment *ptr = nullptr;
+    const int streamId = 0;
+    error = memPool->SegmentAlloc(ptr, size, streamId);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = memPool->SegmentFree(ptr->basePtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    PoolRegistry::Instance().RemoveMemPool(memPool);
+}
+
+TEST_F(MemoryPoolManagerTest, PoolAllocatorSetAttributeTest)
+{
+    SegmentManager *memPool = nullptr;
+    rtError_t error = PoolRegistry::Instance().CreateMemPool(64U, 0U, true, memPool);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    memPool->isIPCPool_ = true;
+    rtMemPoolAttr attr = rtMemPoolAttr::rtMemPoolReuseFollowEventDependencies;
+    size_t zero = 0;
+    size_t one = 1;
+    void* value = &zero;
+    error = memPool->SetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_POOL_UNSUPPORTED);
+    memPool->isIPCPool_ = false;
+    error = memPool->SetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolReuseAllowOpportunistic;
+    error = memPool->SetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolReuseAllowInternalDependencies;
+    error = memPool->SetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolAttrUsedMemCurrent;
+    error = memPool->SetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_POOL_OP_INVALID);
+    attr = rtMemPoolAttr::rtMemPoolAttrUsedMemHigh;
+    value = &one;
+    error = memPool->SetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_POOL_PROP_INVALID);
+    PoolRegistry::Instance().RemoveMemPool(memPool);
+}
+
+TEST_F(MemoryPoolManagerTest, PoolAllocatorGetAttributeTest)
+{
+    SegmentManager *memPool = nullptr;
+    rtError_t error = PoolRegistry::Instance().CreateMemPool(64U, 0U, true, memPool);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    size_t local = 0;
+    void* value = &local;
+    rtMemPoolAttr attr = rtMemPoolAttr::rtMemPoolReuseFollowEventDependencies;
+    error = memPool->GetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolReuseAllowOpportunistic;
+    error = memPool->GetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolReuseAllowInternalDependencies;
+    error = memPool->GetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolAttrReleaseThreshold;
+    error = memPool->GetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolAttrReservedMemCurrent;
+    error = memPool->GetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolAttrReservedMemHigh;
+    error = memPool->GetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolAttrUsedMemCurrent;
+    error = memPool->GetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    attr = rtMemPoolAttr::rtMemPoolAttrUsedMemHigh;
+    error = memPool->GetAttribute(attr, value);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    PoolRegistry::Instance().RemoveMemPool(memPool);
+}
+
+TEST_F(MemoryPoolManagerTest, StreamOpportReuseTest_Single_Reuse)
+{
+    SegmentManager *memPool = nullptr;
+    rtError_t error = PoolRegistry::Instance().CreateMemPool(64U, 0U, true, memPool);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    uint64_t size = 8U;
+    Segment *ptr = nullptr;
+    const int streamId = 0;
+    error = memPool->SegmentAlloc(ptr, size, streamId);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = memPool->SegmentFree(ptr->basePtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    ReuseFlag flag;
+    Segment *ret = memPool->StreamOpportReuse(5U, 0, flag);
+    EXPECT_EQ(flag, ReuseFlag::REUSE_FLAG_SINGLE_STREAM);
+    EXPECT_NE(ret, nullptr);
+    PoolRegistry::Instance().RemoveMemPool(memPool);
+}
+
+TEST_F(MemoryPoolManagerTest, StreamOpportReuseTest_Opport_Reuse)
+{
+    SegmentManager *memPool = nullptr;
+    rtError_t error = PoolRegistry::Instance().CreateMemPool(64U, 0U, true, memPool);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    uint64_t size = 8U;
+    Segment *ptr = nullptr;
+    const int streamId = 1;
+    error = memPool->SegmentAlloc(ptr, size, streamId);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = memPool->SegmentFree(ptr->basePtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    ReuseFlag flag;
+    Segment *ret = memPool->StreamOpportReuse(5U, 0, flag);
+    EXPECT_EQ(flag, ReuseFlag::REUSE_FLAG_OPPOR);
+    EXPECT_NE(ret, nullptr);
+    PoolRegistry::Instance().RemoveMemPool(memPool);
+}
+
+TEST_F(MemoryPoolManagerTest, StreamEventReuseTest_Single_Reuse)
+{
+    SegmentManager *memPool = nullptr;
+    rtError_t error = PoolRegistry::Instance().CreateMemPool(64U, 0U, true, memPool);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    uint64_t size = 8U;
+    Segment *ptr = nullptr;
+    const int streamId = 0;
+    error = memPool->SegmentAlloc(ptr, size, streamId);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = memPool->SegmentFree(ptr->basePtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    ReuseFlag flag;
+    Segment *ret = memPool->StreamEventReuse(5U, 0, flag);
+    EXPECT_EQ(flag, ReuseFlag::REUSE_FLAG_SINGLE_STREAM);
+    EXPECT_NE(ret, nullptr);
+    PoolRegistry::Instance().RemoveMemPool(memPool);
+}
+
+TEST_F(MemoryPoolManagerTest, StreamEventReuseTest_Event_Reuse)
+{
+    SegmentManager *memPool = nullptr;
+    rtError_t error = PoolRegistry::Instance().CreateMemPool(64U, 0U, true, memPool);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    uint64_t size = 8U;
+    Segment *ptr = nullptr;
+    const int streamId = 0;
+    error = memPool->SegmentAlloc(ptr, size, streamId);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = memPool->SegmentFree(ptr->basePtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    const int eventId = 0;
+    const int streamId1 = 1;
+    PoolRegistry::Instance().InsertEventIdToStream(streamId1, eventId);
+    PoolRegistry::Instance().AddEventId(streamId, eventId);
+    ReuseFlag flag;
+    Segment *ret = memPool->StreamEventReuse(5U, 1, flag);
+    EXPECT_EQ(flag, ReuseFlag::REUSE_FLAG_EVENT);
+    EXPECT_NE(ret, nullptr);
+    PoolRegistry::Instance().RemoveMemPool(memPool);
+}
+
+TEST_F(MemoryPoolManagerTest, StreamEventReuseTest_Reuse_None)
+{
+    SegmentManager *memPool = nullptr;
+    rtError_t error = PoolRegistry::Instance().CreateMemPool(64U, 0U, true, memPool);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    uint64_t size = 8U;
+    Segment *ptr = nullptr;
+    const int streamId = 0;
+    error = memPool->SegmentAlloc(ptr, size, streamId);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = memPool->SegmentFree(ptr->basePtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    const int eventId1 = 0;
+    const int eventId2 = 1;
+    const int eventId3 = 2;
+    const int streamId1 = 1;
+    PoolRegistry::Instance().InsertEventIdToStream(streamId1, eventId1);
+    PoolRegistry::Instance().InsertEventIdToStream(streamId1, eventId2);
+    PoolRegistry::Instance().AddEventId(streamId, eventId3);
+    ReuseFlag flag;
+    Segment *ret = memPool->StreamEventReuse(5U, 1, flag);
+    EXPECT_EQ(flag, ReuseFlag::REUSE_FLAG_NONE);
+    EXPECT_EQ(ret, nullptr);
+    PoolRegistry::Instance().RemoveMemPool(memPool);
+}
+
+TEST_F(MemoryPoolManagerTest, FindMemPoolByPtrTest)
+{
+    rtError_t error = RT_ERROR_NONE;
+    SegmentManager *ret = nullptr;
+    uint64_t size = DEVICE_POOL_ALIGN_SIZE;
+    uint64_t ptr = 0;
+
+    SegmentManager *memPool1 = nullptr;
+    error = PoolRegistry::Instance().CreateMemPool(size, 0U, true, memPool1);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+    ASSERT_NE(memPool1, nullptr);
+    ptr = memPool1->PoolSegAddr();
+    ret = PoolRegistry::Instance().FindMemPoolByPtr(ptr - 1);
+    EXPECT_EQ(ret, nullptr);
+    ret = PoolRegistry::Instance().FindMemPoolByPtr(ptr);
+    EXPECT_EQ(ret, memPool1);
+    EXPECT_EQ(ret->PoolSize(), size);
+    ret = PoolRegistry::Instance().FindMemPoolByPtr(ptr + ret->PoolSize() - 1);
+    EXPECT_EQ(ret, memPool1);
+    ret = PoolRegistry::Instance().FindMemPoolByPtr(ptr + ret->PoolSize());
+    EXPECT_EQ(ret, nullptr);
+
+    SegmentManager *memPool2 = nullptr;
+    error = PoolRegistry::Instance().CreateMemPool(size, 0U, true, memPool2);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+    ASSERT_NE(memPool2, nullptr);
+    ptr = memPool2->PoolSegAddr() + memPool2->PoolSize() / 2;
+    ret = PoolRegistry::Instance().FindMemPoolByPtr(ptr);
+    EXPECT_EQ(ret, memPool2);
+
+    PoolRegistry::Instance().RemoveMemPool(memPool1);
+    PoolRegistry::Instance().RemoveMemPool(memPool2);
+}
+
+TEST_F(MemoryPoolManagerTest, SomaApiTest_Create_Destory)
+{
+    rtError_t error = RT_ERROR_NONE;
+    uint64_t totalSize = DEVICE_POOL_ALIGN_SIZE * 2;
+
+    rtMemPoolProps poolProps = {
+        .side = 1,
+        .devId = 0,
+        .handleType = RT_MEM_HANDLE_TYP_POSIX,
+        .maxSize = 0,
+        .reserve = 0
+    };
+    SegmentManager *memPool1 = nullptr;
+    error = SomaApi::CreateMemPool(poolProps, totalSize, memPool1);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+    ASSERT_NE(memPool1, nullptr);
+
+    error = SomaApi::CheckMemPool(memPool1);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+    error = SomaApi::DestroyMemPool(memPool1);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+
+    rtMemPoolProps poolProps1 = {
+        .side = 1,
+        .devId = 0,
+        .handleType = RT_MEM_HANDLE_TYP_POSIX,
+        .maxSize = DEVICE_POOL_ALIGN_SIZE * 3,
+        .reserve = 0
+    };
+    error = SomaApi::CreateMemPool(poolProps1, totalSize, memPool1);
+    ASSERT_EQ(error, RT_ERROR_MEMORY_ALLOCATION);
+}
+
+TEST_F(MemoryPoolManagerTest, SomaApiTest_Alloc_Free)
+{
+    rtError_t error = RT_ERROR_NONE;
+    uint64_t totalSize = DEVICE_POOL_ALIGN_SIZE;
+
+    rtMemPoolProps poolProps = {
+        .side = 1,
+        .devId = 0,
+        .handleType = RT_MEM_HANDLE_TYP_POSIX,
+        .maxSize = 0,
+        .reserve = 0
+    };
+    SegmentManager *memPool = nullptr;
+    error = SomaApi::CreateMemPool(poolProps, totalSize, memPool);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+    ASSERT_NE(memPool, nullptr);
+
+    void *ptr;
+    uint64_t size = 64;
+    const int32_t streamId = 0;
+    rtMemPool_t memPoolId = RtValueToPtr<void *>(memPool->MemPoolId());
+    error = SomaApi::AllocFromMemPool(&ptr, size, memPoolId, streamId);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+    error = SomaApi::FreeToMemPool(ptr);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+    error = SomaApi::DestroyMemPool(memPool);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+}
+
+TEST_F(MemoryPoolManagerTest, SomaApiMemoryAlignmentTest)
+{
+    rtError_t error = RT_ERROR_NONE;
+    uint64_t totalSize = DEVICE_POOL_VADDR_SIZE;
+
+    rtMemPoolProps poolProps = {
+        .side = 1,
+        .devId = 0,
+        .handleType = RT_MEM_HANDLE_TYP_POSIX,
+        .maxSize = DEVICE_POOL_ALIGN_SIZE - 1,
+        .reserve = 0
+    };
+    SegmentManager *memPool = nullptr;
+    error = SomaApi::CreateMemPool(poolProps, totalSize, memPool);
+    ASSERT_EQ(error, RT_ERROR_NONE);
+    ASSERT_NE(memPool, nullptr);
+    ASSERT_EQ(memPool->PoolSize(), DEVICE_POOL_ALIGN_SIZE);
+
+    ASSERT_EQ(error, RT_ERROR_NONE);
+    error = SomaApi::DestroyMemPool(memPool);
+    ASSERT_EQ(error, RT_ERROR_NONE);
 }

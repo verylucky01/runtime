@@ -296,6 +296,10 @@
     _(aclError, aclrtMemGetAddressRange, (void * ptr, void ** pbase, size_t * psize), (ptr, pbase, psize)) \
     _(const char *, aclrtGetSocName, (), ()) \
     _(aclError, aclrtGetVersion, (int32_t * majorVersion, int32_t * minorVersion, int32_t * patchVersion), (majorVersion, minorVersion, patchVersion)) \
+    _(aclError, aclrtMemPoolCreate, (aclrtMemPool *memPool, const aclrtMemPoolProps *poolProps), (memPool, poolProps)) \
+    _(aclError, aclrtMemPoolDestroy, (const aclrtMemPool memPool), (memPool)) \
+    _(aclError, aclrtMemPoolSetAttr, (aclrtMemPool memPool, aclrtMemPoolAttr attr, void *value), (memPool, attr, value)) \
+    _(aclError, aclrtMemPoolGetAttr, (aclrtMemPool memPool, aclrtMemPoolAttr attr, void *value), (memPool, attr, value)) \
 
 // aclrtAllocator interface map list
 #define ACL_RT_ALLOCATOR_FUNC_MAP(_)  \

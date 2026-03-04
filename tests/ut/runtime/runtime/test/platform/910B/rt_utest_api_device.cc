@@ -24,6 +24,7 @@
 #include "stars_engine.hpp"
 #include "raw_device.hpp"
 #include "platform/platform_info.h"
+#include "soma.hpp"
 #undef private
 
 
@@ -127,6 +128,75 @@ TEST_F(CloudV2ApiDeviceTest, AddAddrKernelNameMapTableTest)
     EXPECT_EQ(ret, "not found kernel name");
     ret = dev.LookupKernelNameByAddr(0);
     EXPECT_EQ(ret, "testKernel");
+}
+
+TEST_F(CloudV2ApiDeviceTest, streamMemPoolCreate_failed)
+{
+    RawDevice *device = new RawDevice(0);
+    device->Init();
+
+    rtMemPool_t memPool = nullptr;
+    rtMemPoolProps poolProps = {
+        .side = 1,
+        .devId = 0,
+        .handleType = RT_MEM_HANDLE_TYP_POSIX,
+        .maxSize = 0,
+        .reserve = 0
+    };
+    size_t totalSize = (20U * 1024 * 1024 * 1024);
+    Segment *seg = nullptr;
+    MOCKER_CPP_VIRTUAL(*device->driver_, &Driver::MemGetInfoEx)
+        .stubs()
+        .with(mockcpp::any(), mockcpp::any(), mockcpp::any(), outBoundP(&totalSize, sizeof(totalSize)))
+        .will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&SegmentManager::SegmentAlloc)
+        .stubs()
+        .with(mockcpp::any())
+        .will(returnValue(RT_ERROR_MEM_POOL_ALLOC));
+    rtError_t error = SomaApi::StreamMemPoolCreate(&memPool, &poolProps);
+    EXPECT_EQ(error, RT_ERROR_MEM_POOL_ALLOC);
+    rtMemPoolProps poolProps_new = {
+        .side = 1,
+        .devId = 0,
+        .handleType = RT_MEM_HANDLE_TYP_POSIX,
+        .maxSize = (30U * 1024 * 1024 * 1024),
+        .reserve = 0
+    };
+    error = SomaApi::StreamMemPoolCreate(&memPool, &poolProps_new);
+    EXPECT_EQ(error, RT_ERROR_MEMORY_ALLOCATION);
+    delete device;
+}
+
+TEST_F(CloudV2ApiDeviceTest, StreamMemPoolSetAttr_failed)
+{
+    RawDevice *device = new RawDevice(0);
+    device->Init();
+
+    rtMemPool_t memPool = nullptr;
+    void* ptr = RtPtrToPtr<void *>(0x1234);
+    MOCKER_CPP(&PoolRegistry::QueryMemPool)
+        .stubs()
+        .with(mockcpp::any())
+        .will(returnValue(false));
+    rtError_t error = SomaApi::StreamMemPoolSetAttr(&memPool, rtMemPoolReuseFollowEventDependencies, ptr);
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+    delete device;
+}
+
+TEST_F(CloudV2ApiDeviceTest, StreamMemPoolGetAttr_failed)
+{
+    RawDevice *device = new RawDevice(0);
+    device->Init();
+
+    rtMemPool_t memPool = nullptr;
+    void* ptr = RtPtrToPtr<void *>(0x1234);
+    MOCKER_CPP(&PoolRegistry::QueryMemPool)
+        .stubs()
+        .with(mockcpp::any())
+        .will(returnValue(false));
+    rtError_t error = SomaApi::StreamMemPoolGetAttr(&memPool, rtMemPoolReuseFollowEventDependencies, ptr);
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+    delete device;
 }
 
 TEST_F(CloudV2ApiDeviceTest, TestRtsDeviceGetInfo)

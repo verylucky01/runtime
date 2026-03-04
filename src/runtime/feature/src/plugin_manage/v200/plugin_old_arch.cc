@@ -11,6 +11,7 @@
 #ifndef CFG_DEV_PLATFORM_PC
 #include "tprt.hpp"
 #endif
+#include "stream_mem_pool.hpp"
 extern "C" {
 VISIBILITY_DEFAULT cce::runtime::Runtime* ConstructRuntimeImpl()
 {
@@ -43,5 +44,10 @@ VISIBILITY_DEFAULT void DestructorRuntimeImpl(cce::runtime::Runtime *rt)
     #endif
     RT_LOG(RT_LOG_INFO, "RuntimeImpl destructor success");
     return;
+}
+
+VISIBILITY_DEFAULT void DestroyPoolRegistryImpl()
+{
+    PoolRegistry::DestroyPoolRegistry();
 }
 }

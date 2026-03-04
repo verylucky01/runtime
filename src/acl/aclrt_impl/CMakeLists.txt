@@ -57,6 +57,7 @@ target_include_directories(acl_rt_impl PRIVATE
  	${RUNTIME_DIR}/pkg_inc/runtime/runtime
     ${RUNTIME_DIR}/pkg_inc/dump
     ${RUNTIME_DIR}/src
+    ${RUNTIME_DIR}/src/inc
     ${RUNTIME_DIR}/src/dfx/error_manager
     ${RUNTIME_DIR}/src/dfx/adump/inc/metadef/external
     ${RUNTIME_DIR}/include/dfx

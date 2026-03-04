@@ -520,5 +520,28 @@ rtError_t NpuDriver::PutTsegInfo(uint32_t devid, struct halTsegInfo *tsegInfo)
     RT_LOG(RT_LOG_INFO, "PutTsegInfo success, device_id=%u.", devid);
     return RT_ERROR_NONE;
 }
+
+rtError_t NpuDriver::StreamMemPoolCreate(const uint32_t deviceId, const uint64_t poolId, const uint64_t va, const uint64_t size, bool isGraphPool)
+{
+    UNUSED(isGraphPool);
+    drvError_t drvRet = DRV_ERROR_NONE;
+
+    drvRet = halMemPoolCreate(deviceId, poolId, va, size);
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemPoolCreate failed: drvRetCode=%d.", static_cast<int32_t>(drvRet));
+    }
+    return RT_GET_DRV_ERRCODE(drvRet);
+}
+
+rtError_t NpuDriver::StreamMemPoolDestroy(const uint32_t deviceId, const uint64_t poolId)
+{
+    drvError_t drvRet = DRV_ERROR_NONE;
+
+    drvRet = halMemPoolDestroy(deviceId, poolId);
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemPoolDestroy failed: drvRetCode=%d.", static_cast<int32_t>(drvRet));
+    }
+    return RT_GET_DRV_ERRCODE(drvRet);
+}
 }
 }

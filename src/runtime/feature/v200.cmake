@@ -231,6 +231,8 @@ set(libruntime_v200_v201_common_src_files
     src/kernel/module.cc
     src/kernel/program.cc
     src/kernel/program_common.cc
+    src/memory/soma.cc
+    src/memory/stream_mem_pool.cc
     src/launch/label.cc
     src/event/event.cc
     src/event/event_david.cc

@@ -27,6 +27,7 @@
 #include "runtime/base.h"
 #include "runtime/config.h"
 #include "acl/acl_rt_allocator.h"
+#include "acl/acl_rt_memory.h"
 #include "acl_stub.h"
 #define private public
 #include "aclrt_impl/init_callback_manager.h"
@@ -6982,6 +6983,70 @@ TEST_F(UTEST_ACL_Runtime, aclrtMemGetAddressRange)
     ptr = (void*)0xff;
     ret = aclrtMemGetAddressRange(ptr, &pbase, &psize);
     EXPECT_EQ(ret, ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemPoolCreate)
+{
+    aclrtMemPool memPool = 0;
+    aclrtMemPoolProps poolProp;
+    poolProp.handleType = aclrtMemHandleType::ACL_MEM_HANDLE_TYPE_NONE;
+    poolProp.allocType = aclrtMemAllocationType::ACL_MEM_ALLOCATION_TYPE_PINNED;
+    poolProp.location.type = aclrtMemLocationType::ACL_MEM_LOCATION_TYPE_DEVICE;
+    poolProp.maxSize = 10;
+    memset_s(poolProp.reserved, sizeof(poolProp.reserved), 0, sizeof(poolProp.reserved));
+    rtError_t error = aclrtMemPoolCreate(&memPool, &poolProp);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+}
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemPoolCreateInvalidReserved)
+{
+    aclrtMemPool memPool = 0;
+    aclrtMemPoolProps poolProp;
+    poolProp.handleType = aclrtMemHandleType::ACL_MEM_HANDLE_TYPE_NONE;
+    poolProp.allocType = aclrtMemAllocationType::ACL_MEM_ALLOCATION_TYPE_PINNED;
+    poolProp.location.type = aclrtMemLocationType::ACL_MEM_LOCATION_TYPE_DEVICE;
+    poolProp.maxSize = 10;
+    memset_s(poolProp.reserved, sizeof(poolProp.reserved), 0, sizeof(poolProp.reserved));
+    memcpy_s(poolProp.reserved, sizeof(poolProp.reserved), "test", 4);
+    rtError_t error = aclrtMemPoolCreate(&memPool, &poolProp);
+    EXPECT_NE(error, RT_ERROR_NONE);
+}
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemPoolCreateErrorLocationType)
+{
+    aclrtMemPool memPool = 0;
+    aclrtMemPoolProps poolProp;
+    poolProp.handleType = aclrtMemHandleType::ACL_MEM_HANDLE_TYPE_NONE;
+    poolProp.allocType = aclrtMemAllocationType::ACL_MEM_ALLOCATION_TYPE_PINNED;
+    poolProp.location.type = aclrtMemLocationType::ACL_MEM_LOCATION_TYPE_HOST;
+    poolProp.maxSize = 10;
+    rtError_t error = aclrtMemPoolCreate(&memPool, &poolProp);
+    EXPECT_NE(error, RT_ERROR_NONE);
+}
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemPoolDestroy)
+{
+    aclrtMemPool memPool = (void*)0xff;
+    rtError_t error = aclrtMemPoolDestroy(memPool);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+}
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemPoolSetAttr)
+{
+    aclrtMemPool memPool = (void*)0xff;
+    aclrtMemPoolAttr attr = aclrtMemPoolAttr::ACL_RT_MEM_POOL_ATTR_RELEASE_THRESHOLD;
+    uint64_t waterMark = (2UL << 30);
+    rtError_t error = aclrtMemPoolSetAttr(memPool, attr, (void *)&waterMark);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+}
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemPoolGetAttr)
+{
+    aclrtMemPool memPool = (void*)0xff;
+    aclrtMemPoolAttr attr = aclrtMemPoolAttr::ACL_RT_MEM_POOL_ATTR_RELEASE_THRESHOLD;
+    uint64_t waterMark = (2UL << 30);
+    rtError_t error = aclrtMemPoolGetAttr(memPool, attr, (void *)&waterMark);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
 TEST_F(UTEST_ACL_Runtime, aclrtGetArgsFromExceptionInfo)

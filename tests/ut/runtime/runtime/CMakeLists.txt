@@ -387,6 +387,8 @@ set(runtimeut_src_list
     ${TOP_DIR}/src/runtime/feature/src/kernel/program_common.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/v100/program_plat.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program.cc
+    ${TOP_DIR}/src/runtime/feature/src/memory/soma.cc
+    ${TOP_DIR}/src/runtime/feature/src/memory/stream_mem_pool.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/cmo_barrier_common.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/cmo_barrier_stars.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/label.cc
@@ -531,6 +533,8 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/feature/src/kernel/kernel.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/module.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/program.cc
+    ${TOP_DIR}/src/runtime/feature/src/memory/soma.cc
+    ${TOP_DIR}/src/runtime/feature/src/memory/stream_mem_pool.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/label.cc
     ${TOP_DIR}/src/runtime/feature/src/device/aicpu_err_msg.cc
     ${TOP_DIR}/src/runtime/feature/src/notify/notify.cc
@@ -1321,6 +1325,8 @@ set(runtimeut_v201_src_list
     ${TOP_DIR}/src/runtime/feature/src/kernel/program.cc
     ${TOP_DIR}/src/runtime/feature/src/runtime_v200/runtime_adapt.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/xpu/program_plat.cc
+    ${TOP_DIR}/src/runtime/feature/src/memory/soma.cc
+    ${TOP_DIR}/src/runtime/feature/src/memory/stream_mem_pool.cc
     ${TOP_DIR}/src/runtime/feature/src/launch/label.cc
     ${TOP_DIR}/src/runtime/feature/src/device/aicpu_err_msg.cc
     ${TOP_DIR}/src/runtime/feature/src/notify/notify.cc

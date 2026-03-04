@@ -52,6 +52,7 @@ extern "C" {
 
 cce::runtime::Runtime* ConstructRuntimeImpl();
 void DestructorRuntimeImpl(cce::runtime::Runtime *rt);
+void DestroyPoolRegistryImpl();
 
 #if defined(__cplusplus)
 }

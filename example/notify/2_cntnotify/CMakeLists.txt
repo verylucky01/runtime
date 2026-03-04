@@ -11,26 +11,26 @@
 # CMake lowest version requirement
 cmake_minimum_required(VERSION 3.16.0)
 
-# Project information
-project(Memory_Sample)
+# project information
+project(Notify_Sample)
 set(SOC_VERSION $ENV{SOC_VERSION})
 set(ASCENDC_CMAKE_DIR $ENV{ASCENDC_CMAKE_DIR})
 set(RUN_MODE "npu" CACHE STRING "run mode: npu")
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type Release/Debug (default Debug)" FORCE)
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/out" CACHE STRING "path for install()" FORCE)
 
-# Ascend library use to add kernel file to generate ascendc library
+# ascendc_library use to add kernel file to generate ascendc library
 include(${ASCENDC_CMAKE_DIR}/ascendc.cmake)
+
 ascendc_library(kernels STATIC ../../kernel_func/write_read_value.cpp)
 
 # Include directories and libraries
-include_directories(${ASCEND_CANN_PACKAGE_PATH}/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../..)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+include_directories(
+    ${ASCEND_CANN_PACKAGE_PATH}/include 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+
 link_directories(${ASCEND_CANN_PACKAGE_PATH}/lib64)
 
-add_executable(proc_a proc_a.cpp ../file_ops.cpp)
-add_executable(proc_b proc_b.cpp ../file_ops.cpp)
+add_executable(main main.cpp)
 
-target_link_libraries(proc_a PRIVATE ascendcl kernels)
-target_link_libraries(proc_b PRIVATE ascendcl)
+target_link_libraries(main PRIVATE ascendcl kernels)

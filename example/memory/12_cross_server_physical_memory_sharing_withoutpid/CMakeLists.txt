@@ -20,7 +20,6 @@ set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type Release/Debug (default Deb
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/out" CACHE STRING "path for install()" FORCE)
 
 # Ascend library use to add kernel file to generate ascendc library
-include(${ASCENDC_CMAKE_DIR}/ascendc.cmake)
 ascendc_library(kernels STATIC ../../kernel_func/write_read_value.cpp)
 
 # Include directories and libraries
@@ -29,8 +28,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../..)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 link_directories(${ASCEND_CANN_PACKAGE_PATH}/lib64)
 
-add_executable(proc_a proc_a.cpp ../file_ops.cpp)
-add_executable(proc_b proc_b.cpp ../file_ops.cpp)
+add_executable(server server.cpp ../file_ops.cpp)
+add_executable(client client.cpp ../file_ops.cpp)
 
-target_link_libraries(proc_a PRIVATE ascendcl kernels)
-target_link_libraries(proc_b PRIVATE ascendcl)
+target_link_libraries(server PRIVATE ascendcl kernels)
+target_link_libraries(client PRIVATE ascendcl kernels)

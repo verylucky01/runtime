@@ -29,6 +29,7 @@
     - 调用aclrtMallocPhysical申请Device物理内存，并返回一个物理内存handle。
     - 调用aclrtReserveMemAddress预留虚拟内存。
     - 调用aclrtMapMem将虚拟内存映射到物理内存。
+    - 调用aclrtMemSetAccess设置虚拟内存的访问权限。
     - 调用aclrtMemExportToShareableHandle将通过aclrtMallocPhysical接口获取到的物理内存handle导出。
     - 调用aclrtUnmapMem取消虚拟内存与物理内存之间的映射关系。
     - 调用aclrtReleaseMemAddress释放通过aclrtReserveMemAddress接口申请的虚拟内存。

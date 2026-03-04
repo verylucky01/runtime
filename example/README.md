@@ -25,6 +25,7 @@ examples目录下提供了一系列Runtime接口样例，包括Device管理、St
 |memory|[9_multistream_sync_memory](./memory/9_multistream_sync_memory/)|本样例会触发两个线程，一个线程A等待指定内存中的数据满足一定条件后解除阻塞，一个线程B向指定内存中写入数据，在线程B写入满足条件的数据之前线程A将持续阻塞。|
 |memory|[10_ipc_memory_withpid](./memory/10_ipc_memory_withpid)|本样例展示了同一个Device、两个进程间的内存共享，在共享内存时启用进程白名单校验。|
 |memory|[11_ipc_memory_withoutpid](./memory/11_ipc_memory_withoutpid)|本样例展示了同一个Device、两个进程间的内存共享，在内存共享时关闭进程白名单校验。|
+|memory|[12_cross_server_physical_memory_sharing_withoutpid](./memory/12_cross_server_physical_memory_sharing_withoutpid/)|本样例展示了两个服务器间的内存共享，在共享内存时关闭进程白名单校验。|
 |callback|[0_simple_callback](./callback/0_simple_callback/)|本样例展示了在Stream上下发一个Host侧函数，由用户显式注册线程，触发Host侧函数调用。|
 |callback|[1_callback_hostfunc](./callback/1_callback_hostfunc/)|本样例展示了在Stream上下发一个Host侧函数，该Host侧函数将在当前已下发的任务执行之后被调用，并会阻塞之后添加的任务。|
 |callback|[2_callback_exception](./callback/2_callback_exception/)|本样例展示了如何通过错误回调函数获取任务的异常信息，包括Device ID、Stream ID、Task ID、Error Code等。|
@@ -35,6 +36,7 @@ examples目录下提供了一系列Runtime接口样例，包括Device管理、St
 |kernel|[1_launch_kernel_with_reslimit](./kernel/1_launch_kernel_with_reslimit/)|本样例展示了在设置了当前进程的Device资源限制下，Add算子的加载与执行。|
 |notify|[0_ipc_notify_withpid](./notify/0_ipc_notify_withpid)|本样例展示了两个Device、两个进程间的Notify共享，但在共享Notify时启用进程白名单校验。|
 |notify|[1_ipc_notify_withoutpid](./notify/1_ipc_notify_withoutpid)|本样例展示了两个Device、两个进程间的Notify共享，但在共享Notify时关闭进程白名单校验。|
+|notify|[2_cntnotify](./notify/2_cntnotify/)|本样例展示在流间使用CntNotify进行同步的场景，包括创建、记录、等待、复位、获取ID和销毁的操作。|
 |adump|[0_adump_args](./adump/0_adump_args)|本样例展示了单算子执行场景下，使用aclopStartDumpArgs和aclopStopDumpArgs接口Dump算子信息。|
 |adump|[1_adump_callback](./adump/1_adump_callback)|本样例展示了单算子执行场景下，使用acldumpRegCallback和acldumpUnregCallback接口Dump算子信息。|
 |profiling|[0_create_config](./profiling/0_create_config)|本样例展示了Profiling采集、解析和展示性能数据。|

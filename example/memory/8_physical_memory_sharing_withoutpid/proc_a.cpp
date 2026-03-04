@@ -59,6 +59,14 @@ int32_t main()
     CHECK_ERROR(aclrtMapMem(virPtr, granularity, 0, handle, 0));
     INFO_LOG("Process A: map virtual memory address to physical memory handle");
 
+    // Set memory access permissions
+    aclrtMemAccessDesc accessDesc = {};
+    accessDesc.flags = ACL_RT_MEM_ACCESS_FLAGS_READWRITE;
+    accessDesc.location.type = ACL_MEM_LOCATION_TYPE_DEVICE;
+    accessDesc.location.id = deviceId;
+    CHECK_ERROR(aclrtMemSetAccess(virPtr, granularity, &accessDesc, 1));
+    INFO_LOG("Process A: set memory access permissions successfully");
+
     // Write the value to the virtual memory
     constexpr uint32_t blockDim = 1;
     int writeValue = 123;

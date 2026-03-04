@@ -521,6 +521,23 @@ aclError aclrtMallocHostImpl(void **hostPtr, size_t size)
     return ACL_SUCCESS;
 }
 
+aclError aclrtMemAllocManagedImpl(void **ptr, uint64_t size, uint32_t flag)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclrtMemAllocManaged);
+    ACL_LOG_DEBUG("start to execute aclrtMemAllocManaged");
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(ptr);
+    if (flag != ACL_RT_MEM_ATTACH_GLOBAL) {
+        ACL_LOG_INNER_ERROR("flag must be ACL_RT_MEM_ATTACH_GLOBAL");
+        return ACL_ERROR_INVALID_PARAM;
+    }
+    const rtError_t rtErr = rtMemAllocManaged(ptr, size, RT_MEMORY_ATTACH_GLOBAL, acl::APP_MODE_ID_U16);
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("alloc uvm memory failed, runtime result = %d", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    return ACL_SUCCESS;
+}
+
 aclError aclrtFreeHostImpl(void *hostPtr)
 {
     ACL_PROFILING_REG(acl::AclProfType::AclrtFreeHost);

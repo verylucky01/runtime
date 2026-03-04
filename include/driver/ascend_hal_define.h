@@ -637,13 +637,15 @@ typedef struct {
 #define MEM_HOST_AGENT_VAL     0X4
 #define MEM_RESERVE_VAL        0X5
 #define MEM_HOST_UVA_VAL       0X6
-#define MEM_MAX_VAL            0X7
+#define MEM_UVM_VAL            0X7
+#define MEM_MAX_VAL            0X8
 #define MEM_SVM                (MEM_SVM_VAL << MEM_VIRT_BIT)
 #define MEM_DEV                (MEM_DEV_VAL << MEM_VIRT_BIT)
 #define MEM_HOST               (MEM_HOST_VAL << MEM_VIRT_BIT)
 #define MEM_HOST_UVA           (MEM_HOST_UVA_VAL << MEM_VIRT_BIT)
 #define MEM_DVPP               (MEM_DVPP_VAL << MEM_VIRT_BIT)
 #define MEM_HOST_AGENT         (MEM_HOST_AGENT_VAL << MEM_VIRT_BIT)
+#define MEM_UVM                (MEM_UVM_VAL << MEM_VIRT_BIT)
 #define MEM_RESERVE            (MEM_RESERVE_VAL << MEM_VIRT_BIT)
 /* phy mem type */
 #define MEM_PHY_BIT            14

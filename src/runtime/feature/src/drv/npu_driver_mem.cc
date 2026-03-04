@@ -792,45 +792,40 @@ rtError_t NpuDriver::ManagedMemAllocInner(void ** const dptr, const uint64_t siz
     drvError_t drvRet;
     uint32_t hugePage = 1U;
     uint64_t drvFlag = 0;
-
-    // HugePage first
-    if (size > HUGE_PAGE_MEM_CRITICAL_VALUE) {
-        // HugePage
+    bool needRetry = false;
+    
+    if (size > HUGE_PAGE_MEM_CRITICAL_VALUE && flag != MANAGED_MEM_UVM) {
         drvFlag = static_cast<uint64_t>(MEM_SET_ALIGN_SIZE(9ULL)) |
                   static_cast<uint64_t>(MEM_SVM_HUGE) | static_cast<uint64_t>(NODE_TO_DEVICE(deviceId));
         drvFlag = FlagAddModuleId(drvFlag, moduleId);
-        drvRet = halMemAlloc(dptr, static_cast<UINT64>(size), static_cast<UINT64>(drvFlag));
-        if (drvRet != DRV_ERROR_NONE) {
-            drvFlag = static_cast<uint64_t>(MEM_SET_ALIGN_SIZE(9ULL)) |
-                      static_cast<uint64_t>(MEM_SVM_NORMAL) | static_cast<uint64_t>(NODE_TO_DEVICE(deviceId));
-            drvFlag = FlagAddModuleId(drvFlag, moduleId);
-            drvRet = halMemAlloc(dptr, static_cast<UINT64>(size), static_cast<UINT64>(drvFlag));
-            if (drvRet != DRV_ERROR_NONE) {
-                const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
-                const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-                DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed: "
-                    "device_id=%u, size=%" PRIu64 "(bytes), flag=%d, drvRetCode=%d, drvFlag=%" PRIu64 ", %s",
-                    deviceId, size, static_cast<int32_t>(flag), static_cast<int32_t>(drvRet), drvFlag,
-                    errorStr.c_str());
-                return rtErrorCode;
-            }
-            hugePage = 0U;
-        }
+        needRetry = true;
+    } else if (size > HUGE_PAGE_MEM_CRITICAL_VALUE && flag == MANAGED_MEM_UVM) {
+        drvFlag = static_cast<uint64_t>(MEM_UVM) | static_cast<uint64_t>(MEM_PAGE_HUGE);
     } else {
         hugePage = 0U;
         drvFlag = static_cast<uint64_t>(MEM_SET_ALIGN_SIZE(9ULL)) |
                   static_cast<uint64_t>(MEM_SVM_NORMAL) | static_cast<uint64_t>(NODE_TO_DEVICE(deviceId));
         drvFlag = FlagAddModuleId(drvFlag, moduleId);
-        drvRet = halMemAlloc(dptr, static_cast<UINT64>(size), static_cast<UINT64>(drvFlag));
-        if (drvRet != DRV_ERROR_NONE) {
-            const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
-            const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed: "
-                "device_id=%u, size=%" PRIu64 "(bytes), flag=%d, drvRetCode=%d, drvFlag=%" PRIu64 ", %s", deviceId,
-                size, static_cast<int32_t>(flag), static_cast<int32_t>(drvRet), drvFlag, errorStr.c_str());
-            return rtErrorCode;
-        }
     }
+
+    drvRet = halMemAlloc(dptr, static_cast<UINT64>(size), static_cast<UINT64>(drvFlag));
+    if (needRetry && drvRet != DRV_ERROR_NONE) {
+        drvFlag = static_cast<uint64_t>(MEM_SET_ALIGN_SIZE(9ULL)) |
+                  static_cast<uint64_t>(MEM_SVM_NORMAL) | static_cast<uint64_t>(NODE_TO_DEVICE(deviceId));
+        drvFlag = FlagAddModuleId(drvFlag, moduleId);
+        drvRet = halMemAlloc(dptr, static_cast<UINT64>(size), static_cast<UINT64>(drvFlag));
+        hugePage = 0U;
+    }
+
+    if (drvRet != DRV_ERROR_NONE) {
+        const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
+        const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
+        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed: "
+            "device_id=%u, size=%" PRIu64 "(bytes), flag=%d, drvRetCode=%d, drvFlag=%" PRIu64 ", %s", deviceId,
+            size, static_cast<int32_t>(flag), static_cast<int32_t>(drvRet), drvFlag, errorStr.c_str());
+        return rtErrorCode;
+    }
+
     RT_LOG(RT_LOG_INFO, "Manager mem alloc, device_id=%u, size=%" PRIu64 ", flag=%d, huge=%u.",
            deviceId, size, static_cast<int32_t>(flag), hugePage);
     return RT_ERROR_NONE;

@@ -114,6 +114,7 @@ public:
     enum ManagedMemFlag {
         MANAGED_MEM_RW = 0,
         MANAGED_MEM_EX = 1,
+        MANAGED_MEM_UVM = 2,
     };
 
     Driver();

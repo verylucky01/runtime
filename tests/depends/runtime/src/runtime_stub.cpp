@@ -401,9 +401,24 @@ rtError_t aclStub::rtSubscribeReport(uint64_t threadId, rtStream_t stream)
     return RT_ERROR_NONE;
 }
 
+rtError_t aclStub::rtMemAllocManaged(void **ptr, uint64_t size, uint32_t flag, const uint16_t moduleId)
+{
+    const uint64_t MAX_SIZE_LIMIT = 8ULL * 1024 * 1024 * 1024 * 1024;
+    if (size == 0 || size > MAX_SIZE_LIMIT) {
+        return ACL_ERROR_INVALID_PARAM; 
+    }
+    *ptr = malloc(size);
+    return RT_ERROR_NONE;
+}
+
 rtError_t aclStub::rtCallbackLaunch(rtCallback_t callBackFunc, void *fnData, rtStream_t stream, bool isBlock)
 {
     return RT_ERROR_NONE;
+}
+
+rtError_t rtMemAllocManaged(void **ptr, uint64_t size, uint32_t flag, const uint16_t moduleId)
+{
+ 	return MockFunctionTest::aclStubInstance().rtMemAllocManaged(ptr, size, flag, moduleId);
 }
 
 rtError_t aclStub::rtsLaunchHostFunc(rtStream_t stm, const rtCallback_t callBackFunc, void * const fnData)

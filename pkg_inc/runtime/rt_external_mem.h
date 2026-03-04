@@ -36,6 +36,7 @@ extern "C" {
 #define RT_MEMORY_HOST (0x81U)     // Memory on host
 #define RT_MEMORY_SVM (0x90U)      // Memory for SVM
 #define RT_MEMORY_HOST_SVM (0x90U) // Memory for host SVM
+#define RT_MEMORY_ATTACH_GLOBAL (0x01U) // Memory for UVM
 #define RT_MEMORY_RESERVED (0x100U)
 
 // MEMORY_UB (0x1U << 15U) It has been occupied by GE/FE. Do not use it.

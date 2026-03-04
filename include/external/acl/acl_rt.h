@@ -78,6 +78,9 @@ extern "C" {
 
 #define ACL_IPC_EVENT_HANDLE_SIZE 64U
 
+// for uvm memory
+#define ACL_RT_MEM_ATTACH_GLOBAL 0x01U
+
 typedef enum aclrtRunMode {
     ACL_DEVICE,
     ACL_HOST,
@@ -1872,6 +1875,23 @@ ACL_FUNC_VISIBILITY aclError aclrtFree(void *devPtr);
  * @see aclrtFreeHost
  */
 ACL_FUNC_VISIBILITY aclError aclrtMallocHost(void **hostPtr, size_t size);
+
+/**
+ * @ingroup AscendCL
+ * @brief alloc uvm memory
+ *
+ * @par Restriction
+ * @li The memory requested by the aclrtMemAllocManaged interface
+ * needs to be released through the aclrtFree interface.
+ *
+ * @param  ptr [OUT] pointer to pointer to allocated memory
+ * @param  size [IN] alloc memory size
+ * @param  flag [IN] flag of memory type
+ *
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval OtherValues Failure
+ */
+ACL_FUNC_VISIBILITY aclError aclrtMemAllocManaged(void **ptr, uint64_t size, uint32_t flag);
 
 /**
  * @ingroup AscendCL

@@ -154,6 +154,7 @@ Runtime API参考的目录如下：
     -   [aclrtFreeWithDevSync](api_docs/aclrtFreeWithDevSync.md)
     -   [aclrtMallocHost](api_docs/aclrtMallocHost.md)
     -   [aclrtMallocHostWithCfg](api_docs/aclrtMallocHostWithCfg.md)
+    -   [aclrtMemAllocManaged](api_docs/aclrtMemAllocManaged.md)
     -   [aclrtFreeHost](api_docs/aclrtFreeHost.md)
     -   [aclrtFreeHostWithDevSync](api_docs/aclrtFreeHostWithDevSync.md)
     -   [aclrtMemset](api_docs/aclrtMemset.md)

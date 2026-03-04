@@ -86,6 +86,7 @@
     _(aclError, aclrtMemInvalidate, (void * devPtr, size_t size), (devPtr, size)) \
     _(aclError, aclrtFree, (void * devPtr), (devPtr)) \
     _(aclError, aclrtMallocHost, (void ** hostPtr, size_t size), (hostPtr, size)) \
+    _(aclError, aclrtMemAllocManaged, (void **ptr, uint64_t size, uint32_t flag), (ptr, size, flag)) \
     _(aclError, aclrtFreeHost, (void * hostPtr), (hostPtr)) \
     _(aclError, aclrtFreeWithDevSync, (void * devPtr), (devPtr)) \
     _(aclError, aclrtFreeHostWithDevSync, (void * hostPtr), (hostPtr)) \

@@ -168,6 +168,9 @@ void  MockFunctionTest::ResetToDefaultMock() {
     ON_CALL(*this, rtMalloc).WillByDefault([this](void **devPtr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
       return aclStub::rtMalloc(devPtr, size, type, moduleId);
     });
+    ON_CALL(*this, rtMemAllocManaged).WillByDefault([this](void **ptr, uint64_t size, uint32_t flag, const uint16_t moduleId) {
+ 	    return aclStub::rtMemAllocManaged(ptr, size, flag, moduleId);
+ 	});
     ON_CALL(*this, rtFree).WillByDefault([this](void *devPtr) {
       return aclStub::rtFree(devPtr);
     });

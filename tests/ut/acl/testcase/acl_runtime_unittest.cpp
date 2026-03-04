@@ -1206,6 +1206,22 @@ TEST_F(UTEST_ACL_Runtime, aclrtProcessReportTest)
     EXPECT_EQ(aclrtProcessReport(1), ACL_ERROR_RT_PARAM_INVALID);
 }
 
+TEST_F(UTEST_ACL_Runtime, aclrtMemAllocManaged_DeviceTest)
+{
+    void *devPtr = nullptr;
+    size_t size = 1;
+    uint32_t errorFlag = 0;
+
+    aclError ret = aclrtMemAllocManaged(&devPtr, size, errorFlag);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemAllocManaged(&devPtr, size, 1);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+    ret = aclrtFree(devPtr);
+    devPtr = nullptr;
+    EXPECT_EQ(ret, ACL_SUCCESS);
+}
+
 TEST_F(UTEST_ACL_Runtime, aclrtMalloc_DeviceTest)
 {
     void *devPtr = nullptr;

@@ -2623,6 +2623,9 @@ rtError_t ApiImpl::ManagedMemAlloc(void ** const ptr, const uint64_t size, const
         return curCtx->Device_()->AllocSPM(ptr, size);
     } else if (flag == RT_MEMORY_DDR_NC) {
         return curCtx->Device_()->Driver_()->MemAllocEx(ptr, size, RT_MEMORY_DDR_NC);
+    } else if (flag == RT_MEMORY_ATTACH_GLOBAL) {
+        const uint64_t alignSize = (((size + 0x1FFFFFUL) >> 21U) <<21U);
+        return curCtx->Device_()->Driver_()->ManagedMemAlloc(ptr, alignSize, Driver::MANAGED_MEM_UVM, curCtx->Device_()->Id_(), moduleId);
     } else {
         return curCtx->Device_()->Driver_()
             ->ManagedMemAlloc(ptr, size, Driver::MANAGED_MEM_RW, curCtx->Device_()->Id_(), moduleId);

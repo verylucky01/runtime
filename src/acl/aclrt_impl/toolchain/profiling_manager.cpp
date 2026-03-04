@@ -272,6 +272,7 @@ namespace acl {
         {AclProfType::AclrtGetMemUsageInfo,                     "aclrtGetMemUsageInfo"},
         {AclProfType::AclrtReserveMemAddressNoUCMemory,         "aclrtReserveMemAddressNoUCMemory"},
         {AclProfType::AclrtMemGetAddressRange,                  "aclrtMemGetAddressRange"},
+        {AclProfType::AclrtMemAllocManaged,                     "aclrtMemAllocManaged"},
 };
 
 aclError RegisterType(const uint32_t index) {

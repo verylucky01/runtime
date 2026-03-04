@@ -276,6 +276,7 @@ namespace acl {
         AclrtHostGetDevicePointer,
         AclrtReserveMemAddressNoUCMemory,
         AclrtMemGetAddressRange,
+        AclrtMemAllocManaged,
         // this is the end, can not add after AclRtProfTypeEnd
         AclRtProfTypeEnd
     };

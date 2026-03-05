@@ -16,6 +16,7 @@
 #include "acl/acl_prof.h"
 
 int main(int argc, char *argv[]) {
+    INFO_LOG("-------- Start --------");
     // 初始化
     uint32_t deviceIdList[1] = {0};  // 根据实际环境的DeviceID配置
     aclrtStream stream = nullptr;
@@ -75,5 +76,6 @@ int main(int argc, char *argv[]) {
     aclrtDestroyStream(stream);
     aclrtResetDeviceForce(deviceIdList[0]);
     aclFinalize();
+    INFO_LOG("-------- End --------");
     return 0;
 }

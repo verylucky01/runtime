@@ -2842,7 +2842,8 @@ TEST_F(CloudV2NpuDriverTest, host_register_02)
 {
     rtError_t error;
     int ptr = 10;
-    void **devPtr;
+    void *tmp = nullptr;
+    void **devPtr = &tmp;
     NpuDriver *rawDrv = new NpuDriver();
  
     MOCKER(halHostRegister)

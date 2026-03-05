@@ -178,7 +178,8 @@ protected:
         GlobalContainer::SetRtChipType(g_chipType);
         rtInstance->SetDisableThread(false);
         rtInstance->SetConnectUbFlag(false);
-        std::cout << "UbStreamTest end" << std::endl;
+        std::cout << "TaskTestV201 end" << std::endl;
+        GlobalMockObject::verify();
     }
 
     virtual void SetUp()
@@ -241,7 +242,7 @@ protected:
         engine_ = nullptr;
         ((Runtime *)Runtime::Instance())->DeviceRelease(device_);
         rtDeviceReset(0);
-        GlobalMockObject::reset();
+        GlobalMockObject::verify();
     }
 
 public:
@@ -276,37 +277,37 @@ protected:
     static void TearDownTestCase()
     {
         MOCKER(halGetDeviceInfo).stubs().will(invoke(halGetDeviceInfoStub));
-        MOCKER_CPP(&IoctlUtil::CloseFd).stubs().will(invoke(TmpCloseFd));
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(g_chipType);
         GlobalContainer::SetRtChipType(g_chipType);
         rtInstance->SetDisableThread(false);
         rtInstance->SetConnectUbFlag(false);
         std::cout << "UbStreamTest end" << std::endl;
+        GlobalMockObject::verify();
     }
 
     virtual void SetUp()
     {
         MOCKER(halGetDeviceInfo).stubs().will(invoke(halGetDeviceInfoStub));
         MOCKER_CPP(&IoctlUtil::CloseFd).stubs().will(invoke(TmpCloseFd));
-        Driver *driver = ((Runtime *)Runtime::Instance())->driverFactory_.GetDriver(NPU_DRIVER);
+        Driver *drv = ((Runtime *)Runtime::Instance())->driverFactory_.GetDriver(NPU_DRIVER);
+        MOCKER(halSqTaskSend).stubs().will(returnValue(RT_ERROR_NONE));
         char *socVer = "MC62CM12AA";
         MOCKER(halGetSocVersion)
             .stubs()
             .with(mockcpp::any(), outBoundP(socVer, strlen("MC62CM12AA")))
             .will(returnValue(DRV_ERROR_NONE));
-        MOCKER(halSqTaskSend).stubs().will(returnValue(RT_ERROR_NONE));
-        MOCKER_CPP_VIRTUAL(driver, &Driver::StreamBindLogicCq).stubs().will(returnValue(RT_ERROR_NONE));
-        MOCKER_CPP_VIRTUAL(driver, &Driver::StreamUnBindLogicCq).stubs().will(returnValue(RT_ERROR_NONE));
+        MOCKER_CPP_VIRTUAL(drv, &Driver::StreamBindLogicCq).stubs().will(returnValue(RT_ERROR_NONE));
+        MOCKER_CPP_VIRTUAL(drv, &Driver::StreamUnBindLogicCq).stubs().will(returnValue(RT_ERROR_NONE));
 
         bool enable = false;
-        MOCKER_CPP_VIRTUAL(driver, &Driver::GetSqEnable)
+        MOCKER_CPP_VIRTUAL(drv, &Driver::GetSqEnable)
             .stubs()
             .with(mockcpp::any(), mockcpp::any(), mockcpp::any(), outBound(enable))
             .will(returnValue(RT_ERROR_NONE));
 
-        MOCKER_CPP_VIRTUAL(driver, &Driver::SetSqHead).stubs().will(returnValue(RT_ERROR_NONE));
-        MOCKER_CPP_VIRTUAL(driver, &Driver::EnableSq).stubs().will(returnValue(RT_ERROR_NONE));
+        MOCKER_CPP_VIRTUAL(drv, &Driver::SetSqHead).stubs().will(returnValue(RT_ERROR_NONE));
+        MOCKER_CPP_VIRTUAL(drv, &Driver::EnableSq).stubs().will(returnValue(RT_ERROR_NONE));
         rtSetTSDevice(1);
         rtSetDevice(0);
 
@@ -323,7 +324,7 @@ protected:
 
         stream_->SetSqMemAttr(false);
         TaskResManageDavid *taskResMang = ((TaskResManageDavid *)(static_cast<Stream *>(stream_)->taskResMang_));
-        MOCKER_CPP_VIRTUAL(driver, &Driver::GetSqHead)
+        MOCKER_CPP_VIRTUAL(drv, &Driver::GetSqHead)
             .stubs()
             .with(mockcpp::any(), mockcpp::any(), mockcpp::any(), outBound(taskResMang->GetTaskPosTail()))
             .will(returnValue(RT_ERROR_NONE));

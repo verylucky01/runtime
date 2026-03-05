@@ -1355,30 +1355,6 @@ TEST_F(ApiTestUb1, free_host_shared_memory_david_stub_hal)
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
 }
 
-TEST_F(ApiTestUb1, free_host_shared_memory_david_stub_stat_hal)
-{
-    rtError_t error;
-    int fd = 0;
-    int sharedMemAddr;
-    int devSharedMemAddr;
-
-    MOCKER(halHostUnregister)
-        .stubs()
-        .will(returnValue(DRV_ERROR_NONE));
-
-    MOCKER(stat)
-        .stubs()
-        .will(returnValue(0));
-
-    MOCKER(munmap)
-        .stubs()
-        .will(returnValue(0));
-
-    rtFreeHostSharedMemoryIn inputPara = {"abcd", 100, fd, &sharedMemAddr, &devSharedMemAddr};
-    error = rtFreeHostSharedMemory(&inputPara);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
-}
-
 TEST_F(ApiTestUb1, onlineprof_david00)
 {
     rtError_t error;

@@ -98,6 +98,28 @@ typedef enum {
     RT_DEV_STATUS_RESERVED
 } rtDevStatus_t;
 
+typedef enum tagRtFeatureType {
+    FEATURE_TYPE_MEMCPY = 0,
+    FEATURE_TYPE_MEMORY,
+    FEATURE_TYPE_UPDATE_SQE,
+    FEATURE_TYPE_AUTO_SPLIT_PERSISTENT_STREAM,
+    FEATURE_TYPE_RSV
+} rtFeatureType_t;
+
+typedef enum tagMemcpyInfo {
+    MEMCPY_INFO_SUPPORT_ZEROCOPY = 0,
+    MEMCPY_INFO_RSV
+} rtMemcpyInfo_t;
+
+typedef enum tagMemoryInfo {
+    MEMORY_INFO_TS_LIMITED = 0,
+    MEMORY_INFO_RSV
+} rtMemoryInfo_t;
+
+typedef enum tagUpdateSQEInfo {
+    UPDATE_SQE_SUPPORT_DSA = 0
+} rtUpdateSQEInfo_t;
+
 typedef struct {
     uint32_t dieId;  // for ccu res need set devId, for others set 0
     rtDevResProcType_t procType;
@@ -302,6 +324,16 @@ RTS_API rtError_t rtGetP2PStatus(uint32_t devIdDes, uint32_t phyIdSrc, uint32_t 
  * @return RT_ERROR_NONE for ok
  */
 RTS_API rtError_t rtGetPairPhyDevicesInfo(uint32_t devId, uint32_t otherDevId, int32_t infoType, int64_t *val);
+
+/**
+ * @ingroup dvrt_dev
+ * @brief get capability infomation.
+ * @param [in] featureType  feature type
+ * @param [in] featureInfo  info type
+ * @param [out] val  the capability info RT_CAPABILITY_SUPPORT or RT_CAPABILITY_NOT_SUPPORT
+ * @return RT_ERROR_NONE for ok
+ */
+RTS_API rtError_t rtGetRtCapability(rtFeatureType_t featureType, int32_t featureInfo, int64_t *val);
 
 /**
 * @ingroup dvrt_dev

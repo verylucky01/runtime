@@ -20,6 +20,7 @@ set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type Release/Debug (default Deb
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/out" CACHE STRING "path for install()" FORCE)
 
 # Ascend library use to add kernel file to generate ascendc library
+include(${ASCENDC_CMAKE_DIR}/ascendc.cmake)
 ascendc_library(kernels STATIC ../../kernel_func/write_read_value.cpp)
 
 # Include directories and libraries

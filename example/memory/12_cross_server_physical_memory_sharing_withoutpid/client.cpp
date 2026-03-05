@@ -54,7 +54,7 @@ int32_t main(int argc, char* argv[])
     INFO_LOG("Client: create socket successfully, sockfd = %d", sockfd);
 
     struct sockaddr_in server_addr;
-    CHECK_ERROR(aclrtMemSet_s(&server_addr, sizeof(server_addr), 0, sizeof(server_addr)));
+    CHECK_ERROR(aclrtMemset(&server_addr, sizeof(server_addr), 0, sizeof(server_addr)));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr(server_ip);
     server_addr.sin_port = htons(port);
@@ -67,7 +67,7 @@ int32_t main(int argc, char* argv[])
         close(sockfd);
         return -1;
     }
-    INFO_LOG("Client: receive ipc message successfully, size = %d", recv_len);
+    INFO_LOG("Client: send connection message successfully");
 
     aclrtMemFabricHandle shareableHandle = {};
     aclrtDrvMemHandle handle = nullptr;
@@ -80,7 +80,8 @@ int32_t main(int argc, char* argv[])
     }
 
     // Import shareable handle from server
-    CHECK_ERROR(aclrtMemImportFromShareableHandleV2(&shareableHandle, ACL_MEM_SHARE_HANDLE_TYPE_FABRIC, 0x0, &handle));
+    CHECK_ERROR(aclrtMemImportFromShareableHandleV2(&shareableHandle, ACL_MEM_SHARE_HANDLE_TYPE_FABRIC, 
+                ACL_RT_IPC_MEM_EXPORT_FLAG_DEFAULT, &handle));
     INFO_LOG("Client: import shareable handle successfully");
 
     const size_t data_size = 1024 * sizeof(float);

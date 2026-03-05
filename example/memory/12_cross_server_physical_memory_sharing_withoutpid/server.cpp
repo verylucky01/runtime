@@ -85,7 +85,8 @@ int32_t main(int argc, char* argv[])
     // Export a shareable handle
     aclrtMemFabricHandle shareableHandle = {};
     aclrtMemSharedHandleType shareType = ACL_MEM_SHARE_HANDLE_TYPE_FABRIC;
-    CHECK_ERROR(aclrtMemExportToShareableHandleV2(handle, 0x1, shareType, &shareableHandle));
+    CHECK_ERROR(aclrtMemExportToShareableHandleV2(handle, ACL_RT_IPC_MEM_EXPORT_FLAG_DISABLE_PID_VALIDATION, 
+                shareType, &shareableHandle));
     INFO_LOG("Server: export shareable handle successfully");
 
     // Transfer the shareable handle to client by UDP
@@ -97,7 +98,7 @@ int32_t main(int argc, char* argv[])
     INFO_LOG("Server: create socket successfully, sockfd = %d", sockfd);
 
     struct sockaddr_in server_addr, client_addr;
-    CHECK_ERROR(aclrtMemSet(&server_addr, sizeof(server_addr), 0, sizeof(server_addr)));
+    CHECK_ERROR(aclrtMemset(&server_addr, sizeof(server_addr), 0, sizeof(server_addr)));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(port);

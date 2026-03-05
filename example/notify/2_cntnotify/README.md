@@ -4,11 +4,7 @@
 本样例展示在流间使用CntNotify进行同步的场景，包括创建、记录、等待、复位、获取ID和销毁的操作。
 
 ## 支持的产品型号
-- Atlas A3 训练系列产品/Atlas A3 推理系列产品 
-- Atlas A2 训练系列产品/Atlas 800I A2 推理产品/A200I A2 Box 异构组件
-- Atlas 200I/500 A2 推理产品
-- Atlas 推理系列产品
-- Atlas 训练系列产品
+- （待更新）
 
 ## 编译运行
 环境安装详情以及运行详情请见example目录下的[README](../../README.md)。

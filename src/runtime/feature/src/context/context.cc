@@ -94,13 +94,14 @@ rtError_t CheckMemoryParam(const rtDebugMemoryParam_t *const param)
 
 rtError_t CheckCoreParam(const uint32_t coreType, const uint32_t coreId)
 {
-    COND_RETURN_ERROR((coreType != 0 && coreType != 1), RT_ERROR_INVALID_VALUE, "coreType=%u is invalid!", coreType);
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM((coreType != 0 && coreType != 1), RT_ERROR_INVALID_VALUE, 
+        coreType, "[0, " + std::to_string(RT_CORE_TYPE_AIV) + "]");
     if (coreType == 0) {
-        COND_RETURN_ERROR((coreId >= RT_AICORE_NUM_25), RT_ERROR_INVALID_VALUE,
-                          "aic coreId=%u is invalid!", coreId);
+        COND_RETURN_AND_MSG_OUTER_WITH_PARAM((coreId >= RT_AICORE_NUM_25), RT_ERROR_INVALID_VALUE,
+            coreId, "[0, " + std::to_string(RT_AICORE_NUM_25) + ")");
     } else {
-        COND_RETURN_ERROR((coreId >= RT_AIVECTOR_NUM_50), RT_ERROR_INVALID_VALUE,
-                          "aiv coreId=%u is invalid!", coreId);
+        COND_RETURN_AND_MSG_OUTER_WITH_PARAM((coreId >= RT_AIVECTOR_NUM_50), RT_ERROR_INVALID_VALUE,
+            coreId, "[0, " + std::to_string(RT_AIVECTOR_NUM_50) + ")");
     }
     return RT_ERROR_NONE;
 }

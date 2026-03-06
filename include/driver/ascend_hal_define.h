@@ -1075,7 +1075,8 @@ struct sq_switch_stream_info {
     uint32_t sq_id;
     uint32_t stream_id;
     uint32_t sq_depth;
-    uint32_t rsv[3];
+    uint32_t rsv;
+    void *stream_mem;
 };
 
 #define RESOURCE_CONFIG_INFO_LENGTH 7

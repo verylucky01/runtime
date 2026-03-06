@@ -46,7 +46,6 @@ namespace cce {
 namespace runtime {
 constexpr uint32_t FREE_EVENT_QUEUE_SIZE = 64U * 1024U;
 constexpr uint32_t SQ_ID_MEM_POOL_INIT_COUNT = 1024U;
-constexpr uint32_t SQ_ID_MEM_POOL_MAX_COUNT = 32U * 1024U; /* stream is 32k */
 constexpr uint32_t WAIT_PRINTF_THREAD_TIME_MAX = 10U;
 
 RawDevice::RawDevice(const uint32_t devId)
@@ -1111,7 +1110,8 @@ uint64_t RawDevice::AllocSqIdMemAddr(void)
 {
     if (sqIdMemAddrPool_ == nullptr) {
         sqIdMemAddrPool_ = new (std::nothrow) BufferAllocator(sizeof(uint64_t), SQ_ID_MEM_POOL_INIT_COUNT,
-                                                              SQ_ID_MEM_POOL_MAX_COUNT, BufferAllocator::LINEAR,
+                                                              Runtime::macroValue_.maxAllocStreamNum,
+                                                              BufferAllocator::LINEAR,
                                                               &MallocBufferForSqIdMem,
                                                               &FreeBufferForSqIdMem, this);
         COND_RETURN_WARN(sqIdMemAddrPool_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, "alloc sq mem pool failed");

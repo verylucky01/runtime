@@ -78,6 +78,8 @@ Stream::Stream(Device * const dev, const uint32_t prio, const uint32_t stmFlags,
       drvErr_(0U),
       dvppGrp_(dvppGrp),
       sqRegVirtualAddr_(0ULL),
+      taskPersistentHead_(0U),
+      taskPersistentTail_(0U),
       l2BaseVaddr_(nullptr),
       pteVA_(nullptr),
       needSubmitTask_(true),
@@ -91,8 +93,6 @@ Stream::Stream(Device * const dev, const uint32_t prio, const uint32_t stmFlags,
       countingNum_(0U),
       davinciTaskHead_(0U),
       davinciTaskTail_(0U),
-      taskPersistentHead_(0U),
-      taskPersistentTail_(0U),
       countingPersistentNum_(0U),
       bindFlag_(false),
       subscribeFlag_(StreamSubscribeFlag::SUBSCRIBE_NONE),
@@ -756,6 +756,11 @@ void Stream::ResetSqCq(void)
     return;
 }
 
+rtError_t Stream::CreateStreamArgRes()
+{
+    return RT_ERROR_NONE;
+}
+
 rtError_t Stream::SetupWithoutBindSq()
 {
     rtError_t error;
@@ -771,6 +776,9 @@ rtError_t Stream::SetupWithoutBindSq()
     errno_t ret = memset_s(posToTaskIdMap_, posToTaskIdMapSize_ * sizeof(uint16_t), 0XFF,
         posToTaskIdMapSize_ * sizeof(uint16_t));
     COND_RETURN_ERROR(ret != EOK, RT_ERROR_STREAM_NEW, "Memset posToTaskIdMap failed, retCode=%d.", ret);
+
+    error = CreateStreamArgRes(); // only for stars v2
+    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "new args res manage fail.");
 
     TIMESTAMP_BEGIN(rtStreamCreate_drvStreamIdAlloc);
     error = device_->Driver_()->StreamIdAlloc(&streamId_, device_->Id_(), device_->DevGetTsId(), priority_);
@@ -4095,9 +4103,14 @@ void Stream::UpdateCascadeCaptureStreamInfo(Stream *newCaptureStream, Stream *cu
     UpdateCaptureStream(newCaptureStream);
 }
 
-rtError_t Stream::AllocCaptureTask(tsTaskType_t taskType, uint32_t sqeNum, TaskInfo **task)
+rtError_t Stream::AllocCaptureTaskWithLock(tsTaskType_t taskType, uint32_t sqeNum, TaskInfo **task)
 {
     std::unique_lock<std::mutex> lk(captureLock_);
+    return AllocCaptureTaskWithoutLock(taskType, sqeNum, task);
+}
+
+rtError_t Stream::AllocCaptureTaskWithoutLock(tsTaskType_t taskType, uint32_t sqeNum, TaskInfo **task)
+{
     Stream *curCaptureStream = GetCaptureStream();
     if (curCaptureStream == nullptr) {
         /* stm exit capture mode */
@@ -4107,7 +4120,8 @@ rtError_t Stream::AllocCaptureTask(tsTaskType_t taskType, uint32_t sqeNum, TaskI
     COND_PROC_RETURN_ERROR(IsTaskGroupBreak(), RT_ERROR_STREAM_TASKGRP_INTR,
         SetTaskGroupErrCode(RT_ERROR_STREAM_TASKGRP_INTR), "the task group interrupted.");
 
-    if ((curCaptureStream->GetCaptureSqeNum() + CAPTURE_TASK_RESERVED_NUM) >= curCaptureStream->GetSqDepth()) {
+    if ((curCaptureStream->GetCaptureSqeNum() + CAPTURE_TASK_RESERVED_NUM + Runtime::macroValue_.expandStreamRsvTaskNum) >=
+         curCaptureStream->GetSqDepth()) {
         Stream *newCaptureStream = nullptr;
         Context * const ctx = Context_();
         if (ctx == nullptr) {
@@ -4136,14 +4150,25 @@ rtError_t Stream::AllocCaptureTask(tsTaskType_t taskType, uint32_t sqeNum, TaskI
     if (*task != nullptr) {
         curCaptureStream->AddCaptureSqeNum(sqeNum);
         (*task)->stream = curCaptureStream;
+        Runtime::Instance()->AllocTaskSn((*task)->taskSn); // 只有A5用了这个字段，其他形态的分配了不用
     } else {
         SingleStreamTerminateCapture();
         return errCode;
     }
+
     RT_LOG(RT_LOG_INFO,
         "Alloc task in capture stream successfully, device id = %u, origin stream_id=%d, capture stream_id=%d.",
         device_->Id_(), Id_(), curCaptureStream->Id_());
     return RT_ERROR_NONE;
+}
+
+rtError_t Stream::AllocCaptureTask(tsTaskType_t taskType, uint32_t sqeNum, TaskInfo **task, bool isNeedLock)
+{
+    if (isNeedLock) {
+        return AllocCaptureTaskWithLock(taskType, sqeNum, task);
+    } else {
+        return AllocCaptureTaskWithoutLock(taskType, sqeNum, task);
+    }
 }
 
 rtError_t Stream::UpdateTask(TaskInfo** updateTask)
@@ -4361,7 +4386,10 @@ rtError_t Stream::AllocSoftwareSqAddr(uint32_t additionalSqeNum)
 
         SetSqBaseAddr(RtPtrToValue(sqBaseAddr));
         SetSqMemOrderType(memOrderType);
-        SetSqDepth(sqDepthAfterUpdate);
+
+        // stars v2要求sq深度必须是8的整数倍+1，调用者给additionalSqeNum加了8个，结合sq addr mem pool的各个内存梯度，
+        // 可以保证这里再减7也能放的下全部的sqe，同时满足stars v2的要求。
+        SetSqDepth(sqDepthAfterUpdate - Runtime::macroValue_.expandStreamSqDepthAdapt);
     }
 
     return ret;
@@ -4756,6 +4784,11 @@ rtError_t Stream::SubmitMemCpyAsyncTask(TaskInfo * const updateTask)
     error = UpdateTaskD2HSubmit(updateTask, sqeDeviceAddr, context_->DefaultStream_());
     COND_RETURN_ERROR(error != RT_ERROR_NONE, RT_ERROR_NONE, "d2h task submit failed, ret=%d", error);
     return RT_ERROR_NONE;
+}
+
+void Stream::ExpandStreamRecycleModelBindStreamAllTask()
+{
+    return;
 }
 }  // namespace runtime
 }  // namespace cce

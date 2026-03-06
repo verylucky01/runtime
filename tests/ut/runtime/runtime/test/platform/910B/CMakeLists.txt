@@ -224,6 +224,7 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/feature/src/model/capture_model.cc
     ${TOP_DIR}/src/runtime/feature/src/model/capture_model_utils.cc
     ${TOP_DIR}/src/runtime/feature/src/model/v100/capture_adapt.cc
+    ${TOP_DIR}/src/runtime/feature/src/model/v100/capture_model_adapt.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/args_handle_allocator.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/binary_loader.cc

@@ -48,6 +48,7 @@ public:
     rtError_t JudgeTaskFinish(uint16_t taskPos, bool &isFinished) override;
     rtError_t JudgeHeadTailPos(rtEventStatus_t * const status, uint16_t eventPos) override;
     rtError_t GetLastTaskIdFromRtsq(uint32_t &lastTaskId) override;
+    rtError_t CreateStreamArgRes() override;
 
     // use for fast recover
     void ResetDavidStreamConstruct();
@@ -66,6 +67,9 @@ public:
     uint32_t GetTaskPosTail() const override;
     bool IsTaskExcuted(const uint32_t executeEndTaskid, const uint32_t taskId) override;
     bool SynchronizeDelayTime(const uint16_t finishedId, const uint16_t taskId, const uint16_t sqHead) override;
+    void EraseCacheStream() override;
+    void RecordPosToTaskIdMap(TaskInfo * const tsk, const uint32_t sendSqeNum);
+    void ExpandStreamRecycleModelBindStreamAllTask() override;
 
     bool GetIsHasArgPool() const
     {
@@ -102,8 +106,6 @@ private:
     uint32_t publicQueueHead_{0U};
     uint32_t publicQueueTail_{0U};
     DavidArgManage *argManage_{nullptr};
-
-    rtError_t CreateStreamArgRes();
     void ReleaseStreamArgRes();
 };
 

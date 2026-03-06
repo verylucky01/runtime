@@ -6198,8 +6198,8 @@ uint32_t GetRuntimeStreamNum(void)
 {
     Runtime *rt = Runtime::Instance();
     if ((rt != nullptr) && IS_SUPPORT_CHIP_FEATURE(rt->GetChipType(), RtOptionalFeatureType::RT_FEATURE_STREAM_EXTENSION)) {
-        RT_LOG(RT_LOG_DEBUG, "StreamCnt=%u", SOFT_STREAM_MAX_NUM);
-        return SOFT_STREAM_MAX_NUM;
+        RT_LOG(RT_LOG_DEBUG, "StreamCnt=%u", Runtime::macroValue_.rsvAicpuStreamNum);
+        return Runtime::macroValue_.maxAllocStreamNum + Runtime::macroValue_.rsvAicpuStreamNum;
     }
     RT_LOG(RT_LOG_DEBUG, "StreamCnt=%u", 3U * 1024U);
     return 3072U;

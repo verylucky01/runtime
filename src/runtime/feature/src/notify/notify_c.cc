@@ -18,7 +18,8 @@
 namespace cce {
 namespace runtime {
 
-rtError_t NtyWait(Notify * const inNotify, Stream * const streamIn, const uint32_t timeOut)
+rtError_t NtyWait(Notify * const inNotify, Stream * const streamIn, const uint32_t timeOut, const bool isEndGraphNotify,
+    Model* const captureModel)
 {
     TaskInfo *waitTask = nullptr;
     rtError_t error = CheckTaskCanSend(streamIn);
@@ -42,6 +43,9 @@ rtError_t NtyWait(Notify * const inNotify, Stream * const streamIn, const uint32
         streamIn->Id_(), static_cast<uint32_t>(error));
     RT_LOG(RT_LOG_INFO, "stream_id=%d notify_id=%u.", streamIn->Id_(), inNotify->GetNotifyId());
     waitTask->stmArgPos = static_cast<DavidStream *>(dstStm)->GetArgPos();
+    waitTask->u.notifywaitTask.isEndGraphNotify = isEndGraphNotify;
+    waitTask->u.notifywaitTask.captureModel = captureModel;
+
     error = DavidSendTask(waitTask, dstStm);
     ERROR_RETURN_MSG_INNER(error, "stream_id=%d NotifyWaitTask submit failed, retCode=%#x",
         streamIn->Id_(), static_cast<uint32_t>(error));

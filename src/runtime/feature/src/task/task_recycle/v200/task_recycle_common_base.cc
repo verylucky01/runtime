@@ -71,8 +71,8 @@ bool GetPublicTask(Stream * const stm, const uint16_t endTaskSqPos, uint16_t &de
         }
         return true;
     }
-    TaskInfo *delWorkTask =
-        (dynamic_cast<TaskResManageDavid *>(stm->taskResMang_))->GetTaskInfo(static_cast<uint32_t>(delPos));
+
+    TaskInfo *delWorkTask = GetTaskInfo(stm->Device_(), stm->Id_(), static_cast<uint32_t>(delPos));
     if (unlikely(delWorkTask == nullptr)) {
         // maybe random order occurred
         RT_LOG(RT_LOG_ERROR, "workTask is not valid, stream_id=%u, isHasArgPool_=%d, delPos=%u, endTaskSqPos=%hu.",
@@ -285,7 +285,13 @@ TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t pos)
     TaskInfo *reportTask = nullptr;
     Stream *recycleStm = nullptr;
     (void)dev->GetStreamSqCqManage()->GetStreamById(streamId, &recycleStm);
-    if ((recycleStm != nullptr) && (recycleStm->taskResMang_ != nullptr)) {
+    COND_PROC((recycleStm == nullptr), return nullptr;);
+
+    if (recycleStm->IsSoftwareSqEnable()) {
+        return dev->GetTaskFactory()->GetTask(static_cast<int32_t>(streamId), static_cast<uint16_t>(pos));
+    }
+
+    if (recycleStm->taskResMang_ != nullptr) {
         reportTask = (dynamic_cast<TaskResManageDavid *>(recycleStm->taskResMang_))->GetTaskInfo(pos);
     }
     return reportTask;

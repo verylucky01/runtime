@@ -159,6 +159,7 @@ public:
     virtual rtError_t Setup();
 
     virtual rtError_t SetupWithoutBindSq();
+    virtual rtError_t CreateStreamArgRes();
 
     // init L2 addr
     rtError_t SetL2Addr();
@@ -548,7 +549,7 @@ public:
     }
 
     void InsertCacheStream();
-    void EraseCacheStream();
+    virtual void EraseCacheStream();
 
     bool IsStreamFull(const uint32_t head, const uint32_t tail, const uint32_t depth, const uint32_t addCnt);
 
@@ -905,6 +906,7 @@ public:
         int32_t timeout);
     virtual bool IsTaskExcuted(const uint32_t executeEndTaskid, const uint32_t taskId);
     virtual bool SynchronizeDelayTime(const uint16_t finishedId, const uint16_t taskId, const uint16_t sqHead);
+    virtual void ExpandStreamRecycleModelBindStreamAllTask();
     rtError_t SynchronizeImpl(const uint32_t syncTaskId, const uint16_t concernedTaskId, int32_t timeout=-1);
     virtual rtError_t SynchronizeExecutedTask(const uint32_t taskId, const mmTimespec &beginTime, int32_t timeout);
     rtError_t WaitConcernedTaskRecycled(const uint16_t taskId, const mmTimespec &beginTime, int32_t timeout);
@@ -1199,7 +1201,9 @@ public:
     TaskInfo* AllocTask(TaskInfo* pTask, tsTaskType_t taskType, rtError_t& errorReason,
         uint32_t sqeNum = 1U, UpdateTaskFlag flag = UpdateTaskFlag::NOT_SUPPORT);
     rtError_t TaskReclaim(void);
-    rtError_t AllocCaptureTask(tsTaskType_t taskType, uint32_t sqeNum, TaskInfo **task);
+    rtError_t AllocCaptureTaskWithLock(tsTaskType_t taskType, uint32_t sqeNum, TaskInfo **task);
+    rtError_t AllocCaptureTaskWithoutLock(tsTaskType_t taskType, uint32_t sqeNum, TaskInfo **task);
+    rtError_t AllocCaptureTask(tsTaskType_t taskType, uint32_t sqeNum, TaskInfo **task, bool isNeedLock = true);
     void GetTaskEventIdOrNotifyId(TaskInfo *taskInfo, int32_t &eventId, uint32_t &notifyId, uint64_t &devAddr) const;
     rtError_t AllocSoftwareSqAddr(uint32_t additionalSqeNum);
 
@@ -1383,6 +1387,13 @@ protected:
     std::set<Model *> models_;
     int32_t latestModelId_{MAX_INT32_NUM};
     std::vector<std::pair<uint32_t, std::string>> errorMsg_;
+    Atomic<uint32_t> taskPersistentHead_;
+    Atomic<uint32_t> taskPersistentTail_;
+    uint16_t taskPersistentBuff_[STREAM_TASK_BUFF_SIZE] = {0};
+    std::vector<uint16_t> delayRecycleTaskid_;  // save delay recycle task id, thread unsafe
+    std::mutex posToTaskIdMapLock_;
+    uint16_t *posToTaskIdMap_{nullptr};
+    uint32_t posToTaskIdMapSize_{0U};
 private:
     uint32_t poolId_;
     void *l2BaseVaddr_;
@@ -1412,11 +1423,7 @@ private:
     uint16_t davinciTaskListSize_{0};
     std::mutex davinciTaskMutex_;
 
-    Atomic<uint32_t> taskPersistentHead_;
-    Atomic<uint32_t> taskPersistentTail_;
     Atomic<uint32_t> countingPersistentNum_;
-    uint16_t taskPersistentBuff_[STREAM_TASK_BUFF_SIZE] = {0};
-    std::vector<uint16_t> delayRecycleTaskid_;  // save delay recycle task id, thread unsafe
     Atomic<bool> bindFlag_;
     Atomic<StreamSubscribeFlag> subscribeFlag_{StreamSubscribeFlag::SUBSCRIBE_NONE};
     Atomic<uint32_t> countingActiveNum_;
@@ -1443,9 +1450,6 @@ private:
     uint32_t tid_;
     Atomic<bool> limitFlag_;
     uint32_t logicalCqId_{MAX_UINT32_NUM};
-    std::mutex posToTaskIdMapLock_;
-    uint16_t *posToTaskIdMap_{nullptr};
-    uint32_t posToTaskIdMapSize_{0U};
     RtStarsRecordQueue wrRecordQueue_{};
     std::mutex eventTaskListLock_;
     std::set<TaskInfo*> eventTaskList;

@@ -28,6 +28,7 @@
 #include "stream_c.hpp"
 #include "stream_state_callback_manager.hpp"
 #include <thread>
+#include "raw_device.hpp"
 
 namespace cce {
 namespace runtime {
@@ -94,6 +95,17 @@ DavidStream::~DavidStream()
         for (void * const addr : devTilingTblAddr) {
             RT_LOG(RT_LOG_INFO, "Id=%u, devCopyMem=%p", device_->Id_(), addr);
             (void)device_->Driver_()->DevMemFree(addr, device_->Id_());
+        }
+
+        if (IsSoftwareSqEnable() && (GetSqBaseAddr() != 0U)) {
+            SqAddrMemoryOrder *sqAddrMemoryManage = device_->GetSqAddrMemoryManage();
+            if (sqAddrMemoryManage != nullptr) {
+                (void)sqAddrMemoryManage->FreeSqAddr(RtValueToPtr<uint64_t *>(GetSqBaseAddr()), GetSqMemOrderType());
+            }
+        }
+
+        if (GetSqIdMemAddr() != 0UL) {
+            device_->FreeSqIdMemAddr(GetSqIdMemAddr());
         }
         ReleaseStreamArgRes();
         devTilingTblAddr.clear();
@@ -219,17 +231,31 @@ static void GetEventIdOrNotifyId(TaskInfo *taskInfo, int32_t &eventId, uint32_t 
 
 void DavidStream::DebugDotPrintForModelStm()
 {
-    if (!GetBindFlag() || (taskResMang_ == nullptr)) {
+    if (!GetBindFlag()) {
         RT_LOG(RT_LOG_DEBUG, " device_id=%u, stream_id=%d.", device_->Id_(), Id_());
         return;
     }
     uint16_t head = 0U;
     uint16_t tail = 0U;
-    (dynamic_cast<TaskResManageDavid *>(taskResMang_))->GetHeadTail(head, tail);
+
+    if (this->IsSoftwareSqEnable()) {
+        if (!delayRecycleTaskid_.empty()) {
+            std::vector<uint16_t>::iterator headTask;
+            std::vector<uint16_t>::iterator tailTask;
+            headTask = delayRecycleTaskid_.begin();
+            head = *headTask;
+            tailTask = delayRecycleTaskid_.end();
+            tail = *tailTask;
+        }
+    } else {
+        COND_RETURN_DEBUG((taskResMang_ == nullptr), , " device_id=%u, stream_id=%d.", device_->Id_(), Id_());
+        (dynamic_cast<TaskResManageDavid *>(taskResMang_))->GetHeadTail(head, tail);
+    }
+
     RT_LOG(RT_LOG_INFO, "stream_id=%d, head=%hu, tail=%hu.", Id_(), head, tail);
     TaskInfo* nextTask = nullptr;
     for (uint32_t i = head; i < tail;) {
-        nextTask = (dynamic_cast<TaskResManageDavid *>(taskResMang_))->GetTaskInfo(i);
+        nextTask = GetTaskInfo(this->Device_(), Id_(), i);
         if (unlikely(nextTask == nullptr)) {
             i++;
             continue;
@@ -432,12 +458,12 @@ rtError_t DavidStream::TearDown(const bool terminal, bool flag)
     uint16_t tail = 0U;
     uint32_t tryWaitCnt = 0U;
 
-    if (taskResMang_ == nullptr) {
+    if ((flags_ & RT_STREAM_PERSISTENT) != 0U) {
+        RecycleModelBindStreamAllTask(this, false);
         return RT_ERROR_NONE;
     }
 
-    if ((flags_ & RT_STREAM_PERSISTENT) != 0U) {
-        RecycleModelBindStreamAllTask(this, false);
+    if (taskResMang_ == nullptr) {
         return RT_ERROR_NONE;
     }
 
@@ -474,7 +500,10 @@ rtError_t DavidStream::TearDown(const bool terminal, bool flag)
         (void)TaskReclaimByStream(this, false);
         StreamSyncUnLock();
     }
-    
+
+    RawDevice* const rawDev = dynamic_cast<RawDevice *>(device_);
+    rawDev->PollEndGraphNotifyInfo();
+
     dev->DelStreamFromMessageQueue(this);
     while (isRecycleThreadProc_) {
         (void)mmSleep(1U);
@@ -597,6 +626,23 @@ rtError_t DavidStream::AddTaskToList(const TaskInfo * const tsk)
     return RT_ERROR_NONE;
 }
 
+void DavidStream::RecordPosToTaskIdMap(TaskInfo * const tsk, const uint32_t sendSqeNum)
+{
+    const uint32_t rtsqDepth = GetSqDepth();
+    // 正常不会翻转，申请task的地方，如果task超规格会申请级联流
+    const uint32_t posTail = taskPersistentTail_.Value();
+    const uint32_t newPosTail = (posTail + sendSqeNum) % rtsqDepth;
+    taskPersistentTail_.Set(newPosTail);
+
+    posToTaskIdMapLock_.lock();
+    for (uint32_t i = 0U; i < sendSqeNum; ++i) {
+        posToTaskIdMap_[((posTail + i) % rtsqDepth)] = tsk->id;
+    }
+    posToTaskIdMapLock_.unlock();
+    tsk->pos = posTail;
+    return;
+}
+
 rtError_t DavidStream::StarsAddTaskToStream(TaskInfo * const tsk, const uint32_t sendSqeNum)
 {
     NULL_PTR_RETURN_MSG(tsk, RT_ERROR_TASK_NULL);
@@ -612,6 +658,7 @@ rtError_t DavidStream::StarsAddTaskToStream(TaskInfo * const tsk, const uint32_t
         if ((this->Model_()!= nullptr) && (tsk->type != TS_TASK_TYPE_MODEL_MAINTAINCE)) {
             this->Model_()->SetKernelTaskId(tsk->taskSn, streamId_);
         }
+        delayRecycleTaskid_.push_back(tsk->id);
     }
     RT_LOG(RT_LOG_INFO, "%s stream, stream_id=%d, task_id=%hu, task_sn=%u, type=%d(%s), "
         "sqe_num=%u, device_id=%u", GetBindFlag() ? "model" : "single-operator", streamId_, tsk->id,
@@ -621,6 +668,13 @@ rtError_t DavidStream::StarsAddTaskToStream(TaskInfo * const tsk, const uint32_t
         ((tsk->type == TS_TASK_TYPE_MEMCPY) && (tsk->u.memcpyAsyncTaskInfo.isConcernedRecycle))) {
         tsk->stream->latestConcernedTaskId.Set(tsk->id);
     }
+
+    if (IsSoftwareSqEnable()) {
+        RecordPosToTaskIdMap(tsk, sendSqeNum);
+    } else {
+        SetEndGraphNotifyWaitSqPos(tsk, tsk->id); // 非aclgraph模型流，task->id就是pos
+    }
+
     return RT_ERROR_NONE;
 }
 
@@ -673,6 +727,10 @@ void DavidStream::GetCntNotifyId(int32_t &newEventId)
 
 uint32_t DavidStream::GetCurSqPos() const
 {
+    if (IsSoftwareSqEnable()) {
+        return Stream::GetCurSqPos();
+    }
+
     TaskResManageDavid *taskRes = RtPtrToPtr<TaskResManageDavid *>(taskResMang_);
     return static_cast<uint32_t>(taskRes->GetTaskPosTail());
 }
@@ -953,6 +1011,10 @@ void DavidStream::ResetDavidStreamConstruct()
 
 uint32_t DavidStream::GetDelayRecycleTaskSqeNum(void) const
 {
+    if (IsSoftwareSqEnable()) {
+        return Stream::GetDelayRecycleTaskSqeNum();
+    }
+
     if (taskResMang_ != nullptr) {
         return (dynamic_cast<TaskResManageDavid *>(taskResMang_))->GetTaskPosTail();
     }
@@ -1252,6 +1314,10 @@ bool DavidStream::IsTaskExcuted(const uint32_t executeEndTaskid, const uint32_t 
 
 rtError_t DavidStream::GetTaskIdByPos(const uint16_t pos, uint32_t &taskId)
 {
+    if (IsSoftwareSqEnable()) {
+        return Stream::GetTaskIdByPos(pos, taskId);
+    }
+
     COND_RETURN_DEBUG(taskResMang_ == nullptr, RT_ERROR_NONE, "taskResMang_ is null");
 
     TaskInfo *taskInfo = (dynamic_cast<TaskResManageDavid *>(taskResMang_))->GetTaskInfo(pos);
@@ -1305,6 +1371,42 @@ bool DavidStream::SynchronizeDelayTime(const uint16_t finishedId, const uint16_t
     }
 
     return false;
+}
+
+void DavidStream::EraseCacheStream()
+{
+    Profiler * const profilerPtr = Runtime::Instance()->Profiler_();
+    if (profilerPtr != nullptr) {
+        profilerPtr->EraseStream(this);
+    }
+}
+
+void DavidStream::ExpandStreamRecycleModelBindStreamAllTask()
+{
+    TaskFactory* factory = device_->GetTaskFactory();
+    NULL_PTR_RETURN_DIRECTLY(factory);
+
+    StreamSyncLock();
+    for (const uint16_t taskId : delayRecycleTaskid_) {
+        TaskInfo* recycleTask = factory->GetTask(streamId_, taskId);
+        if (recycleTask == nullptr) {
+            RT_LOG(RT_LOG_WARNING, "can't find task from factory, stream_id=%d task_id=%u", streamId_, taskId);
+            continue;
+        }
+        (void)factory->Recycle(recycleTask);
+    }
+
+    delayRecycleTaskid_.clear();
+    taskPersistentHead_.Set(0U);
+    taskPersistentTail_.Set(0U);
+    StreamSyncUnLock();
+    posToTaskIdMapLock_.lock();
+    (void)memset_s(posToTaskIdMap_, posToTaskIdMapSize_ * sizeof(uint16_t), 0xFFU,
+        posToTaskIdMapSize_ * sizeof(uint16_t));
+    posToTaskIdMapLock_.unlock();
+    SetLastTaskId(0);
+
+    return;
 }
 
 }  // namespace runtime

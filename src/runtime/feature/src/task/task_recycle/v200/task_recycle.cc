@@ -232,6 +232,15 @@ static void RecycleLabelInfoWithModel(TaskInfo* labeltask)
 
 void RecycleModelBindStreamAllTask(Stream *const stm, const bool cleanFlag)
 {
+    if (stm->IsSoftwareSqEnable()) {
+        stm->ExpandStreamRecycleModelBindStreamAllTask();
+        return;
+    }
+
+    if (stm->taskResMang_ == nullptr) {
+        return;
+    }
+
     uint16_t head = 0U;
     uint16_t tail = 0U;
     stm->StreamSyncLock();

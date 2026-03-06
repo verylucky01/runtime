@@ -141,7 +141,7 @@ void *SqAddrMemoryOrder::DrvAllocSqAddr(const size_t size, void * const para)
     Device * const device = RtPtrToPtr<Device *, void *>(para);
     void *addr = nullptr;
     const rtError_t error = device->Driver_()->DevMemAlloc(&addr, static_cast<uint64_t>(size),
-        RT_MEMORY_P2P_HBM, device->Id_(), MODULEID_RUNTIME, false, false, false, false, true);
+        RT_MEMORY_P2P_HBM, device->Id_(), MODULEID_RUNTIME, false, false, false, false, false);
     COND_RETURN_WARN(error != RT_ERROR_NONE, nullptr, "device mem alloc sqAddr order failed, "
              "size=%u(bytes), kind=%d, id=%u, retCode=0x%#x", size, RT_MEMORY_P2P_HBM, device->Id_(), static_cast<uint32_t>(error));
 

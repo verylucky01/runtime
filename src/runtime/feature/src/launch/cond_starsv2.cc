@@ -66,13 +66,14 @@ rtError_t CondStreamActive(const Stream * const activeStream, Stream * const stm
         streamId, static_cast<uint32_t>(error));
     uint32_t pos = 0xFFFFU;
     TaskInfo *tsk = nullptr;
+    Stream *dstStm = stm;
     std::function<void()> const errRecycle = [&tsk, &stm, &pos]() {
         TaskUnInitProc(tsk);
         TaskRollBack(stm, pos);
         stm->StreamUnLock();
     };
     stm->StreamLock();
-    error = AllocTaskInfo(&tsk, stm, pos);
+    error = AllocTaskInfoForCapture(&tsk, stm, pos, dstStm);
     ERROR_PROC_RETURN_MSG_INNER(error, stm->StreamUnLock();, "Failed to alloc task, stream_id=%d, retCode=%#x.",
         stm->Id_(), static_cast<uint32_t>(error));
     SaveTaskCommonInfo(tsk, stm, pos);

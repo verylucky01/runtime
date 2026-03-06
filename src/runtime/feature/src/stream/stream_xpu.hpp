@@ -27,6 +27,7 @@ public:
     rtError_t DavidUpdatePublicQueue() override;
     bool IsExistCqe(void) const override;
     rtError_t CreateStreamTaskRes(void) override;
+    rtError_t CreateStreamArgRes() override;
     uint32_t GetCurSqPos() const override;
     uint32_t GetPendingNum() const  override;
     void ArgRelease(TaskInfo * const taskInfo, bool freeStmPool) const;
@@ -79,7 +80,6 @@ protected:
     uint32_t recycleFinishTaskId_{MAX_UINT32_NUM};
 private:
     XpuArgManage *argManage_{nullptr};
-    rtError_t CreateStreamArgRes();
 };
 
 }  // namespace runtime

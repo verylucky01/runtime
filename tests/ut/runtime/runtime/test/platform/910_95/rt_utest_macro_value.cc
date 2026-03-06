@@ -43,11 +43,11 @@ TEST_F(MacroInitValueTest, MacroInitValue)
     uint32_t rtsqDepth = 2049U;
     EXPECT_EQ(value.maxPersistTaskNum, 60000U);
     EXPECT_EQ(value.maxTaskNumPerStream, rtsqDepth - 35U);
-    EXPECT_EQ(value.maxSinkTaskNum, 1000000U);
-    EXPECT_EQ(value.maxSupportTaskNum, 2048U * 2049U);
+    EXPECT_EQ(value.maxSinkTaskNum, 134215680U);
+    EXPECT_EQ(value.maxSupportTaskNum, 134215680U);
     EXPECT_EQ(value.pctraceFileLength, 4864U);
     EXPECT_EQ(value.pctraceFileHead, 128U);
-    EXPECT_EQ(value.maxAllocStreamNum, 2016U);
+    EXPECT_EQ(value.maxAllocStreamNum, 65535U);
     EXPECT_EQ(value.stubEventCount, 131072U);
     EXPECT_EQ(value.maxReportTimeoutCnt, 36);
     EXPECT_EQ(value.maxTaskNumPerHugeStream, 0U);

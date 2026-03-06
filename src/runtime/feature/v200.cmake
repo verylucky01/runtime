@@ -217,6 +217,7 @@ set(libruntime_v200_v201_common_src_files
     src/model/model.cc
     src/model/model_rebuild.cc
     src/model/v200/capture_adapt.cc
+    src/model/v200/capture_model_adapt.cc
     src/model/capture_model.cc
     src/model/capture_model_utils.cc
     src/kernel/arg_loader/arg_loader_ub.cc

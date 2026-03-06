@@ -53,6 +53,7 @@
 #include "binary_loader.hpp"
 #include "buffer_allocator.hpp"
 #include "ctrl_sq.hpp"
+#include "raw_device.hpp"
 
 namespace cce {
 namespace runtime {
@@ -1064,7 +1065,8 @@ rtError_t Context::UpdateNormalKernelTaskForSoftwareSq(TaskInfo * const updateTa
          * 但存在update task在capture mode执行前下发的场景，需要提前申请SqMem
          * 预留的CAPTURE_TASK_RESERVED_NUM(32)个SQE用于CaptureModel执行时申请的LoadComplete等SQE
          */
-        const rtError_t ret = updateTask->stream->AllocSoftwareSqAddr(CAPTURE_TASK_RESERVED_NUM); 
+        const rtError_t ret = updateTask->stream->AllocSoftwareSqAddr(CAPTURE_TASK_RESERVED_NUM +
+            Runtime::macroValue_.expandStreamRsvTaskNum); 
         COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "AllocSoftwareSqAddr failed. device_id=%u, stream_id=%d, "
             "retCode=%#x,", device_->Id_(), updateTask->stream->Id_(), ret);
     }
@@ -2656,6 +2658,9 @@ rtError_t Context::ModelDestroy(Model *mdl)
         constexpr auto checkInterval = std::chrono::milliseconds(1);  // 1ms 检查一次
         uint32_t count = 0U;
         while (captureModel->IsCaptureModelRunning()) {
+            RawDevice* const rawDev = dynamic_cast<RawDevice *>(device_);
+            rawDev->PollEndGraphNotifyInfo();
+
             COND_RETURN_ERROR((count >= totalCheckCount), RT_ERROR_MODEL_RUNNING,
                 "model is still running, can't destroy, model_id=%u", captureModel->Id_());
             std::this_thread::sleep_for(checkInterval);
@@ -4205,7 +4210,8 @@ rtError_t Context::StreamBeginCapture(Stream * const stm, const rtStreamCaptureM
 
     if ((stm->Device_()->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_MODEL_ACL_GRAPH_SOFTWARE_ENABLE)) && 
         (stm->Device_()->CheckFeatureSupport(TS_FEATURE_SOFTWARE_SQ_ENABLE)) &&
-        (NpuDriver::CheckIsSupportFeature(device_->Id_(), FEATURE_TRSDRV_SQ_SUPPORT_DYNAMIC_BIND))) {
+        (NpuDriver::CheckIsSupportFeature(device_->Id_(), FEATURE_TRSDRV_SQ_SUPPORT_DYNAMIC_BIND)) &&
+        (!Runtime::Instance()->GetConnectUbFlag())) {
         CaptureModel *captureModelTmp = dynamic_cast<CaptureModel *>(captureModel);
         captureModelTmp->SetSoftwareSqEnable();
     }

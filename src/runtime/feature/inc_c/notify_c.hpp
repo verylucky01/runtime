@@ -16,7 +16,8 @@
 namespace cce {
 namespace runtime {
 
-    rtError_t NtyWait(Notify * const inNotify, Stream * const streamIn, const uint32_t timeOut);
+    rtError_t NtyWait(Notify * const inNotify, Stream * const streamIn, const uint32_t timeOut, const bool isEndGraphNotify = false,
+        Model* const captureModel = nullptr);
     rtError_t NtyRecord(Notify * const inNotify, Stream * const streamIn);
     rtError_t NtyReset(Notify * const inNotify, Stream * const streamIn);
 }  // namespace runtime

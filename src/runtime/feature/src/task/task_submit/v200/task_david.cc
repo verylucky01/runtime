@@ -73,9 +73,31 @@ static rtError_t CheckTaskisValid(TaskInfo *submitTask, const Stream * const stm
 
 void TaskRollBack(Stream * const stm, uint32_t pos)
 {
-    if ((unlikely(stm == nullptr)) || (unlikely(stm->taskResMang_ == nullptr) || (pos >= stm->GetSqDepth()))) {
+    if (unlikely(stm == nullptr)) {
         return;
     }
+
+    if (stm->IsSoftwareSqEnable()) {
+        Device *dev = stm->Device_();
+        TaskInfo *taskInfo = dev->GetTaskFactory()->GetTask(stm->Id_(), static_cast<uint16_t>(pos));
+        if (taskInfo == nullptr) {
+            RT_LOG(RT_LOG_DEBUG, "task info is null, stream_id=%hu, task_id=%hu", stm->Id_(), pos);
+            return;
+        }
+
+        if (taskInfo->isUpdateSinkSqe == 0U) {
+            (void)dev->GetTaskFactory()->Recycle(taskInfo);
+            taskInfo = nullptr;
+        } else {
+            taskInfo->isUpdateSinkSqe = 0U;
+        }
+        return;
+    }
+
+    if ((unlikely(stm->taskResMang_ == nullptr) || (pos >= stm->GetSqDepth()))) {
+        return;
+    }
+
     TaskResManageDavid *taskResMang = RtPtrToPtr<TaskResManageDavid *, TaskResManage *>(stm->taskResMang_);
     taskResMang->RollbackTail(pos);
 }
@@ -103,6 +125,17 @@ static rtError_t AllocCaptureTaskInfo(TaskInfo **taskInfo, Stream * const stm, u
         return RT_ERROR_STREAM_INVALID;
     }
 
+    if (curCaptureStream->IsSoftwareSqEnable()) {
+        // david taskType传无效值，后面填充参数的时候会刷新
+        ret = stm->AllocCaptureTask(TS_TASK_TYPE_RESERVED, sqeNum, taskInfo, false);
+        ERROR_RETURN(ret, "alloc capture task failed, retCode=%#x, device_id=%u, stream_id=%d, sqeNum=%u",
+           ret, stm->Device_()->Id_(), stm->Id_(), sqeNum);
+
+        pos = (*taskInfo)->id; // 这里返回task id作为pos，主要是为了任务下发失败时的任务回收。
+        dstStm = curCaptureStream;
+        return RT_ERROR_NONE;
+    }
+
     COND_PROC_RETURN_ERROR(stm->IsTaskGroupBreak(), RT_ERROR_STREAM_TASKGRP_INTR,
         stm->SetTaskGroupErrCode(RT_ERROR_STREAM_TASKGRP_INTR), "the task group interrupted.");
 
@@ -115,16 +148,14 @@ static rtError_t AllocCaptureTaskInfo(TaskInfo **taskInfo, Stream * const stm, u
         Context * const ctx = stm->Context_();
         if (ctx == nullptr) {
             stm->SingleStreamTerminateCapture();
-            RT_LOG(RT_LOG_ERROR, "context is null, device_id=%u, original stream_id=%d.",
-                stm->Device_()->Id_(), stm->Id_());
+            RT_LOG(RT_LOG_ERROR, "context is null, device_id=%u, original stream_id=%d.", stm->Device_()->Id_(), stm->Id_());
             return RT_ERROR_CONTEXT_NULL;
         }
         error = CondStreamActive(newCaptureStream, curCaptureStream);
         if (error != RT_ERROR_NONE) {
             ctx->FreeCascadeCaptureStream(newCaptureStream);
             stm->SingleStreamTerminateCapture();
-            RT_LOG(RT_LOG_ERROR, "stream active failed, device_id=%u, original stream_id=%d.",
-                stm->Device_()->Id_(), stm->Id_());
+            RT_LOG(RT_LOG_ERROR, "stream active failed, device_id=%u, original stream_id=%d.", stm->Device_()->Id_(), stm->Id_());
             return error;
         }
         stm->UpdateCascadeCaptureStreamInfo(newCaptureStream, curCaptureStream);
@@ -132,8 +163,7 @@ static rtError_t AllocCaptureTaskInfo(TaskInfo **taskInfo, Stream * const stm, u
     }
     dstStm = curCaptureStream;
     taskResMang = RtPtrToPtr<TaskResManageDavid *, TaskResManage *>(curCaptureStream->taskResMang_);
-    ret =  taskResMang->AllocTaskInfoAndPos(sqeNum, pos, taskInfo);
-    if (ret == RT_ERROR_NONE) {
+    if (taskResMang->AllocTaskInfoAndPos(sqeNum, pos, taskInfo) == RT_ERROR_NONE) {
         Runtime::Instance()->AllocTaskSn((*taskInfo)->taskSn);
     } else {
         stm->SingleStreamTerminateCapture();
@@ -144,7 +174,7 @@ static rtError_t AllocCaptureTaskInfo(TaskInfo **taskInfo, Stream * const stm, u
 rtError_t AllocTaskInfoForCapture(TaskInfo **taskInfo, Stream * const stm, uint32_t &pos, Stream *&dstStm,
                                   uint32_t sqeNum, bool isKernelLaunch)
 {
-    if ((taskInfo == nullptr) || (stm == nullptr) || (stm->taskResMang_ == nullptr)) {
+    if ((taskInfo == nullptr) || (stm == nullptr) || ((stm->taskResMang_ == nullptr) && (!stm->IsSoftwareSqEnable()))) {
         return RT_ERROR_INVALID_VALUE;
     }
 
@@ -160,12 +190,24 @@ rtError_t AllocTaskInfoForCapture(TaskInfo **taskInfo, Stream * const stm, uint3
     }
 
     if (stm->GetCaptureStatus() != RT_STREAM_CAPTURE_STATUS_NONE) {
-        error =  AllocCaptureTaskInfo(taskInfo, stm, pos, dstStm, sqeNum);
+        error = AllocCaptureTaskInfo(taskInfo, stm, pos, dstStm, sqeNum);
         if (error != RT_ERROR_STREAM_CAPTURE_EXIT) {
             return error;
         }
     }
     dstStm = stm;
+
+    if (stm->taskResMang_ == nullptr) { // 模型流上下发的notify要从这里申请task
+        *taskInfo = stm->Device_()->GetTaskFactory()->Alloc(stm, TS_TASK_TYPE_RESERVED, error);
+        NULL_PTR_RETURN_MSG(*taskInfo, error);
+        stm->AddCaptureSqeNum(sqeNum);
+        (*taskInfo)->stream = stm;
+        Runtime::Instance()->AllocTaskSn((*taskInfo)->taskSn);
+        pos = (*taskInfo)->id;
+
+        return RT_ERROR_NONE;
+    }
+
     return AllocTaskInfo(taskInfo, stm, pos, sqeNum);
 }
 
@@ -382,7 +424,7 @@ rtError_t DavidSendTask(TaskInfo *taskInfo, Stream * const stm)
 {
     rtDavidSqe_t davidSqe[SQE_NUM_PER_DAVID_TASK_MAX];
     rtDavidSqe_t *sqeAddr = davidSqe;
-    const uint16_t pos = taskInfo->id;
+    const uint16_t pos = taskInfo->id; // aclgraph扩流场景用不上这个字段
     const Device *dev = stm->Device_();
     const uint32_t devId = dev->Id_();
     const uint32_t tsId = dev->DevGetTsId();
@@ -396,14 +438,37 @@ rtError_t DavidSendTask(TaskInfo *taskInfo, Stream * const stm)
     if ((profilerPtr != nullptr) && (!dev->IsDeviceRelease())) {
         profilerPtr->ReportTaskTrack(taskInfo, devId);
     }
-    if (sqBaseAddr != 0ULL) {
+    if (sqBaseAddr != 0ULL) { // 非扩流场景
         sqeAddr = RtValueToPtr<rtDavidSqe_t *>(sqBaseAddr + (pos << SHIFT_SIX_SIZE));
     }
+
+    if (stm->IsSoftwareSqEnable()) {
+        dev->GetTaskFactory()->SetSerialId(stm, taskInfo);
+    }
+
     ToConstructDavidSqe(taskInfo, sqeAddr, sqBaseAddr);
     // update the host-side head and tail
-    const rtError_t error = AddTaskToPublicQueue(taskInfo, taskInfo->sqeNum);
+    rtError_t error = AddTaskToPublicQueue(taskInfo, taskInfo->sqeNum);
     if (error != RT_ERROR_NONE) {
         RT_LOG(RT_LOG_ERROR, "Add task failed stream_id=%d, task_id=%u.", stm->Id_(), taskInfo->id);
+        return error;
+    }
+
+    if (stm->IsSoftwareSqEnable()) {
+        const auto ret = memcpy_s(RtPtrToPtr<void *>(stm->GetSqeBuffer() + sizeof(rtStarsSqe_t) * taskInfo->pos),
+            taskInfo->sqeNum * sizeof(rtStarsSqe_t), RtPtrToPtr<void *, rtDavidSqe_t *>(sqeAddr), 
+            taskInfo->sqeNum * sizeof(rtStarsSqe_t));
+        if (ret != EOK) {
+            RT_LOG(RT_LOG_ERROR, "memcpy_s failed, device_id=%u, ts_id=%u, sq_id=%u, cq_id=%u,"
+                " stream_id=%d, task_id=%hu, task_type=%u(%s), error=%d",
+                devId, tsId, sqId, cqId, stm->Id_(), taskInfo->id,
+                static_cast<uint32_t>(taskInfo->type), taskInfo->typeName, ret);
+            error = RT_ERROR_INVALID_VALUE;
+        }
+
+        RT_LOG(RT_LOG_INFO, "device_id=%u, ts_id=%u, sq_id=%u, stream_id=%d, task_id=%hu, flip_num=%u, task_sn=%u, task_type=%u(%s)",
+            devId, tsId, sqId, stm->Id_(), taskInfo->id, stm->GetTaskIdFlipNum(), taskInfo->taskSn,
+            static_cast<uint32_t>(taskInfo->type), GetTaskDescByType(taskInfo->type));
         return error;
     }
 
@@ -451,7 +516,7 @@ rtError_t CheckTaskCanSend(Stream * const stm)
         stm->Device_()->Id_(), stm->Id_());
 
     TaskResManageDavid *taskResManag = RtPtrToPtr<TaskResManageDavid *, TaskResManage *>(stm->taskResMang_);
-    if (unlikely(taskResManag == nullptr)) {
+    if (unlikely(taskResManag == nullptr) && (!stm->IsSoftwareSqEnable())) {
         RT_LOG(RT_LOG_WARNING, "device_id=%u stream_id=%d(flags=0x%x) does not support send task.",
             stm->Device_()->Id_(), stm->Id_(), stm->Flags());
         return RT_ERROR_STREAM_INVALID;

@@ -835,3 +835,36 @@ TEST_F(DavidStreamTest, TestSyncDelayTime)
     isFinish = stream->SynchronizeDelayTime(finishedId, taskId, sqHead);
     EXPECT_EQ(isFinish, false); 
 }
+
+TEST_F(DavidStreamTest, ExpandStreamRecycleModelBindStreamAllTask)
+{
+    DavidStream *stream = (DavidStream *)stream_;
+
+    Stream *stream_var = static_cast<Stream *>(stream);
+    stream_var->pendingNum_.Set(0);
+    stream_var->delayRecycleTaskid_.push_back(0);
+    std::cout<<"stream create success."<<std::endl;
+
+    stream->ExpandStreamRecycleModelBindStreamAllTask();
+}
+
+TEST_F(DavidStreamTest, RecordPosToTaskIdMap)
+{
+    DavidStream *stream = (DavidStream *)stream_;
+    stream->publicQueueHead_ = 0U;
+    stream->publicQueueTail_ = 0U;
+    stream->StarsShowPublicQueueDfxInfo();
+    stream->publicQueueHead_ = 20U;
+    stream->publicQueueTail_ = 40U;
+    stream->StarsShowPublicQueueDfxInfo();
+    stream->StarsShowStmDfxInfo();
+    TaskInfo taskInfo = {};
+    TaskInfo *task = &taskInfo;
+
+    InitByStream(task, stream_);
+    AicpuTaskInit(task, 1, 0);
+
+    task->u.aicpuTaskInfo.aicpuKernelType = static_cast<uint32_t>(TS_AICPU_KERNEL_AICPU);
+    stream->RecordPosToTaskIdMap(task, 0);
+    EXPECT_NE(stream, nullptr);
+}

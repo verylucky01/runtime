@@ -163,13 +163,12 @@ rtError_t UpdateDavidKernelTaskSubmit(TaskInfo * const updateTask, Stream * cons
     rtMemcpyAsyncTask->needPostProc = true;
 
     if (updateTask->type == TS_TASK_TYPE_FUSION_KERNEL) {
-       memcpyAsyncTaskInfo->releaseArgHandle = updateTask->u.fusionKernelTask.oldArgHandle;
+        memcpyAsyncTaskInfo->releaseArgHandle = updateTask->u.fusionKernelTask.oldArgHandle;
         updateTask->u.fusionKernelTask.oldArgHandle = nullptr;
     } else {
-       memcpyAsyncTaskInfo->releaseArgHandle = updateTask->u.aicTaskInfo.oldArgHandle;
+        memcpyAsyncTaskInfo->releaseArgHandle = updateTask->u.aicTaskInfo.oldArgHandle;
         updateTask->u.aicTaskInfo.oldArgHandle = nullptr;
     }
-
     error = DavidSendTask(rtMemcpyAsyncTask, stm);
     ERROR_RETURN_MSG_INNER(error, "stream_id=%d submit task failed, pos=%u, retCode=%#x.",
         stm->Id_(), pos, static_cast<uint32_t>(error));

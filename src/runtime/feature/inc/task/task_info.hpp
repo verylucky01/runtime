@@ -382,6 +382,7 @@ void SetMultipleTaskCqeErrorInfo(TaskInfo *taskInfo, uint8_t sqeType, uint8_t er
 void GetMultipleTaskCqeErrorInfo(TaskInfo * const taskInfo, volatile uint8_t &sqeType,
     volatile uint8_t &errorType, volatile uint32_t &errorCode);
 void SetSqPos(TaskInfo* taskInfo, const uint32_t pos);
+void SetEndGraphNotifyWaitSqPos(TaskInfo* taskInfo, const uint32_t pos);
 
 void DoCompleteSuccess(TaskInfo* taskInfo, const uint32_t devId);
 rtError_t WaitExecFinishForModelExecuteTask(const TaskInfo *const taskInfo);

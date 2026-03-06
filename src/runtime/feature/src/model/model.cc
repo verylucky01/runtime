@@ -1092,7 +1092,7 @@ rtError_t Model::GetStreamToAsyncExecute(Stream *stm)
         if (modelType_ == RT_MODEL_CAPTURE_MODEL) {
             const CaptureModel * const captureMdl = dynamic_cast<CaptureModel const *>(this);
             if (captureMdl->IsSoftwareSqEnable()) {
-                error = endGraphNotify_->Wait(stm, MAX_UINT32_NUM, true, this);
+                error = NtyWait(endGraphNotify_, stm, MAX_UINT32_NUM, true, this);
             } else {
                 error = NtyWait(endGraphNotify_, stm, MAX_UINT32_NUM);
             }

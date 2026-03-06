@@ -559,7 +559,10 @@ rtError_t MdlUnBindTaskSubmit(Model * const mdl, Stream * const streamIn,
             (streamIn->Device_()->GetDevRunningState() == static_cast<uint32_t>(DEV_RUNNING_DOWN)), break);
     } while (static_cast<uint16_t>(tail) != devTail);
 
-    mdl->ModelRemoveStream(streamIn);
+    if (!(streamIn->IsSoftwareSqEnable())) {
+        mdl->ModelRemoveStream(streamIn);
+    }
+
     Context * const context = mdl->Context_();
     Stream * const defaultStream = context->DefaultStream_();
     error = CheckTaskCanSend(defaultStream);

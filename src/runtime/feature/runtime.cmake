@@ -200,6 +200,7 @@ set(libruntime_v100_src_files
     src/model/model.cc
     src/model/model_rebuild.cc
     src/model/v100/capture_adapt.cc
+    src/model/v100/capture_model_adapt.cc
     src/model/capture_model.cc
     src/model/capture_model_utils.cc
     src/kernel/args/args_handle_allocator.cc

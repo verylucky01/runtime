@@ -47,7 +47,9 @@ typedef enum {
     // 7: runtime support MC2 error proc for 1971
     RUNTIME_FEATURE_MC2_ENHANCE                = 7,
     // 8: runtime support acl graph expand stream
-    RUNTIME_FEATURE_STREAM_EXPAND              = 8
+    RUNTIME_FEATURE_STREAM_EXPAND              = 8,
+    // 9: runtime support stars v2 acl graph expand stream
+    RUNTIME_FEATURE_STREAM_EXPAND_V2           = 9
 } RtRunTimeFeature;
 
 // 枚举值与TSCH保持一致

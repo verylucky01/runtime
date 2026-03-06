@@ -12,6 +12,7 @@
 #include "error_message_manage.hpp"
 #include "arg_loader.hpp"
 #include "task_res_da.hpp"
+#include "stream_sqcq_manage.hpp"
 
 #define TASK_NUM_FOR_HEAD_UPDATE (64U)
 namespace cce {
@@ -54,6 +55,18 @@ bool TaskResManageDavid::IsRecyclePosValid(uint16_t recyclePos) const
 }
 TaskInfo* TaskResManageDavid::GetTaskInfo(uint32_t taskId) const
 {
+    Device * const dev = Runtime::Instance()->GetDevice(static_cast<uint32_t>(deviceId_),
+        static_cast<uint32_t>(RT_TSC_ID), false);
+    if (dev != nullptr) {
+        Stream *stm = nullptr;
+        const rtError_t error = dev->GetStreamSqCqManage()->GetStreamById(streamId_, &stm);
+        NULL_PTR_RETURN_MSG(stm, nullptr);
+
+        if (stm->IsSoftwareSqEnable()) {
+            return dev->GetTaskFactory()->GetTask(static_cast<int32_t>(streamId_), static_cast<uint16_t>(taskId));
+        }
+    }
+
     if (unlikely(taskId >= taskPoolNum_)) {
         RT_LOG(RT_LOG_WARNING, "taskId is invalid, device_id=%u, stream_id=%d, taskId=%u",
             deviceId_, streamId_, taskId);

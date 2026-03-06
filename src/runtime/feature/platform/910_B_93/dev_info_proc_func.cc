@@ -42,6 +42,10 @@ static void MacroInit910B(rtSocType_t socType, RtMacroValue &value)
     value.maxModelNum = 2048U;
     value.rtsqDepth = rtsqDepth;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID_V2;
+    value.expandStreamRsvTaskNum = 0U;
+    value.expandStreamSqDepthAdapt = 0U;
+    value.expandStreamAdditionalSqeNum = 1U;
+    value.rsvAicpuStreamNum = 1024U;
     if (NpuDriver::CheckIsSupportFeature(0U, FEATURE_TRSDRV_SQ_SUPPORT_DYNAMIC_BIND)) {
         value.baseAicpuStreamId = BASE_AICPU_STREAM_ID_V2_MAX_STREAM;
     }

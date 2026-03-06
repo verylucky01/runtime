@@ -57,7 +57,6 @@ constexpr uint8_t PREFETCH_CNT_CLOUD_V2 = 8U;
 constexpr uint8_t PREFETCH_CNT_CHIP_DC = 10U;
 constexpr uint32_t RECYCLE_POOL_ISOLATION_WIDTH = 1;
 
-constexpr uint32_t SOFT_STREAM_MAX_NUM = 33792U;
 constexpr uint32_t LOG_SAVE_MODE_DEF_RUN = 33792U;
 
 constexpr uint32_t UB_POISON_ERROR_EVENT_ID = 0x81AF8009U;

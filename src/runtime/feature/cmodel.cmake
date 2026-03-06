@@ -272,6 +272,7 @@ set(libruntime_cmodel_src_files
     src/model/capture_model.cc
     src/model/capture_model_utils.cc
     src/model/v100/capture_adapt.cc
+    src/model/v100/capture_model_adapt.cc
     src/kernel/args/args_handle_allocator.cc
     src/kernel/args/para_convertor.cc
     src/kernel/v100/kernel.cc
@@ -373,6 +374,7 @@ set(libruntime_cmodel_v200_src_files
     src/model/capture_model.cc
     src/model/capture_model_utils.cc
     src/model/v200/capture_adapt.cc
+    src/model/v200/capture_model_adapt.cc
     src/kernel/arg_loader/arg_loader_ub.cc
     src/kernel/arg_loader/arg_manage_david.cc
     src/kernel/arg_loader/arg_manage_pcie.cc

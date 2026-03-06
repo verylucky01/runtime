@@ -503,13 +503,7 @@ rtError_t CaptureModel::BuildSqCq(Stream * const exeStream)
         sqCqNum_ = 0U;,
         "alloc sq addr failed, model_id=%u, retCode=%#x.", Id_(), static_cast<uint32_t>(error));
 
-    error = SendSqe();
-    ERROR_PROC_RETURN_MSG_INNER(error,
-        DELETE_A(sqCqArray_);
-        sqCqNum_ = 0U;,
-        "send sqe failed, model_id=%u, retCode=%#x.", Id_(), static_cast<uint32_t>(error));
-
-    error = BindSqCq();
+    error = BindSqCqAndSendSqe();
     ERROR_PROC_RETURN_MSG_INNER(error,
         DELETE_A(sqCqArray_);
         sqCqNum_ = 0U;,
@@ -584,6 +578,34 @@ rtError_t CaptureModel::ReleaseSqCq(uint32_t &releaseNum)
     return RT_ERROR_NONE;
 }
 
+rtError_t CaptureModel::ConfigSqTail(void)
+{
+    rtError_t error = RT_ERROR_NONE;
+    Device * const dev = Context_()->Device_();
+    /* config sq tail */
+    for (auto stm : StreamList_()) {
+        error = dev->Driver_()->SetSqTail(dev->Id_(), dev->DevGetTsId(), stm->GetSqId(), stm->GetCurSqPos());
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+            "set sq tail failed, device_id=%u, model_id=%u, stream_id=%d, sqId=%u, retCode=%#x.",
+            dev->Id_(), Id_(), stm->Id_(), stm->GetSqId(), static_cast<uint32_t>(error));
+    }
+    return error;
+}
+
+rtError_t CaptureModel::BindStreamToModel(void)
+{
+    rtError_t error = RT_ERROR_NONE;
+    /* bind stream to model */
+    for (auto stm : StreamList_()) {
+        uint32_t streamFlag = static_cast<uint32_t>(RT_INVALID_FLAG);
+        COND_PROC(IsModelHeadStream(stm), streamFlag = RT_HEAD_STREAM);
+
+        error = BindSqPerStream(stm, streamFlag);
+        COND_PROC(error != RT_ERROR_NONE, break);
+    }
+    return error;
+}
+
 rtError_t CaptureModel::BindSqCq(void)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -610,6 +632,8 @@ rtError_t CaptureModel::BindSqCq(void)
         switchInfo_[index].sq_id = stm->GetSqId();
         switchInfo_[index].sq_depth = stm->GetSqDepth();
         uint64_t sqIdTmp = stm->GetSqId();
+        // only for A5 
+        switchInfo_[index].stream_mem = RtValueToPtr<void *>(stm->GetSqBaseAddr());
         error = dev->Driver_()->MemCopySync(RtValueToPtr<void *>(stm->GetSqIdMemAddr()),
             sizeof(uint64_t), RtPtrToPtr<void *>(&(sqIdTmp)),
             sizeof(uint64_t), RT_MEMCPY_HOST_TO_DEVICE);
@@ -629,23 +653,6 @@ rtError_t CaptureModel::BindSqCq(void)
 
     RT_LOG(RT_LOG_INFO, "stream bind sq success, device_id=%u, model_id=%u, num=%u.",
         dev->Id_(), Id_(), sqCqNum_);
-
-    /* bind stream to model */
-    for (auto stm : StreamList_()) {
-        uint32_t streamFlag = static_cast<uint32_t>(RT_INVALID_FLAG);
-        COND_PROC(IsModelHeadStream(stm), streamFlag = RT_HEAD_STREAM);
-
-        error = BindSqPerStream(stm, streamFlag);
-        COND_PROC(error != RT_ERROR_NONE, break);
-    }
-
-    /* config sq tail */
-    for (auto stm : StreamList_()) {
-        error = dev->Driver_()->SetSqTail(dev->Id_(), dev->DevGetTsId(), stm->GetSqId(), stm->GetCurSqPos());
-        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
-            "set sq tail failed, device_id=%u, model_id=%u, stream_id=%d, sqId=%u, retCode=%#x.",
-            dev->Id_(), Id_(), stm->Id_(), stm->GetSqId(), static_cast<uint32_t>(error));
-    }
 
     return error;
 }
@@ -746,7 +753,7 @@ rtError_t CaptureModel::AllocSqAddr(void) const
     const uint32_t deviceId = Context_()->Device_()->Id_();
 
     for (auto stm : StreamList_()) {
-        rtError_t ret = stm->AllocSoftwareSqAddr(1U);    // additional pos is used for tail
+        rtError_t ret = stm->AllocSoftwareSqAddr(Runtime::macroValue_.expandStreamAdditionalSqeNum);
         COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "AllocSoftwareSqAddr failed. device_id=%u, stream_id=%d, "
             "model_id=%u, retCode=%#x.", deviceId, stm->Id_(), Id_(), static_cast<uint32_t>(ret));
     }

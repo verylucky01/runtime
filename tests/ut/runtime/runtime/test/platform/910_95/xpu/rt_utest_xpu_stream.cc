@@ -149,7 +149,7 @@ TEST_F(XpuStreamTest, setup_Success)
     MOCKER_CPP(&Bitmap::AllocId).stubs().will(returnValue(1));
     MOCKER_CPP_VIRTUAL(argManage, &XpuArgManage::CreateArgRes).stubs().will(returnValue(true));
     MOCKER_CPP_VIRTUAL(stream, &XpuStream::CreateStreamTaskRes).stubs().will(returnValue(RT_ERROR_NONE));
-    MOCKER_CPP(&XpuStream::CreateStreamArgRes).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(stream, &XpuStream::CreateStreamArgRes).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP(&XpuStreamSqCqManage::AllocXpuStreamSqCq).stubs().with(mockcpp::any()).will(returnValue(RT_ERROR_NONE));
 
     // 析构流程中的函数Mock
@@ -184,7 +184,7 @@ TEST_F(XpuStreamTest, setup_RT_ERROR_STREAM_DUPLICATE_Fail)
     MOCKER_CPP(&Bitmap::AllocId).stubs().will(returnValue(1));
     MOCKER_CPP_VIRTUAL(argManage, &XpuArgManage::CreateArgRes).stubs().will(returnValue(true));
     MOCKER_CPP_VIRTUAL(stream, &XpuStream::CreateStreamTaskRes).stubs().will(returnValue(RT_ERROR_NONE));
-    MOCKER_CPP(&XpuStream::CreateStreamArgRes).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(stream, &XpuStream::CreateStreamArgRes).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP(&XpuStreamSqCqManage::AllocXpuStreamSqCq)
         .stubs()
         .with(mockcpp::any())

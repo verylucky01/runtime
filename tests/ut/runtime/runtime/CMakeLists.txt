@@ -377,6 +377,7 @@ set(runtimeut_src_list
     ${TOP_DIR}/src/runtime/feature/src/model/capture_model.cc
     ${TOP_DIR}/src/runtime/feature/src/model/capture_model_utils.cc
     ${TOP_DIR}/src/runtime/feature/src/model/v100/capture_adapt.cc
+    ${TOP_DIR}/src/runtime/feature/src/model/v100/capture_model_adapt.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/args_handle_allocator.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/binary_loader.cc
@@ -525,6 +526,7 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/feature/src/model/capture_model.cc
     ${TOP_DIR}/src/runtime/feature/src/model/capture_model_utils.cc
     ${TOP_DIR}/src/runtime/feature/src/model/v200/capture_adapt.cc
+    ${TOP_DIR}/src/runtime/feature/src/model/v200/capture_model_adapt.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/args_handle_allocator.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/v200_base/kernel.cc
@@ -1314,6 +1316,7 @@ set(runtimeut_v201_src_list
     ${TOP_DIR}/src/runtime/feature/src/model/capture_model.cc
     ${TOP_DIR}/src/runtime/feature/src/model/capture_model_utils.cc
     ${TOP_DIR}/src/runtime/feature/src/model/v200/capture_adapt.cc
+    ${TOP_DIR}/src/runtime/feature/src/model/v200/capture_model_adapt.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/args_handle_allocator.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/feature/src/kernel/v200_base/kernel.cc

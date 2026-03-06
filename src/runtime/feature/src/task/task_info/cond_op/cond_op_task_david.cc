@@ -125,10 +125,11 @@ void ConstructDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t *cons
     fcPara.devAddr = memWaitValueTask->devAddr;
     fcPara.value = memWaitValueTask->value;
     fcPara.flag = memWaitValueTask->flag;
-    fcPara.maxLoop = 30ULL;  /* the max loop num */
+    fcPara.maxLoop = 15ULL;  /* the max loop num */
     fcPara.sqId = stream->GetSqId();
     fcPara.sqHeadPre = (taskInfo->id + 1) % stream->GetSqDepth(); /* = taskResATail_ before alloc */
     fcPara.awSize = memWaitValueTask->awSize;
+    fcPara.sqIdMemAddr = stream->GetSqIdMemAddr();
 
     // two sqes probably trigger a software constraint when the stream is full, add a nop sqe to evade
     ConstructNopSqeForMemWaitValueTask(taskInfo, davidSqe);
@@ -192,17 +193,26 @@ void ConstructSecondDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t
 {
     ConstructDavidSqeForHeadCommon(taskInfo, davidSqe);
 
-    RtStarsMemWaitValueLastInstrFc fc = {};
     MemWaitValueTaskInfo *memWaitValueTask = &taskInfo->u.memWaitValueTask;
     RtDavidStarsFunctionCallSqe &sqe = davidSqe->fuctionCallSqe;
 
-    ConstructMemWaitValueInstr2(fc, fcPara);
-
-    Stream *stream = taskInfo->stream;
-    Device *dev = stream->Device_();
-    const rtError_t ret = dev->Driver_()->MemCopySync(memWaitValueTask->funcCallSvmMem2,
-        memWaitValueTask->funCallMemSize2, &fc, sizeof(RtStarsMemWaitValueLastInstrFc),
-        RT_MEMCPY_HOST_TO_DEVICE);
+    rtError_t ret;
+    uint64_t funcCallSize;
+    if (taskInfo->stream->IsSoftwareSqEnable()) {
+        RtStarsMemWaitValueLastInstrFcEx fcEx = {};
+        funcCallSize = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFcEx));
+        ConstructMemWaitValueInstr2Ex(fcEx, fcPara);
+        ret = taskInfo->stream->Device_()->Driver_()->MemCopySync(memWaitValueTask->funcCallSvmMem2,
+            memWaitValueTask->funCallMemSize2, &fcEx, funcCallSize,
+            RT_MEMCPY_HOST_TO_DEVICE);
+    } else {
+        RtStarsMemWaitValueLastInstrFc fc = {};
+        funcCallSize = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFc));
+        ConstructMemWaitValueInstr2(fc, fcPara);
+        ret = taskInfo->stream->Device_()->Driver_()->MemCopySync(memWaitValueTask->funcCallSvmMem2,
+            memWaitValueTask->funCallMemSize2, &fc, funcCallSize,
+            RT_MEMCPY_HOST_TO_DEVICE);
+    }    
     if (ret != RT_ERROR_NONE) {
         sqe.header.type = RT_DAVID_SQE_TYPE_INVALID;
         return;
@@ -214,7 +224,6 @@ void ConstructSecondDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t
     sqe.condsSubType = CONDS_SUB_TYPE_MEM_WAIT_VALUE;
 
     const uint64_t funcAddr = RtPtrToValue(memWaitValueTask->funcCallSvmMem2);
-    constexpr uint64_t funcCallSize = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFc));
 
     // func call size is rs2[19:0]*4Byte
     ConstructFunctionCallInstr(funcAddr, (funcCallSize / 4UL), sqe);

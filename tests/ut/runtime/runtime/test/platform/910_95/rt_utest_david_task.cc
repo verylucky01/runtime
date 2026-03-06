@@ -1499,3 +1499,180 @@ TEST_F(TaskTestDavid, TestTaskInfoAllocationWithQueueFull2)
     taskResMang->ReleaseTaskResource(static_cast<Stream *>(stream));
     rtStreamDestroy(stream);
 }
+
+TEST_F(TaskTestDavid, CaptureModeExecute)
+{
+    rtStream_t stream1;
+    rtStream_t stream2;
+    rtStream_t streamExe;
+    rtModel_t  model1;
+
+    NpuDriver * rawDrv = new NpuDriver();
+    rtPointerAttributes_t rtAttributes;
+    rtAttributes.deviceID = 0;
+    rtAttributes.memoryType = RT_MEMORY_TYPE_DEVICE;
+    rtAttributes.locationType = RT_MEMORY_LOC_DEVICE;
+    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::PointerGetAttributes).stubs()
+        .with(outBoundP(&rtAttributes, sizeof(rtAttributes)), mockcpp::any()).will(returnValue(RT_ERROR_NONE));
+
+    rtError_t error = rtStreamCreate(&streamExe, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtStreamCreate(&stream2, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtStreamCreate(&stream1, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    Context * const curCtx = Runtime::Instance()->CurrentContext();
+    EXPECT_EQ(curCtx != nullptr, true);
+    Device * const dev = curCtx->Device_();
+    EXPECT_EQ(dev != nullptr, true);
+    MOCKER_CPP_VIRTUAL(dev, &Device::CheckFeatureSupport).stubs().will(returnValue(true));
+
+    error = rtStreamBeginCapture(stream1, RT_STREAM_CAPTURE_MODE_GLOBAL);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    rtStreamCaptureStatus status;
+    error = rtStreamGetCaptureInfo(stream1, &status, &model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtStreamAddToModel(stream2, model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtStreamEndCapture(stream1, &model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::SqSwitchStreamBatch).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::StreamTaskFill).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&Model::BindSqPerStream).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&Model::UnBindSqPerStream).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&CaptureModel::ConfigSqTail).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
+
+    CaptureModel *captureMdl1 = RtPtrToPtr<CaptureModel *>(model1);
+    captureMdl1->CaptureModelExecuteFinish();
+    uint32_t releaseNum;
+    captureMdl1->ReleaseSqCq(releaseNum);
+    captureMdl1->BuildSqCq(static_cast<Stream *>(streamExe));
+
+    error = rtModelDestroy(model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtStreamDestroy(stream1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtStreamDestroy(streamExe);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    delete rawDrv;
+}
+
+TEST_F(TaskTestDavid, AllocCaptureTask)
+{
+    rtError_t error;
+    rtStream_t stream1;
+    rtStream_t streamExe;
+    rtModel_t  model1;
+
+    NpuDriver * rawDrv = new NpuDriver();
+    rtPointerAttributes_t rtAttributes;
+    rtAttributes.deviceID = 0;
+    rtAttributes.memoryType = RT_MEMORY_TYPE_DEVICE;
+    rtAttributes.locationType = RT_MEMORY_LOC_DEVICE;
+    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::PointerGetAttributes) .stubs()
+        .with(outBoundP(&rtAttributes, sizeof(rtAttributes)), mockcpp::any())
+        .will(returnValue(RT_ERROR_NONE));
+
+    error = rtStreamCreate(&streamExe, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtStreamCreate(&stream1, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    Context * const curCtx = Runtime::Instance()->CurrentContext();
+    EXPECT_EQ(curCtx != nullptr, true);
+    Device * const dev = curCtx->Device_();
+    EXPECT_EQ(dev != nullptr, true);
+    MOCKER_CPP_VIRTUAL(dev, &Device::CheckFeatureSupport).stubs().will(returnValue(true));
+
+    error = rtStreamBeginCapture(stream1, RT_STREAM_CAPTURE_MODE_GLOBAL);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    rtStreamCaptureStatus status;
+    error = rtStreamGetCaptureInfo(stream1, &status, &model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    uint32_t pos = 0xFFFFU;
+    Stream *dstStm = static_cast<Stream *>(stream1);
+    TaskInfo *taskInfo = nullptr;
+    error = AllocTaskInfoForCapture(&taskInfo, static_cast<Stream *>(stream1), pos, dstStm, 1U, true);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    (void)dev->GetTaskFactory()->Recycle(taskInfo);
+
+    error = rtStreamEndCapture(stream1, &model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtStreamDestroy(stream1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtStreamDestroy(streamExe);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    delete rawDrv;
+}
+
+TEST_F(TaskTestDavid, AllocCaptureStreamNotify)
+{
+    rtError_t error;
+    rtStream_t stream1;
+    rtStream_t streamExe;
+    rtModel_t  model1;
+
+    NpuDriver * rawDrv = new NpuDriver();
+    rtPointerAttributes_t rtAttributes;
+    rtAttributes.deviceID = 0;
+    rtAttributes.memoryType = RT_MEMORY_TYPE_DEVICE;
+    rtAttributes.locationType = RT_MEMORY_LOC_DEVICE;
+    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::PointerGetAttributes) .stubs()
+        .with(outBoundP(&rtAttributes, sizeof(rtAttributes)), mockcpp::any())
+        .will(returnValue(RT_ERROR_NONE));
+
+    error = rtStreamCreate(&streamExe, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtStreamCreate(&stream1, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    Context * const curCtx = Runtime::Instance()->CurrentContext();
+    EXPECT_EQ(curCtx != nullptr, true);
+    Device * const dev = curCtx->Device_();
+    EXPECT_EQ(dev != nullptr, true);
+    MOCKER_CPP_VIRTUAL(dev, &Device::CheckFeatureSupport).stubs().will(returnValue(true));
+
+    error = rtStreamBeginCapture(stream1, RT_STREAM_CAPTURE_MODE_GLOBAL);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    rtStreamCaptureStatus status;
+    error = rtStreamGetCaptureInfo(stream1, &status, &model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    uint32_t pos = 0xFFFFU;
+    Stream *dstStm = static_cast<Stream *>(stream1);
+    Stream* captureStream = (static_cast<Stream *>(stream1))->GetCaptureStream();
+    TaskInfo *taskInfo2 = nullptr;
+    error = AllocTaskInfoForCapture(&taskInfo2, static_cast<Stream *>(captureStream), pos, dstStm, 1U, true);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    (void)dev->GetTaskFactory()->Recycle(taskInfo2);
+
+    error = rtStreamEndCapture(stream1, &model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtStreamDestroy(stream1);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtStreamDestroy(streamExe);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    delete rawDrv;
+}

@@ -48,7 +48,8 @@ rtError_t MdlBindTaskSubmit(Model * const mdl, Stream * const streamIn,
 rtError_t MdlUnBindTaskSubmit(Model * const mdl, Stream * const streamIn,
     const bool force);
 
-rtError_t NtyWait(Notify * const inNotify, Stream * const streamIn, const uint32_t timeOut);
+rtError_t NtyWait(Notify * const inNotify, Stream * const streamIn, const uint32_t timeOut, const bool isEndGraphNotify = false,
+    Model* const captureModel = nullptr);
 
 rtError_t SyncGetDeviceMsg(Device * const dev, const void * const devMemAddr, const uint32_t devMemSize,
     const rtGetDevMsgType_t getDevMsgType);

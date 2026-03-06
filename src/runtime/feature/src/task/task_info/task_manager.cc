@@ -793,6 +793,20 @@ void PushBackErrInfo(TaskInfo* taskInfo, const void *errInfo, uint32_t len)
     PushBackErrInfoForFftsPlusTask(taskInfo, errInfo, len);
 }
 
+void SetEndGraphNotifyWaitSqPos(TaskInfo* taskInfo, const uint32_t pos)
+{
+    taskInfo->pos = pos;
+    if (taskInfo->bindFlag != 0U) {
+        return;
+    }
+
+    if ((taskInfo->type == TS_TASK_TYPE_NOTIFY_WAIT) && (taskInfo->u.notifywaitTask.isEndGraphNotify)) {
+        (void)taskInfo->stream->Device_()->StoreEndGraphNotifyInfo(taskInfo->stream, taskInfo->u.notifywaitTask.captureModel, pos);
+    }
+
+    return;
+}
+
 void SetSqPos(TaskInfo* taskInfo, const uint32_t pos)
 {
     taskInfo->pos = pos;

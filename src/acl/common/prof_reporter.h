@@ -276,6 +276,7 @@ namespace acl {
         AclrtHostGetDevicePointer,
         AclrtReserveMemAddressNoUCMemory,
         AclrtMemGetAddressRange,
+        aclrtMemP2PMap,
         AclrtMemAllocManaged,
         AclrtMemPoolCreate,
         AclrtMemPoolDestroy,

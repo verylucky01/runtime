@@ -93,6 +93,30 @@ RTS_API rtError_t rtMemPoolSetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void
 */
 RTS_API rtError_t rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value);
 
+/**
+ * @ingroup dvrt_mem
+ * @brief get start address and size of memory block
+ * @param  [in] ptr Address whithin a certain memory block range
+ * @param  [out] pbase Start address of the memory block
+ * @param  [out] psize Size of th memory block
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_INVALID_VALUE for error input
+ * @return RT_ERROR_DRV_ERR for driver error
+ */
+RTS_API rtError_t rtMemGetAddressRange(void *ptr, void **pbase, size_t *psize);
+
+/**
+ * @ingroup dvrt_mem
+ * @brief Prefetch memory to device
+ * @param devPtr [IN]   Device memory address
+ * @param len [IN]  Size of the memory
+ * @param devId [IN]  Physical id
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_INVALID_VALUE for error input
+ * @return RT_ERROR_DRV_ERR for driver error
+ */
+RTS_API rtError_t rtMemPrefetchToDevice(void *devPtr, uint64_t len, int32_t devId);
+
 #if defined(__cplusplus)
 }
 #endif

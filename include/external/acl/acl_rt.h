@@ -4905,12 +4905,25 @@ ACL_FUNC_VISIBILITY aclError aclrtReserveMemAddressNoUCMemory(void **virPtr, siz
  * @brief get start address and size of memory block
  * @param ptr [IN]   Address whithin a certain memory block range
  * @param pbase [OUT]  Start address of the memory block
- * @param psize [OUT]  Size of th memory block
+ * @param psize [OUT]  Size of the memory block
  *
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
 ACL_FUNC_VISIBILITY aclError aclrtMemGetAddressRange(void *ptr, void **pbase, size_t *psize);
+
+/**
+ * @ingroup AscendCL
+ * @brief Used for memory mapping between devices within the same process
+ * @param devPtr [IN]   Device memory address
+ * @param size [IN]  Size of the memory
+ * @param dstDevId [IN]  Device id to which the page table mapping is to be created
+ * @param flags [IN]  Reserved param
+ *
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval OtherValues Failure
+ */
+ACL_FUNC_VISIBILITY aclError aclrtMemP2PMap(void *devPtr, size_t size, int32_t dstDevId, uint64_t flags);
 #ifdef __cplusplus
 }
 #endif

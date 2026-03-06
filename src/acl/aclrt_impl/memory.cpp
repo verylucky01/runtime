@@ -1917,7 +1917,7 @@ aclError aclrtReserveMemAddressNoUCMemoryImpl(void **virPtr, size_t size, size_t
         ACL_LOG_ERROR("flags is [%lu], flags of page type must be 0 or 1", flags);
         acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
             std::vector<const char *>({"param", "value", "reason"}),
-            std::vector<const char *>({"size", std::to_string(flags).c_str(), "flags of page type must be 0 or 1"}));
+            std::vector<const char *>({"flags", std::to_string(flags).c_str(), "flags of page type must be 0 or 1"}));
         return ACL_ERROR_INVALID_PARAM;
     }
 
@@ -1945,6 +1945,29 @@ aclError aclrtMemGetAddressRangeImpl(void *ptr, void **pbase, size_t *psize)
         return ACL_GET_ERRCODE_RTS(rtErr);
     }
     ACL_LOG_INFO("successfully execute aclrtMemGetAddressRange");
+    return ACL_SUCCESS;
+}
+
+aclError aclrtMemP2PMapImpl(void *devPtr, size_t size, int32_t dstDevId, uint64_t flags)
+{
+    ACL_PROFILING_REG(acl::AclProfType::aclrtMemP2PMap);
+    ACL_LOG_INFO("start to execute aclrtMemP2PMap");
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(devPtr);
+    ACL_REQUIRES_TRUE(size > 0UL, ACL_ERROR_INVALID_PARAM, "size in aclrtMemP2PMap must be large than 0 !");
+    ACL_REQUIRES_TRUE(flags == 0UL, ACL_ERROR_INVALID_PARAM, "flags in aclrtMemP2PMap must be 0 !");
+    uint32_t phyId = 0U;
+    rtError_t rtErr = rtGetDevicePhyIdByIndex(static_cast<uint32_t>(dstDevId), &phyId);
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("call rtGetDevicePhyIdByIndex failed, dstDevId = %u, runtime result = %d",
+            dstDevId, static_cast<int32_t>(rtErr));
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    rtErr = rtMemPrefetchToDevice(devPtr, size, phyId);
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("call  aclrtMemP2PMap failed, runtime result = %d.", static_cast<int32_t>(rtErr));
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    ACL_LOG_INFO("successfully execute aclrtMemP2PMap");
     return ACL_SUCCESS;
 }
 

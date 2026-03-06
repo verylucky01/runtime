@@ -7115,3 +7115,29 @@ TEST_F(UTEST_ACL_Runtime, aclrtBinarySetExceptionCallback)
     ret = aclrtBinarySetExceptionCallback(handle, funcHandle, nullptr);
     EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);            
 }
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemP2PMap)
+{
+    void *devPtr = (void *)0x01;
+    size_t size = 1;
+    int32_t dstDevId = 0;
+    uint64_t flags = 0;
+
+    aclError ret = aclrtMemP2PMap(devPtr, size, dstDevId, flags);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+
+    ret = aclrtMemP2PMap(devPtr, size, dstDevId, 1);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemP2PMap(NULL, size, dstDevId, 0);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemP2PMap(devPtr, 0, dstDevId, flags);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+    
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), rtGetDevicePhyIdByIndex(_, _))
+        .WillOnce(Return((ACL_ERROR_RT_PARAM_INVALID)))
+        .WillRepeatedly(Return(RT_ERROR_NONE));
+    ret = aclrtMemP2PMap(devPtr, size, dstDevId, flags);
+    EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
+}

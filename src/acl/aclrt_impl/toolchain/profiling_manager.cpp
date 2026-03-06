@@ -272,6 +272,7 @@ namespace acl {
         {AclProfType::AclrtGetMemUsageInfo,                     "aclrtGetMemUsageInfo"},
         {AclProfType::AclrtReserveMemAddressNoUCMemory,         "aclrtReserveMemAddressNoUCMemory"},
         {AclProfType::AclrtMemGetAddressRange,                  "aclrtMemGetAddressRange"},
+        {AclProfType::aclrtMemP2PMap,                           "aclrtMemP2PMap"},
         {AclProfType::AclrtMemAllocManaged,                     "aclrtMemAllocManaged"},
         {AclProfType::AclrtMemPoolCreate,                       "aclrtMemPoolCreate"},
         {AclProfType::AclrtMemPoolDestroy,                      "aclrtMemPoolDestroy"},

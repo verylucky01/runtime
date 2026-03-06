@@ -296,6 +296,7 @@
     _(aclError, aclrtMemGetAddressRange, (void * ptr, void ** pbase, size_t * psize), (ptr, pbase, psize)) \
     _(const char *, aclrtGetSocName, (), ()) \
     _(aclError, aclrtGetVersion, (int32_t * majorVersion, int32_t * minorVersion, int32_t * patchVersion), (majorVersion, minorVersion, patchVersion)) \
+    _(aclError, aclrtMemP2PMap, (void *devPtr, size_t size, int32_t dstDevId, uint64_t flags), (devPtr, size, dstDevId, flags)) \
     _(aclError, aclrtMemPoolCreate, (aclrtMemPool *memPool, const aclrtMemPoolProps *poolProps), (memPool, poolProps)) \
     _(aclError, aclrtMemPoolDestroy, (const aclrtMemPool memPool), (memPool)) \
     _(aclError, aclrtMemPoolSetAttr, (aclrtMemPool memPool, aclrtMemPoolAttr attr, void *value), (memPool, attr, value)) \

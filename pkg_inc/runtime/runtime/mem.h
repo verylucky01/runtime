@@ -1399,18 +1399,6 @@ RTS_API rtError_t rtMemRetainAllocationHandle(void* virPtr, rtDrvMemHandle *hand
 * @return RT_ERROR_DRV_ERR for driver error
 */
 RTS_API rtError_t rtMemGetAllocationPropertiesFromHandle(rtDrvMemHandle handle, rtDrvMemProp_t* prop);
-
-/**
- * @ingroup dvrt_mem
- * @brief get start address and size of memory block
- * @param  [in] ptr Address whithin a certain memory block range
- * @param  [out] pbase Start address of the memory block
- * @param  [out] psize Size of th memory block
- * @return RT_ERROR_NONE for ok
- * @return RT_ERROR_INVALID_VALUE for error input
- * @return RT_ERROR_DRV_ERR for driver error
- */
-RTS_API rtError_t rtMemGetAddressRange(void *ptr, void **pbase, size_t *psize);
 #if defined(__cplusplus)
 }
 #endif

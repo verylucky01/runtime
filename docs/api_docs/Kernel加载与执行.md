@@ -9,7 +9,8 @@
 -   **[aclrtBinarySetExceptionCallback](aclrtBinarySetExceptionCallback.md)**
 -   **[aclrtGetArgsFromExceptionInfo](aclrtGetArgsFromExceptionInfo.md)**
 -   **[aclrtGetFuncHandleFromExceptionInfo](aclrtGetFuncHandleFromExceptionInfo)**
--   **[aclrtGetFunctionAddr](aclrtGetFunctionAddr.md)**  
+-   **[aclrtGetFunctionAddr](aclrtGetFunctionAddr.md)**
+-   **[aclrtGetFunctionSize](aclrtGetFunctionSize.md)**
 -   **[aclrtGetFunctionName](aclrtGetFunctionName.md)**  
 -   **[aclrtGetFunctionAttribute](aclrtGetFunctionAttribute.md)**  
 -   **[aclrtGetHardwareSyncAddr](aclrtGetHardwareSyncAddr.md)**  

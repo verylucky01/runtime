@@ -122,12 +122,13 @@ void ConstructDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t *cons
     MemWaitValueTaskInfo *memWaitValueTask = &taskInfo->u.memWaitValueTask;
     Stream * const stream = taskInfo->stream;
 
+    const uint32_t taskPosTail = stream->GetBindFlag() ? stream->GetCurSqPos() : taskInfo->id;
     fcPara.devAddr = memWaitValueTask->devAddr;
     fcPara.value = memWaitValueTask->value;
     fcPara.flag = memWaitValueTask->flag;
     fcPara.maxLoop = 15ULL;  /* the max loop num */
     fcPara.sqId = stream->GetSqId();
-    fcPara.sqHeadPre = (taskInfo->id + 1) % stream->GetSqDepth(); /* = taskResATail_ before alloc */
+    fcPara.sqHeadPre = (taskPosTail + 1) % stream->GetSqDepth();
     fcPara.awSize = memWaitValueTask->awSize;
     fcPara.sqIdMemAddr = stream->GetSqIdMemAddr();
 

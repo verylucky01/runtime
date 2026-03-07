@@ -16,7 +16,6 @@
 namespace Adx {
     class JsonParser {
     public:
-        static int32_t ParseJsonFromFile(const char *const fileName, nlohmann::json &js);
         static int32_t ParseJsonFromMemory(const char *dumpConfigData, size_t dumpConfigSize, nlohmann::json &js);
         static const nlohmann::json& GetCfgJsonByKey(const nlohmann::json &js, const std::string &key) {
             return js.at(key);

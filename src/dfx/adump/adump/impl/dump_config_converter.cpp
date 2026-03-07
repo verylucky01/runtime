@@ -294,19 +294,26 @@ bool DumpConfigConverter::ParseDumpKernelData(std::vector<std::string> &dfxTypes
 bool DumpConfigConverter::CheckDumpPath() const
 {
     if (!JsonParser::ContainKey(dumpJs_, ADUMP_DUMP_PATH)) {
-        ReportInvalidArgumentError(ADUMP_DUMP_PATH, "",
-            StrUtils::Format(FIELD_NOT_FOUND, ADUMP_DUMP_PATH.c_str(), configPath_));
+        IDE_LOGE("the configuration item %s in configuration file %s cannot be found.", ADUMP_DUMP_PATH.c_str(), configPath_);
+        std::string errReason = "The configuration item is not found";
+        ADUMP_INPUT_ERROR("EP0001", std::vector<std::string>({"item", "path", "reason"}),
+            std::vector<std::string>({ADUMP_DUMP_PATH, configPath_, errReason}));
         return false;
     }
     std::string dumpPath = JsonParser::GetCfgStrByKey(dumpJs_, ADUMP_DUMP_PATH);
     if (dumpPath.empty()) {
-        ReportInvalidArgumentError(ADUMP_DUMP_PATH, "",
-            StrUtils::Format(FIELD_EMPTY, ADUMP_DUMP_PATH.c_str(), configPath_));
+        IDE_LOGE("the content of configuration item %s in configuration file %s is empty.", ADUMP_DUMP_PATH.c_str(), configPath_);
+        std::string errReason = "The configuration item value is empty";
+        ADUMP_INPUT_ERROR("EP0001", std::vector<std::string>({"item", "path", "reason"}),
+            std::vector<std::string>({ADUMP_DUMP_PATH, configPath_, errReason}));
         return false;
     }
     if (dumpPath.length() > static_cast<size_t>(MAX_DUMP_PATH_LENGTH)) {
-        ReportInvalidArgumentError(ADUMP_DUMP_PATH, dumpPath,
-            StrUtils::Format(FIELD_TOO_LONG, ADUMP_DUMP_PATH.c_str(), configPath_, MAX_DUMP_PATH_LENGTH));
+        IDE_LOGE("value %s for configuration item %s is invalid, the length %zu exceeds the range (0, %zu].",
+            dumpPath.c_str(), ADUMP_DUMP_PATH.c_str(), dumpPath.length(), MAX_DUMP_PATH_LENGTH);
+        std::string errReason = StrUtils::Format("The value length %zu exceeds the upper limit %zu", dumpPath.length(), MAX_DUMP_PATH_LENGTH);
+        ADUMP_INPUT_ERROR("EP0003", std::vector<std::string>({"value", "item", "path", "reason"}),
+            std::vector<std::string>({dumpPath, ADUMP_DUMP_PATH, configPath_, errReason}));
         return false;
     }
     const size_t colonPos = dumpPath.find_first_of(":");
@@ -314,16 +321,19 @@ bool DumpConfigConverter::CheckDumpPath() const
     if (isCutDumpPathFlag) {
         dumpPath = dumpPath.substr(colonPos + 1U);
         if (!FileUtils::IsValidDirChar(dumpPath)) {
-            ReportInvalidArgumentError(ADUMP_DUMP_PATH, dumpPath,
-                StrUtils::Format(FIELD_INVALID_CHARACTERS, dumpPath.c_str(), ADUMP_DUMP_PATH.c_str(), configPath_));
+            IDE_LOGE("value %s for configuration item %s is invalid, contains invalid characters.", dumpPath.c_str(), ADUMP_DUMP_PATH.c_str());
+            std::string errReason = "The value contains invalid characters";
+            ADUMP_INPUT_ERROR("EP0003", std::vector<std::string>({"value", "item", "path", "reason"}),
+                std::vector<std::string>({dumpPath, ADUMP_DUMP_PATH, configPath_, errReason}));
             return false;
         }
     } else {
         std::string errorMsg;
         if (!FileUtils::IsPathHasPermission(dumpPath, errorMsg)) {
             IDE_LOGE("%s", errorMsg.c_str());
-            ReportInvalidArgumentError(ADUMP_DUMP_PATH, dumpPath,
-                StrUtils::Format(FIELD_PATH_NO_PERMISSIONS, dumpPath.c_str(), ADUMP_DUMP_PATH.c_str(), configPath_));
+            std::string errReason = "The value is a path without read and write permissions";
+            ADUMP_INPUT_ERROR("EP0003", std::vector<std::string>({"value", "item", "path", "reason"}),
+                std::vector<std::string>({dumpPath, ADUMP_DUMP_PATH, configPath_, errReason}));
             return false;
         }
     }
@@ -615,8 +625,10 @@ bool DumpConfigConverter::IsValueValid(const std::string key, const std::string 
     }
 
     std::string validOptionStr = TransOptionsToStr(dumpValidOptions.at(key));
-    ReportInvalidArgumentError(key, value,
-        StrUtils::Format(FIELD_INVALID_VALUE, value.c_str(), key.c_str(), configPath_, validOptionStr.c_str()));
+    IDE_LOGE("value %s for configuration item %s in file %s is invalid, must be selected from [%s].",
+        value.c_str(), key.c_str(), configPath_, validOptionStr.c_str());
+    ADUMP_INPUT_ERROR("EP0002", std::vector<std::string>({"value", "item", "path", "expected_value"}),
+        std::vector<std::string>({value, key, configPath_, validOptionStr}));
     return false;
 }
 
@@ -648,11 +660,11 @@ bool DumpConfigConverter::CheckIpAddress(const std::string dumpPath) const
     if (colonPos != std::string::npos) {
         IDE_LOGI("dump_path field contains ip address.");
         if ((colonPos + 1U) == dumpPath.size()) {
-            ReportInvalidArgumentError(ADUMP_DUMP_PATH, dumpPath, StrUtils::Format(FIELD_PATH_INVALID,
-                dumpPath.c_str(), ADUMP_DUMP_PATH.c_str(), configPath_, "format is illegal"));
+            std::string errReason = "The value is an invalid path";
+            ADUMP_INPUT_ERROR("EP0003", std::vector<std::string>({"value", "item", "path", "reason"}),
+                std::vector<std::string>({dumpPath, ADUMP_DUMP_PATH, configPath_, errReason}));
             return false;
         }
-
         const std::string ipAddress = dumpPath.substr(0U, colonPos);
         const std::vector<std::string> ipRet = StrUtils::Split(ipAddress, ".");
         if (ipRet.size() == static_cast<size_t>(MAX_IPV4_ADDRESS_LENGTH)) {
@@ -813,7 +825,6 @@ int32_t DumpConfigConverter::Convert(DumpType &dumpType, DumpConfig &dumpConfig,
         );
     } catch (const std::exception &e) {
  	    IDE_LOGE("convert exception: %s", e.what());
-        ReportConfigParseError(StrUtils::Format(MEMORY_JSON_PARSE_FAILED, e.what()));
         return ADUMP_FAILED;
     }
     return ADUMP_SUCCESS;
@@ -883,6 +894,9 @@ void DumpConfigConverter::LoadDumpEnvVariables(DumpEnvVariable &dumpEnvVariable)
             std::string optionStr = TransOptionsToStr(envDumpScenes);
             IDE_LOGW("Value[%s] of Env[ASCEND_DUMP_SCENE] is invalid, it must be %s",
                 envAscendDumpScene.c_str(), optionStr.c_str());
+            std::string warnReason = StrUtils::Format("The dump scene must be selected form[%s]", optionStr.c_str());
+            ADUMP_INPUT_ERROR("EW0001", std::vector<std::string>({"value", "env", "reason"}),
+                std::vector<std::string>({envAscendDumpScene, ADUMP_ENV_ASCEND_DUMP_SCENE, warnReason}));
         }
     }
 

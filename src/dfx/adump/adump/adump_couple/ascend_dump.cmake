@@ -14,7 +14,6 @@ set(ascendDumpSrcList
     ${adumpBaseProtoSrcs}
     ${adumpHostProtoSrcs}
     ${ADUMP_ADUMP_DIR}/common/adump_dsmi.cpp
-    ${ADUMP_ADUMP_DIR}/common/adump_error_manager.cpp
     ${ADUMP_ADUMP_DIR}/common/adump_platform_api/adump_platform_api_device.cpp
     ${ADUMP_ADUMP_DIR}/common/file.cpp
     ${ADUMP_ADUMP_DIR}/common/json_parser.cpp

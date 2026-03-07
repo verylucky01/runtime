@@ -1233,24 +1233,46 @@
     },
     {
       "errClass": "DUMP Errors",
-      "errTitle": "Invalid_Argument",
+      "errTitle": "Config_Error",
       "ErrCode": "EP0001",
-      "ErrMessage": "Value [%s] for [%s] is invalid. Reason: %s.",
-      "Arglist": "value,param,reason",
+      "ErrMessage": "The content of configuration item %s in configuration file %s is invalid. Reason: %s.",
+      "Arglist": "item,path,reason",
       "suggestion": {
         "Possible Cause": "N/A",
-        "Solution": "Check and modify the configuration according to Reason. For details about the dump usage and restrictions, refer to the official website."
+        "Solution": "N/A"
       }
     },
     {
       "errClass": "DUMP Errors",
-      "errTitle": "File_Operation_Error",
+      "errTitle": "Config_Error",
       "ErrCode": "EP0002",
-      "ErrMessage": "Abnormal operation on file[%s]. Reason: %s.",
-      "Arglist": "path,reason",
+      "ErrMessage": "Value %s for configuration item %s in configuration file %s is invalid. Expected value: %s.",
+      "Arglist": "value,item,path,expected_value",
       "suggestion": {
         "Possible Cause": "N/A",
-        "Solution": "Check and modify the configuration according to Reason. For details about the dump usage and restrictions, refer to the official website."
+        "Solution": "N/A"
+      }
+    },
+    {
+      "errClass": "DUMP Errors",
+      "errTitle": "Config_Error",
+      "ErrCode": "EP0003",
+      "ErrMessage": "Value %s for configuration item %s in configuration file %s is invalid. Reason: %s.",
+      "Arglist": "value,item,path,reason",
+      "suggestion": {
+        "Possible Cause": "N/A",
+        "Solution": "N/A"
+      }
+    },
+    {
+      "errClass": "DUMP Errors",
+      "errTitle": "Config_Error_Invalid_Environment_Variable",
+      "ErrCode": "WP0001",
+      "ErrMessage": "Value %s for environment variable %s is invalid. Reason: %s.",
+      "Arglist": "value,env,reason",
+      "suggestion": {
+        "Possible Cause": "N/A",
+        "Solution": "Reset the environment variable by referring to the Environment Variable Reference."
       }
     },
     {

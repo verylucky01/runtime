@@ -17,7 +17,6 @@ set(ascendDumpSrcList
     ${ADUMP_ADUMP_DIR}/adump_ascend031/manage/dump_manager.cpp
     ${ADUMP_ADUMP_DIR}/adump_ascend031/printf/dump_printf.cpp
     ${ADUMP_ADUMP_DIR}/common/adump_dsmi.cpp
-    ${ADUMP_ADUMP_DIR}/common/adump_error_manager.cpp
     ${ADUMP_ADUMP_DIR}/common/file.cpp
     ${ADUMP_ADUMP_DIR}/common/json_parser.cpp
     ${ADUMP_ADUMP_DIR}/common/lib_path.cpp

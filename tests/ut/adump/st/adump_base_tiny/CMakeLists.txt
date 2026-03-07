@@ -19,7 +19,6 @@ set(adumpBaseTinyUtestSrc
     ${SRC_CODE_ROOT_PATH}/adump/common/lib_path.cpp
     ${SRC_CODE_ROOT_PATH}/adump/common/adump_dsmi.cpp
     ${SRC_CODE_ROOT_PATH}/adump/common/json_parser.cpp
-    ${SRC_CODE_ROOT_PATH}/adump/common/adump_error_manager.cpp
 
     ${SRC_CODE_ROOT_PATH}/adump/exception/dump_file.cpp
     ${SRC_CODE_ROOT_PATH}/adump/exception/kernel_info_collector.cpp

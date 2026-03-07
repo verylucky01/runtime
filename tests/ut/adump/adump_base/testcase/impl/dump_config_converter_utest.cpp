@@ -175,7 +175,6 @@ TEST_F(DumpConfigConverterUtest, TestConvertCommon)
     converter = DumpConfigConverter(configData.c_str(), configData.size());
     ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
     EXPECT_EQ(ret, ADUMP_SUCCESS);
-
 }
 
 TEST_F(DumpConfigConverterUtest, TestConvertException)

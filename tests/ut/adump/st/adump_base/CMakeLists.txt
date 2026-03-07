@@ -25,7 +25,6 @@ set(adumpBaseSrc
     ${SRC_CODE_ROOT_PATH}/adump/common/adump_dsmi.cpp
     ${SRC_CODE_ROOT_PATH}/adump/common/adump_platform_api/close/adump_platform_api.cpp
     ${SRC_CODE_ROOT_PATH}/adump/common/json_parser.cpp
-    ${SRC_CODE_ROOT_PATH}/adump/common/adump_error_manager.cpp
 
     ${SRC_CODE_ROOT_PATH}/adump/manage/adump_api.cpp
     ${SRC_CODE_ROOT_PATH}/adump/impl/dump_datatype.cpp

@@ -1581,8 +1581,16 @@ rtError_t NpuDriver::GetChipIdDieId(const uint32_t devId, const uint32_t remoteD
 rtError_t NpuDriver::GetTopologyType(const uint32_t devId, const uint32_t remoteDevId, const uint32_t remotePhyId, int64_t * const val)
 {
     rtError_t error = RT_ERROR_NONE;
+    uint32_t phyDevId;
+    const drvError_t drvRet = drvDeviceGetPhyIdByIndex(devId, &phyDevId);
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet,
+            "[drv api] drvDeviceGetPhyIdByIndex failed: devId=%u, drvRetCode=%d!",
+            devId, static_cast<int32_t>(drvRet));
+        return RT_GET_DRV_ERRCODE(drvRet);
+    }
     if (CheckIsSupportFeature(devId, FEATURE_DMS_QUERY_CHIP_DIE_ID)) {
-        error = GetPairDevicesInfo(devId, remotePhyId, DEVS_INFO_TYPE_TOPOLOGY, val, true);
+        error = GetPairDevicesInfo(phyDevId, remotePhyId, DEVS_INFO_TYPE_TOPOLOGY, val, true);
     } else {
         error = GetPairDevicesInfo(devId, remoteDevId, DEVS_INFO_TYPE_TOPOLOGY, val, false);
     }

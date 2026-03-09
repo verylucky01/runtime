@@ -119,3 +119,17 @@ TEST_F(DriverTest, register_driver_fail)
     EXPECT_EQ(ret, false);
     delete rawDrv;
 }
+
+TEST_F(DriverTest, get_topology_type_fail)
+{
+    rtError_t error;
+    MOCKER(drvDeviceGetPhyIdByIndex)
+        .stubs()
+        .will(returnValue(DRV_ERROR_INVALID_VALUE));
+
+    int64_t val;
+    NpuDriver * rawDrv = new NpuDriver();
+    error = rawDrv->GetTopologyType(0, 0, 0, &val);
+    EXPECT_EQ(error, RT_ERROR_DRV_INPUT);
+    delete rawDrv;
+}

@@ -3648,8 +3648,8 @@ ACL_FUNC_VISIBILITY aclError aclrtActiveStream(aclrtStream activeStream, aclrtSt
  * @param cond [in]        judge condition
  * @param rightValue [in]  pointer of target value
  * @param dataType [in]    data type of target value
- * @param trueStream [in]  stream to be activated when leftValue equal to rightValue
- * @param falseStream [in] reserved parameter
+ * @param trueStream [in]  stream to be activated when condition is met
+ * @param falseStream [in] stream to be activated when condition is not met
  * @param stream [in]      stream to send task
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure

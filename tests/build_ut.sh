@@ -267,7 +267,6 @@ run_ut() {
       echo "ERROR: No executable UT file found! Please check if the parameters for --ut / --target are correct"
       exit 1
     fi
-
     if [ -n "$ORIGINAL_LD_PRELOAD" ]; then
       export LD_PRLOAD="$ORIGINAL_LD_PRELOAD"
     else

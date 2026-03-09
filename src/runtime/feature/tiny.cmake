@@ -266,6 +266,7 @@ set(libruntime_v100_src_files
     src/api_impl/api_error.cc
     src/api_impl/api_impl_creator.cc
     src/api_impl/api_impl_mbuf.cc
+    src/dfx/kernel_dfx_info.cc
 
     # for V100
     src/api_impl/v100/api_impl_creator_c.cc
@@ -304,6 +305,7 @@ set(libruntime_v100_src_files
     src/kernel/program_common.cc
     src/kernel/kernel_ratio_utils.cc
     src/launch/memcpy_stars.cc
+    src/kernel/v100/program_plat.cc
     src/launch/cmo_barrier_common.cc
     src/launch/cmo_barrier_stars.cc
     src/launch/memcpy_stars.cc
@@ -348,6 +350,7 @@ set(libruntime_v100_src_files
     src/task/task_fail_callback_manager.cc
     src/task/v100/stub_task.cc
     src/memory/mem_type.cc
+    src/memory/stream_mem_pool.cc
     ${libruntime_v100_task_src_files}
     ${libruntime_context_src_files}
     ${libruntime_stream_src_files}

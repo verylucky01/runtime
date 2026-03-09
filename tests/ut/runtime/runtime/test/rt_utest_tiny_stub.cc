@@ -744,5 +744,7 @@ TEST_F(TinyStubTest, event_expanding_stub)
     EventExpandingPool eventExpandingPool(nullptr);
     rtError_t ret = eventExpandingPool.AllocAndInsertEvent(nullptr, nullptr);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    ret = eventExpandingPool.ResetBufferForEvent();
+    EXPECT_EQ(ret, RT_ERROR_NONE);
     eventExpandingPool.FreeEventId(MAX_INT32_NUM);
 }

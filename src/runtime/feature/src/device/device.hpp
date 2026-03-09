@@ -204,6 +204,7 @@ public:
     virtual void PushNotify(Notify *const nty) = 0;
     virtual void RemoveNotify(Notify *const nty) = 0;
     virtual rtError_t NotifiesReAllocId(void) = 0;
+    virtual rtError_t EventExpandingPoolRestore(void) = 0;
 
     virtual Module *ModuleAlloc(Program * const prog) = 0;
     virtual bool ModuleRetain(Module * const mdl) = 0;

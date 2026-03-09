@@ -192,5 +192,20 @@ int32_t BufferAllocator::GetIdByItem(const void * const item) const
     return -1;
 }
 
+rtError_t BufferAllocator::MemsetBuffers(Device *device, uint32_t value)
+{
+    NULL_PTR_RETURN_MSG(device, RT_ERROR_INVALID_VALUE);
+    const uint64_t memSize = initCount_ * itemSize_;
+
+    for (uint32_t bufIdx = 0U; bufIdx < poolSize_; ++bufIdx) {
+        if (pool_[bufIdx] != nullptr) {
+            const rtError_t error = device->Driver_()->MemSetSync(pool_[bufIdx], memSize, value, memSize);
+            ERROR_RETURN(error, "Memset sync failed, destMax=%" PRIu64 ", value=%u, count=%" PRIu64,
+                memSize, value, memSize);
+        }
+    }
+    return RT_ERROR_NONE;
+}
+
 }  // namespace runtime
 }  // namespace cce

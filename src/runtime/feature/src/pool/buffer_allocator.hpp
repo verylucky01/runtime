@@ -16,6 +16,7 @@
 namespace cce {
 namespace runtime {
 
+class Device;
 constexpr int32_t BUFF_SLIP_NUMBER = 4U * 1024U * 1024U;
 
 class BufferAllocator : public NoCopy {
@@ -58,6 +59,7 @@ public:
         openHugeBuff_ = true;
     }
 
+    rtError_t MemsetBuffers(Device *device, uint32_t value);
 private:
     static void *DefaultAlloc(size_t size, void *para)
     {

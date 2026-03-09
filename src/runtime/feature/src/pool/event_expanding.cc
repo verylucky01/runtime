@@ -99,5 +99,20 @@ void EventExpandingPool::FreeEventId(int32_t eventId)
  	eventAllocator_[poolIndex]->FreeById(id);
     eventIdCount_--;
 }
+
+rtError_t EventExpandingPool::ResetBufferForEvent()
+{
+    const size_t poolIndex = GetPoolIndex();
+    for (size_t poolIdx = 0U; poolIdx <= poolIndex; ++poolIdx) {
+        BufferAllocator* allocator = eventAllocator_[poolIdx];
+        if (allocator == nullptr) {
+            continue;
+        }
+        
+        const rtError_t error = allocator->MemsetBuffers(device_, 0U);
+        ERROR_RETURN(error, "ResetBufferForEvent failed, poolIdx=%zu", poolIdx);
+    }
+    return RT_ERROR_NONE;
+}
 }
 }

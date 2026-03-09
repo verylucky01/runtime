@@ -253,6 +253,13 @@ rtError_t RawDevice::ResourceRestore()
     return RT_ERROR_NONE;
 }
 
+rtError_t RawDevice::EventExpandingPoolRestore(void)
+{
+    rtError_t ret = eventExpandingPool_->ResetBufferForEvent();
+    ERROR_RETURN(ret, "ResetBufferForEvent failed, ret=%#x, deviceId=%u", ret, deviceId_);
+    return ret;
+}
+
 rtError_t RawDevice::ReOpen()
 {
     rtError_t ret = driver_->HostDeviceClose(deviceId_);

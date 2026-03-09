@@ -16,16 +16,12 @@
 #include "aclnnop/aclnn_add.h"
 #include "aclnnop/aclnn_mul.h"
 using namespace std;
-
-// 核函数，让x自增1
-extern void EasyOP(uint32_t coreDim, void *stream, uint32_t* x);
 // aclnnadd计算：out = self + other * alpha
 // aclnnmul计算: out = self * other
 int main()
 {
     int deviceId = 0;
     int blockDim = 1;
-    int num = 0;
     // 初始化数据，包括三个算子任务所需要的输入输出
     uint32_t *numDevice = nullptr;
     void *selfDevice1 = nullptr;
@@ -69,7 +65,6 @@ int main()
     CHECK_ERROR(aclInit(NULL));
     CHECK_ERROR(aclrtSetDevice(deviceId));
     CHECK_ERROR(aclrtCreateContext(&context, deviceId));
-
     // 创建三个算子任务，后续分发给每个流
     // stream1: out1 = self1 + other1 * alpha
     // stream2: out2 = self2 + other2 * alpha
@@ -89,19 +84,16 @@ int main()
     if (addWorkspaceSize1 > 0) {
         CHECK_ERROR(aclrtMalloc(&addWorkspaceAddr1, addWorkspaceSize1, ACL_MEM_MALLOC_HUGE_FIRST));
     }
-
     aclnnAddGetWorkspaceSize(self2, other2, alpha, out2, &addWorkspaceSize2, &addExecutor2);
     void *addWorkspaceAddr2 = nullptr;
     if (addWorkspaceSize2 > 0) {
         CHECK_ERROR(aclrtMalloc(&addWorkspaceAddr2, addWorkspaceSize2, ACL_MEM_MALLOC_HUGE_FIRST));
     }
-
     aclnnAddGetWorkspaceSize(self3, other3, alpha, out3, &addWorkspaceSize3, &addExecutor3);
     void *addWorkspaceAddr3 = nullptr;
     if (addWorkspaceSize3 > 0) {
         CHECK_ERROR(aclrtMalloc(&addWorkspaceAddr3, addWorkspaceSize3, ACL_MEM_MALLOC_HUGE_FIRST));
     }
-
     // switchstream函数需要的参数为device侧数据的地址，这里创建两个device侧的地址用于比较，一个为1，一个为2
     int32_t rightValue1 = 1;
     int32_t rightValue2 = 2;
@@ -114,96 +106,115 @@ int main()
     CHECK_ERROR(aclrtMalloc(&rightDevice2, sizeof(int32_t), ACL_MEM_MALLOC_HUGE_FIRST));
     CHECK_ERROR(aclrtMemcpy(rightDevice2, sizeof(int32_t), &rightValue2, sizeof(int32_t), ACL_MEMCPY_HOST_TO_DEVICE));
     CHECK_ERROR(aclrtMalloc((void **)&numDevice, sizeof(uint32_t), ACL_MEM_MALLOC_HUGE_FIRST));
-
-    // 创建四个流
+    uint32_t numInit = 0;
+    CHECK_ERROR(aclrtMemcpy(numDevice, sizeof(uint32_t), &numInit, sizeof(uint32_t), ACL_MEMCPY_HOST_TO_DEVICE));
+    // 通过 DeviceToDevice 异步拷贝将其置为 1，供 SwitchStream 分支验证。
+    uint32_t val1 = 1;
+    void *targetValDev_1 = nullptr;
+    CHECK_ERROR(aclrtMalloc(&targetValDev_1, sizeof(uint32_t), ACL_MEM_MALLOC_HUGE_FIRST));
+    CHECK_ERROR(aclrtMemcpy(targetValDev_1, sizeof(uint32_t), &val1, sizeof(uint32_t), ACL_MEMCPY_HOST_TO_DEVICE));
+    // 创建五个流：四个工作流 + 一个汇聚流endStream
     aclmdlRI modelRI;
     aclrtStream stream1;
     aclrtStream stream2;
     aclrtStream stream3;
     aclrtStream stream4;
+    aclrtStream endStream;
+    // 增加一个独立的 copyStream，专门用于独立内存操作，不和模型环境绑定，防止流状态异常。
+    aclrtStream copyStream;
     CHECK_ERROR(aclrtCreateStreamWithConfig(&stream1, 0x00U, ACL_STREAM_PERSISTENT));
     CHECK_ERROR(aclrtCreateStreamWithConfig(&stream2, 0x00U, ACL_STREAM_PERSISTENT));
     CHECK_ERROR(aclrtCreateStreamWithConfig(&stream3, 0x00U, ACL_STREAM_PERSISTENT));
     CHECK_ERROR(aclrtCreateStreamWithConfig(&stream4, 0x00U, ACL_STREAM_PERSISTENT));
-
-    // 绑定四个流，复制算子需要的数据
+    CHECK_ERROR(aclrtCreateStreamWithConfig(&endStream, 0x00U, ACL_STREAM_PERSISTENT));
+    CHECK_ERROR(aclrtCreateStream(&copyStream));
+    // 绑定五个流，复制算子需要的数据
     CHECK_ERROR(aclmdlRIBuildBegin(&modelRI, 0x00U));
     CHECK_ERROR(aclmdlRIBindStream(modelRI, stream1, ACL_MODEL_STREAM_FLAG_HEAD));
     CHECK_ERROR(aclmdlRIBindStream(modelRI, stream2, ACL_MODEL_STREAM_FLAG_DEFAULT));
     CHECK_ERROR(aclmdlRIBindStream(modelRI, stream3, ACL_MODEL_STREAM_FLAG_DEFAULT));
     CHECK_ERROR(aclmdlRIBindStream(modelRI, stream4, ACL_MODEL_STREAM_FLAG_DEFAULT));
+    CHECK_ERROR(aclmdlRIBindStream(modelRI, endStream, ACL_MODEL_STREAM_FLAG_DEFAULT));
+    // 对于不绑定的流操作，使用独立的 copyStream 进行初始化数据的拷入
     CHECK_ERROR(aclrtMemcpyAsync(selfDevice1, size, selfHostData1.data(), size, ACL_MEMCPY_HOST_TO_DEVICE, stream1));
     CHECK_ERROR(aclrtMemcpyAsync(selfDevice2, size, selfHostData2.data(), size, ACL_MEMCPY_HOST_TO_DEVICE, stream2));
     CHECK_ERROR(aclrtMemcpyAsync(selfDevice3, size, selfHostData3.data(), size, ACL_MEMCPY_HOST_TO_DEVICE, stream3));
     CHECK_ERROR(aclrtMemcpyAsync(otherDevice1, size, otherHostData1.data(), size, ACL_MEMCPY_HOST_TO_DEVICE, stream1));
     CHECK_ERROR(aclrtMemcpyAsync(otherDevice2, size, otherHostData2.data(), size, ACL_MEMCPY_HOST_TO_DEVICE, stream2));
     CHECK_ERROR(aclrtMemcpyAsync(otherDevice3, size, otherHostData3.data(), size, ACL_MEMCPY_HOST_TO_DEVICE, stream3));
-    // stream1的任务为下发一个aclnn算子以及一个核函数，核函数使numDevice自增
     aclnnAdd(addWorkspaceAddr1, addWorkspaceSize1, addExecutor1, stream1);
-    EasyOP(blockDim, stream1, numDevice);
-    // stream2的任务为下发一个aclnn算子
+    CHECK_ERROR(aclrtMemcpyAsync(numDevice, sizeof(uint32_t), targetValDev_1, sizeof(uint32_t), ACL_MEMCPY_DEVICE_TO_DEVICE, stream1));
+    // stream2的任务为下发一个aclnn算子，完成后激活endStream
     aclnnAdd(addWorkspaceAddr2, addWorkspaceSize2, addExecutor2, stream2);
-    // stream3的任务为下发一个aclnn算子
+    CHECK_ERROR(aclrtActiveStream(endStream, stream2));
+    // stream3的任务为下发一个aclnn算子，完成后激活endStream
     aclnnAdd(addWorkspaceAddr3, addWorkspaceSize3, addExecutor3, stream3);
-    // 当计算核函数后得到的numdevice为1时，跳转至stream3,stream1暂停。
+    CHECK_ERROR(aclrtActiveStream(endStream, stream3));
+    // 根据安全且强制写入的 numdevice=1 状态，流能够安全跳转至stream3。仅保留一个Switch验证分支打通
+    // 将两条 SwitchStream 全部加回（必须确保第一个分支哪怕未命中时，设备侧仍兼容执行第二个分支）
     CHECK_ERROR(aclrtSwitchStream(numDevice, condition, rightDevice1, dataType, stream3, nullptr, stream1));
-    // 当计算核函数后得到的numdevice为2时，跳转至stream4,stream1暂停。
     CHECK_ERROR(aclrtSwitchStream(numDevice, condition, rightDevice2, dataType, stream4, nullptr, stream1));
     // stream4的任务为激活stream2,他们会并行执行，要注意，使用该接口的两个流应该都已绑定了模型实例
     CHECK_ERROR(aclrtActiveStream(stream2, stream4));
-    // 结束任务，stream1在跳转后会结束，所以该处只需要结束stream2,3,4
-    CHECK_ERROR(aclmdlRIEndTask(modelRI, stream2));
-    CHECK_ERROR(aclmdlRIEndTask(modelRI, stream4));
-    CHECK_ERROR(aclmdlRIEndTask(modelRI, stream3));
+    // 结束任务：仅在汇聚流endStream上调用EndTask（一个模型只能有一个EndGraph）
+    // 路径1（numDevice==1）: stream1 → stream3 → ActiveStream(endStream) → EndTask
+    CHECK_ERROR(aclmdlRIEndTask(modelRI, endStream));
     CHECK_ERROR(aclmdlRIBuildEnd(modelRI, NULL));
-
     aclrtStream executeStream;
     aclrtCreateStream(&executeStream);
-    
-    // num = 0,第一次执行时，num自增为1，会跳转至stream3
+    // 执行图任务：
     CHECK_ERROR(aclmdlRIExecuteAsync(modelRI, executeStream));
     CHECK_ERROR(aclrtSynchronizeStream(executeStream));
-    CHECK_ERROR(aclrtMemcpy(outHostData1.data(), size, outDevice1, size, ACL_MEMCPY_DEVICE_TO_HOST));
-    CHECK_ERROR(aclrtMemcpy(outHostData2.data(), size, outDevice2, size, ACL_MEMCPY_DEVICE_TO_HOST));
-    CHECK_ERROR(aclrtMemcpy(outHostData3.data(), size, outDevice3, size, ACL_MEMCPY_DEVICE_TO_HOST));
-    // 该输出中，data1对应为stream1的算子计算结果，如果某个stream没有执行算子，此处输出结果为全0
+    // 使用刚才新建的独立的、完全未被绑定过的 copyStream 来做结果的拷回
+    CHECK_ERROR(aclrtMemcpyAsync(outHostData1.data(), size, outDevice1, size, ACL_MEMCPY_DEVICE_TO_HOST, copyStream));
+    CHECK_ERROR(aclrtMemcpyAsync(outHostData2.data(), size, outDevice2, size, ACL_MEMCPY_DEVICE_TO_HOST, copyStream));
+    CHECK_ERROR(aclrtMemcpyAsync(outHostData3.data(), size, outDevice3, size, ACL_MEMCPY_DEVICE_TO_HOST, copyStream));
+    CHECK_ERROR(aclrtSynchronizeStream(copyStream));
     INFO_LOG("After executing, print data1.");
     ModelUtils::PrintArray(outHostData1);
     INFO_LOG("After executing, print data2.");
     ModelUtils::PrintArray(outHostData2);
     INFO_LOG("After executing, print data3.");
     ModelUtils::PrintArray(outHostData3);
-
-    // 将上一次执行后的结果清零，随后再执行
+    // ================= 测试分支值为 2 的场景 =====================
+    // 第二次执行模型前，我们要将 targetValDev_1 中的值修改为 2，
+    // 以便让图里面录入的那句 DeviceToDevice 复制时把 2 写进 numDevice。
+    uint32_t val2 = 2;
+    // 使用独立的 copyStream 拷贝 2 到 targetValDev_1 中
+    CHECK_ERROR(aclrtMemcpyAsync(targetValDev_1, sizeof(uint32_t), &val2, sizeof(uint32_t), ACL_MEMCPY_HOST_TO_DEVICE, copyStream));
+    CHECK_ERROR(aclrtSynchronizeStream(copyStream));
+    // 将上一次的主机结果清零，以免混淆
     outHostData1.assign(outHostData1.size(), 0);
     outHostData2.assign(outHostData2.size(), 0);
     outHostData3.assign(outHostData3.size(), 0);
-    CHECK_ERROR(aclrtMemcpyAsync(outDevice1, size, outHostData1.data(), size, ACL_MEMCPY_HOST_TO_DEVICE, stream1));
-    CHECK_ERROR(aclrtMemcpyAsync(outDevice2, size, outHostData2.data(), size, ACL_MEMCPY_HOST_TO_DEVICE, stream2));
-    CHECK_ERROR(aclrtMemcpyAsync(outDevice3, size, outHostData3.data(), size, ACL_MEMCPY_HOST_TO_DEVICE, stream3));
-    // 此时由于上一次numdevice已经自增为1，此时再次自增，结果为2，会跳转至stream4，随后stream4激活stream2
+    // 执行第二次图任务：
     CHECK_ERROR(aclmdlRIExecuteAsync(modelRI, executeStream));
     CHECK_ERROR(aclrtSynchronizeStream(executeStream));
-    CHECK_ERROR(aclrtMemcpy(outHostData1.data(), size, outDevice1, size, ACL_MEMCPY_DEVICE_TO_HOST));
-    CHECK_ERROR(aclrtMemcpy(outHostData2.data(), size, outDevice2, size, ACL_MEMCPY_DEVICE_TO_HOST));
-    CHECK_ERROR(aclrtMemcpy(outHostData3.data(), size, outDevice3, size, ACL_MEMCPY_DEVICE_TO_HOST));
-    INFO_LOG("After activing stream2 and executing, print data1.");
+    // 使用 copyStream 拷回结果
+    CHECK_ERROR(aclrtMemcpyAsync(outHostData1.data(), size, outDevice1, size, ACL_MEMCPY_DEVICE_TO_HOST, copyStream));
+    CHECK_ERROR(aclrtMemcpyAsync(outHostData2.data(), size, outDevice2, size, ACL_MEMCPY_DEVICE_TO_HOST, copyStream));
+    CHECK_ERROR(aclrtMemcpyAsync(outHostData3.data(), size, outDevice3, size, ACL_MEMCPY_DEVICE_TO_HOST, copyStream));
+    CHECK_ERROR(aclrtSynchronizeStream(copyStream));
+    INFO_LOG("After second execution, print data1.");
     ModelUtils::PrintArray(outHostData1);
-    INFO_LOG("After activing stream2 and executing, print data2.");
+    INFO_LOG("After second execution, print data2.");
     ModelUtils::PrintArray(outHostData2);
-    INFO_LOG("After activing stream2 and executing, print data3.");
+    INFO_LOG("After second execution, print data3.");
     ModelUtils::PrintArray(outHostData3);
-
     // 解除模型实例与流的绑定
     CHECK_ERROR(aclmdlRIUnbindStream(modelRI, stream1));
     CHECK_ERROR(aclmdlRIUnbindStream(modelRI, stream2));
     CHECK_ERROR(aclmdlRIUnbindStream(modelRI, stream3));
     CHECK_ERROR(aclmdlRIUnbindStream(modelRI, stream4));
+    CHECK_ERROR(aclmdlRIUnbindStream(modelRI, endStream));
     CHECK_ERROR(aclmdlRIDestroy(modelRI));
+    CHECK_ERROR(aclrtDestroyStream(copyStream));
+    CHECK_ERROR(aclrtDestroyStream(executeStream));
     CHECK_ERROR(aclrtDestroyStream(stream1));
     CHECK_ERROR(aclrtDestroyStream(stream2));
     CHECK_ERROR(aclrtDestroyStream(stream3));
     CHECK_ERROR(aclrtDestroyStream(stream4));
+    CHECK_ERROR(aclrtDestroyStream(endStream));
     CHECK_ERROR(aclDestroyTensor(self1));
     CHECK_ERROR(aclDestroyTensor(other1));
     CHECK_ERROR(aclDestroyTensor(out1));
@@ -215,6 +226,9 @@ int main()
     CHECK_ERROR(aclDestroyTensor(out3));
     CHECK_ERROR(aclDestroyScalar(alpha));
     CHECK_ERROR(aclrtFree(numDevice));
+    CHECK_ERROR(aclrtFree(targetValDev_1));
+    CHECK_ERROR(aclrtFree(rightDevice1));
+    CHECK_ERROR(aclrtFree(rightDevice2));
     CHECK_ERROR(aclrtFree(selfDevice1));
     CHECK_ERROR(aclrtFree(otherDevice1));
     CHECK_ERROR(aclrtFree(outDevice1));
@@ -224,15 +238,14 @@ int main()
     CHECK_ERROR(aclrtFree(selfDevice3));
     CHECK_ERROR(aclrtFree(otherDevice3));
     CHECK_ERROR(aclrtFree(outDevice3));
-
     if (addWorkspaceAddr1 != nullptr) {
         CHECK_ERROR(aclrtFree(addWorkspaceAddr1));
     }
-    if (addWorkspaceAddr1 != nullptr) {
-        CHECK_ERROR(aclrtFree(addWorkspaceAddr1));
+    if (addWorkspaceAddr2 != nullptr) {
+        CHECK_ERROR(aclrtFree(addWorkspaceAddr2));
     }
-    if (addWorkspaceAddr1 != nullptr) {
-        CHECK_ERROR(aclrtFree(addWorkspaceAddr1));
+    if (addWorkspaceAddr3 != nullptr) {
+        CHECK_ERROR(aclrtFree(addWorkspaceAddr3));
     }
     // 释放计算设备的资源
     CHECK_ERROR(aclrtDestroyContext(context));

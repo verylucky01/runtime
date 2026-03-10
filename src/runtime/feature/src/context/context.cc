@@ -4450,6 +4450,7 @@ rtError_t Context::StreamEndCapture(Stream * const stm, Model ** const captureMd
         }
     }
 
+    (void)captureModel->ModelExecuteType();
     /* stm end capture */
     stm->ExitCapture();
     *captureMdl = captureModel;

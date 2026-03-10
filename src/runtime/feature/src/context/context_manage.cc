@@ -457,6 +457,9 @@ static rtError_t ResourceRestore()
  
         ret = dev->ResourceRestore();
         ERROR_RETURN(ret, "Device resource restore failed, devId=%d, ret=%#x.", devId, ret);
+        
+        ret = dev->EventExpandingPoolRestore();
+        ERROR_RETURN(ret, "EventexpandingPool restore failed, devId=%d, ret=%#x.", devId, ret);
     }
     return ret;
 }

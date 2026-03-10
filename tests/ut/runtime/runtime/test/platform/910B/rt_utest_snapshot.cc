@@ -38,12 +38,30 @@ protected:
 
     virtual void SetUp()
     {
+        rtError_t error = rtSetDevice(0);
+        ASSERT_EQ(error, RT_ERROR_NONE);
+
+        device_ = Runtime::Instance()->GetDevice(0, 0);
+        ASSERT_NE(device_, nullptr);
+
+        deviceSnapshot_ = new (std::nothrow) DeviceSnapshot(device_);
+        ASSERT_NE(deviceSnapshot_, nullptr);
+
+        eventPool_ = new (std::nothrow) EventExpandingPool(device_);
+        ASSERT_NE(eventPool_, nullptr);
     }
 
     virtual void TearDown()
     {
+        DELETE_O(deviceSnapshot_);
+        DELETE_O(eventPool_);
+        rtDeviceReset(0);
         GlobalMockObject::verify();
     }
+
+    Device* device_{nullptr};
+    DeviceSnapshot* deviceSnapshot_{nullptr};
+    EventExpandingPool* eventPool_{nullptr};
 };
 
 TEST_F(SnapshotTest, Lock_Unlock)
@@ -274,4 +292,98 @@ TEST_F(SnapshotTest, StreamTaskClean)
 
     error = rtDeviceReset(devId);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
+}
+
+TEST_F(SnapshotTest, AddArgPcieBar_Single) {
+    void* testAddr = reinterpret_cast<void*>(0x1000);
+    size_t testSize = 4096;
+
+    deviceSnapshot_->AddArgPcieBar(testAddr, testSize);
+
+    const auto& barInfos = deviceSnapshot_->GetArgPcieBarInfos();
+    EXPECT_EQ(barInfos.size(), 1U);
+    EXPECT_EQ(barInfos[0].first, testAddr);
+    EXPECT_EQ(barInfos[0].second, testSize);
+}
+
+TEST_F(SnapshotTest, AddArgPcieBar_Multiple) {
+    std::vector<std::pair<void*, size_t>> testData = {
+        {reinterpret_cast<void*>(0x1000), 4096},
+        {reinterpret_cast<void*>(0x2000), 8192},
+        {reinterpret_cast<void*>(0x3000), 16384}
+    };
+
+    for (const auto& data : testData) {
+        deviceSnapshot_->AddArgPcieBar(data.first, data.second);
+    }
+
+    const auto& barInfos = deviceSnapshot_->GetArgPcieBarInfos();
+    EXPECT_EQ(barInfos.size(), testData.size());
+
+    for (size_t i = 0; i < testData.size(); ++i) {
+        EXPECT_EQ(barInfos[i].first, testData[i].first);
+        EXPECT_EQ(barInfos[i].second, testData[i].second);
+    }
+}
+
+TEST_F(SnapshotTest, GetArgPcieBarInfos_Empty) {
+    const auto& barInfos = deviceSnapshot_->GetArgPcieBarInfos();
+    EXPECT_EQ(barInfos.size(), 0U);
+}
+
+TEST_F(SnapshotTest, ResetBufferForEvent_Normal) {
+    void* eventAddr = nullptr;
+    int32_t eventId = 0;
+    rtError_t ret = eventPool_->AllocAndInsertEvent(&eventAddr, &eventId);
+    ASSERT_EQ(ret, RT_ERROR_NONE);
+    ASSERT_NE(eventAddr, nullptr);
+
+    ret = eventPool_->ResetBufferForEvent();
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+}
+
+TEST_F(SnapshotTest, ResetBufferForEvent_MultiplePools) {
+    void* eventAddr = nullptr;
+    int32_t eventId = 0;
+
+    for (int i = 0; i < 4 * 1024 * 1024; ++i) {
+        rtError_t ret = eventPool_->AllocAndInsertEvent(&eventAddr, &eventId);
+        ASSERT_EQ(ret, RT_ERROR_NONE);
+    }
+
+    uint16_t poolIndex = eventPool_->GetPoolIndex();
+    EXPECT_GT(poolIndex, 0U);
+
+    rtError_t ret = eventPool_->ResetBufferForEvent();
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+}
+
+TEST_F(SnapshotTest, ResetBufferForEvent_MemsetBuffersFailed) {
+    void* eventAddr = nullptr;
+    int32_t eventId = 0;
+    rtError_t ret = eventPool_->AllocAndInsertEvent(&eventAddr, &eventId);
+    ASSERT_EQ(ret, RT_ERROR_NONE);
+
+    NpuDriver *drv = dynamic_cast<NpuDriver *>(device_->Driver_());
+    EXPECT_NE(drv, nullptr);
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::MemSetSync).stubs().will(returnValue(RT_ERROR_DRV_NOT_SUPPORT));
+
+    ret = eventPool_->ResetBufferForEvent();
+    EXPECT_NE(ret, RT_ERROR_NONE);
+}
+
+TEST_F(SnapshotTest, GetPoolIndex_Initial) {
+    uint16_t poolIndex = eventPool_->GetPoolIndex();
+    EXPECT_EQ(poolIndex, 0U);
+}
+
+TEST_F(SnapshotTest, GetPoolIndex_AfterAlloc) {
+    void* eventAddr = nullptr;
+    int32_t eventId = 0;
+
+    rtError_t ret = eventPool_->AllocAndInsertEvent(&eventAddr, &eventId);
+    ASSERT_EQ(ret, RT_ERROR_NONE);
+
+    uint16_t poolIndex = eventPool_->GetPoolIndex();
+    EXPECT_GE(poolIndex, 0U);
 }

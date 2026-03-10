@@ -32,5 +32,11 @@ void EventExpandingPool::FreeEventId(int32_t eventId)
 {
     UNUSED(eventId);
 }
+
+rtError_t EventExpandingPool::ResetBufferForEvent()
+{
+    return RT_ERROR_NONE;
+}
+
 }
 }

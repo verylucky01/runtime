@@ -27,6 +27,12 @@ public:
     ~EventExpandingPool() override;
     rtError_t AllocAndInsertEvent(void** const eventAddr, int32_t *eventId);
     void FreeEventId(int32_t eventId);
+    rtError_t ResetBufferForEvent();
+
+    uint16_t GetPoolIndex()
+    {
+        return poolIndex_;
+    }
 protected:
     Device* device_;
 

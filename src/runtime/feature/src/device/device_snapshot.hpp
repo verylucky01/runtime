@@ -47,23 +47,14 @@ public:
         opBackUpAddrs_ = std::move(hostAddr);
     }
 
-    void SetArgPcieBarSize(size_t size)
+    void AddArgPcieBar(void *addr, size_t size)
     {
-        argPcieBarSize_ = size;
+        argPcieBarInfos_.push_back(std::make_pair(addr, size));
     }
-    size_t GetArgPcieBarSize(void) const
+
+    const std::vector<std::pair<void*, size_t>>& GetArgPcieBarInfos(void) const
     {
-        return argPcieBarSize_;
-    }
- 
-    void SetArgPcieBarAddr(void *addr)
-    {
-        argPcieBarAddr_ = addr;
-    }
- 
-    void *GetArgPcieBarAddr(void) const
-    {
-        return argPcieBarAddr_;
+        return argPcieBarInfos_;
     }
 
     size_t GetOpTotalHostMemSize(void) const
@@ -83,8 +74,7 @@ public:
 private:
     std::vector<std::pair<void*, size_t>> opVirtualAddrs_{};
     std::unique_ptr<uint8_t[]> opBackUpAddrs_ = nullptr;
-    void *argPcieBarAddr_ = nullptr;
-    size_t argPcieBarSize_ = 0U;
+    std::vector<std::pair<void*, size_t>> argPcieBarInfos_{};
     size_t opTotalHostMemSize_ = 0U;
     Device *device_ = nullptr;
 };

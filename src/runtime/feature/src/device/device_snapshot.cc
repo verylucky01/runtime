@@ -18,6 +18,72 @@
 #include "uma_arg_loader.hpp"
 #include "memcpy_c.hpp"
 
+// TaskHandlers namespace contains handler functions for different task types
+// Used by RecordFuncCallAddrAndSize() to record virtual addresses for snapshot
+// Each handler extracts task-specific addresses and adds them to the snapshot
+namespace TaskHandlers {
+void HandleStreamSwitch(TaskInfo* const task, DeviceSnapshot* snapshot) {
+    StreamSwitchTaskInfo* streamSwitchTask = &(task->u.streamswitchTask);
+    snapshot->AddOpVirtualAddr(streamSwitchTask->funcCallSvmMem, 
+                            static_cast<size_t>(streamSwitchTask->funCallMemSize));
+}
+
+void HandleStreamLabelSwitchByIndex(TaskInfo* const task, DeviceSnapshot* snapshot) {
+    StmLabelSwitchByIdxTaskInfo* info = &(task->u.stmLabelSwitchIdxTask);
+    snapshot->AddOpVirtualAddr(info->funcCallSvmMem, 
+                            static_cast<size_t>(info->funCallMemSize));
+    // index type is uint32_t, device addr need 8 byte align
+    snapshot->AddOpVirtualAddr(info->indexPtr, sizeof(uint64_t));
+    
+    const uint32_t labelMemSize = sizeof(rtLabelDevInfo) * info->max;
+    snapshot->AddOpVirtualAddr(info->labelInfoPtr, labelMemSize);
+}
+
+void HandleMemWaitValue(TaskInfo* const task, DeviceSnapshot* snapshot) {
+    MemWaitValueTaskInfo* info = &(task->u.memWaitValueTask);
+    snapshot->AddOpVirtualAddr(info->funcCallSvmMem2, 
+                            static_cast<size_t>(info->funCallMemSize2));
+    // devAddr的有效内存位宽为64bit
+    snapshot->AddOpVirtualAddr(RtPtrToPtr<void*>(info->devAddr), sizeof(uint64_t));
+}
+
+void HandleRdmaPiValueModify(TaskInfo* const task, DeviceSnapshot* snapshot) {
+    RdmaPiValueModifyInfo* info = &(task->u.rdmaPiValueModifyInfo);
+    snapshot->AddOpVirtualAddr(info->funCallMemAddr, 
+                            static_cast<size_t>(info->funCallMemSize));
+}
+
+void HandleStreamActive(TaskInfo* const task, DeviceSnapshot* snapshot) {
+    StreamActiveTaskInfo* info = &(task->u.streamactiveTask);
+    snapshot->AddOpVirtualAddr(info->funcCallSvmMem, 
+                            static_cast<size_t>(info->funCallMemSize));
+}
+
+void HandleModelTaskUpdate(TaskInfo* const task, DeviceSnapshot* snapshot) {
+    MdlUpdateTaskInfo* info = &(task->u.mdlUpdateTask);
+    const size_t size = info->tilingTabLen * sizeof(TilingTabl);
+    snapshot->AddOpVirtualAddr(info->tilingTabAddr, size);
+    snapshot->AddOpVirtualAddr(info->tilingKeyAddr, sizeof(uint64_t));
+    snapshot->AddOpVirtualAddr(info->blockDimAddr, sizeof(uint64_t));
+}
+}
+
+namespace {
+using TaskHandlerFunc = void(*)(TaskInfo* const, DeviceSnapshot*);
+const std::unordered_map<int, TaskHandlerFunc>& GetHandlerMap() {
+    static const std::unordered_map<int, TaskHandlerFunc> handlerMap = {
+        {TS_TASK_TYPE_STREAM_SWITCH, &TaskHandlers::HandleStreamSwitch},
+        {TS_TASK_TYPE_STREAM_LABEL_SWITCH_BY_INDEX, &TaskHandlers::HandleStreamLabelSwitchByIndex},
+        {TS_TASK_TYPE_MEM_WAIT_VALUE, &TaskHandlers::HandleMemWaitValue},
+        {TS_TASK_TYPE_CAPTURE_WAIT, &TaskHandlers::HandleMemWaitValue},
+        {TS_TASK_TYPE_RDMA_PI_VALUE_MODIFY, &TaskHandlers::HandleRdmaPiValueModify},
+        {TS_TASK_TYPE_STREAM_ACTIVE, &TaskHandlers::HandleStreamActive},
+        {TS_TASK_TYPE_MODEL_TASK_UPDATE, &TaskHandlers::HandleModelTaskUpdate}
+    };
+    return handlerMap;
+}
+}
+
 namespace cce {
 namespace runtime {
 
@@ -79,47 +145,12 @@ void DeviceSnapshot::RecordArgsAddrAndSize(TaskInfo *const task)
 
 void DeviceSnapshot::RecordFuncCallAddrAndSize(TaskInfo *const task)
 {
-    if (task->type == TS_TASK_TYPE_STREAM_SWITCH) {
-        StreamSwitchTaskInfo* streamSwitchTask = &(task->u.streamswitchTask);
-        void *addr = streamSwitchTask->funcCallSvmMem;
-        const size_t size = streamSwitchTask->funCallMemSize;
-        AddOpVirtualAddr(addr, static_cast<size_t>(size));
-    } else if (task->type == TS_TASK_TYPE_STREAM_LABEL_SWITCH_BY_INDEX) {
-        StmLabelSwitchByIdxTaskInfo * stmLabelSwitchByIdxTaskInfo = &(task->u.stmLabelSwitchIdxTask);
-        void *addr = stmLabelSwitchByIdxTaskInfo->funcCallSvmMem;
-        const size_t size = stmLabelSwitchByIdxTaskInfo->funCallMemSize;
-        AddOpVirtualAddr(addr, static_cast<size_t>(size));
-        /* index type is uin32_t, device addr need 8 byte align */
-        AddOpVirtualAddr(stmLabelSwitchByIdxTaskInfo->indexPtr, sizeof(uint64_t));
-        const uint32_t labelMemSize = sizeof(rtLabelDevInfo) * stmLabelSwitchByIdxTaskInfo->max;
-        AddOpVirtualAddr(stmLabelSwitchByIdxTaskInfo->labelInfoPtr, labelMemSize);
-    } else if (task->type == TS_TASK_TYPE_MEM_WAIT_VALUE) {
-        MemWaitValueTaskInfo *memWaitValueTask = &(task->u.memWaitValueTask);
-        void *addr = memWaitValueTask->funcCallSvmMem2;
-        size_t size = memWaitValueTask->funCallMemSize2;
-        AddOpVirtualAddr(addr, static_cast<size_t>(size));
-        AddOpVirtualAddr(RtPtrToPtr<void *>(memWaitValueTask->devAddr), sizeof(uint64_t)); // devAddr的有效内存位宽为64bit
-    } else if (task->type == TS_TASK_TYPE_RDMA_PI_VALUE_MODIFY) {
-        RdmaPiValueModifyInfo *rdmaPiValueModifyInfo = &(task->u.rdmaPiValueModifyInfo);
-        void *addr = rdmaPiValueModifyInfo->funCallMemAddr;
-        const size_t size = rdmaPiValueModifyInfo->funCallMemSize;
-        AddOpVirtualAddr(addr, static_cast<size_t>(size));
-    } else if (task->type == TS_TASK_TYPE_STREAM_ACTIVE) {
-        StreamActiveTaskInfo *streamActiveTask = &(task->u.streamactiveTask);
-        void *addr = streamActiveTask->funcCallSvmMem;
-        const size_t size = streamActiveTask->funCallMemSize;
-        AddOpVirtualAddr(addr, static_cast<size_t>(size));
-    } else if (task->type == TS_TASK_TYPE_MODEL_TASK_UPDATE) {
-        MdlUpdateTaskInfo *mdlUpdateTaskInfo = &(task->u.mdlUpdateTask);
-        const size_t size = mdlUpdateTaskInfo->tilingTabLen * sizeof(TilingTabl);
-        void *addr = mdlUpdateTaskInfo->tilingTabAddr;
-        AddOpVirtualAddr(addr, size);
-        AddOpVirtualAddr(mdlUpdateTaskInfo->tilingKeyAddr, sizeof(uint64_t));
-        AddOpVirtualAddr(mdlUpdateTaskInfo->blockDimAddr, sizeof(uint64_t));
-    } else {
-        // do nothing
+    static const auto& handlerMap = GetHandlerMap();
+    auto it = handlerMap.find(task->type);
+    
+    if (it != handlerMap.end()) {
+        it->second(task, this);
     }
-    return;
 }
 
 void DeviceSnapshot::GetOpTotalMemoryInfo(const Model *const mdl)
@@ -240,12 +271,15 @@ rtError_t DeviceSnapshot::ArgsPoolRestore(void) const
     UmaArgLoader *umaArgLoader = dynamic_cast<UmaArgLoader *>(argLoaderObj);
     COND_RETURN_ERROR((umaArgLoader == nullptr), RT_ERROR_INVALID_VALUE, "Get umaArgLoader nullptr, devId=%d", device_->Id_());
 
-    void *addr = GetArgPcieBarAddr();
-    const size_t size = GetArgPcieBarSize();
+    const std::vector<std::pair<void*, size_t>> &argPcieBarInfos = GetArgPcieBarInfos();
     void* outAddr = nullptr;
+    rtError_t ret = RT_ERROR_NONE;
 
-    rtError_t ret = device_->Driver_()->PcieHostRegister(addr, static_cast<uint64_t>(size), device_->Id_(), outAddr);
-    ERROR_RETURN(ret, "PcieHostRegister failed, retCode=%#x.", ret);
+    for (const auto &argPcieBarInfo : argPcieBarInfos) {
+        ret = device_->Driver_()->PcieHostRegister(
+            argPcieBarInfo.first, static_cast<uint64_t>(argPcieBarInfo.second), device_->Id_(), outAddr);
+        ERROR_RETURN(ret, "PcieHostRegister failed, retCode=%#x.", ret);
+    }
 
     H2DCopyMgr *mgr = umaArgLoader->GetArgsAllocator();
     ret = ArgsPoolConvertAddr(mgr);

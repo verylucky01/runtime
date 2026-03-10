@@ -35,6 +35,7 @@ public:
     rtError_t Stop() override;
     rtError_t ReOpen() override;
     rtError_t ResourceRestore() override;
+    rtError_t EventExpandingPoolRestore(void) override;
 
     void PushEvent(Event *const evt) override;
     void RemoveEvent(Event *const evt) override;

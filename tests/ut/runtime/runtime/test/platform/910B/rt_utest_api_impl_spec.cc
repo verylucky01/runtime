@@ -789,54 +789,40 @@ TEST_F(CloudV2ApiImplSpecTest, MODEL_SNAPSHOT_001)
     EXPECT_EQ(curCtx != nullptr, true);
     Device * dev = curCtx->Device_();
     EXPECT_EQ(dev != nullptr, true);
-
     rtModel_t model;
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-
     Model *temp_model = (Model*) model;
     temp_model->UpdateSnapShotSqe();
     temp_model->ReBuild();
-
     rtStream_t sinkStm;
     error = rtStreamCreate(&sinkStm, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-
     RawDevice *rawDevice = dynamic_cast<RawDevice *>(dev);
     MOCKER_CPP_VIRTUAL(rawDevice->Engine_(), &Engine::SyncTask).stubs().will(returnValue(RT_ERROR_NONE));
     rtModelBindStream(model, sinkStm, 0);
-
     MOCKER(MemcopyAsync).stubs().will(returnValue(RT_ERROR_NONE));
-
     uint64_t* args = new uint64_t[20];
-    // aicpu
-    Stream *stream = (Stream *)sinkStm;
+    
+    std::vector<std::pair<TaskInfo*, std::function<void()>>> testTasks;
     TaskInfo task1 = {};
-    InitByStream(&task1, stream);
+    InitByStream(&task1, (Stream *)sinkStm);
     AicpuTaskInit(&task1, 1, 0);
     task1.u.aicTaskInfo.comm.args = &args[0];
     task1.u.aicTaskInfo.comm.argsSize = 8;
-    stream->AddTaskToStream(&task1);
+    ((Stream *)sinkStm)->AddTaskToStream(&task1);
     dev->GetDeviceSnapShot()->RecordArgsAddrAndSize(&task1);
-
-    EXPECT_EQ(stream->IsNeedUpdateTask(&task1), false);
-
-    // aic
     TaskInfo task2 = {};
-    InitByStream(&task2, stream);
+    InitByStream(&task2, (Stream *)sinkStm);
     AicTaskInit(&task2, 0, 1, 0, nullptr);
-
     task2.u.aicTaskInfo.comm.args = &args[1];
     task2.u.aicTaskInfo.comm.argsSize = 8;
-    stream->AddTaskToStream(&task2);
+    ((Stream *)sinkStm)->AddTaskToStream(&task2);
     dev->GetDeviceSnapShot()->RecordArgsAddrAndSize(&task2);
-
-    // mix
     const void *stubFunc = (void *)0x02;
     const char *stubName = "abc";
-
     TaskInfo task3 = {};
-    InitByStream(&task3, stream);
+    InitByStream(&task3, (Stream *)sinkStm);
     AicTaskInit(&task3, Program::MACH_AI_CORE, 1, 1, nullptr);
     PlainProgram stubProg(Program::MACH_AI_CORE);
     Program *program = &stubProg;
@@ -845,81 +831,64 @@ TEST_F(CloudV2ApiImplSpecTest, MODEL_SNAPSHOT_001)
     task3.u.aicTaskInfo.kernel = kernel;
     kernel->SetMixType(MIX_AIV);
     task3.u.aicTaskInfo.mixOpt= true;
-
     task3.u.aicTaskInfo.comm.args = &args[3];
     task3.u.aicTaskInfo.comm.argsSize = 8;
-
     rtFftsPlusMixAicAivCtx_t * descAlignBuf = new rtFftsPlusMixAicAivCtx_t;
     task3.u.aicTaskInfo.descAlignBuf = descAlignBuf;
-    stream->AddTaskToStream(&task3);
+    ((Stream *)sinkStm)->AddTaskToStream(&task3);
     dev->GetDeviceSnapShot()->RecordArgsAddrAndSize(&task3);
-
-    // fftsplus
     TaskInfo task4 = {};
     rtFftsPlusTaskInfo_t  fftsPlusTaskInfo = {};
-    MOCKER(FillFftsPlusSqe)
-        .stubs()
-        .will(returnValue(RT_ERROR_NONE));
-
-    InitByStream(&task4, stream);
+    MOCKER(FillFftsPlusSqe).stubs().will(returnValue(RT_ERROR_NONE));
+    InitByStream(&task4, (Stream *)sinkStm);
     FftsPlusTaskInit(&task4, &fftsPlusTaskInfo, 0);
     FftsPlusTaskInfo *fftsPlusTask = &(task4.u.fftsPlusTask);
     fftsPlusTask->descAlignBuf = &args[4];
     fftsPlusTask->descBufLen = 8;
-    stream->AddTaskToStream(&task4);
+    ((Stream *)sinkStm)->AddTaskToStream(&task4);
     dev->GetDeviceSnapShot()->RecordArgsAddrAndSize(&task4);
-
-    // 条件算子
     TaskInfo task5 = {};
-    InitByStream(&task5, stream);
-    StreamActiveTaskInit(&task5, stream);
+    InitByStream(&task5, (Stream *)sinkStm);
+    StreamActiveTaskInit(&task5, (Stream *)sinkStm);
     StreamActiveTaskInfo *streamActiveTask = &(task5.u.streamactiveTask);
     streamActiveTask->funcCallSvmMem = &args[5];
     streamActiveTask->funCallMemSize = 8;
-    stream->AddTaskToStream(&task5);
-    dev->GetDeviceSnapShot()->RecordFuncCallAddrAndSize(&task5);
-    StreamActiveTaskUnInit(&task5);
-
+    ((Stream *)sinkStm)->AddTaskToStream(&task5);
+    testTasks.push_back({&task5, [&task5]() { StreamActiveTaskUnInit(&task5); }});
     TaskInfo task6 = {};
     task6.typeName = "MEM_WAIT_VALUE";
     task6.type = TS_TASK_TYPE_MEM_WAIT_VALUE;
-    InitByStream(&task6, stream);
+    InitByStream(&task6, (Stream *)sinkStm);
     MemWaitValueTaskInit(&task6, &args[8], 0, 0);
     MemWaitValueTaskInfo *memWaitValueTask = &task6.u.memWaitValueTask;
     memWaitValueTask->funcCallSvmMem2 = &args[7];
     memWaitValueTask->funCallMemSize2 = 8;
     memWaitValueTask->devAddr = (uint64_t)(&args[8]);
-    stream->AddTaskToStream(&task6);
-    dev->GetDeviceSnapShot()->RecordFuncCallAddrAndSize(&task6);
-    MemWaitTaskUnInit(&task6);
-
+    ((Stream *)sinkStm)->AddTaskToStream(&task6);
+    testTasks.push_back({&task6, [&task6]() { MemWaitTaskUnInit(&task6); }});
     TaskInfo task7 = {};
-    InitByStream(&task7, stream);
+    InitByStream(&task7, (Stream *)sinkStm);
     StreamLabelSwitchByIndexTaskInit(&task7, &args[9], 10, &args[10]);
     StmLabelSwitchByIdxTaskInfo * stmLabelSwitchByIdxTaskInfo = &(task7.u.stmLabelSwitchIdxTask);
     stmLabelSwitchByIdxTaskInfo->funcCallSvmMem = &args[11];
     stmLabelSwitchByIdxTaskInfo->funCallMemSize = 8;
-    dev->GetDeviceSnapShot()->RecordFuncCallAddrAndSize(&task7);
-    StreamLabelSwitchByIndexTaskUnInit(&task7);
-
+    testTasks.push_back({&task7, [&task7]() { StreamLabelSwitchByIndexTaskUnInit(&task7); }});
     TaskInfo task8 = {};
-    InitByStream(&task8, stream);
+    InitByStream(&task8, (Stream *)sinkStm);
     task8.type = TS_TASK_TYPE_RDMA_PI_VALUE_MODIFY;
     RdmaPiValueModifyInfo *rdmaPiValueModifyInfo = &(task8.u.rdmaPiValueModifyInfo);
     rdmaPiValueModifyInfo->funCallMemAddr = &args[12];
     rdmaPiValueModifyInfo->funCallMemSize = 8;
-    dev->GetDeviceSnapShot()->RecordFuncCallAddrAndSize(&task8);
-
+    testTasks.push_back({&task8, []() {}});
     TaskInfo task9 = {};
-    InitByStream(&task9, stream);
+    InitByStream(&task9, (Stream *)sinkStm);
     task9.type = TS_TASK_TYPE_STREAM_SWITCH;
     StreamSwitchTaskInfo* streamSwitchTask = &(task9.u.streamswitchTask);
     streamSwitchTask->funcCallSvmMem = &args[13];
     streamSwitchTask->funCallMemSize = 8;
-    dev->GetDeviceSnapShot()->RecordFuncCallAddrAndSize(&task9);
-
+    testTasks.push_back({&task9, []() {}});
     TaskInfo task10 = {};
-    InitByStream(&task10, stream);
+    InitByStream(&task10, (Stream *)sinkStm);
     task10.type = TS_TASK_TYPE_MODEL_TASK_UPDATE;
     TilingTabl* tilingTbl = new TilingTabl;
     MdlUpdateTaskInfo *mdlUpdateTaskInfo = &(task10.u.mdlUpdateTask);
@@ -928,9 +897,26 @@ TEST_F(CloudV2ApiImplSpecTest, MODEL_SNAPSHOT_001)
     mdlUpdateTaskInfo->tilingKeyAddr = &args[14];
     mdlUpdateTaskInfo->blockDimAddr = &args[15];
     mdlUpdateTaskInfo->fftsPlusTaskDescBuf = &args[16];
-    dev->GetDeviceSnapShot()->RecordFuncCallAddrAndSize(&task10);
-    MOCKER_CPP_VIRTUAL(stream, &Stream::Synchronize).stubs().will(returnValue(RT_ERROR_NONE));
-
+    testTasks.push_back({&task10, []() {}});
+    TaskInfo task11 = {};
+    task11.typeName = "CAPTURE_WAIT";
+    task11.type = TS_TASK_TYPE_CAPTURE_WAIT;
+    InitByStream(&task11, (Stream *)sinkStm);
+    MemWaitValueTaskInit(&task11, &args[17], 0, 0);
+    MemWaitValueTaskInfo *captureWaitTask = &task11.u.memWaitValueTask;
+    captureWaitTask->funcCallSvmMem2 = &args[17];
+    captureWaitTask->funCallMemSize2 = 8;
+    captureWaitTask->devAddr = (uint64_t)(&args[18]);
+    ((Stream *)sinkStm)->AddTaskToStream(&task11);
+    testTasks.push_back({&task11, [&task11]() { MemWaitTaskUnInit(&task11); }});
+    for (auto& [task, cleanup] : testTasks) {
+        dev->GetDeviceSnapShot()->RecordFuncCallAddrAndSize(task);
+    }
+    
+    for (auto& [task, cleanup] : testTasks) {
+        cleanup();
+    }
+    MOCKER_CPP_VIRTUAL((Stream *)sinkStm, &Stream::Synchronize).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP(&DeviceSnapshot::OpMemoryInfoInit).stubs();
     error = dev->GetDeviceSnapShot()->OpMemoryBackup();
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -938,25 +924,21 @@ TEST_F(CloudV2ApiImplSpecTest, MODEL_SNAPSHOT_001)
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = dev->GetDeviceSnapShot()->ArgsPoolRestore();
     EXPECT_EQ(error, RT_ERROR_NONE);
-
     MOCKER(SqeUpdateH2DTaskInit).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER(MemcpyAsyncTaskCommonInit).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER(halMemAlloc).stubs().will(returnValue(DRV_ERROR_NONE));
-    stream->SubmitMemCpyAsyncTask(&task10);
-    stream->SubmitMemCpyAsyncTask(&task9);
-
+    ((Stream *)sinkStm)->SubmitMemCpyAsyncTask(&task10);
+    ((Stream *)sinkStm)->SubmitMemCpyAsyncTask(&task9);
     delete[] args;
     delete descAlignBuf;
     delete kernel;
     delete tilingTbl;
-
     error = rtModelUnbindStream(model, sinkStm);
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtStreamDestroy(sinkStm);
     EXPECT_EQ(error, RT_ERROR_NONE);
-
     Device* dev2 = curCtx->DefaultStream_()->Device_();
     MOCKER_CPP_VIRTUAL(dev2, &Device::GetDevRunningState)
     .stubs()

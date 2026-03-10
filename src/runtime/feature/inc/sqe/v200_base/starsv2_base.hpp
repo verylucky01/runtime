@@ -11,6 +11,8 @@
 #ifndef CCE_RUNTIME_STARSV2_BASE_H
 #define CCE_RUNTIME_STARSV2_BASE_H
 
+#include <cstdint>
+
 namespace cce {
 namespace runtime {
 #pragma pack(push)

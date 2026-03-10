@@ -11,7 +11,7 @@
 #ifndef __CCE_RUNTIME_CONFIG_DEFINE_ADC_HPP__
 #define __CCE_RUNTIME_CONFIG_DEFINE_ADC_HPP__
 
-#include "base.h"
+#include <cstdint>
 
 namespace cce {
 namespace runtime {

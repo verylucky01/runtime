@@ -13,7 +13,6 @@
 #include <mutex>
 #include <list>
 #include "model.hpp"
-#include "runtime/rt.h"
 #include "base.hpp"
 
 namespace cce {

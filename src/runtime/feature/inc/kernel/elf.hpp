@@ -134,7 +134,7 @@ enum Ratio {
     RATION_TYPE_MAX                   = 5,
 };
 
-enum KernelFunctionEntryType {
+enum class KernelFunctionEntryType {
     KERNEL_TYPE_TILING_KEY = 0,                 // legacy tiling key flow
     KERNEL_TYPE_FUNCTION_ENTRY = 1,             // replace tiling key with function entry
     KERNEL_TYPE_NOT_SUPPORT_FUNCTION_ENTRY = 2, // neither function-entry nor tiling-key supported

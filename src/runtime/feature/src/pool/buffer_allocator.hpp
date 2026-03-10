@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include "bitmap.hpp"
+#include "securec.h"
 
 namespace cce {
 namespace runtime {

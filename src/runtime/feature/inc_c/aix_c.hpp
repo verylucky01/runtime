@@ -14,12 +14,12 @@
 
 namespace cce {
 namespace runtime {
-    typedef struct StreamLaunchKernelV2ExtendArgs {
+    struct rtStreamLaunchKernelV2ExtendArgs_t {
         const rtArgsEx_t *argsInfo;
         const rtTaskCfgInfo_t *cfgInfo;
         const LaunchTaskCfgInfo_t *launchTaskCfg;
         const TaskCfg *taskCfg;
-    } rtStreamLaunchKernelV2ExtendArgs_t;
+    };
 
     rtError_t StreamLaunchKernelV1(const void * const stubFunc, const uint32_t coreDim, const rtArgsEx_t *argsInfo,
         Stream *stm, const uint32_t flag, const rtTaskCfgInfo_t * const cfgInfo);

@@ -21,7 +21,8 @@ protobuf_generate(platform_infos_proto PROTO_SRCS PROTO_HDRS ${PROTO_LIST} TARGE
 if((DEFINED PRODUCT) AND (PRODUCT STREQUAL "ascend031"))
         set(PLATFORMFILE
         "stub/platform_info_stub.cpp"
-        "stub/platform_infos_def_stub.cpp")
+        "stub/platform_infos_def_stub.cpp"
+        "stub/platform_manager_v2_stub.cpp")
 else()
         set(PLATFORMFILE
         "platform_info.cpp"

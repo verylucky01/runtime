@@ -61,6 +61,23 @@ rm -f ascendc_kernels_bbit
 cp ./out/bin/ascendc_kernels_bbit ./
 rm -rf input output
 mkdir -p input output
+
+# check and install numpy
+set +e
+echo "checking for numpy dependency..."
+python3 -c "import numpy" &> /dev/null
+if [ $? -ne 0 ]; then
+    echo "numpy not found. installing numpy..."
+    python3 -m pip install numpy --user
+    if [ $? -ne 0 ]; then
+        echo "Error: numpy installation failed. please check your pip environment."
+        exit 1
+    fi
+    echo "numpy installation completed."
+else
+    echo "numpy is already installed."
+fi
+set -e
 python3 scripts/gen_data.py
 
 export LD_LIBRARY_PATH=$(pwd)/out/lib:$(pwd)/out/lib64:${_ASCEND_INSTALL_PATH}/lib64:$LD_LIBRARY_PATH

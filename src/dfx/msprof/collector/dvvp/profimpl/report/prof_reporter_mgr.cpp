@@ -292,6 +292,11 @@ uint64_t ProfReporterMgr::GetHashId(const std::string &info) const
     return HashData::instance()->GenHashId(info);
 }
 
+std::string &ProfReporterMgr::GetHashInfo(uint64_t hashId) const
+{
+    return HashData::instance()->GetHashInfo(hashId);
+}
+
 void ProfReporterMgr::FillData(const std::string &saveHashData,
     SHARED_PTR_ALIA<ProfileFileChunk> fileChunk, bool isLastChunk, const std::string& filename) const
 {

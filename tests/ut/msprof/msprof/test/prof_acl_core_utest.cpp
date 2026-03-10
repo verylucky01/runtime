@@ -207,9 +207,9 @@ TEST_F(MSPROF_ACL_CORE_UTEST, acl_ge_api) {
     analysis::dvvp::common::utils::Utils::RemoveDir(result);
     analysis::dvvp::common::utils::Utils::CreateDir(result);
     Msprof::Engine::MsprofReporter::reporters_.clear();
-    EXPECT_EQ(ge::SUCCESS, ge::aclgrphProfInit(result.c_str(), result.size()));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, ge::aclgrphProfInit(result.c_str(), result.size()));
     std::string empty = "";
-    EXPECT_EQ(ge::FAILED, ge::aclgrphProfInit(empty.c_str(), empty.size()));
+    EXPECT_EQ(ge::GE_PROF_FAILED, ge::aclgrphProfInit(empty.c_str(), empty.size()));
 
     ProfConfig config;
     config.devNums = 1;
@@ -226,9 +226,9 @@ TEST_F(MSPROF_ACL_CORE_UTEST, acl_ge_api) {
 
     EXPECT_NE(nullptr, aclConfig);
 
-    EXPECT_EQ(ge::FAILED, ge::aclgrphProfStart(zeroConfig));
-    EXPECT_EQ(ge::FAILED, ge::aclgrphProfStart(invalidConfig));
-    EXPECT_EQ(ge::SUCCESS, ge::aclgrphProfStart(aclConfig));
+    EXPECT_EQ(ge::GE_PROF_FAILED, ge::aclgrphProfStart(zeroConfig));
+    EXPECT_EQ(ge::GE_PROF_FAILED, ge::aclgrphProfStart(invalidConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, ge::aclgrphProfStart(aclConfig));
 
     ProfConfig largeConfig;
     largeConfig.devNums = MSVP_MAX_DEV_NUM + 1;
@@ -294,15 +294,15 @@ TEST_F(MSPROF_ACL_CORE_UTEST, acl_ge_api) {
     ret = Msprof::Engine::MsprofReporter::reporters_[MSPROF_MODULE_MSPROF].GetDataMaxLen(&dataMaxLen, 1);
     EXPECT_EQ(PROFILING_FAILED, ret);
 
-    // EXPECT_EQ(ge::FAILED, ge::aclgrphProfStop(nullptr));
-    EXPECT_EQ(ge::FAILED, ge::aclgrphProfStop(zeroConfig));
-    EXPECT_EQ(ge::SUCCESS, ge::aclgrphProfStop(aclConfig));
+    EXPECT_EQ(ge::GE_PROF_FAILED, ge::aclgrphProfStop(nullptr));
+    EXPECT_EQ(ge::GE_PROF_FAILED, ge::aclgrphProfStop(zeroConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, ge::aclgrphProfStop(aclConfig));
 
-    EXPECT_EQ(ge::SUCCESS, ge::aclgrphProfFinalize());
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, ge::aclgrphProfFinalize());
 
-    EXPECT_EQ(ge::SUCCESS, ge::aclgrphProfDestroyConfig(zeroConfig));
-    EXPECT_EQ(ge::SUCCESS, ge::aclgrphProfDestroyConfig(invalidConfig));
-    EXPECT_EQ(ge::SUCCESS, ge::aclgrphProfDestroyConfig(aclConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, ge::aclgrphProfDestroyConfig(zeroConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, ge::aclgrphProfDestroyConfig(invalidConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, ge::aclgrphProfDestroyConfig(aclConfig));
 
     analysis::dvvp::common::utils::Utils::RemoveDir(result);
 }
@@ -328,7 +328,7 @@ TEST_F(MSPROF_ACL_CORE_UTEST, aclgrphProfInit_failed) {
     std::string result = "/tmp/aclgrphProfInit_failed";
     analysis::dvvp::common::utils::Utils::RemoveDir(result);
     analysis::dvvp::common::utils::Utils::CreateDir(result);
-    EXPECT_EQ(ge::FAILED, ge::aclgrphProfInit(result.c_str(), result.size()));
+    EXPECT_EQ(ge::GE_PROF_FAILED, ge::aclgrphProfInit(result.c_str(), result.size()));
     analysis::dvvp::common::utils::Utils::RemoveDir(result);
 }
 
@@ -443,9 +443,9 @@ TEST_F(MSPROF_ACL_CORE_UTEST, acl_api) {
 
     EXPECT_EQ(MSPROF_ERROR_NONE, aclprofFinalize());
 
-    EXPECT_EQ(ge::SUCCESS, aclprofDestroyConfig(zeroConfig));
-    EXPECT_EQ(ge::SUCCESS, aclprofDestroyConfig(invalidConfig));
-    EXPECT_EQ(ge::SUCCESS, aclprofDestroyConfig(aclConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, aclprofDestroyConfig(zeroConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, aclprofDestroyConfig(invalidConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, aclprofDestroyConfig(aclConfig));
     EXPECT_EQ(ACL_ERROR_INVALID_PARAM, aclprofDestroyConfig(nullptr));
     using namespace Msprofiler::Api;
     ProfAclMgr::instance()->mode_ = WORK_MODE_OFF;
@@ -1452,11 +1452,16 @@ TEST_F(MSPROF_ACL_CORE_UTEST, MsprofInitGeOptionsParamAdaper) {
         new analysis::dvvp::message::ProfileParams());
 
     NanoJson::Json message;
+    message["output"] = "";
     message["aicpu"] = "on";
     message["training_trace"] = "on";
     message["task_trace"] = "on";
     message["task_tsfw"] = "on";
     std::string jobInfo = "123";
+    MOCKER_CPP(&Msprofiler::Api::ProfAclMgr::MsprofResultPathAdapter)
+        .stubs()
+        .will(returnValue(PROFILING_SUCCESS));
+    ProfAclMgr::instance()->MsprofGeOptionsParamConstruct("hello", message);
 
     ProfAclMgr::instance()->MsprofInitGeOptionsParamAdaper(nullptr, jobInfo, message);
     ProfAclMgr::instance()->MsprofInitGeOptionsParamAdaper(params, jobInfo, message);
@@ -3134,7 +3139,7 @@ TEST_F(MSPROF_ACL_CORE_UTEST, acl_ge_api_success) {
         (ge::ProfilingAicoreMetrics)config.aicoreMetrics, nullptr, config.dataTypeConfig);
     EXPECT_NE(nullptr, aclConfig);
 
-    EXPECT_EQ(ge::SUCCESS, ge::aclgrphProfDestroyConfig(aclConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, ge::aclgrphProfDestroyConfig(aclConfig));
     using namespace Msprofiler::Api;
     ProfAclMgr::instance()->mode_ = WORK_MODE_OFF;
 }
@@ -3155,7 +3160,7 @@ TEST_F(MSPROF_ACL_CORE_UTEST, acl_api_success) {
         config.devIdList, config.devNums, (aclprofAicoreMetrics)config.aicoreMetrics, nullptr, config.dataTypeConfig);
     EXPECT_NE(nullptr, aclConfig);
 
-    EXPECT_EQ(ge::SUCCESS, aclprofDestroyConfig(aclConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, aclprofDestroyConfig(aclConfig));
     using namespace Msprofiler::Api;
     ProfAclMgr::instance()->mode_ = WORK_MODE_OFF;
 }
@@ -3176,7 +3181,7 @@ TEST_F(MSPROF_ACL_CORE_UTEST, acl_api_notsupport) {
         config.devIdList, config.devNums, (aclprofAicoreMetrics)config.aicoreMetrics, nullptr, config.dataTypeConfig);
     EXPECT_NE(nullptr, aclConfig);
 
-    EXPECT_EQ(ge::SUCCESS, aclprofDestroyConfig(aclConfig));
+    EXPECT_EQ(ge::GE_PROF_SUCCESS, aclprofDestroyConfig(aclConfig));
     using namespace Msprofiler::Api;
     ProfAclMgr::instance()->mode_ = WORK_MODE_OFF;
 }
@@ -4354,4 +4359,27 @@ TEST_F(MSPROF_ACL_CORE_UTEST, Msprof_aclprofGetSupportedFeatures) {
     EXPECT_EQ(ACL_SUCCESS, ret);
     EXPECT_EQ(size, 1);
     EXPECT_NE(dataPtr, nullptr);
+}
+
+TEST_F(MSPROF_ACL_CORE_UTEST, GetOutputPath) {
+    GlobalMockObject::verify();
+
+    using namespace Msprofiler::Api;
+
+    EXPECT_EQ("", ProfAclMgr::instance()->GetOutputPath());
+
+    std::shared_ptr<analysis::dvvp::message::ProfileParams> params(
+        new analysis::dvvp::message::ProfileParams());
+
+    NanoJson::Json message;
+    message["output"] = "";
+    std::string jobInfo = "123";
+    MOCKER_CPP(&Msprofiler::Api::ProfAclMgr::MsprofResultPathAdapter)
+        .stubs()
+        .will(returnValue(PROFILING_SUCCESS));
+    ProfAclMgr::instance()->MsprofGeOptionsParamConstruct("hello", message);
+
+    ProfAclMgr::instance()->MsprofInitGeOptionsParamAdaper(params, jobInfo, message);
+    MSPROF_LOGE("outputpath is %s", ProfAclMgr::instance()->GetOutputPath().c_str());
+    EXPECT_EQ("", ProfAclMgr::instance()->GetOutputPath());
 }

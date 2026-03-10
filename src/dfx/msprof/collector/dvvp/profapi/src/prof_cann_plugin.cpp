@@ -79,6 +79,8 @@ void ProfCannPlugin::LoadProfApi()
     LOAD_MSPROF_API(profReportRegTypeInfo_, msProfLibHandle_, ProfReportRegTypeInfoFunc, "ProfImplReportRegTypeInfo");
     LOAD_MSPROF_API(profReportRegDataFormat_, msProfLibHandle_, ProfReportRegDataFormatFunc, "ProfImplReportDataFormat");
     LOAD_MSPROF_API(profReportGetHashId_, msProfLibHandle_, ProfReportGetHashIdFunc, "ProfImplReportGetHashId");
+    LOAD_MSPROF_API(profReportGetHashInfo_, msProfLibHandle_, ProfReportGetHashInfoFunc, "ProfImplReportGetHashInfo");
+    LOAD_MSPROF_API(profGetPath_, msProfLibHandle_, ProfGetPathFunc, "ProfImplGetOutputPath");
     LOAD_MSPROF_API(profSetDeviceId_, msProfLibHandle_, ProfSetDeviceIdFunc, "MsprofSetDeviceIdByGeModelIdx");
     LOAD_MSPROF_API(profNotifySetDevice_, msProfLibHandle_, ProfNotifySetDeviceFunc, "MsprofNotifySetDevice");
     LOAD_MSPROF_API(profFinalize_, msProfLibHandle_, ProfFinalizeFunc, "MsprofFinalize");
@@ -646,6 +648,24 @@ uint64_t ProfCannPlugin::ProfReportGetHashId(const char* info, size_t len)
         hashId = profReportGetHashId_(std::string(info, len));
     }
     return hashId;
+}
+
+char *ProfCannPlugin::ProfReportGetHashInfo(const uint64_t hashId)
+{
+    static std::string hashInfo = "";
+    if (profReportGetHashInfo_ != nullptr) {
+        hashInfo = profReportGetHashInfo_(hashId);
+    }
+    return const_cast<char*>(hashInfo.c_str());
+}
+
+char *ProfCannPlugin::profGetPath()
+{
+    static std::string path = "";
+    if (profGetPath_ != nullptr) {
+        path = profGetPath_();
+    }
+    return const_cast<char*>(path.c_str());
 }
 
 int32_t ProfCannPlugin::ProfSetDeviceIdByGeModelIdx(const uint32_t geModelIdx, const uint32_t deviceId)

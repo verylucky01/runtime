@@ -61,6 +61,7 @@ public:
     bool ValidateDataFormat(const std::string& dataFormatStr) const;
     int32_t RegReportDataFormat(uint16_t level, uint32_t typeId, const std::string &dataFormat);
     uint64_t GetHashId(const std::string &info) const;
+    std::string &GetHashInfo(uint64_t hashId) const;
     void GetReportTypeInfo(uint16_t level, uint32_t typeId, std::string& tag);
     int32_t StopReporters();
     void SetSyncReporter();

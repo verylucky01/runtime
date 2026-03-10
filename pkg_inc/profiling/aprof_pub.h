@@ -603,6 +603,23 @@ MSVP_PROF_API uint64_t MsprofStr2Id(const char *hashInfo, size_t length);
 
 /**
  * @ingroup libprofapi
+ * @name  MsprofId2Str
+ * @brief Return the corresponding hash info of the input id.
+ * @param[in] Id  hash id
+ * @return hash info
+ */
+MSVP_PROF_API char *MsprofId2Str(const uint64_t Id);
+
+/**
+ * @ingroup libprofapi
+ * @name  MsprofGetPath
+ * @brief Return the mindstudio_profiler_output path.
+ * @return output path
+ */
+MSVP_PROF_API char *MsprofGetPath();
+
+/**
+ * @ingroup libprofapi
  * @name  MsprofSetDeviceIdByGeModelIdx
  * @brief insert device id by model id
  * @param[in] geModelIdx  ge model id

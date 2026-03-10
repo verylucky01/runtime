@@ -2970,5 +2970,18 @@ void ProfAclMgr::ChangeProfWarmupToStart(const std::vector<uint32_t> &devIds) co
     ProfChannelManager::instance()->FlushChannel();
     UploaderMgr::instance()->SetUploadDataIfStart(true);
 }
+
+std::string ProfAclMgr::GetOutputPath() const
+{
+    if (baseDir_.empty()) {
+        return "";
+    }
+    std::string outputAbsolutePath = resultPath_ + MSVP_SLASH + baseDir_ + MSVP_SLASH + outputPath_;
+    if (Utils::CreateDir(outputAbsolutePath) != PROFILING_SUCCESS) {
+        MSPROF_LOGE("Failed to create output dir: %s", Utils::BaseName(outputAbsolutePath).c_str());
+        return "";
+    }
+    return outputAbsolutePath;
+}
 }   // namespace Api
 }   // namespace Msprofiler

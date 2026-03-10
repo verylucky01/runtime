@@ -45,6 +45,8 @@ extern "C" MSVP_PROF_API const char *ProfAclGetOpAttriVal(uint32_t type, const v
 extern "C" MSVP_PROF_API int32_t ProfImplReportRegTypeInfo(uint16_t level, uint32_t type, const std::string &typeName);
 extern "C" MSVP_PROF_API int32_t ProfImplReportDataFormat(uint16_t level, uint32_t type, const std::string &dataFormat);
 extern "C" MSVP_PROF_API uint64_t ProfImplReportGetHashId(const std::string &info);
+extern "C" MSVP_PROF_API std::string ProfImplReportGetHashInfo(uint64_t hashId);
+extern "C" MSVP_PROF_API std::string ProfImplGetOutputPath();
 extern "C" MSVP_PROF_API bool ProfImplHostFreqIsEnable();
 extern "C" MSVP_PROF_API void ProfImplGetImplInfo(ProfImplInfo& info);
 extern "C" MSVP_PROF_API void ProfImplSetApiBufPop(const ProfApiBufPopCallback func);

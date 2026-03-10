@@ -74,6 +74,8 @@ public:
     int32_t ProfReportRegTypeInfo(uint16_t level, uint32_t typeId, const char* typeName, size_t len) override;
     int32_t ProfReportRegDataFormat(uint16_t level, uint32_t typeId, const char* dataFormat, size_t len) override;
     uint64_t ProfReportGetHashId(const char* info, size_t len) override;
+    char *ProfReportGetHashInfo(const uint64_t hashId) override;
+    char *profGetPath() override;
     int32_t ProfSetDeviceIdByGeModelIdx(const uint32_t geModelIdx, const uint32_t deviceId) override;
     int32_t ProfUnSetDeviceIdByGeModelIdx(const uint32_t geModelIdx, const uint32_t deviceId) override;
     int32_t ProfNotifySetDevice(uint32_t chipId, uint32_t deviceId, bool isOpen) override;
@@ -137,6 +139,8 @@ private:
     ProfReportRegTypeInfoFunc profReportRegTypeInfo_{nullptr};
     ProfReportRegDataFormatFunc profReportRegDataFormat_{nullptr};
     ProfReportGetHashIdFunc profReportGetHashId_{nullptr};
+    ProfReportGetHashInfoFunc profReportGetHashInfo_{nullptr};
+    ProfGetPathFunc profGetPath_{nullptr};
     ProfSetDeviceIdFunc profSetDeviceId_{nullptr};
     ProfSetDeviceIdFunc profUnSetDeviceId_{nullptr};
     ProfNotifySetDeviceFunc profNotifySetDevice_{nullptr};

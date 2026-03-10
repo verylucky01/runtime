@@ -211,6 +211,16 @@ extern "C" MSVP_PROF_API uint64_t ProfImplReportGetHashId(const std::string &inf
     return Dvvp::Collect::Report::ProfReporterMgr::GetInstance().GetHashId(info);
 }
 
+extern "C" MSVP_PROF_API std::string ProfImplReportGetHashInfo(uint64_t hashId)
+{
+    return Dvvp::Collect::Report::ProfReporterMgr::GetInstance().GetHashInfo(hashId);
+}
+
+extern "C" MSVP_PROF_API std::string ProfImplGetOutputPath()
+{
+    return Msprofiler::Api::ProfAclMgr::instance()->GetOutputPath();
+}
+
 extern "C" MSVP_PROF_API bool ProfImplHostFreqIsEnable()
 {
     return Platform::instance()->PlatformHostFreqIsEnable();

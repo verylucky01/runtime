@@ -266,6 +266,7 @@ public:
     void ResetProfWarmup();
     bool IsProfWarmup() const;
     void ChangeProfWarmupToStart(const std::vector<uint32_t> &devIds) const;
+    std::string GetOutputPath() const;
 
 private:
     int32_t MsprofTxSwitchPrecheck();
@@ -365,6 +366,7 @@ private:
     WorkMode mode_;
     std::string resultPath_;
     std::string baseDir_;
+    std::string outputPath_ = "mindstudio_profiler_output";
     std::string storageLimit_;
     std::string masterPid_;
     int64_t curDevId_;

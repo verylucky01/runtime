@@ -94,6 +94,16 @@ MSVP_PROF_API uint64_t MsprofStr2Id(const char *hashInfo, size_t length)
     return MsprofGetHashId(hashInfo, length);
 }
 
+MSVP_PROF_API char *MsprofId2Str(const uint64_t Id)
+{
+    return ProfAPI::ProfCannPlugin::instance()->ProfReportGetHashInfo(Id);
+}
+
+MSVP_PROF_API char *MsprofGetPath()
+{
+    return ProfAPI::ProfCannPlugin::instance()->profGetPath();
+}
+
 MSVP_PROF_API int32_t MsprofReportEvent(uint32_t nonPersistantFlag, const MsprofEvent *event)
 {
     if (event == nullptr) {

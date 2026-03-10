@@ -57,7 +57,7 @@ void EventExpandingPool::FreeBufferForEvent(void * const addr, void * const para
         dev->Id_(), static_cast<uint32_t>(error));
 }
 
-rtError_t EventExpandingPool::AllocAndInsertEvent(void ** const eventAddr, int32_t *eventId)
+rtError_t EventExpandingPool::AllocAndInsertEvent(void** const eventAddr, int32_t *eventId)
 {
     const std::unique_lock<std::mutex> taskLock(EventMapLock_);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, eventIdCount_ == INT32_MAX, RT_ERROR_DRV_NO_EVENT_RESOURCES,
@@ -85,7 +85,7 @@ rtError_t EventExpandingPool::AllocAndInsertEvent(void ** const eventAddr, int32
  	*eventAddr = eventAllocator_[poolIndex_]->GetItemById(currentEventId, false);
     *eventId = lastEventId_;
     eventIdCount_++;
-    RT_LOG(RT_LOG_INFO, "get event id, event_id=%d, lastEventId=%d, poolIndex=%d,currentEventId=%d.",
+    RT_LOG(RT_LOG_INFO, "get event id, event_id=%d, lastEventId=%d, poolIndex=%d, currentEventId=%d.",
         *eventId, lastEventId_, poolIndex_, currentEventId);
     return RT_ERROR_NONE;
 }

@@ -696,7 +696,7 @@ static const std::unordered_map<uint16_t, std::string> moduleNameMap = {
     {HCCP_SCHE_MODULE_ID, "HCCP_SCHEDULE"}
 };
 
-const std::string& ErrorcodeManage::GetModuleName(const uint16_t moduleId) {
+const std::string& ErrorcodeManage::GetModuleName(const uint16_t moduleId) const {
     static const std::string unknown = "UNKNOWN";
     auto it = moduleNameMap.find(moduleId);
     return it != moduleNameMap.end() ? it->second : unknown;

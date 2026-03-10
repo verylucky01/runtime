@@ -16,6 +16,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "rw_lock.h"
+#include "mmpa_linux.h"
 namespace cce {
 namespace runtime {
 class Context;

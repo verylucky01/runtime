@@ -12,6 +12,7 @@
 #define CCE_RUNTIME_DFX_API_HPP
 
 #include "base.hpp"
+#include "mmpa_linux.h"
 
 namespace cce {
 namespace runtime {

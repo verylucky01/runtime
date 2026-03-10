@@ -34,7 +34,7 @@ void SetTaskMteErr(TaskInfo *errTaskPtr, const Device * const dev,
     const std::map<uint32_t, std::string>& eventIdBlkList = g_mulBitEccEventId);
 void GetMteErrFromCqeStatus(TaskInfo *errTaskPtr, const Device * const dev, const uint32_t cqeStatus,
     const std::map<uint32_t, std::string>& eventIdBlkList = g_mulBitEccEventId);
-rtError_t GetDeviceFaultEvents(const uint32_t deviceId, rtDmsFaultEvent *faultEventInfo,
+rtError_t GetDeviceFaultEvents(const uint32_t deviceId, rtDmsFaultEvent * const faultEventInfo,
     uint32_t &eventCount, const uint32_t maxFaultNum = 128U);
 bool IsFaultEventOccur(const uint32_t faultEventId, const rtDmsFaultEvent * const faultEventInfo, const uint32_t eventCount);
 bool IsHitBlacklist(const rtDmsFaultEvent *faultEventInfo, const uint32_t eventCount, const std::map<uint32_t, std::string>& eventIdBlkList);

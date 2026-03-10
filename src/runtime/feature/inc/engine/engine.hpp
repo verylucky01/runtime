@@ -14,6 +14,7 @@
 #include "osal.hpp"
 #include "driver.hpp"
 #include "dvpp_grp.hpp"
+#include "rt_stars.h"
 #ifndef CFG_DEV_PLATFORM_PC
 #include "error_manager.h"
 #endif

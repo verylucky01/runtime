@@ -42,7 +42,7 @@ void DeviceSnapshot::RecordOpAddrAndSize(const Stream *const stm)
             RT_LOG(RT_LOG_WARNING, "get task is nullptr, stream_id=%d, task_id=%u.", stm->Id_(), taskId);
             continue;
         }
-        RT_LOG(RT_LOG_DEBUG, "stream_id==%d, taskId=%u, type=%d.", stm->Id_(), taskId, task->type);
+        RT_LOG(RT_LOG_DEBUG, "stream_id=%d, taskId=%u, type=%d.", stm->Id_(), taskId, task->type);
         RecordArgsAddrAndSize(task);
         RecordFuncCallAddrAndSize(task);
     }

@@ -1135,7 +1135,7 @@ rtError_t Context::UpdateNormalKernelTask(TaskInfo * const updateTask, Stream * 
     return RT_ERROR_NONE;
 }
 
-rtError_t Context::UpdateEndGraphTask(Stream * const origCaptureStream, Stream * const exeStream, Notify *ntf)
+rtError_t Context::UpdateEndGraphTask(Stream * const origCaptureStream, Stream * const exeStream, Notify *ntf) const
 {
     uint16_t taskId = origCaptureStream->GetLastTaskId();
     TaskInfo *rtNotifyRecord = origCaptureStream->Device_()->GetTaskFactory()->GetTask(origCaptureStream->Id_(), taskId);
@@ -4462,7 +4462,7 @@ rtError_t Context::StreamEndCapture(Stream * const stm, Model ** const captureMd
 }
 
 rtError_t Context::StreamGetCaptureInfo(const Stream * const stm, rtStreamCaptureStatus * const status,
-                                        Model ** const captureMdl)
+                                        Model ** const captureMdl) const
 {
     Stream *captureStream = stm->GetCaptureStream();
     const rtStreamCaptureStatus statusTmp = stm->GetCaptureStatus();

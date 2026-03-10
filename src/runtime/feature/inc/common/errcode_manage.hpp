@@ -48,7 +48,7 @@ public:
 
     std::string GetErrorReason(const RtInnerErrcodeType errcode);
 
-    const std::string& GetModuleName(const uint16_t moduleId);
+    const std::string& GetModuleName(const uint16_t moduleId) const;
 
     RtInnerErrcodeType GetDrvErrCode(const DrvErrcodeType drvErrcode);
 

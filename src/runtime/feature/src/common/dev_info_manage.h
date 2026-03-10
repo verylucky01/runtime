@@ -12,10 +12,10 @@
 
 #include <unordered_set>
 #include "base.hpp"
-#include "mmpa_api.h"
 #include "rw_lock.h"
 #include "feature_type.h"
 #include "device_properties.h"
+#include "mmpa_linux.h"
 
 using namespace cce::runtime;
 namespace std {

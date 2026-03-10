@@ -172,7 +172,7 @@ public:
     rtError_t StreamEndCapture(Stream * const stm, Model ** const captureMdl);
 
     rtError_t StreamGetCaptureInfo(const Stream * const stm, rtStreamCaptureStatus * const status,
-        Model ** const captureMdl);
+        Model ** const captureMdl) const;
     
     rtError_t StreamBeginTaskUpdate(Stream * const stm, TaskGroup * handle) const;
 
@@ -524,7 +524,7 @@ public:
     rtError_t UpdateNormalKernelTaskByTS(TaskInfo * const updateTask, Stream * const stm) const;
     rtError_t UpdateNormalKernelTaskH2DSubmitComm(TaskInfo * const updateTask, Stream * const stm, void * const targetAddrOfUpdatedSqe) const;
     rtError_t UpdateNormalKernelTaskForSoftwareSq(TaskInfo * const updateTask, Stream * const stm) const;
-    rtError_t UpdateEndGraphTask(Stream * const origCaptureStream, Stream * const exeStream, Notify *ntf);
+    rtError_t UpdateEndGraphTask(Stream * const origCaptureStream, Stream * const exeStream, Notify *ntf) const;
     rtError_t MemWriteValue(const void * const devAddr, const uint64_t value, const uint32_t flag, Stream * const stm) const;
     rtError_t MemWaitValue(const void * const devAddr, const uint64_t value, const uint32_t flag, Stream * const stm) const;
     rtError_t SendAndRecvDebugTask(RtDebugSendInfo * const sendInfo, rtDebugReportInfo_t * const reportInfo) const;

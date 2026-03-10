@@ -25,7 +25,7 @@ class EventExpandingPool : public NoCopy {
 public:
     explicit EventExpandingPool(Device * const dev);
     ~EventExpandingPool() override;
-    rtError_t AllocAndInsertEvent(void ** const eventAddr, int32_t *eventId);
+    rtError_t AllocAndInsertEvent(void** const eventAddr, int32_t *eventId);
     void FreeEventId(int32_t eventId);
     rtError_t ResetBufferForEvent();
 

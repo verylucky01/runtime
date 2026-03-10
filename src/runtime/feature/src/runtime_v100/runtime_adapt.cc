@@ -10,7 +10,6 @@
 
 #include "runtime.hpp"
 #include <fstream>
-#include "mmpa/mmpa_api.h"
 #include "driver/ascend_hal.h"
 #include "api_impl.hpp"
 #include "api_impl_mbuf.hpp"

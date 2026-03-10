@@ -19,6 +19,7 @@
 #include <mutex>
 #include "runtime/base.h"
 #include "mmpa/mmpa_api.h"
+#include "mmpa_linux.h"
 #ifdef WIN32
 #include <malloc.h>
 #include <windows.h>

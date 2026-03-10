@@ -10,7 +10,6 @@
 #ifndef __CCE_RUNTIME_RUNTIME_HPP__
 #define __CCE_RUNTIME_RUNTIME_HPP__
 
-#include "runtime/rt.h"
 #include "base.hpp"
 #include "osal.hpp"
 #include "reference.hpp"
@@ -27,6 +26,7 @@
 #include "capability.hpp"
 #include "runtime_intf.hpp"
 #include "dev_info.h"
+#include "rt_mem_queue.h"
 
 extern "C" {
 drvError_t __attribute__((weak)) halTsdrvCtl(uint32_t devId, int cmd, void *param, size_t paramSize,

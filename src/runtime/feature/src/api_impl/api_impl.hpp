@@ -711,7 +711,7 @@ public:
 
     // dqs
     rtError_t LaunchDqsTask(Stream * const stm, const rtDqsTaskCfg_t * const taskCfg) override;
-    rtError_t StarsLaunchSubscribeProc(Stream * const stm, const rtCallback_t callBackFunc,
+    virtual rtError_t StarsLaunchSubscribeProc(Stream * const stm, const rtCallback_t callBackFunc,
         void * const fnData, const bool needSubscribe, const uint64_t threadId);
     rtError_t StarsLaunchEventProc(Stream * const stm, const rtCallback_t callBackFunc, void * const fnData, const uint64_t threadId);
 
@@ -754,7 +754,7 @@ private:
     Atomic<bool> procFlag{false};
     rtError_t ResetDeviceForce(const int32_t devId);
     rtError_t CheckCurCtxValid(const int32_t devId);
-    rtError_t GetCaptureEvent(const Stream * const stm, Event * const evt, Event ** const captureEvt,
+    virtual rtError_t GetCaptureEvent(const Stream * const stm, Event * const evt, Event ** const captureEvt,
         const bool isNewEvt = false);
     rtError_t CaptureEventRecord(Context * const ctx, Event * const evt, Stream * const stm);
     rtError_t CaptureEventWait(Context * const ctx, Stream * const stm, Event * const evt, const uint32_t timeout);

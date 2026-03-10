@@ -20,6 +20,8 @@
 #include "osal.hpp"
 #include "task_info.hpp"
 #include "buffer_allocator.hpp"
+#include "mmpa_linux.h"
+#include "securec.h"
 
 #define TASK_ID_LT(lsh, rsh)    (static_cast<int16_t>(static_cast<uint16_t>(lsh) - static_cast<uint16_t>(rsh)) < 0)
 #define TASK_ID_GT(lsh, rsh)    TASK_ID_LT((rsh), (lsh))

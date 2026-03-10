@@ -11,6 +11,7 @@
 #ifndef __CCE_RUNTIME_BASE_INFO_HPP__
 #define __CCE_RUNTIME_BASE_INFO_HPP__
 
+#include <cstdint>
 #include "base.h"
 #include "kernel.h"
 

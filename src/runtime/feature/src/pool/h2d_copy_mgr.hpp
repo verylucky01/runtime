@@ -16,6 +16,7 @@
 #include "rw_lock.h"
 #include "driver/ascend_hal.h"
 #include "buffer_allocator.hpp"
+#include "mmpa_linux.h"
 
 namespace cce {
 namespace runtime {

@@ -1279,15 +1279,15 @@ rtError_t SetKernelFunctionEntry(RtKernel * const kernels, uint32_t kernelsNum, 
     for (uint32_t i = 0; i < kernelsNum; ++i) {
         const auto it = kernelInfoMap.find(std::string(kernels[i].name));
         if ((it == kernelInfoMap.end()) || (!it->second->isSupportFuncEntry)) {
-            kernels[i].funcEntryType = KERNEL_TYPE_TILING_KEY;
+            kernels[i].funcEntryType = KernelFunctionEntryType::KERNEL_TYPE_TILING_KEY;
             continue;
         } 
         const uint8_t functionEntryFlag = it->second->functionEntryFlag;
         if (functionEntryFlag == 0U) {
             kernels[i].functionEntry = it->second->functionEntry;
-            kernels[i].funcEntryType = KERNEL_TYPE_FUNCTION_ENTRY;
+            kernels[i].funcEntryType = KernelFunctionEntryType::KERNEL_TYPE_FUNCTION_ENTRY;
         } else if (functionEntryFlag == KERNEL_FUNCTION_ENTRY_DISABLE) {
-            kernels[i].funcEntryType = KERNEL_TYPE_NOT_SUPPORT_FUNCTION_ENTRY;
+            kernels[i].funcEntryType = KernelFunctionEntryType::KERNEL_TYPE_NOT_SUPPORT_FUNCTION_ENTRY;
         } else {
             RT_LOG(RT_LOG_ERROR, "kernel function meta info error! kernel name=%s, functionEntryFlag=%u",
                 kernels[i].name, functionEntryFlag);

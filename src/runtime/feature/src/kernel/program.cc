@@ -1439,7 +1439,7 @@ rtError_t ElfProgram::UnifiedOneKernelRegister(const RtKernel * const kernel)
     // 1. not support function entry info but support old tilingKey process
     rtError_t tilingKeyParseRet = ParseTilingKey(kernelName, tilingKey);
     // 2. support function entry info
-    if (kernel->funcEntryType == KERNEL_TYPE_FUNCTION_ENTRY) {
+    if (kernel->funcEntryType == KernelFunctionEntryType::KERNEL_TYPE_FUNCTION_ENTRY) {
         RT_LOG(RT_LOG_INFO, "support function entry mode.");
         tilingKey = kernel->functionEntry;
         tilingKeyParseRet = RT_ERROR_NONE;
@@ -1454,7 +1454,7 @@ rtError_t ElfProgram::UnifiedOneKernelRegister(const RtKernel * const kernel)
     (void)GetPrefetchCnt(static_cast<Program *>(this), kernelObj);
 
     // 3. not support tilingKey and not support function entry
-    if (kernel->funcEntryType == KERNEL_TYPE_NOT_SUPPORT_FUNCTION_ENTRY) {
+    if (kernel->funcEntryType == KernelFunctionEntryType::KERNEL_TYPE_NOT_SUPPORT_FUNCTION_ENTRY) {
         // add to program kernel map, key is kernel name
         const rtError_t error = MixKernelAdd(kernelObj);
         COND_RETURN_WITH_NOLOG((error != RT_ERROR_NONE), error);

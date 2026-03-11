@@ -15,7 +15,6 @@
 #include "base.hpp"
 #include "driver/ascend_hal.h"
 #include "runtime/config.h"
-#include "runtime/mem.h"
 #include "platform_define.hpp"
 
 #ifndef CDQ_VECTOR_CAST

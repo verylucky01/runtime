@@ -10,7 +10,6 @@
 #ifndef __CCE_RUNTIME_RWLOCK_H__
 #define __CCE_RUNTIME_RWLOCK_H__
 
-#include "mmpa/mmpa_api.h"
 #include "base.hpp"
 
 namespace cce {

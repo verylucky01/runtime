@@ -23,51 +23,37 @@ set(TSD_CLIENT_SRC_FILE
 
 set(TSD_COMMON_SRC_FILE
     ${TSD_SRC_PATH}/common/src/aicpu_package_process.cpp
-    ${TSD_SRC_PATH}/common/src/aicpu_process_package_worker.cpp
     ${TSD_SRC_PATH}/common/src/aicpu_thread_package_worker.cpp
     ${TSD_SRC_PATH}/common/src/base_package_worker.cpp
-    ${TSD_SRC_PATH}/common/src/common_sink_package_worker.cpp
-    ${TSD_SRC_PATH}/common/src/dshape_package_worker.cpp
     ${TSD_SRC_PATH}/common/src/hdc_client.cpp
     ${TSD_SRC_PATH}/common/src/hdc_common.cpp
     ${TSD_SRC_PATH}/common/src/internal_api.cpp
     ${TSD_SRC_PATH}/common/src/log.cpp
     ${TSD_SRC_PATH}/common/src/message_parse_client.cpp
     ${TSD_SRC_PATH}/common/src/message_parse_interface.cpp
-    ${TSD_SRC_PATH}/common/src/om_package_worker.cpp
     ${TSD_SRC_PATH}/common/src/package_process_config.cpp
     ${TSD_SRC_PATH}/common/src/package_verify.cpp
     ${TSD_SRC_PATH}/common/src/package_worker.cpp
     ${TSD_SRC_PATH}/common/src/package_worker_factory.cpp
     ${TSD_SRC_PATH}/common/src/package_worker_utils.cpp
     ${TSD_SRC_PATH}/common/src/process_util_common.cpp
-    ${TSD_SRC_PATH}/common/src/runtime_package_worker.cpp
-    ${TSD_SRC_PATH}/common/src/tsd_hash_verify.cpp
     ${TSD_SRC_PATH}/common/src/tsd_path_mgr.cpp
     ${TSD_SRC_PATH}/common/src/version_verify.cpp
-    ${TSD_SRC_PATH}/common/src/message_parse_server.cpp
 )
 set(TSD_UT_TEST_SRC_FILE
     test/aicpu_package_process_utest.cpp
-    test/aicpu_process_package_worker_utest.cpp
     test/aicpu_thread_mode_utest.cpp
     test/aicpu_thread_package_worker_utest.cpp
     test/client_manager_utest.cpp
     test/process_manager_utest.cpp
     test/thread_manager_utest.cpp
-    test/dshape_package_worker_utest.cpp
-    test/common_sink_package_worker_utest.cpp
-    test/om_package_worker_utest.cpp
     test/package_process_config_utest.cpp
     test/package_verify_utest.cpp
     test/package_worker_factory_utest.cpp
     test/package_worker_utest.cpp
     test/tsdclient_utest.cpp
     test/version_verify_utest.cpp
-    test/runtime_package_worker_utest.cpp
-    test/process_util_utest.cpp
     test/package_worker_utils_utest.cpp
-    test/hash_verify_utest.cpp
     test/path_mgr_utest.cpp
     test/log_utest.cpp
     test/internal_api_utest.cpp
@@ -76,7 +62,6 @@ set(TSD_UT_TEST_SRC_FILE
     ../stub/stub_appmon.cpp
     ../stub/stub_hdc.cpp
     ../stub/stub_driver.cpp
-    # ../stub/stub_openssl.cpp
     ../stub/stub_log.cpp
     ../stub/log_writer.cpp
     ../stub/stub_devdrv_runtime.cpp
@@ -102,7 +87,6 @@ add_executable(tsd_client_utest
 
 target_include_directories(tsd_client_utest PRIVATE
     ${TSD_SRC_PATH}/common/
-    ${TSD_SRC_PATH}/tsdaemon/
     ${TSD_SRC_PATH}/tsdclient/
     ${CMAKE_BINARY_DIR}/proto/tsd_client_proto/
     ${TSD_SRC_PATH}/tsdclient/inc/

@@ -304,19 +304,6 @@ namespace tsd {
         }
     }
 
-    void PackageProcessConfig::SetAllCommonSinkPackageHashCode(const HDCMessage &msg, HDCMessage &rspMsg) const
-    {
-        const std::shared_ptr<PackageWorker> worker = PackageWorker::GetInstance(msg.device_id(),
-            static_cast<uint32_t>(msg.vf_id()));
-        std::map<std::string, std::string> tempPkgHashMap;
-        worker->GetAllPackageHashCode(PackageWorkerType::PACKAGE_WORKER_COMMON_SINK, tempPkgHashMap);
-        for (auto iter = tempPkgHashMap.begin(); iter != tempPkgHashMap.end(); iter++) {
-            SinkPackageHashCodeInfo *curConf = rspMsg.add_package_hash_code_list();
-            curConf->set_package_name(iter->first);
-            curConf->set_hash_code(iter->second);
-        }
-    }
-
     TSD_StatusT PackageProcessConfig::GetPkgHostAndDeviceDstPath(const std::string &pkgName, std::string &orgFile,
         std::string &dstFile, const pid_t hostPid)
     {

@@ -16,7 +16,7 @@
 #include "inc/package_worker_factory.h"
 #include "inc/log.h"
 #include "inc/package_worker_utils.h"
-#include "inc/aicpu_process_package_worker.h"
+#include "inc/aicpu_thread_package_worker.h"
 #undef private 
 #undef protected
  using namespace tsd; 
@@ -35,7 +35,7 @@
  {
     PackageWorkerFactory &inst = PackageWorkerFactory::GetInstance();
     PackageWorkerParas para;
-    inst.RegisterPackageWorker(PackageWorkerType::PACKAGE_WORKER_EXTEND_PROCESS, [](const PackageWorkerParas paras) -> std::shared_ptr<ExtendProcessPackageWorker> { return std::make_shared<ExtendProcessPackageWorker>(paras); });
-    std::shared_ptr<BasePackageWorker> tmpins = inst.CreatePackageWorker(PackageWorkerType::PACKAGE_WORKER_EXTEND_PROCESS, para);
+    inst.RegisterPackageWorker(PackageWorkerType::PACKAGE_WORKER_AICPU_THREAD, [](const PackageWorkerParas paras) -> std::shared_ptr<AicpuThreadPackageWorker> { return std::make_shared<AicpuThreadPackageWorker>(paras); });
+    std::shared_ptr<BasePackageWorker> tmpins = inst.CreatePackageWorker(PackageWorkerType::PACKAGE_WORKER_AICPU_THREAD, para);
     EXPECT_NE(tmpins, nullptr);
  } 

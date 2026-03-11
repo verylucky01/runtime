@@ -53,7 +53,6 @@ add_dependencies(tsdclient tsd_host_proto)
 
 target_include_directories(tsdclient PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../tsdaemon/
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/inc/
     ${RUNTIME_DIR}/include/
@@ -81,7 +80,6 @@ target_compile_definitions(tsdclient PRIVATE
     SECUREC_USING_STD_SECURE_LIB=0
     NOMINMAX
     google=ascend_private
-    $<$<STREQUAL:${SUPPORT_IAM},true>:SUPPORT_IAM>
 )
 
 target_link_options(tsdclient PRIVATE
@@ -131,17 +129,11 @@ add_library(tsdclient SHARED
     ${BASE_DIR}/common/src/package_worker_factory.cpp
     ${BASE_DIR}/common/src/package_verify.cpp
     ${BASE_DIR}/common/src/base_package_worker.cpp
-    ${BASE_DIR}/common/src/runtime_package_worker.cpp
-    ${BASE_DIR}/common/src/dshape_package_worker.cpp
-    ${BASE_DIR}/common/src/om_package_worker.cpp
-    ${BASE_DIR}/common/src/aicpu_process_package_worker.cpp
     ${BASE_DIR}/common/src/aicpu_thread_package_worker.cpp
     ${BASE_DIR}/common/src/aicpu_package_process.cpp
-    ${BASE_DIR}/common/src/common_sink_package_worker.cpp
     ${BASE_DIR}/common/src/package_process_config.cpp
     ${BASE_DIR}/common/src/process_util_common.cpp
     ${BASE_DIR}/common/src/tsd_path_mgr.cpp
-    ${BASE_DIR}/common/src/tsd_hash_verify.cpp
     $<$<NOT:$<OR:$<STREQUAL:${PRODUCT},ascend615>,$<STREQUAL:${PRODUCT},ascend610>,$<STREQUAL:${PRODUCT},ascend610Lite>>>:${CMAKE_CURRENT_SOURCE_DIR}/src/stub/stub_dc.cpp>
     ${tdt_common_files}
     ${PROTO_SRCS}
@@ -150,7 +142,6 @@ add_library(tsdclient SHARED
 
 target_include_directories(tsdclient PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../tsdaemon/
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}/proto/tsd_host_proto/
     ${CMAKE_CURRENT_SOURCE_DIR}/inc/
@@ -181,13 +172,10 @@ target_compile_definitions(tsdclient PRIVATE
     TSD_HOST_LIB
     NOT_COVERAGE_BY_UT
     google=ascend_private
-    $<$<STREQUAL:${SUPPORT_IAM},true>:SUPPORT_IAM>
-    $<$<STREQUAL:${SUPPORT_SELINUX},true>:SUPPORT_SELINUX>
     CMSCBB_SUPPORT_RSAPSS=1
     CFG_FEATURE_PKCS_SIGN
     CFG_FEATURE_RSA_2048
     CFG_FEATURE_RSA_4096
-    $<$<STREQUAL:${CMS_VERIFY_SIGNED_PKG},true>:CMS_VERIFY_SIGNED_PKG>
 )
 
 target_link_options(tsdclient PRIVATE

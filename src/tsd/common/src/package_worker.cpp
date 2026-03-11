@@ -12,7 +12,6 @@
 
 #include "inc/tsd_path_mgr.h"
 #include "inc/tsd_feature_ctrl.h"
-#include "inc/aicpu_process_package_worker.h"
 
 
 namespace tsd {
@@ -138,24 +137,6 @@ void PackageWorker::DestroyPackageWorker()
 void PackageWorker::Stop() noexcept
 {
     isDestroy_ = true;
-    const auto aicpuProcessWorker = std::dynamic_pointer_cast<AicpuProcessPackageWorker>(
-        GetPackageWorker(PackageWorkerType::PACKAGE_WORKER_AICPU_PROCESS));
-    if (aicpuProcessWorker != nullptr) {
-        aicpuProcessWorker->SetStop();
-        aicpuProcessWorker->RecordFinish();
-    }
-    const auto extendProcessWorker = std::dynamic_pointer_cast<ExtendProcessPackageWorker>(
-        GetPackageWorker(PackageWorkerType::PACKAGE_WORKER_EXTEND_PROCESS));
-    if (extendProcessWorker != nullptr) {
-        extendProcessWorker->SetStop();
-        extendProcessWorker->RecordFinish();
-    }
-    const auto ascendcppProcessWorker = std::dynamic_pointer_cast<AscendcppProcessPackageWorker>(
-        GetPackageWorker(PackageWorkerType::PACKAGE_WORKER_ASCENDCPP_PROCESS));
-    if (ascendcppProcessWorker != nullptr) {
-        ascendcppProcessWorker->SetStop();
-        ascendcppProcessWorker->RecordFinish();
-    }
 }
 
 void PackageWorker::ClearWorkerManager()
@@ -178,63 +159,5 @@ void PackageWorker::SetAsanMode(const bool isAsan)
             worker->SetAsanMode(isAsan);
         }
     }
-}
-
-void PackageWorker::RemoveWholeResidualFile(const uint32_t devId, const uint32_t vfId)
-{
-    const uint32_t uniqueId = CalcUniqueVfId(devId, vfId);
-    const std::string hsPkgComPath = TsdPathMgr::GetHeterogeneousPkgCommonPrefixPath(uniqueId);
-    if (access(hsPkgComPath.c_str(), F_OK) != 0) {
-        TSD_INFO("No residual file no need to clean");
-        return;
-    }
-    std::string removeCmd;
-    // 删除已经解压的runtime下沉包
-    const std::string runtimePkgPath = TsdPathMgr::GetHeterogeneousRuntimePkgPath(uniqueId);
-    if (access(runtimePkgPath.c_str(), F_OK) == 0) {
-        const std::string runtimePkgLibPath = TsdPathMgr::GetHeterogeneousRuntimePkgLibPath(uniqueId);
-        removeCmd += "rm -rf " + runtimePkgPath + "* && mkdir -p " + runtimePkgLibPath;
-        const int32_t ret = PackSystem(removeCmd.c_str());
-        if (ret != 0) {
-            TSD_RUN_WARN("Remove runtime failed. Cmd=%s, reason=%s.", removeCmd.c_str(), SafeStrerror().c_str());
-        } else {
-            TSD_INFO("Remove runtime success. Cmd=%s.", removeCmd.c_str());
-        }
-    }
-    // 删除已经解压成功的opp下沉包
-    const std::string dstPath = TsdPathMgr::GetHeterogeneousOppPkgPath(uniqueId);
-    const std::string opsPath = TsdPathMgr::GetHeterogeneousOpsPkgPath(uniqueId);
-    removeCmd += " && rm -rf " + dstPath + " && rm -rf " + opsPath;
-    const std::string omWholePath = TsdPathMgr::GetHeterogeneousOmFileWholePath(uniqueId);
-    // 删除已经解压的om包
-    removeCmd += " && rm -rf " + omWholePath + "*";
-    const int32_t rmRet = PackSystem(removeCmd.c_str());
-    if (rmRet != 0) {
-        TSD_RUN_WARN("Remove om whole path failed. Cmd=%s, reason=%s.", removeCmd.c_str(), SafeStrerror().c_str());
-    } else {
-        TSD_INFO("Remove om whole path success. Cmd=%s.", removeCmd.c_str());
-    }
-}
-
-void PackageWorker::GetAllPackageHashCode(const PackageWorkerType type, std::map<std::string, std::string> &pkgHashMap)
-{
-    const std::shared_ptr<BasePackageWorker> packageWorker = GetPackageWorker(type);
-    if (packageWorker == nullptr) {
-        TSD_ERROR("Get package worker inst failed by nullptr, type=%u", static_cast<uint32_t>(type));
-        return;
-    }
- 
-    packageWorker->GetAllPackageHashCode(pkgHashMap);
-}
-
-std::string PackageWorker::GetProcessedPkgHashCode(const PackageWorkerType type, const std::string &pkgName)
-{
-    const std::shared_ptr<BasePackageWorker> packageWorker = GetPackageWorker(type);
-    if (packageWorker == nullptr) {
-        TSD_ERROR("Get package worker inst failed by nullptr, type=%u", static_cast<uint32_t>(type));
-        return "";
-    }
- 
-    return packageWorker->GetProcessedPkgHashCode(pkgName);
 }
 } // namespace tsd

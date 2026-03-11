@@ -54,7 +54,6 @@ public:
     void ConstructPkgConfigMsg(HDCMessage &hdcMsg) const;
     bool IsNeedToUpdateConfig(const HDCMessage &hdcMsg) const;
     bool IsConfigPackageInfo(const std::string &oriPkgName);
-    void SetAllCommonSinkPackageHashCode(const HDCMessage &msg, HDCMessage &rspMsg) const;
     std::map<std::string, PackConfDetail> GetAllPackageConfigInfo() const
     {
         return configMap_;

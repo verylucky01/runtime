@@ -39,9 +39,6 @@ public:
     std::shared_ptr<BasePackageWorker> GetPackageWorker(const PackageWorkerType type);
     void DestroyPackageWorker();
     void SetAsanMode(const bool isAsan);
-    static void RemoveWholeResidualFile(const uint32_t devId, const uint32_t vfId);
-    void GetAllPackageHashCode(const PackageWorkerType type, std::map<std::string, std::string> &pkgHashMap);
-    std::string GetProcessedPkgHashCode(const PackageWorkerType type, const std::string &pkgName);
 
 private:
     void Stop() noexcept;

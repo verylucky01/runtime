@@ -74,18 +74,6 @@ public:
         return;
     }
 
-    virtual void GetAllPackageHashCode(std::map<std::string, std::string> &pkgHashMap)
-    {
-        (void)(pkgHashMap);
-        return;
-    }
-
-    virtual std::string GetProcessedPkgHashCode(const std::string &pkgName)
-    {
-        (void)(pkgName);
-        return "";
-    }
-
 protected:
     struct PackagePath {
         std::string path;

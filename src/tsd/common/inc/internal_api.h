@@ -124,10 +124,6 @@ namespace tsd {
     const std::string NUMA_NODE_FILE_NAME_SUFFIX = "/meminfo";
     const std::string NUMA_NODE_FILE_FREE_PREFIX = "Node ";
     const std::string NUMA_NODE_FILE_FREE_SUFFIX = " MemFree:";
-    constexpr uint32_t NUMA_NODE_OOM_RESERVED_PF_DIE0 = 31U;
-    constexpr uint32_t NUMA_NODE_OOM_RESERVED_PF_DIE1 = 63U;
-    constexpr uint32_t NUMA_NODE_OOM_RESERVED_VF_DIE0 = 40U;
-    constexpr uint32_t NUMA_NODE_OOM_RESERVED_VF_DIE1 = 72U;
 
     /**
     * @ingroup Trim

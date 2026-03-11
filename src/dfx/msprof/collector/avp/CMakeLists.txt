@@ -42,8 +42,8 @@ set(basicInc
 )
 
 set(libcSecSrc
-    ${RUNTIME_DIR}/third_party/libc_sec/src/memset_s.c
-    ${RUNTIME_DIR}/third_party/libc_sec/src/strcat_s.c
+    ${RUNTIME_DIR}/../abl/libc_sec/src/memset_s.c
+    ${RUNTIME_DIR}/../abl/libc_sec/src/strcat_s.c
 )
 
 set(domainSrc
@@ -106,8 +106,6 @@ add_library(profcore_static STATIC
 target_include_directories(profcore_static PRIVATE
     ${LIBC_SEC_HEADER}
     ${RUNTIME_DIR}/include/driver
-    ${RUNTIME_DIR}/tests/ut/msprof/ut/common/stub
-    ${RUNTIME_DIR}/tests/ut/msprof/ut/avp/stub
     ${basicInc}
     ${domainInc}
     ${serviceInc}

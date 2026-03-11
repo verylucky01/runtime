@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include <map>
+#include <string>
 #include <cstring>
 #include "ascend_hal.h"
 #include "mmpa_api.h"

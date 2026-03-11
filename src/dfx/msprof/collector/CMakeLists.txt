@@ -9,3 +9,6 @@
 # -----------------------------------------------------------------------------------------------------------
 add_subdirectory(basic)
 add_subdirectory(dvvp)
+if ("${PRODUCT}" STREQUAL "ascend035")
+    add_subdirectory(avp)
+endif()

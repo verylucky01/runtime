@@ -252,7 +252,7 @@ private:
     Stream* GetOriginalCaptureStream(void) const;
     rtError_t ExecuteCommon(Stream * const stm, int32_t timeout, const uint8_t executeMode);
     rtError_t BindSqCqAndSendSqe(void);
-    rtError_t ConfigSqTail(void);
+    rtError_t ConfigSqTail(void) const;
     rtError_t BindStreamToModel(void);
     RtModelCaptureStatus captureStatus_{RT_MODEL_CAPTURE_STATUS_NONE};
     mutable uint32_t cacheOpInfoSwitch_{0U}; // aclgraph stream status: 0: false, 1:true

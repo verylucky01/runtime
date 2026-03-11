@@ -578,7 +578,7 @@ rtError_t CaptureModel::ReleaseSqCq(uint32_t &releaseNum)
     return RT_ERROR_NONE;
 }
 
-rtError_t CaptureModel::ConfigSqTail(void)
+rtError_t CaptureModel::ConfigSqTail(void) const
 {
     rtError_t error = RT_ERROR_NONE;
     Device * const dev = Context_()->Device_();

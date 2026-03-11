@@ -305,6 +305,7 @@ public:
     rtError_t GetDevicePhyIdByIndex(const uint32_t devIndex, uint32_t * const phyId) override;
     rtError_t GetDeviceIndexByPhyId(const uint32_t phyId, uint32_t * const devIndex) override;
     rtError_t DeviceSetTsId(const uint32_t tsId) override;
+    rtError_t DeviceGetTsId(uint32_t *tsId) override;
     rtError_t EnableP2P(const uint32_t devIdDes, const uint32_t phyIdSrc, const uint32_t flag) override;
     rtError_t DisableP2P(const uint32_t devIdDes, const uint32_t phyIdSrc) override;
     rtError_t DeviceCanAccessPeer(int32_t * const canAccessPeer, const uint32_t devId,

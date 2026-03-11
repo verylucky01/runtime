@@ -313,6 +313,7 @@ public:
     rtError_t GetPhyDeviceInfo(const uint32_t phyId, const int32_t moduleType, const int32_t infoType,
         int64_t * const val) override;
     rtError_t DeviceSetTsId(const uint32_t tsId) override;
+    rtError_t DeviceGetTsId(uint32_t *tsId) override;
     rtError_t EnableP2P(const uint32_t devIdDes, const uint32_t phyIdSrc, const uint32_t flag) override;
     rtError_t DisableP2P(const uint32_t devIdDes, const uint32_t phyIdSrc) override;
     rtError_t DeviceCanAccessPeer(int32_t * const canAccessPeer, const uint32_t devId,

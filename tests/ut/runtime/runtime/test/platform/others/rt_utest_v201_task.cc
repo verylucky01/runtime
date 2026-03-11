@@ -237,6 +237,14 @@ public:
     rtStream_t streamHandle_ = 0;
 };
 
+TEST_F(TaskTestV201, Test_GetTsId)
+{
+    uint32_t tsId = 0U;
+    const rtError_t error = rtGetTSDevice(&tsId);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(tsId, RT_TSV_ID);
+}
+
 TEST_F(TaskTestV201, Test_DqsTask_Config_multi_channel)
 {
     rtDqsTaskCfg_t cfg = {};

@@ -897,6 +897,11 @@ rtError_t ApiDecorator::DeviceSetTsId(const uint32_t tsId)
     return impl_->DeviceSetTsId(tsId);
 }
 
+rtError_t ApiDecorator::DeviceGetTsId(uint32_t *tsId)
+{
+    return impl_->DeviceGetTsId(tsId);
+}
+
 rtError_t ApiDecorator::SetDeviceFailureMode(uint64_t failureMode)
 {
     return impl_->SetDeviceFailureMode(failureMode);

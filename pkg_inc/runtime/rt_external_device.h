@@ -379,6 +379,16 @@ RTS_API rtError_t rtGetServerIDBySDID(uint32_t sdid, uint32_t *srvId);
  */
 RTS_API rtError_t rtXpuSetTaskFailCallback(rtXpuDevType devType, const char_t *moduleName, rtTaskFailCallback callback);
 
+
+/**
+ * @ingroup dvrt_dev
+ * @brief Setting Scheduling Type of Graph
+ * @param [out] tsId   the ts id
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_INVALID_VALUE for error input
+ */
+RTS_API rtError_t rtGetTSDevice(uint32_t *tsId);
+
 #if defined(__cplusplus)
 }
 #endif

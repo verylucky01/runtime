@@ -416,6 +416,16 @@ rtError_t rtSetTSDevice(uint32_t tsId)
 }
 
 VISIBILITY_DEFAULT
+rtError_t rtGetTSDevice(uint32_t *tsId)
+{
+    Api * const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    const rtError_t error = apiInstance->DeviceGetTsId(tsId);
+    ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    return ACL_RT_SUCCESS;
+}
+
+VISIBILITY_DEFAULT
 rtError_t rtGetDeviceIdByGeModelIdx(uint32_t geModelIdx, uint32_t *deviceId)
 {
     RT_LOG(RT_LOG_DEBUG, "geModelIdx:%u", geModelIdx);

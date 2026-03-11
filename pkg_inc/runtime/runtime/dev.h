@@ -486,6 +486,15 @@ RTS_API rtError_t rtSetTSDevice(uint32_t tsId);
 
 /**
  * @ingroup dvrt_dev
+ * @brief Setting Scheduling Type of Graph
+ * @param [out] tsId   the ts id
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_INVALID_VALUE for error input
+ */
+RTS_API rtError_t rtGetTSDevice(uint32_t *tsId);
+
+/**
+ * @ingroup dvrt_dev
  * @brief init aicpu executor
  * @param [out] runtime run mode
  * @return RT_ERROR_NONE for ok

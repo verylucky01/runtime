@@ -2838,6 +2838,13 @@ rtError_t ApiErrorDecorator::DeviceSetTsId(const uint32_t tsId)
     return impl_->DeviceSetTsId(tsId);
 }
 
+rtError_t ApiErrorDecorator::DeviceGetTsId(uint32_t *tsId)
+{
+    NULL_PTR_RETURN_MSG_OUTER(tsId, RT_ERROR_INVALID_VALUE);
+
+    return impl_->DeviceGetTsId(tsId);
+}
+
 rtError_t ApiErrorDecorator::ContextCreate(Context ** const inCtx, const int32_t devId)
 {
     uint32_t realDeviceId = static_cast<uint32_t>(devId);

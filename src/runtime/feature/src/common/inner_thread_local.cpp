@@ -48,6 +48,7 @@ uint32_t InnerThreadLocalContainer::GetTsId(void)
 {
     return tsId_;
 }
+
 void InnerThreadLocalContainer::SetTsId(const uint32_t inTsId)
 {
     tsId_ = inTsId;

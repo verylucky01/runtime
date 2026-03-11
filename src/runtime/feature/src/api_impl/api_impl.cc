@@ -3854,6 +3854,13 @@ rtError_t ApiImpl::DeviceSetTsId(const uint32_t tsId)
     return RT_ERROR_NONE;
 }
 
+rtError_t ApiImpl::DeviceGetTsId(uint32_t *tsId)
+{
+    *tsId = InnerThreadLocalContainer::GetTsId();
+
+    return RT_ERROR_NONE;
+}
+
 rtError_t ApiImpl::NewContext(const uint32_t deviceId, const uint32_t tsId, Context** const ctx) const
 {
     Runtime * const rt = Runtime::Instance();

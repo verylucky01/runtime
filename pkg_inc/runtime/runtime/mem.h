@@ -162,6 +162,12 @@ typedef enum tagRtMemInfoType {
     RT_MEMORYINFO_HBM_P2P_NORMAL,         // Normal memory of HBM
     RT_MEMORYINFO_HBM_HUGE1G,             // 1G HugePage memory of HBM
     RT_MEMORYINFO_HBM_P2P_HUGE1G,         // 1G HugePage memory of HBM
+    RT_MEMORYINFO_NORMAL,                 // Normal memory
+    RT_MEMORYINFO_HUGE,                   // Hugepage memory
+    RT_MEMORYINFO_HUGE1G,                 // 1G HugePage memory
+    RT_MEMORYINFO_P2P_NORMAL,             // Normal memory of P2P
+    RT_MEMORYINFO_P2P_HUGE,               // Hugepage memory of P2P
+    RT_MEMORYINFO_P2P_HUGE1G,             // 1G HugePage memory of P2p
 } rtMemInfoType_t;
 
 typedef rtMemInfoType_t rtMemInfoType;

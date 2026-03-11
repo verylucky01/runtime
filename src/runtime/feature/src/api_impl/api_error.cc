@@ -2446,7 +2446,7 @@ rtError_t ApiErrorDecorator::MemGetInfoEx(const rtMemInfoType_t memInfoType, siz
 {
     NULL_PTR_RETURN_MSG_OUTER(freeSize, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(totalSize, RT_ERROR_INVALID_VALUE);
-    COND_RETURN_ERROR_MSG_INNER((memInfoType < RT_MEMORYINFO_DDR) || (memInfoType > RT_MEMORYINFO_HBM_P2P_HUGE1G),
+    COND_RETURN_ERROR_MSG_INNER((memInfoType < RT_MEMORYINFO_DDR) || (memInfoType > RT_MEMORYINFO_P2P_HUGE1G),
         RT_ERROR_INVALID_MEMORY_TYPE, "Invalid memInfoType=%d.", memInfoType);
     const rtError_t error = impl_->MemGetInfoEx(memInfoType, freeSize, totalSize);
     ERROR_RETURN(error, "Get Memory extend info failed, memInfoType=%u, free=%zu, total=%zu.",

@@ -1641,6 +1641,9 @@ static rtError_t GetMemInfoType(const rtMemInfoType_t memInfoType, uint32_t * co
         case RT_MEMORYINFO_HBM_HUGE:
         case RT_MEMORYINFO_HBM_NORMAL:
         case RT_MEMORYINFO_HBM_HUGE1G:
+        case RT_MEMORYINFO_NORMAL:
+        case RT_MEMORYINFO_HUGE:
+        case RT_MEMORYINFO_HUGE1G:
             *type = RT_MEM_INFO_TYPE_HBM_SIZE;
             break;
         case RT_MEMORYINFO_DDR_P2P_HUGE:
@@ -1650,6 +1653,9 @@ static rtError_t GetMemInfoType(const rtMemInfoType_t memInfoType, uint32_t * co
         case RT_MEMORYINFO_HBM_P2P_HUGE:
         case RT_MEMORYINFO_HBM_P2P_NORMAL:
         case RT_MEMORYINFO_HBM_P2P_HUGE1G:
+        case RT_MEMORYINFO_P2P_NORMAL:
+        case RT_MEMORYINFO_P2P_HUGE:
+        case RT_MEMORYINFO_P2P_HUGE1G:
             *type = RT_MEM_INFO_TYPE_HBM_P2P_SIZE;
             break;
         default:
@@ -1845,14 +1851,18 @@ static bool IsHugepageMem(const rtMemInfoType_t memInfoType)
     const bool flag =  ((memInfoType == RT_MEMORYINFO_DDR_HUGE) ||
                        (memInfoType == RT_MEMORYINFO_HBM_HUGE) ||
                        (memInfoType == RT_MEMORYINFO_DDR_P2P_HUGE) ||
-                       (memInfoType == RT_MEMORYINFO_HBM_P2P_HUGE));
+                       (memInfoType == RT_MEMORYINFO_HBM_P2P_HUGE) ||
+                       (memInfoType == RT_MEMORYINFO_HUGE) ||
+                       (memInfoType == RT_MEMORYINFO_P2P_HUGE));
     return flag;
 }
 
 static bool Is1GHugePageMem(const rtMemInfoType_t memInfoType)
 {
-    const bool flag =  (memInfoType == RT_MEMORYINFO_HBM_HUGE1G) ||
-                       (memInfoType == RT_MEMORYINFO_HBM_P2P_HUGE1G);
+    const bool flag =  ((memInfoType == RT_MEMORYINFO_HBM_HUGE1G) ||
+                       (memInfoType == RT_MEMORYINFO_HBM_P2P_HUGE1G) ||
+                       (memInfoType == RT_MEMORYINFO_HUGE1G) ||
+                       (memInfoType == RT_MEMORYINFO_P2P_HUGE1G));
     return flag;
 }
 

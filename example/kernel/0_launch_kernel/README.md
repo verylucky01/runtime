@@ -30,8 +30,9 @@
 
   3.执行以下命令运行样例。
   ```bash
-  # 当前用例依赖 numpy 模块，运行时会检查该模块是否存在，如存在则导入，不存在则安装该模块
-  bash run.sh -r <mode>
+  # 当前用例依赖 numpy 模块，运行时会检查该模块是否存在，如存在则导入，不存在则安装该模块。
+  # bash run.sh -r <mode> ，mode 参数可以选 simple和placeholder。若不指定直接执行 bash run.sh 运行样例，则使用simple 模式。
+  bash run.sh -r simple
   ```
    mode可选simple和placeholder两种模式：
     1. simple模式

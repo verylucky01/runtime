@@ -46,6 +46,12 @@ while :; do
     esac
 done
 
+# 编译前拦截，若 RUN_MODE 不为 simple、placeholder或者为空字符串，则报错终止
+if [ "$RUN_MODE" != "simple" ] && [ "$RUN_MODE" != "placeholder" ] && [ "$RUN_MODE" != "" ]; then
+    echo "[ERROR]: Invalid run mode: $RUN_MODE , mode must be simple or placeholder"
+    exit 1
+fi
+
 set -e
 rm -rf build out
 mkdir -p build

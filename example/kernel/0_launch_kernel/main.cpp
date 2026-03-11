@@ -65,7 +65,7 @@ int32_t main(int32_t argc, char *argv[])
     aclrtParamHandle paramHandle1 = nullptr;
     aclrtParamHandle paramHandle2 = nullptr;
     aclrtParamHandle paramHandle3 = nullptr;
-    if (mode == "simple") {
+    if (mode == "simple" || mode.empty()) {
         const char *filePath = "./out/fatbin/ascendc_kernels_simple/ascendc_kernels_simple.o";
         // Load the kernel binary file
         CHECK_ERROR(aclrtBinaryLoadFromFile(filePath, nullptr, &binHandle));

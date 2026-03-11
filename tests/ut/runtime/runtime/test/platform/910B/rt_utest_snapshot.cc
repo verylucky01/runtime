@@ -387,3 +387,93 @@ TEST_F(SnapshotTest, GetPoolIndex_AfterAlloc) {
     uint16_t poolIndex = eventPool_->GetPoolIndex();
     EXPECT_GE(poolIndex, 0U);
 }
+
+TEST_F(SnapshotTest, SnapShotProcessRestore1)
+{
+    rtContext_t ctx;
+    rtError_t error = rtsCtxGetCurrent(&ctx);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    Context* curCtx = static_cast<Context*>(ctx);
+
+    CaptureModel* captureModel = new CaptureModel();
+    curCtx->models_.push_back(captureModel);
+    captureModel->context_ = curCtx;
+    captureModel->isSoftwareSqEnable_ = true;
+    captureModel->executorFlag_ = EXECUTOR_TS;
+    captureModel->modelType_ = ModelType::RT_MODEL_CAPTURE_MODEL;
+
+    MOCKER_CPP(&ContextManage::SinkTaskMemoryBackup).stubs().will(returnValue(RT_ERROR_NONE));
+    error = ContextManage::ModelBackup(0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = ContextManage::ModelRestore(0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+}
+
+TEST_F(SnapshotTest, SnapShotProcessRestore2)
+{
+    rtDeviceSqCqInfo_t sqCqInfo1 = {};
+    rtDeviceSqCqInfo_t sqCqInfo2 = {};
+    RawDevice * device = dynamic_cast<RawDevice *>(device_);
+    device->deviceSqCqPool_->deviceSqCqFreeList_.push_back(sqCqInfo1);
+    device->deviceSqCqPool_->deviceSqCqOccupyList_.push_back(sqCqInfo2);
+
+    MOCKER_CPP(&DeviceSqCqPool::AllocSqCqFromDrv).stubs()
+        .will(returnValue(RT_ERROR_NONE))
+        .then(returnValue(1))
+        .then(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&DeviceSqCqPool::AllocSqRegVirtualAddr).stubs()
+        .will(returnValue(1))
+        .then(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&DeviceSqCqPool::FreeSqCqToDrv).stubs().will(returnValue(RT_ERROR_NONE));
+    rtError_t error = device->RestoreSqCqPool();
+    EXPECT_NE(error, RT_ERROR_NONE);
+    error = device->RestoreSqCqPool();
+    EXPECT_NE(error, RT_ERROR_NONE);
+    error = device->RestoreSqCqPool();
+    EXPECT_EQ(error, RT_ERROR_NONE);
+}
+
+
+TEST_F(SnapshotTest, SnapShotProcessRestore3)
+{
+    rtContext_t ctx;
+    rtError_t error = rtsCtxGetCurrent(&ctx);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    Context* curCtx = static_cast<Context*>(ctx);
+
+    CaptureModel* captureModel = new CaptureModel();
+    CaptureModel* captureModel1 = new CaptureModel();
+    curCtx->models_.push_back(captureModel);
+    captureModel->context_ = curCtx;
+    captureModel->isSoftwareSqEnable_ = true;
+    captureModel->modelType_ = ModelType::RT_MODEL_CAPTURE_MODEL;
+    captureModel->captureStatus_ = RtModelCaptureStatus::RT_MODEL_CAPTURE_STATUS_FINISH;
+    captureModel1->modelType_ = ModelType::RT_MODEL_NORMAL;
+    captureModel1->context_ = curCtx;
+    curCtx->models_.push_back(captureModel1);
+
+    rtStream_t stream;
+    error = rtStreamCreateWithFlags(&stream, 0U, RT_STREAM_PERSISTENT);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    Stream* stm = static_cast<Stream*>(stream);
+    stm->sqAddr_ = 1;
+    captureModel->ModelPushFrontStream(stm);
+
+    NpuDriver *drv = dynamic_cast<NpuDriver *>(device_->Driver_());
+    EXPECT_NE(drv, nullptr);
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::ReAllocResourceId).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::LogicCqAllocate).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::StreamBindLogicCq).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::MemSetSync).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&SqAddrMemoryOrder::FreeSqAddr).stubs().will(returnValue(RT_ERROR_NONE));
+
+    RawDevice * device = dynamic_cast<RawDevice *>(device_);
+    MOCKER_CPP_VIRTUAL(device, &RawDevice::RestoreSqCqPool).stubs().will(returnValue(RT_ERROR_NONE));
+    error = ContextManage::AclGraphRestore(device);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    curCtx->models_.clear();
+    captureModel->ModelRemoveStream(stm);
+    delete captureModel;
+    delete captureModel1;
+}

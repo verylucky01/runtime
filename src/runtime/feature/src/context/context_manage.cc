@@ -12,6 +12,8 @@
 #include "thread_local_container.hpp"
 #include "inner_thread_local.hpp"
 #include "device_snapshot.hpp"
+#include "raw_device.hpp"
+#include "capture_model_utils.hpp"
 
 namespace cce {
 namespace runtime {
@@ -464,6 +466,49 @@ static rtError_t ResourceRestore()
     return ret;
 }
 
+rtError_t ContextManage::AclGraphRestore(Device * const dev)
+{
+    RT_LOG(RT_LOG_INFO, "Start to restore aclgraph.");
+    NULL_PTR_RETURN(dev, RT_ERROR_DEVICE_NULL);
+    const int32_t deviceId = dev->Id_();
+    auto mdlList = std::make_unique<rtModelList_t>();
+    NULL_PTR_RETURN(mdlList, RT_ERROR_MEMORY_ALLOCATION);
+    DeviceGetModelList(deviceId, mdlList.get());
+    COND_RETURN_DEBUG((mdlList->mdlNum == 0U),
+        RT_ERROR_NONE, "No model needs to be restore, devId=%d.", deviceId);
+
+    Driver *drv = dev->Driver_();
+    const uint32_t tsId = dev->DevGetTsId();
+
+    for (uint32_t i = 0; i < mdlList->mdlNum; i ++) {
+        Model *mdl = RtPtrToPtr<Model *>(mdlList->mdls[i]);
+        // 只恢复扩流场景的mode
+        if (mdl->GetModelType() != ModelType::RT_MODEL_CAPTURE_MODEL) {
+            continue;
+        }
+        CaptureModel *capMdl = dynamic_cast<CaptureModel *>(mdl);
+        if (capMdl == nullptr) {
+            RT_LOG(RT_LOG_WARNING, "Dynamic cast to CaptureModel failed, modelId=%u.", mdl->Id_());
+            continue;
+        }
+        if (capMdl->IsSoftwareSqEnable() && capMdl->IsCaptureFinish()) {
+            // 恢复modelID
+            rtError_t err = drv->ReAllocResourceId(deviceId, tsId, 0U, mdl->Id_(), DRV_MODEL_ID);
+            ERROR_RETURN(err, "Realloc modelId failed, deviceId=%u, tsId=%u, retCode=%#x!",
+                deviceId, tsId, static_cast<uint32_t>(err));
+            
+            err = capMdl->RestoreForSoftwareSq(dev);
+            ERROR_RETURN(err, "Restore capture model failed, deviceId=%u, tsId=%u, retCode=%#x!",
+                deviceId, tsId, static_cast<uint32_t>(err));
+        }
+    }
+    
+    rtError_t err = dev->RestoreSqCqPool();
+    ERROR_RETURN(err, "Restore SqCqPool failed, deviceId=%u, retCode=%#x!",
+                deviceId, static_cast<uint32_t>(err));
+    return RT_ERROR_NONE;
+}
+
 rtError_t ContextManage::SnapShotProcessRestore()
 {
     RT_LOG(RT_LOG_INFO, "start to restore resource");
@@ -492,6 +537,10 @@ rtError_t ContextManage::SnapShotProcessRestore()
 
         ret = ModelRestore(static_cast<int32_t>(devId));
         ERROR_RETURN(ret, "ModelRestore failed, ret=%#x, devId=%u.", static_cast<uint32_t>(ret), devId);
+
+        ret = AclGraphRestore(dev);
+        ERROR_RETURN(ret, "AclGraph restore failed, ret=%#x, devId=%u.", static_cast<uint32_t>(ret), devId);
+
         dev->ArgLoader_()->RestoreAiCpuKernelInfo();
     }
 
@@ -525,9 +574,10 @@ rtError_t ContextManage::ModelBackup(const int32_t devId)
         COND_RETURN_WARN((mdl->GetModelExecutorType() != EXECUTOR_TS),
             RT_ERROR_FEATURE_NOT_SUPPORT,
             "Snapshots cannot be created for models with the AICPU execution type.");
-        COND_RETURN_WARN(
-            (mdl->GetModelType() == RT_MODEL_CAPTURE_MODEL), RT_ERROR_FEATURE_NOT_SUPPORT,
-            "Now, snapshot does not support aclGraph.");
+        // 扩流场景model的sqe不做备份，sqe数据本身就在host中，非扩流场景为了确保恢复之后model能够删除成功，需要继续走备份流程
+        if (IsSoftwareSqCaptureModel(mdl)) {
+            continue;
+        }
         COND_RETURN_ERROR((!mdl->IsModelLoadComplete()),
             RT_ERROR_SNAPSHOT_BACKUP_FAILED,
             "The model is not complete, model_id=%u.", mdl->Id_());
@@ -553,6 +603,10 @@ rtError_t ContextManage::ModelRestore(const int32_t devId)
         COND_RETURN_WARN((mdl->GetModelExecutorType() != EXECUTOR_TS),
             RT_ERROR_FEATURE_NOT_SUPPORT,
             "Models with the AICPU executor type cannot be restored.");
+        // 只恢复非扩流场景的mode
+        if (IsSoftwareSqCaptureModel(mdl)) {
+            continue;
+        }
         const rtError_t ret = mdl->ReBuild();
         ERROR_RETURN(ret, "Rebuild model failed, ret=%#x, devId=%d.", static_cast<uint32_t>(ret), devId);
     }

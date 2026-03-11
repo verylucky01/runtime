@@ -125,5 +125,14 @@ rtError_t CheckCaptureStreamThreadIsMatch(const Stream * const stm)
     return RT_ERROR_NONE;
 }
 
+bool IsSoftwareSqCaptureModel(Model * const mdl)
+{
+    if (mdl->GetModelType() != ModelType::RT_MODEL_CAPTURE_MODEL) {
+        return false;
+    }
+    CaptureModel *capMdl = dynamic_cast<CaptureModel *>(mdl);
+    return capMdl != nullptr && capMdl->IsSoftwareSqEnable();
+}
+
 }
 }

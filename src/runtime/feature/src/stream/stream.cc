@@ -4831,5 +4831,61 @@ void Stream::ExpandStreamRecycleModelBindStreamAllTask()
 {
     return;
 }
+
+rtError_t Stream::RestoreForSoftwareSq()
+{
+    RT_LOG(RT_LOG_INFO, "Begin restore capture stream, StreamId=%u.", Id_());
+    const Device *dev = Device_();
+    Driver *drv = dev->Driver_();
+    const int32_t deviceId = dev->Id_();
+    const uint32_t tsId = dev->DevGetTsId();
+    const uint32_t drvFlag = TSDRV_FLAG_SPECIFIED_CQ_ID;
+
+    // streamID 重申请
+    rtError_t error = drv->ReAllocResourceId(deviceId, tsId, priority_,
+        static_cast<uint32_t>(streamId_), DRV_STREAM_ID);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Realloc stream id from driver failed, streamId=%d, deviceId=%u, ret=%d.",
+        streamId_, deviceId, error);
+
+    // logicCqID 重申请
+    error = drv->LogicCqAllocateV2(deviceId, tsId, streamId_, logicalCqId_, IsBindDvppGrp(), drvFlag);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Alloc logicCq from driver failed, streamId=%u, logicCqId=%u, retCode=%d.", streamId_, logicalCqId_, error);
+    error = drv->StreamBindLogicCq(deviceId, tsId, streamId_, logicalCqId_);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Bind logicCq to stream failed, streamId=%d, deviceId=%u, logicCqId=%u, ret=%d.",
+        streamId_, deviceId, logicalCqId_, error);
+
+    // SqId_恢复默认值、cqId_恢复默认值、sqRegVirtualAddr恢复默认值
+    ResetSqCq();
+
+    // sqIdMemAddr内存重置
+    error = drv->MemSetSync(RtValueToPtr<void *>(sqIdMemAddr_), sizeof(uint64_t), 0U, sizeof(uint64_t));
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+            "Set sq id to invalid value failed, streamId=%d, deviceId=%u, ret=%d.", streamId_, deviceId, error);
+
+    // sqDepth_恢复默认值
+    SetSqDepth(STREAM_SQ_MAX_DEPTH);
+
+    // sqAddr还回池子，并恢复为默认值
+    if (sqAddr_ != 0U) {
+        SqAddrMemoryOrder *sqAddrMemoryManage = dev->GetSqAddrMemoryManage();
+        if (sqAddrMemoryManage != nullptr) {
+            error = sqAddrMemoryManage->FreeSqAddr(RtValueToPtr<uint64_t *>(sqAddr_), sqMemOrderType_);
+            COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+                "Free sq addr failed, streamId=%d, deviceId=%u, ret=%d.", streamId_, deviceId, error);
+            SetSqBaseAddr(0ULL);
+        }
+    }
+
+    if (executedTimesSvm_ != nullptr) {
+        error = drv->MemSetSync(executedTimesSvm_, sizeof(uint16_t), 0xFFU, sizeof(uint16_t));
+        COND_RETURN_ERROR(error != RT_ERROR_NONE, error, 
+            "Set stream executed times SVM to invalid value failed, retCode=%#x.", static_cast<uint32_t>(error));
+    }
+
+    return RT_ERROR_NONE;
+}
+ 	 
 }  // namespace runtime
 }  // namespace cce

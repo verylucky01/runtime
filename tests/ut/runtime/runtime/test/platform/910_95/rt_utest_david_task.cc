@@ -1676,3 +1676,27 @@ TEST_F(TaskTestDavid, AllocCaptureStreamNotify)
 
     delete rawDrv;
 }
+
+TEST_F(TaskTestDavid, StreamSetupTryAlloc)
+{
+    Context * const curCtx = Runtime::Instance()->CurrentContext();
+    EXPECT_EQ(curCtx != nullptr, true);
+    Device * const device = curCtx->Device_();
+    EXPECT_EQ(device != nullptr, true);
+
+    MOCKER_CPP(&StreamSqCqManage::AllocDavidStreamSqCq).stubs().will(returnValue(RT_ERROR_DRV_NO_RESOURCES));
+    rtStream_t stream;
+    rtError_t error = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(error, ACL_ERROR_RT_RESOURCE_ALLOC_FAIL);
+
+    DeviceSqCqPool *deviceSqCqPool = device->GetDeviceSqCqManage();
+    uint32_t allcocNum = 1U;
+    rtDeviceSqCqInfo_t sqCqList = {};
+    deviceSqCqPool->PreAllocSqCq();
+
+    error = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(error, ACL_ERROR_RT_RESOURCE_ALLOC_FAIL);
+
+    error = deviceSqCqPool->GetSqCqPoolFreeResNum();
+    EXPECT_EQ(error, 0U);
+}

@@ -560,6 +560,19 @@ rtError_t DavidStream::SetupByFlagAndCheck(void)
     /**** alloc sq cq id *****/
     const auto stmSqCqManage = RtPtrToUnConstPtr<StreamSqCqManage *>(device_->GetStreamSqCqManage());
     error = stmSqCqManage->AllocDavidStreamSqCq(this, priority_, 0U, sqId_, cqId_, sqAddr_);
+    if (error == RT_ERROR_DRV_NO_RESOURCES) {
+        DeviceSqCqPool *sqcqPool = device_->GetDeviceSqCqManage();
+        if ((sqcqPool->GetSqCqPoolFreeResNum() == 0U) && (Context_() != nullptr)) {
+            Context_()->TryRecycleCaptureModelResource(1U, 0U, nullptr);
+        }
+
+        if ((sqcqPool != nullptr) && (sqcqPool->GetSqCqPoolFreeResNum() != 0U)) {
+            if (sqcqPool->TryFreeSqCqToDrv() == RT_ERROR_NONE) {
+                error = stmSqCqManage->AllocDavidStreamSqCq(this, priority_, 0U, sqId_, cqId_, sqAddr_);
+            }
+        }
+    }
+
     if (error != RT_ERROR_NONE) {
         RT_LOG_INNER_MSG(RT_LOG_ERROR, "[SqCqManage]Alloc sq cq fail, stream_id=%d, retCode=%#x.", streamId_,
             static_cast<uint32_t>(error));

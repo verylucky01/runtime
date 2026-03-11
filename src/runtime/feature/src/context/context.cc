@@ -2406,6 +2406,7 @@ rtError_t Context::StreamCreate(const uint32_t prio, const uint32_t flag, Stream
         newStream->SetStreamFastSync(true);
     }
 
+    newStream->SetContext(this);
     if (!isSoftWareSqEnable) {
         error = newStream->Setup();
     } else {
@@ -2414,7 +2415,6 @@ rtError_t Context::StreamCreate(const uint32_t prio, const uint32_t flag, Stream
     }
 
     ERROR_GOTO(error, ERROR_RECYCLE, "Setup stream failed, retCode=%#x.", error);
-    newStream->SetContext(this);
     if ((flag & RT_STREAM_FORBIDDEN_DEFAULT) == 0U) {
         std::unique_lock<std::mutex> taskLock(streamLock_);
         streams_.push_back(newStream);

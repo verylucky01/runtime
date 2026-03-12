@@ -22,7 +22,7 @@
 #include "driver_mem.h"
 #include "driver_impl.h"
 
-#include "../../../abl/mmpa/inc/mmpa/mmpa_api.h"
+#include "mmpa/mmpa_api.h"
 
 #define CHIP_NUM (1)
 #define CMODEL_DRI_STARTED (0)

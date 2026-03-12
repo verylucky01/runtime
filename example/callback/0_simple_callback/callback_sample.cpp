@@ -37,6 +37,7 @@ int CallBackSpace::CallBackSample::Init()
     CHECK_ERROR(aclrtCreateContext(&context_, deviceId_));
     CHECK_ERROR(aclrtCreateStream(&stream_));
     CHECK_ERROR(aclrtSetStreamFailureMode(stream_, ACL_STOP_ON_FAILURE));
+    return 0;
 }
 
 void CallBackSpace::CallBackSample::ThreadFunc(void *arg)
@@ -112,6 +113,7 @@ int CallBackSpace::CallBackSample::Callback()
     CHECK_ERROR(aclrtUnSubscribeReport(static_cast<uint64_t>(tidInt), stream_));
     CHECK_ERROR(aclrtFree(numDevice));
     delete userData;
+    return 0;
 }
 
 int CallBackSpace::CallBackSample::Destroy()
@@ -120,4 +122,5 @@ int CallBackSpace::CallBackSample::Destroy()
     CHECK_ERROR(aclrtDestroyContext(context_));
     CHECK_ERROR(aclrtResetDeviceForce(deviceId_));
     CHECK_ERROR(aclFinalize());
+    return 0;
 }

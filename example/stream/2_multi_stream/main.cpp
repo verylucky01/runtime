@@ -80,6 +80,7 @@ namespace {
         CHECK_ERROR(aclrtResetDeviceForce(deviceId));
         aclFinalize();
         INFO_LOG("Resource cleanup completed.");
+        return 0;
     }
 
     // Stream同步
@@ -136,6 +137,7 @@ namespace {
         CHECK_ERROR(aclrtResetDeviceForce(deviceId));
         aclFinalize();
         INFO_LOG("Resource cleanup completed.");
+        return 0;
     }
 
     // Notify同步
@@ -187,6 +189,7 @@ namespace {
         CHECK_ERROR(aclrtResetDeviceForce(deviceId));
         aclFinalize();
         INFO_LOG("Resource cleanup completed.");
+        return 0;
     }
 } // namespace
 

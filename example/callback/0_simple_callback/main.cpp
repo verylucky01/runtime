@@ -17,4 +17,5 @@ int main()
     CallBackSpace::CallBackSample callBackSample;
     (void)callBackSample.Init();
     (void)callBackSample.Callback();
+    return 0;
 }

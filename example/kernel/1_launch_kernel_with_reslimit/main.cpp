@@ -26,6 +26,7 @@ int32_t GetReslimit(int32_t deviceId, void *stream) {
     // Retrieve the device resource limits 
     CHECK_ERROR(aclrtGetDeviceResLimit(deviceId, type, &coreDim));
     PrintDo(coreDim, stream);
+    return 0;
 }
 
 int32_t main(int32_t argc, char *argv[])

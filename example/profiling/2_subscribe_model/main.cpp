@@ -76,6 +76,7 @@ void *profDataRead(void *fd)
         dataLen = read(*(int*)fd, readbuf, readbufLen);
     }
     delete []readbuf;
+    return nullptr;
 }
 }
 

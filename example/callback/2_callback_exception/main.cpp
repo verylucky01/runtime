@@ -17,4 +17,5 @@ int main()
     ExceptionCallBackSpace::ExceptionCallBackSample exceptionCallBackSample;
     (void)exceptionCallBackSample.Init();
     (void)exceptionCallBackSample.Callback();
+    return 0;
 }

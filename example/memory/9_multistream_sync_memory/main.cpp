@@ -39,6 +39,7 @@ int ThreadWait(aclrtStream stream, int32_t deviceId, void* devPtr, uint64_t valu
     int32_t waitFlag = 0;
     memory::ReadFileEx(filePath, &waitFlag, sizeof(waitFlag));
     INFO_LOG("Flag value read by the waiting thread: %d", waitFlag);
+    return 0;
 }
 
 int ThreadWrite(aclrtStream stream, int32_t deviceId, void* devPtr, uint64_t valueWrite, const char* filePath){
@@ -55,6 +56,7 @@ int ThreadWrite(aclrtStream stream, int32_t deviceId, void* devPtr, uint64_t val
     // Block application execution until all tasks in the specified stream are completed
     CHECK_ERROR(aclrtSynchronizeStream(stream));
     INFO_LOG("Stream B: the data in the specified memory has met the condition, all tasks are complete");
+    return 0;
 }
 
 int32_t main()

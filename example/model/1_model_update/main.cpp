@@ -147,4 +147,5 @@ int main()
     CHECK_ERROR(aclrtDestroyContext(context));
     CHECK_ERROR(aclrtResetDeviceForce(deviceId));
     CHECK_ERROR(aclFinalize());
+    return 0;
 }

@@ -252,4 +252,5 @@ int main()
     CHECK_ERROR(aclrtResetDeviceForce(deviceId));
     // 去初始化
     CHECK_ERROR(aclFinalize());
+    return 0;
 }

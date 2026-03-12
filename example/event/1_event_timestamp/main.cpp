@@ -93,4 +93,5 @@ int main()
     CHECK_ERROR(aclrtResetDeviceForce(deviceId));
     aclFinalize();
     INFO_LOG("Resource cleanup completed.");
+    return 0;
 }

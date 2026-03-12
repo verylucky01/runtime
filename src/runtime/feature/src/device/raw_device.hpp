@@ -855,6 +855,8 @@ public:
         return aicoreQosCfgs_;
     }
 
+    rtError_t RestoreSqCqPool() override;
+
 private:
     bool JudgeIsEndGraphNotifyWaitExecuted(const Stream* const exeStream, Model* captureModel,
         std::list<uint32_t>& sqePosList) const;

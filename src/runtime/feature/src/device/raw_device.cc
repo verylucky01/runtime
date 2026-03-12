@@ -2434,5 +2434,18 @@ rtError_t RawDevice::SetQosCfg(const qos_master_config_type& qosCfg, uint32_t in
 
     return RT_ERROR_NONE;
 }
+
+rtError_t RawDevice::RestoreSqCqPool()
+{
+    RT_LOG(RT_LOG_INFO, "Begin restore deviceSqCqPool_, deviceId=%u.", Id_());
+    deviceSqCqPool_->FreeOccupyList();
+    rtError_t err = deviceSqCqPool_->ReAllocSqCqForFreeList();
+
+    COND_RETURN_ERROR(err != RT_ERROR_NONE, err, "Realloc sqcq in deviceSqCqFreeList_ failed, deviceId=%u, retCode=%#x",
+        deviceId_, static_cast<uint32_t>(err));
+
+    return RT_ERROR_NONE;
+}
+
 }  // namespace runtime
 }

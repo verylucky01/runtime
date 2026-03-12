@@ -32,6 +32,7 @@ public:
     static rtError_t SnapShotProcessRestore();
     static rtError_t ModelBackup(const int32_t devId);
     static rtError_t ModelRestore(const int32_t devId);
+    static rtError_t AclGraphRestore(Device * const dev);
     static rtError_t SinkTaskMemoryBackup(const int32_t devId);
     static bool IsSupportDeviceAbort(const int32_t devId);
     static void TryToRecycleCtxMdlPool();

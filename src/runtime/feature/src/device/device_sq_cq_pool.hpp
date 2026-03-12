@@ -40,7 +40,7 @@ public:
     // Release sqcq in batches, release them from the pool, and simultaneously call the driver interface to release them.
     rtError_t FreeSqCqImmediately(const rtDeviceSqCqInfo_t * const sqCqList, const uint32_t freeNum);
 
-    rtError_t AllocSqCqFromDrv(rtDeviceSqCqInfo_t * const sqCqInfo) const;
+    rtError_t AllocSqCqFromDrv(rtDeviceSqCqInfo_t * const sqCqInfo, const uint32_t drvFlag) const;
     rtError_t BatchAllocSqCq(const uint32_t allcocNum);
     rtError_t FreeSqCqToDrv(const uint32_t sqId, const uint32_t cqId) const;
     rtError_t SetSqRegVirtualAddrToDevice(const uint32_t sqId, const uint64_t sqRegVirtualAddr) const;
@@ -48,6 +48,9 @@ public:
     uint32_t GetSqCqPoolTotalResNum(void);
     uint32_t GetSqCqPoolFreeResNum(void);
     rtError_t TryFreeSqCqToDrv(void);
+    rtError_t ReAllocSqCqForFreeList(void);
+    void FreeOccupyList(void);
+    void FreeReallocatedSqCqToDrv(const std::list<rtDeviceSqCqInfo_t>::iterator begin, const std::list<rtDeviceSqCqInfo_t>::iterator end);
 
 private:
     Device *device_;

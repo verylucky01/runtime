@@ -239,7 +239,8 @@ public:
     void CaptureModelExecuteFinish(void);
     rtError_t MarkStreamActiveTask(TaskInfo *streamActiveTask); // the task of stream active is need updated
                                                                 // after sq cq is allocated
-
+    rtError_t RestoreForSoftwareSq(Device * const dev);
+    
 private:
     rtError_t SendSqe(void);      // copy sqe to sqe addr
     rtError_t AllocSqAddr(void) const;  // alloc sq addr

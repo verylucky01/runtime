@@ -364,7 +364,8 @@ void PrintSimtDump(const DumpInfoHead *dumpHead)
     PrintDumpBase(dumpHead, PRINT_SIMT);
 }
 
-void PrintDumpTimestamp(const DumpInfoHead *dumpHead, std::vector<MsprofAicTimeStampInfo> &timeStampInfo)
+void PrintDumpTimestamp(const DumpInfoHead *dumpHead, const uint32_t blockId,
+    std::vector<MsprofAicTimeStampInfo> &timeStampInfo)
 {
     COND_RETURN_VOID((dumpHead->infoLen < sizeof(DumpTimeStampInfoMsg)),
         "dumpHead infoLen(%u) is less than %u", dumpHead->infoLen, sizeof(MsprofAicTimeStampInfo));
@@ -373,6 +374,8 @@ void PrintDumpTimestamp(const DumpInfoHead *dumpHead, std::vector<MsprofAicTimeS
 
     const DumpTimeStampInfoMsg *dumpInfoMsg = RtPtrToPtr<const DumpTimeStampInfoMsg *>(dumpHead->infoMsg);
     timeInfo.blockId = dumpInfoMsg->blockIdx;
+    timeInfo.blockId &= 0xFFFF; // 低16位记录逻辑block dim
+    timeInfo.blockId |= ((blockId << 16U) & 0xFFFF0000); // 高16位记录物理block dim
     timeInfo.descId = dumpInfoMsg->descId;
     const uint32_t rsv = dumpInfoMsg->rsv;
     timeInfo.syscyc = dumpInfoMsg->syscyc;
@@ -921,7 +924,8 @@ rtError_t GetReadLenAndAddr(const uint8_t *blockAddr, const size_t blockSize, ui
     return RT_ERROR_NONE;
 }
 
-void PrintDumpInfo(const DumpInfoHead *dumpHead, std::vector<size_t> &shapeInfo, std::vector<MsprofAicTimeStampInfo> &timeStampInfo)
+void PrintDumpInfo(const DumpInfoHead *dumpHead, const uint32_t blockId, std::vector<size_t> &shapeInfo,
+    std::vector<MsprofAicTimeStampInfo> &timeStampInfo)
 {
     switch (dumpHead->type) {
         case DumpType::DUMP_SCALAR:
@@ -935,7 +939,7 @@ void PrintDumpInfo(const DumpInfoHead *dumpHead, std::vector<size_t> &shapeInfo,
             PrintDumpTensor(dumpHead, shapeInfo);
             break;
         case DumpType::DUMP_TIMESTAMP:
-            PrintDumpTimestamp(dumpHead, timeStampInfo);
+            PrintDumpTimestamp(dumpHead, blockId, timeStampInfo);
             break;
         case DumpType::DUMP_SKIP:
             RT_LOG(RT_LOG_INFO, "Skip this dump info for the type.");
@@ -970,7 +974,7 @@ void PrintSimtDumpInfo(const DumpInfoHead *dumpHead)
 // | blockInfo | readInfo | ... | tlv1 | tlv2  tlv3 | ... | writeInfo |
 //                              |                   |                         
 //                           readIdx             writeIdx   
-void PrintBlockInfo(const uint8_t *blockData, uint64_t readIdx, const uint64_t writeIdx,
+void PrintBlockInfo(const uint8_t *blockData, const uint32_t blockId, uint64_t readIdx, const uint64_t writeIdx,
     std::vector<MsprofAicTimeStampInfo> &timeStampInfo)
 {
     std::vector<size_t> shape;
@@ -986,7 +990,7 @@ void PrintBlockInfo(const uint8_t *blockData, uint64_t readIdx, const uint64_t w
     uint64_t dataLen = 0U;
     while (dataLen < totalLen) {
         const DumpInfoHead *dumpHead = RtPtrToPtr<const DumpInfoHead *>(addrAddr + readIdx);
-        PrintDumpInfo(dumpHead, shape, timeStampInfo);
+        PrintDumpInfo(dumpHead, blockId, shape, timeStampInfo);
 
         readIdx += sizeof(DumpInfoHead) + static_cast<uint64_t>(dumpHead->infoLen); // 不可能出现溢出的情况
         dataLen += sizeof(DumpInfoHead) + static_cast<uint64_t>(dumpHead->infoLen);
@@ -1105,7 +1109,7 @@ rtError_t ParsePrintf(void *addr, const size_t blockSize, Driver *curDrv)
             deviceAddr, sizeof(BlockReadInfo), readInfo, sizeof(BlockReadInfo), RT_MEMCPY_HOST_TO_DEVICE, false);
         COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "MemCopySync h2d failed, ret=%u", ret);
 
-        PrintBlockInfo(blockAddr, readIdx, writeInfo->writeIdx, timeStampInfo);
+        PrintBlockInfo(blockAddr, static_cast<uint32_t>(i), readIdx, writeInfo->writeIdx, timeStampInfo);
         const uint32_t coreType = blockInfo->flag;
         ret = ExecuteKernelDfxInfoFunc(blockAddr, dumpReadStartAddr, totalReadBufLen, coreType, blockInfo->coreId);
         COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "Execute kernel dfx info func failed, ret=%u", ret);

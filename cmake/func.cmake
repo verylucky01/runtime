@@ -487,6 +487,7 @@ endmacro()
 macro(set_runtime_params)
     set(BASE_DIR ${RUNTIME_DIR})
     set(RUNTIME_PYTHON "python3" CACHE PATH "Python Path")
+    set(DEVICE_LIBRARY_PATH "runtime/lib/device")
 endmacro()
 
 # 通过相对父目录方式添加子目录

@@ -122,7 +122,7 @@ set_target_properties(slog
 endif ()
 
 install(TARGETS slog
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
+    DESTINATION ${DEVICE_LIBRARY_PATH} OPTIONAL COMPONENT npu-runtime
 )
 
 ############################# ![ascend610/ascend610Lite/ascend610Lite] ###################################
@@ -192,12 +192,8 @@ set_target_properties(alog
 )
 
 install(TARGETS alog
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
+    DESTINATION ${DEVICE_LIBRARY_PATH} OPTIONAL COMPONENT npu-runtime
 )
-
-# install(TARGETS alog
-#     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR} OPTIONAL
-# )
 
 ############################# ![ascend610/ascend610Lite/ascend610Lite] ###################################
 ############################# libunified_npu_log.so ######################################################
@@ -255,9 +251,5 @@ target_link_libraries(unified_dlog
 )
 
 install(TARGETS unified_dlog
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
+    DESTINATION ${DEVICE_LIBRARY_PATH} OPTIONAL COMPONENT npu-runtime
 )
-
-# install(TARGETS unified_dlog
-#     LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR} OPTIONAL
-# )

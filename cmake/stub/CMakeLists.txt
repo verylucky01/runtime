@@ -57,36 +57,28 @@ set_target_properties(ascend_hal_stub
     OUTPUT_NAME ascend_hal
 )
 
-set(PKG_NAME ascend_hal)
-install(TARGETS ascend_hal_stub ascend_hal_headers
-    EXPORT ${PKG_NAME}-targets
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub OPTIONAL COMPONENT opensdk
-)
-install(TARGETS ascend_hal_stub ascend_hal_headers
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub OPTIONAL COMPONENT opensdk
-)
-install(FILES   ${RUNTIME_DIR}/include/driver/ascend_hal_define.h
-                ${RUNTIME_DIR}/include/driver/ascend_hal_error.h
-                ${RUNTIME_DIR}/include/driver/ascend_hal.h
-                ${RUNTIME_DIR}/include/driver/ascend_hal_external.h
-                ${RUNTIME_DIR}/include/driver/ascend_hal_base.h
-    DESTINATION ${INSTALL_INCLUDE_DIR}/ascend_hal/driver COMPONENT opensdk EXCLUDE_FROM_ALL
-)
-if (PACKAGE STREQUAL "opensdk")
-    install(EXPORT ${PKG_NAME}-targets DESTINATION ${INSTALL_CONFIG_DIR}
-        FILE ${PKG_NAME}-targets.cmake COMPONENT opensdk EXCLUDE_FROM_ALL
+if(PRODUCT_SIDE STREQUAL "host" OR NOT ENABLE_OPEN_SRC)
+    set(PKG_NAME ascend_hal)
+    install(TARGETS ascend_hal_stub ascend_hal_headers
+        EXPORT ${PKG_NAME}-targets
+        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/stub OPTIONAL
     )
-    configure_package_config_file(${RUNTIME_DIR}/cmake/config/pkg_config_template.cmake.in
-        ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
-        INSTALL_DESTINATION ${INSTALL_CONFIG_DIR}
-        PATH_VARS INSTALL_BASE_DIR INSTALL_INCLUDE_DIR INSTALL_LIBRARY_DIR INSTALL_RUNTIME_DIR INSTALL_CONFIG_DIR
-        INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}
+    install(TARGETS ascend_hal_stub ascend_hal_headers
+        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub OPTIONAL
     )
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
-        DESTINATION ${INSTALL_CONFIG_DIR} COMPONENT opensdk EXCLUDE_FROM_ALL
+    install(FILES   ${RUNTIME_DIR}/include/driver/ascend_hal_define.h
+                    ${RUNTIME_DIR}/include/driver/ascend_hal_error.h
+                    ${RUNTIME_DIR}/include/driver/ascend_hal.h
+                    ${RUNTIME_DIR}/include/driver/ascend_hal_external.h
+                    ${RUNTIME_DIR}/include/driver/ascend_hal_base.h
+        DESTINATION ${INSTALL_INCLUDE_DIR}/ascend_hal/driver EXCLUDE_FROM_ALL
+    )
+    unset(PKG_NAME)
+else()
+    install(TARGETS ascend_hal_stub
+        DESTINATION ${DEVICE_LIBRARY_PATH} COMPONENT npu-runtime
     )
 endif()
-unset(PKG_NAME)
 
 set(LOCAL_DSMI_H_FILE_PATH ${RUNTIME_DIR}/include/driver/dsmi_common_interface.h)
 set(LOCAL_DSMI_C_FILE_PATH ${CMAKE_CURRENT_BINARY_DIR}/dsmi_common_interface.c)

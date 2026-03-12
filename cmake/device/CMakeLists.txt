@@ -63,4 +63,5 @@ sign_file(
 install(FILES
   ${tsch_compat_sign_file}
   DESTINATION runtime
+  COMPONENT npu-runtime
 )

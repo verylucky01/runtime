@@ -23,6 +23,9 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
         set(LIBC_SEC_HEADER ${ABL_CSEC}/include)
         add_library(c_sec ALIAS shared_c_sec)
         install(TARGETS static_c_sec OPTIONAL DESTINATION runtime/lib)
+        if(PRODUCT_SIDE STREQUAL "device")
+            install(TARGETS shared_c_sec DESTINATION ${DEVICE_LIBRARY_PATH} COMPONENT npu-runtime)
+        endif()
     else()
         set(LOCAL_SRC_DIR "${OPEN_SOURCE_DIR}/libboundscheck-v1.1.16")
         if(EXISTS "${OPEN_SOURCE_DIR}/libboundscheck-v1.1.16.tar.gz")
@@ -96,8 +99,8 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
         add_library(c_sec ALIAS shared_c_sec)
         if(PRODUCT_SIDE STREQUAL "device")
             install(FILES
-                ${CSEC_SOURCE_DIR}/lib/${SO_NEW_NAME} ${CSEC_SOURCE_DIR}/lib/${STATIC_NEW_NAME}
-                DESTINATION lib
+                ${CSEC_SOURCE_DIR}/lib/${SO_NEW_NAME}
+                DESTINATION ${DEVICE_LIBRARY_PATH} COMPONENT npu-runtime
             )
         else()
             install(FILES

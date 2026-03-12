@@ -48,6 +48,6 @@ target_link_options(kernel_load_platform PRIVATE
     -Wl,-Bsymbolic
 )
 
-install(TARGETS kernel_load_platform OPTIONAL
-    LIBRARY DESTINATION lib
+install(TARGETS kernel_load_platform
+    DESTINATION ${DEVICE_LIBRARY_PATH} COMPONENT npu-runtime
 )

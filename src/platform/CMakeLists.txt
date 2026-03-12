@@ -143,16 +143,22 @@ target_link_libraries(platform
                 platform_headers
         )
 
-install_package(
-    PACKAGE platform
-    TARGETS platform platform_headers platform_static
-    FILES   ${RUNTIME_DIR}/pkg_inc/platform/platform_info.h
-            ${RUNTIME_DIR}/pkg_inc/platform/platform_info_def.h
-            ${RUNTIME_DIR}/pkg_inc/platform/platform_infos_def.h
-            ${RUNTIME_DIR}/pkg_inc/platform/soc_spec.h
-    DESTINATION ${INSTALL_INCLUDE_DIR}/platform/platform
-)
+if(PRODUCT_SIDE STREQUAL "host" OR NOT ENABLE_OPEN_SRC)
+    install_package(
+        PACKAGE platform
+        TARGETS platform platform_headers platform_static
+        FILES   ${RUNTIME_DIR}/pkg_inc/platform/platform_info.h
+                ${RUNTIME_DIR}/pkg_inc/platform/platform_info_def.h
+                ${RUNTIME_DIR}/pkg_inc/platform/platform_infos_def.h
+                ${RUNTIME_DIR}/pkg_inc/platform/soc_spec.h
+        DESTINATION ${INSTALL_INCLUDE_DIR}/platform/platform
+    )
 
-install(TARGETS platform OPTIONAL
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub
-)
+    install(TARGETS platform OPTIONAL
+        LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}/${CMAKE_SYSTEM_PROCESSOR}/stub
+    )
+else()
+    install(TARGETS platform_static
+        DESTINATION ${DEVICE_LIBRARY_PATH} COMPONENT npu-runtime
+    )
+endif()

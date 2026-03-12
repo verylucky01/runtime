@@ -296,4 +296,11 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
   target_include_directories(protobuf_static INTERFACE ${PROTOBUF_HOST_STATIC_PKG_DIR}/include)
   target_link_libraries(protobuf_static INTERFACE host_protobuf_static_lib)
   add_dependencies(protobuf_static protobuf_host_static_build)
+
+  if(PRODUCT_SIDE STREQUAL "device")
+    install(FILES
+        ${PROTOBUF_STATIC_PKG_DIR}/lib/libascend_protobuf.a
+        DESTINATION ${DEVICE_LIBRARY_PATH} COMPONENT npu-runtime
+    )
+  endif()
 endif()

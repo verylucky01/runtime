@@ -115,16 +115,22 @@ set_target_properties(static_mmpa PROPERTIES
     ARCHIVE_OUTPUT_NAME $<IF:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>,libstatic_mmpa,mmpa>
 )
 
-install_package(
-    PACKAGE mmpa
-    TARGETS mmpa static_mmpa mmpa_headers
-    FILES   ${MMPA_DIR}/../../pkg_inc/mmpa/mmpa_api.h
-    DESTINATION ${INSTALL_INCLUDE_DIR}/mmpa
-    FILES   ${MMPA_DIR}/../../pkg_inc/mmpa/sub_inc/mmpa_linux.h
-            ${MMPA_DIR}/../../pkg_inc/mmpa/sub_inc/mmpa_typedef_linux.h
-            ${MMPA_DIR}/../../pkg_inc/mmpa/sub_inc/mmpa_env_define.h
-    DESTINATION ${INSTALL_INCLUDE_DIR}/mmpa/sub_inc
-)
+if(PRODUCT_SIDE STREQUAL "host" OR NOT ENABLE_OPEN_SRC)
+    install_package(
+        PACKAGE mmpa
+        TARGETS mmpa static_mmpa mmpa_headers
+        FILES   ${MMPA_DIR}/../../pkg_inc/mmpa/mmpa_api.h
+        DESTINATION ${INSTALL_INCLUDE_DIR}/mmpa
+        FILES   ${MMPA_DIR}/../../pkg_inc/mmpa/sub_inc/mmpa_linux.h
+                ${MMPA_DIR}/../../pkg_inc/mmpa/sub_inc/mmpa_typedef_linux.h
+                ${MMPA_DIR}/../../pkg_inc/mmpa/sub_inc/mmpa_env_define.h
+        DESTINATION ${INSTALL_INCLUDE_DIR}/mmpa/sub_inc
+    )
+else()
+    install(TARGETS mmpa
+        DESTINATION ${DEVICE_LIBRARY_PATH} COMPONENT npu-runtime
+    )
+endif()
 
 if (WIN32)
     install(FILES $<TARGET_PDB_FILE:mmpa> DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL)

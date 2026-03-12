@@ -398,14 +398,14 @@ install(TARGETS host_aicpu_scheduler_so
 
 if(DEFINED ENV{TOOLCHAIN_DIR} AND NOT BUILD_HOST_ONLY)
     install(FILES 
-        ${CHILD_INSTALL_DIR}/lib/libc_sec.so
-        ${CHILD_INSTALL_DIR}/lib/libascendalog.so
-        ${CHILD_INSTALL_DIR}/lib/libunified_dlog.so
-        ${CMAKE_BINARY_DIR}/device_build/protobuf_static/lib/libascend_protobuf.a
-        ${CHILD_INSTALL_DIR}/lib/libmmpa.so
-        ${CHILD_INSTALL_DIR}/lib/stub/libascend_hal.so
-        ${CHILD_INSTALL_DIR}/lib/libplatform_static.a
-        ${CHILD_INSTALL_DIR}/lib/libkernel_load_platform.so
+        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libc_sec.so
+        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libascendalog.so
+        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libunified_dlog.so
+        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libascend_protobuf.a
+        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libmmpa.so
+        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libascend_hal.so
+        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libplatform_static.a
+        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libkernel_load_platform.so
         DESTINATION ${INSTALL_DIR}/device
         OPTIONAL
     )

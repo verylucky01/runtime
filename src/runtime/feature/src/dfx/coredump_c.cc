@@ -60,9 +60,10 @@ static rtError_t CheckMemoryParam(const rtDebugMemoryParam_t *const param)
 
 static rtError_t CheckCoreParam(const uint32_t stackType, const uint32_t coreType, const uint32_t coreId)
 {
-    COND_RETURN_AND_MSG_OUTER(((coreType == RT_CORE_TYPE_AIC && stackType == RT_STACK_TYPE_SIMT)),
-        RT_ERROR_FEATURE_NOT_SUPPORT, ErrorCode::EE1006, __func__,
-        "stackType=" + std::to_string(stackType) + " and " + "coreType=" + std::to_string(coreType));
+    if (coreType == RT_CORE_TYPE_AIC && stackType == RT_STACK_TYPE_SIMT) {
+        RT_LOG(RT_LOG_WARNING, "stackType=%u and coreType=%u is not supported.", stackType, coreType);
+        return RT_ERROR_FEATURE_NOT_SUPPORT;
+    }
     COND_RETURN_AND_MSG_OUTER_WITH_PARAM(((stackType > RT_STACK_TYPE_SIMT)), RT_ERROR_INVALID_VALUE,
         stackType, "[0, " + std::to_string(RT_STACK_TYPE_SIMT) + "]");
     COND_RETURN_AND_MSG_OUTER_WITH_PARAM(((coreType > RT_CORE_TYPE_AIV)), RT_ERROR_INVALID_VALUE,

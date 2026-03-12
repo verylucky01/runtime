@@ -1038,6 +1038,8 @@ TEST_F(TaskTestDavid, get_stack_buffer)
     ApiImplDavid apiImpl;
     const void *stack = nullptr;
     uint32_t stackSize = 0U;
+    EXPECT_EQ(rtGetStackBuffer(bin_handle, 0, 1, 0, 0, &stack, &stackSize), ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    EXPECT_EQ(apiImpl.GetStackBuffer(bin_handle, 0, 1, 0, 0, &stack, &stackSize), RT_ERROR_FEATURE_NOT_SUPPORT);
     EXPECT_EQ(apiImpl.GetStackBuffer(bin_handle, 0, 0, 0, 0, &stack, &stackSize), RT_ERROR_NONE);
     EXPECT_EQ(apiImpl.GetStackBuffer(bin_handle, 0, 0, 1, 0, &stack, &stackSize), RT_ERROR_NONE);
     EXPECT_EQ(apiImpl.GetStackBuffer(bin_handle, 0, 0, 1, 0, &stack, &stackSize), RT_ERROR_NONE);

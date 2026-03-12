@@ -804,6 +804,9 @@ rtError_t rtGetStackBuffer(const rtBinHandle binHandle, uint32_t deviceId, const
     Api *apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     const rtError_t error = apiInstance->GetStackBuffer(binHandle, deviceId, stackType, coreType, coreId, stack, stackSize);
+    if (error == RT_ERROR_FEATURE_NOT_SUPPORT) {
+        return GetRtExtErrCodeAndSetGlobalErr(error);
+    }
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }

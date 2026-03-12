@@ -7001,6 +7001,8 @@ TEST_F(ApiTest, get_bin_and_stack_buffer)
     EXPECT_EQ(rtGetStackBuffer(bin_handle, 0, 0, 0, 0, &stack, &stackSize), RT_ERROR_NONE);
     EXPECT_EQ(rtGetStackBuffer(bin_handle, 0, 0, 1, 0, &stack, &stackSize), RT_ERROR_NONE);
     EXPECT_EQ(api.GetStackBuffer(bin_handle, 0, 0, 1, 0, &stack, &stackSize), RT_ERROR_NONE);
+    EXPECT_EQ(api.GetStackBuffer(bin_handle, 0, 1, 0, 0, &stack, &stackSize), RT_ERROR_FEATURE_NOT_SUPPORT);
+    EXPECT_EQ(rtGetStackBuffer(bin_handle, 0, 1, 0, 0, &stack, &stackSize), ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     EXPECT_EQ(rtBinaryUnLoad(bin_handle), RT_ERROR_NONE);
 }
 

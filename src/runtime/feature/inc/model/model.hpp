@@ -52,8 +52,8 @@ struct MdlDestroyCallbackInfo {
     rtCallback_t callback;
     void *ptr;
     bool operator<(const MdlDestroyCallbackInfo& other) const {
-        return reinterpret_cast<uintptr_t>(callback) < 
-               reinterpret_cast<uintptr_t>(other.callback);
+        return RtPtrToValue(callback) < 
+               RtPtrToValue(other.callback);
     }
 };
 

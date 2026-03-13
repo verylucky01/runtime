@@ -300,3 +300,26 @@ TEST_F(QsSubModuleInterfaceUtest, SendSubModuleRsponseSuccess01)
     auto ret = SubModuleInterface::GetInstance().SendSubModuleRsponse(TSD_EVENT_START_QS_MODULE_RSP);
     EXPECT_EQ(ret, 0);
 }
+
+TEST_F(QsSubModuleInterfaceUtest, StubTsdEventClientFuncTest)
+{
+    struct SubProcEventCallBackInfo regInfo;
+    regInfo.eventType = TSD_EVENT_START_QS_MODULE;
+    regInfo.callBackFunc = nullptr;
+    int32_t ret = RegEventMsgCallBackFunc(&regInfo);
+    EXPECT_EQ(ret, 0);
+
+    UnRegEventMsgCallBackFunc(TSD_EVENT_START_QS_MODULE);
+
+    ret = TsdReportStartOrStopErrCode(0, TSD_QS, 123, 0, "test", 4);
+    EXPECT_EQ(ret, 0);
+
+    ret = TsdWaitForShutdown(0, TSD_QS, 123, 0);
+    EXPECT_EQ(ret, 0);
+
+    ret = TsdDestroy(0, TSD_QS, 123, 0);
+    EXPECT_EQ(ret, 0);
+
+    ret = SubModuleProcessResponse(0, TSD_QS, 123, 0, TSD_EVENT_START_QS_MODULE_RSP);
+    EXPECT_EQ(ret, 0);
+}

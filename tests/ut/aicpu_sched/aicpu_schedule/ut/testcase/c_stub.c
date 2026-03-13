@@ -147,11 +147,6 @@ int eSchedSetWeight(unsigned int devId, unsigned int weight)
     return DRV_ERROR_NONE;
 }
 
-int tsDevSendMsgAsync(unsigned int devId, unsigned int tsId, char *msg, unsigned int msgLen, unsigned int handleId)
-{
-    return 0;
-}
-
 int halTsDevRecord(unsigned int devId, unsigned int tsId, unsigned int record_type, unsigned int record_Id)
 {
     return 0;

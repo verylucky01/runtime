@@ -83,6 +83,7 @@ set(LOCAL_SRC_FILES
     ${SRC_PATH}/server/qs_proc_mem_statistic.cpp
     ${SRC_PATH}/server/qs_args_parser.cpp
     ${SRC_PATH}/stub/proc_mgr/proc_mgr_sys_operator_agent.cpp
+    ${SRC_PATH}/stub/stub_tsd_event_client.cpp
     testcase/bqs_queue_schedule_stest.cpp
     testcase/bqs_queue_manager_stest.cpp
     testcase/statistic_manager_stest.cpp

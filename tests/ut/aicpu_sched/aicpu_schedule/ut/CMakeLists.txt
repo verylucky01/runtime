@@ -269,6 +269,7 @@ set(LOCAL_SRC_FILES
     ${AICPU_SCHED_PATH}/aicpu_sharder/aicpu_context.cc
     ${AICPU_SCHED_PATH}/aicpu_sharder/aicpu_async_event.cc
     ${AICPU_SCHED_PATH}/aicpu_sharder/aicpu_timer.cpp
+    ${AICPU_SCHED_PATH}/stub/stackcore_stub.cpp
 
     ${RUNTIME_DIR}/tests/ut/aicpu_sched/aicpu_schedule/stub/aicpusd_context.cpp
     ${RUNTIME_DIR}/tests/ut/aicpu_sched/aicpu_schedule/stub/stub_driver.cpp
@@ -412,6 +413,7 @@ add_executable(aicpu_thread_datadump_utest
     ${SRC_PATH}/common/feature_ctrl_common.cpp
     ${SRC_PATH}/stub/stub_transfer_dump.cpp
     ${SRC_PATH}/stub/stub_thread_datadump.cpp
+    ${RUNTIME_DIR}/src/aicpu_sched/stub/stackcore_stub.cpp
     ${RUNTIME_DIR}/tests/ut/aicpu_sched/aicpu_schedule/stub/slog_stub.cpp
     ${RUNTIME_DIR}/tests/ut/aicpu_sched/aicpu_schedule/stub/stub_driver.cpp
     testcase/c_stub.c

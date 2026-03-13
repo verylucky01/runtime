@@ -141,10 +141,3 @@ drvError_t drvQueryProcessHostPid(int pid, unsigned int *chip_id, unsigned int *
 {
     return DRV_ERROR_NONE;
 }
-
-int32_t SubModuleProcessResponse(const uint32_t deviceId, const TsdWaitType waitType,
-                                 const uint32_t hostPid, const uint32_t vfId,
-                                 const uint32_t eventType)
-{
-    return 0;
-}

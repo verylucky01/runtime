@@ -41,13 +41,15 @@ if(NOT INSTALL_RESULT EQUAL 0)
     message(FATAL_ERROR "Installation to staging directory failed: ${INSTALL_RESULT}")
 endif()
 
-# 解压子工程包
-execute_process(
-    COMMAND tar -zxpf "${STAGING_DIR}/subprjs/device-npu-runtime.tar.gz" -C "${STAGING_DIR}"
-    RESULT_VARIABLE RETCODE
-)
-if(RETCODE)
-    message(FATAL_ERROR "Extract device-npu-runtime.tar.gz failed, return code is ${RETCODE}.")
+if(EXISTS "${STAGING_DIR}/subprjs")
+    # 解压子工程包
+    execute_process(
+        COMMAND tar -zxpf "${STAGING_DIR}/subprjs/device-npu-runtime.tar.gz" -C "${STAGING_DIR}"
+        RESULT_VARIABLE RETCODE
+    )
+    if(RETCODE)
+        message(FATAL_ERROR "Extract device-npu-runtime.tar.gz failed, return code is ${RETCODE}.")
+    endif()
 endif()
 
 # 刪除子工程压缩包，避免打到run包中

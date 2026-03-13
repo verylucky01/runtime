@@ -492,8 +492,8 @@ public:
     virtual rtError_t ParseSimdPrintInfo() = 0;
     virtual void WaitForParsePrintf() const = 0;
     virtual rtError_t GetPrintFifoAddress(uint64_t * const addr, const uint32_t model) = 0;
-    virtual rtError_t StoreEndGraphNotifyInfo(Stream* exeStream, Model* captureModel, uint32_t endGraphNotifyPos) = 0;
-    virtual rtError_t DeleteEndGraphNotifyInfo(Stream* exeStream, Model* captureModel, uint32_t endGraphNotifyPos) = 0;
+    virtual rtError_t StoreEndGraphNotifyInfo(const uint32_t streamId, Model* captureModel, uint32_t endGraphNotifyPos) = 0;
+    virtual rtError_t DeleteEndGraphNotifyInfo(const uint32_t streamId, Model* captureModel, uint32_t endGraphNotifyPos) = 0;
     virtual rtError_t ClearEndGraphNotifyInfoByModel(Model* captureModel) = 0;
     virtual uint64_t AllocSqIdMemAddr() = 0;
     virtual void FreeSqIdMemAddr(const uint64_t sqIdAddr) = 0;

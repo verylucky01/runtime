@@ -1244,22 +1244,23 @@ TEST_F(CloudV2CaptureModelTest, poll_end_graph_notify)
     RawDevice* rawDevice = RtPtrToPtr<RawDevice *>(device);
 
     RtPtrToPtr<Stream *>(streamExe)->taskPosTail_.Set(5000);
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model1), 10);
+    uint32_t streamId = (RtPtrToPtr<Stream *>(streamExe))->Id_();
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 10);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model1), 100);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 100);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model2), 2);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model2), 2);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model2), 20);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model2), 20);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model3), 3);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model3), 3);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model3), 30);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model3), 30);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = rawDevice->DeleteEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model3), 3);
+    error = rawDevice->DeleteEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model3), 3);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->DeleteEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model3), 30);
+    error = rawDevice->DeleteEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model3), 30);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rawDevice->ClearEndGraphNotifyInfoByModel(RtPtrToPtr<Model *>(model2));
@@ -1274,20 +1275,20 @@ TEST_F(CloudV2CaptureModelTest, poll_end_graph_notify)
     rawDevice->PollEndGraphNotifyInfo();
 
     RtPtrToPtr<Stream *>(streamExe)->taskPosTail_.Set(5);
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model1), 10);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 10);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model1), 100);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 100);
     EXPECT_EQ(error, RT_ERROR_NONE);
     rawDevice->PollEndGraphNotifyInfo();
 
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model1), 120);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 120);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model1), 49);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 49);
     EXPECT_EQ(error, RT_ERROR_NONE);
     RtPtrToPtr<Stream *>(streamExe)->taskPosTail_.Set(50);
     rawDevice->PollEndGraphNotifyInfo();
 
-    error = rawDevice->DeleteEndGraphNotifyInfo(RtPtrToPtr<Stream *>(streamExe), RtPtrToPtr<CaptureModel *>(model1), 49);
+    error = rawDevice->DeleteEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 49);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtModelDestroy(model1);

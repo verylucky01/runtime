@@ -835,7 +835,7 @@ rtError_t NpuDriver::ManagedMemFree(const void * const dptr)
 {
     TIMESTAMP_NAME(__func__);
     NpuDriverRecord record(static_cast<uint16_t>(RT_PROF_DRV_API_MngFree));
-    const drvError_t drvRet = halMemFree(const_cast<void *>(dptr));
+    const drvError_t drvRet = halMemFree(RtPtrToUnConstPtr<void *>(dptr));
     record.SaveRecord();
     if (drvRet != DRV_ERROR_NONE) {
         DRV_ERROR_PROCESS(drvRet, "[drv api] halMemFree failed: drvRetCode=%d!",

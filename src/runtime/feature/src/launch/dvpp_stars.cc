@@ -62,7 +62,7 @@ rtError_t StarsLaunch(const void * const sqe, const uint32_t sqeLen, Stream * co
     TaskInfo *rtStarsCommonTask = stm->AllocTask(&taskSubmit, TS_TASK_TYPE_STARS_COMMON, errorReason);
     NULL_PTR_RETURN_MSG(rtStarsCommonTask, errorReason);
 
-    auto commonSqe = reinterpret_cast<rtStarsCommonSqe_t *>(const_cast<void *>(sqe));
+    auto commonSqe = RtPtrToPtr<rtStarsCommonSqe_t *>(RtPtrToUnConstPtr<void *>(sqe));
     const uint16_t sqeType = commonSqe->sqeHeader.type;
 
     rtError_t error = StarsCommonTaskInit(rtStarsCommonTask, *commonSqe, flag);

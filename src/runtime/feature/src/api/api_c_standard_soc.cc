@@ -1409,7 +1409,7 @@ rtError_t rtSetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoPr
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn, void *ptr) {
+rtError_t rtModelDestroyRegisterCallback(rtModel_t const mdl, rtCallback_t fn, void *ptr) {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     const rtError_t error = apiInstance->ModelDestroyRegisterCallback(RtPtrToPtr<Model *>(mdl), fn, ptr);
@@ -1418,7 +1418,7 @@ rtError_t rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn, void *p
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtModelDestroyUnregisterCallback(rtModel_t mdl, rtCallback_t fn) {
+rtError_t rtModelDestroyUnregisterCallback(rtModel_t const mdl, rtCallback_t fn) {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     const rtError_t error = apiInstance->ModelDestroyUnregisterCallback(RtPtrToPtr<Model *>(mdl), fn);
@@ -1502,7 +1502,7 @@ rtError_t rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value)
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_t *numStreams)
+rtError_t rtModelGetStreams(rtModel_t const mdl, rtStream_t *streams, uint32_t *numStreams)
 {
     const Runtime * const rtInstance = Runtime::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
@@ -1523,7 +1523,7 @@ rtError_t rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_t *numStr
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtStreamGetTasks(rtStream_t stm, rtTask_t *tasks, uint32_t *numTasks)
+rtError_t rtStreamGetTasks(rtStream_t const stm, rtTask_t *tasks, uint32_t *numTasks)
 {
     const Runtime * const rtInstance = Runtime::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);

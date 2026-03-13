@@ -28,7 +28,7 @@ extern "C" {
  * @return RT_ERROR_INVALID_VALUE for error input
  * @return RT_ERROR_INSUFFICIENT_INPUT_ARRAY for insufficient tasks array size to hold all tasks
  */
-RTS_API rtError_t rtStreamGetTasks(rtStream_t stm, rtTask_t* tasks, uint32_t* numTasks);
+RTS_API rtError_t rtStreamGetTasks(rtStream_t const stm, rtTask_t* tasks, uint32_t* numTasks);
 
 #if defined(__cplusplus)
 }

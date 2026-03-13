@@ -28,7 +28,7 @@ extern "C" {
  * @return RT_ERROR_INVALID_VALUE for error input
  * @return RT_ERROR_INSUFFICIENT_INPUT_ARRAY for insufficient tasks array size to hold all streams
  */
-RTS_API rtError_t rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_t *numStreams);
+RTS_API rtError_t rtModelGetStreams(rtModel_t const mdl, rtStream_t *streams, uint32_t *numStreams);
 
 /**
  * @ingroup rt_model
@@ -39,7 +39,7 @@ RTS_API rtError_t rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_t
  * @return ACL_RT_SUCCESS for ok
  * @return ACL_ERROR_RT_PARAM_INVALID for error input
  */
-RTS_API rtError_t rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn, void *ptr);
+RTS_API rtError_t rtModelDestroyRegisterCallback(rtModel_t const mdl, rtCallback_t fn, void *ptr);
 
 /**
  * @ingroup rt_model
@@ -49,7 +49,7 @@ RTS_API rtError_t rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn,
  * @return ACL_RT_SUCCESS for ok
  * @return ACL_ERROR_RT_PARAM_INVALID for error input
  */
-RTS_API rtError_t rtModelDestroyUnregisterCallback(rtModel_t mdl, rtCallback_t fn);
+RTS_API rtError_t rtModelDestroyUnregisterCallback(rtModel_t const mdl, rtCallback_t fn);
 
 #if defined(__cplusplus)
 }

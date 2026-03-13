@@ -1272,7 +1272,7 @@ rtError_t aclStub::rtModelDestroy(rtModel_t mdl)
     return RT_ERROR_NONE;
 }
 
-rtError_t aclStub::rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn, void *ptr)
+rtError_t aclStub::rtModelDestroyRegisterCallback(rtModel_t const mdl, rtCallback_t fn, void *ptr)
 {
     (void)mdl;
     (void)fn;
@@ -1280,7 +1280,7 @@ rtError_t aclStub::rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn
     return RT_ERROR_NONE;
 }
 
-rtError_t aclStub::rtModelDestroyUnregisterCallback(rtModel_t mdl, rtCallback_t fn)
+rtError_t aclStub::rtModelDestroyUnregisterCallback(rtModel_t const mdl, rtCallback_t fn)
 {
     (void)mdl;
     (void)fn;
@@ -2314,7 +2314,7 @@ rtError_t aclStub::rtGetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *inf
     return RT_ERROR_NONE;
 }
 
-rtError_t aclStub::rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_t *numStreams)
+rtError_t aclStub::rtModelGetStreams(rtModel_t const mdl, rtStream_t *streams, uint32_t *numStreams)
 {
     (void)mdl;
     (void)streams;
@@ -2322,7 +2322,7 @@ rtError_t aclStub::rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_
     return RT_ERROR_NONE;
 }
 
-rtError_t aclStub::rtStreamGetTasks(rtStream_t stm, rtTask_t *tasks, uint32_t *numTasks)
+rtError_t aclStub::rtStreamGetTasks(rtStream_t const stm, rtTask_t *tasks, uint32_t *numTasks)
 {
     (void)stm;
     (void)tasks;
@@ -3534,12 +3534,12 @@ rtError_t rtModelDestroy(rtModel_t mdl)
     return MockFunctionTest::aclStubInstance().rtModelDestroy(mdl);
 }
 
-rtError_t rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn, void *ptr)
+rtError_t rtModelDestroyRegisterCallback(rtModel_t const mdl, rtCallback_t fn, void *ptr)
 {
     return MockFunctionTest::aclStubInstance().rtModelDestroyRegisterCallback(mdl, fn, ptr);
 }
 
-rtError_t rtModelDestroyUnregisterCallback(rtModel_t mdl, rtCallback_t fn)
+rtError_t rtModelDestroyUnregisterCallback(rtModel_t const mdl, rtCallback_t fn)
 {
     return MockFunctionTest::aclStubInstance().rtModelDestroyUnregisterCallback(mdl, fn);
 }
@@ -4212,12 +4212,12 @@ rtError_t rtGetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info, rtFunc
     return MockFunctionTest::aclStubInstance().rtGetFuncHandleFromExceptionInfo(info, func);
 }
 
-rtError_t rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_t *numStreams)
+rtError_t rtModelGetStreams(rtModel_t const mdl, rtStream_t *streams, uint32_t *numStreams)
 {
     return MockFunctionTest::aclStubInstance().rtModelGetStreams(mdl, streams, numStreams);
 }
 
-rtError_t rtStreamGetTasks(rtStream_t stm, rtTask_t *tasks, uint32_t *numTasks)
+rtError_t rtStreamGetTasks(rtStream_t const stm, rtTask_t *tasks, uint32_t *numTasks)
 {
     return MockFunctionTest::aclStubInstance().rtStreamGetTasks(stm, tasks, numTasks);
 }

@@ -321,15 +321,15 @@ public:
     virtual rtError_t rtThreadExchangeCaptureMode(rtStreamCaptureMode *mode);
     virtual rtError_t rtModelExecute(rtModel_t mdl, rtStream_t stm, uint32_t flag);
     virtual rtError_t rtModelDestroy(rtModel_t mdl);
-    virtual rtError_t rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn, void *ptr);
-    virtual rtError_t rtModelDestroyUnregisterCallback(rtModel_t mdl, rtCallback_t fn);
+    virtual rtError_t rtModelDestroyRegisterCallback(rtModel_t const mdl, rtCallback_t fn, void *ptr);
+    virtual rtError_t rtModelDestroyUnregisterCallback(rtModel_t const mdl, rtCallback_t fn);
     virtual rtError_t rtsStreamBeginTaskGrp(rtStream_t stm);
     virtual rtError_t rtsStreamEndTaskGrp(rtStream_t stm, rtTaskGrp_t *handle);
     virtual rtError_t rtsStreamBeginTaskUpdate(rtStream_t stm, rtTaskGrp_t handle);
     virtual rtError_t rtsStreamEndTaskUpdate(rtStream_t stm);
     
-    virtual rtError_t rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_t *numStreams);
-    virtual rtError_t rtStreamGetTasks(rtStream_t stm, rtTask_t *tasks, uint32_t *numTasks);
+    virtual rtError_t rtModelGetStreams(rtModel_t const mdl, rtStream_t *streams, uint32_t *numStreams);
+    virtual rtError_t rtStreamGetTasks(rtStream_t const stm, rtTask_t *tasks, uint32_t *numTasks);
     virtual rtError_t rtTaskGetType(rtTask_t task, rtTaskType *type);
 
     virtual rtError_t rtsMemcpyAsyncWithDesc(rtMemcpyDesc_t desc, rtMemcpyKind kind, rtMemcpyConfig_t *config, rtStream_t stream);
@@ -780,14 +780,14 @@ public:
     MOCK_METHOD1(rtThreadExchangeCaptureMode, rtError_t(rtStreamCaptureMode *mode));
     MOCK_METHOD3(rtModelExecute, rtError_t(rtModel_t mdl, rtStream_t stm, uint32_t flag));
     MOCK_METHOD1(rtModelDestroy, rtError_t(rtModel_t mdl));
-    MOCK_METHOD3(rtModelDestroyRegisterCallback, rtError_t(rtModel_t mdl, rtCallback_t fn, void *ptr));
-    MOCK_METHOD2(rtModelDestroyUnregisterCallback, rtError_t(rtModel_t mdl, rtCallback_t fn));
+    MOCK_METHOD3(rtModelDestroyRegisterCallback, rtError_t(rtModel_t const mdl, rtCallback_t fn, void *ptr));
+    MOCK_METHOD2(rtModelDestroyUnregisterCallback, rtError_t(rtModel_t const mdl, rtCallback_t fn));
     MOCK_METHOD1(rtsStreamBeginTaskGrp, rtError_t(rtStream_t stm));
     MOCK_METHOD2(rtsStreamEndTaskGrp, rtError_t(rtStream_t stm, rtTaskGrp_t *handle));
     MOCK_METHOD2(rtsStreamBeginTaskUpdate, rtError_t(rtStream_t stm, rtTaskGrp_t handle));
     MOCK_METHOD1(rtsStreamEndTaskUpdate, rtError_t(rtStream_t stm));
-    MOCK_METHOD3(rtModelGetStreams, rtError_t(rtModel_t mdl, rtStream_t *streams, uint32_t *numStreams));
-    MOCK_METHOD3(rtStreamGetTasks, rtError_t(rtStream_t stm, rtTask_t *tasks, uint32_t *numTasks));
+    MOCK_METHOD3(rtModelGetStreams, rtError_t(rtModel_t const mdl, rtStream_t *streams, uint32_t *numStreams));
+    MOCK_METHOD3(rtStreamGetTasks, rtError_t(rtStream_t const stm, rtTask_t *tasks, uint32_t *numTasks));
     MOCK_METHOD2(rtTaskGetType, rtError_t(rtTask_t task, rtTaskType *type));
 
     MOCK_METHOD4(rtsMemcpyAsyncWithDesc, rtError_t(rtMemcpyDesc_t desc, rtMemcpyKind kind, rtMemcpyConfig_t *config,

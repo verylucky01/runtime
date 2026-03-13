@@ -679,7 +679,7 @@ rtError_t rtModelDebugJsonPrint(rtModel_t mdl, const char* path, uint32_t flags)
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn, void *ptr)
+rtError_t rtModelDestroyRegisterCallback(rtModel_t const mdl, rtCallback_t fn, void *ptr)
 {
     (void)mdl;
     (void)fn;
@@ -688,7 +688,7 @@ rtError_t rtModelDestroyRegisterCallback(rtModel_t mdl, rtCallback_t fn, void *p
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtModelDestroyUnregisterCallback(rtModel_t mdl, rtCallback_t fn)
+rtError_t rtModelDestroyUnregisterCallback(rtModel_t const mdl, rtCallback_t fn)
 {
     (void)mdl;
     (void)fn;
@@ -1030,7 +1030,7 @@ rtError_t rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value)
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_t *numStreams)
+rtError_t rtModelGetStreams(rtModel_t const mdl, rtStream_t *streams, uint32_t *numStreams)
 {
     UNUSED(mdl);
     UNUSED(streams);
@@ -1039,7 +1039,7 @@ rtError_t rtModelGetStreams(rtModel_t mdl, rtStream_t *streams, uint32_t *numStr
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtStreamGetTasks(rtStream_t stm, rtTask_t *tasks, uint32_t *numTasks)
+rtError_t rtStreamGetTasks(rtStream_t const stm, rtTask_t *tasks, uint32_t *numTasks)
 {
     UNUSED(stm);
     UNUSED(tasks);

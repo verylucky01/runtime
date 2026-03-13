@@ -11,6 +11,7 @@
 #define __CCE_RUNTIME_RWLOCK_H__
 
 #include "base.hpp"
+#include "mmpa/mmpa_api.h"
 
 namespace cce {
 namespace runtime {

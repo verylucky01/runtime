@@ -15,11 +15,9 @@
 #include <cinttypes>
 #include <sstream>
 #include "soc_define.hpp"
-#include "mmpa/mmpa_api.h"
 #include "osal.hpp"
 #include "error_codes/rt_error_codes.h"
 #include "runtime/base.h"
-#include "runtime/config.h"
 #include "rts.h"
 #include "rts_dqs.h"
 #include "dlog_pub.h"

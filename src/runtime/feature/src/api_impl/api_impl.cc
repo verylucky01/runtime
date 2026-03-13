@@ -1113,11 +1113,11 @@ rtError_t ApiImpl::FuncGetSize(const Kernel * const funcHandle, size_t * const a
     funcHandle->GetKernelLength(funcSize1, funcSize2);
     if ((funcSize1 != 0U) && (funcSize2 == 0U) && (CheckVectorKernel(funcHandle))) {
         // there is only one size, and the kernel is for vector core
-        *aivSize = (size_t)funcSize1;
-        *aicSize = (size_t)funcSize2;
+        *aivSize = RtValueToPtr<size_t>(funcSize1);
+        *aicSize = RtValueToPtr<size_t>(funcSize2);
     } else {
-        *aicSize = (size_t)funcSize1;
-        *aivSize = (size_t)funcSize2;
+        *aicSize = RtValueToPtr<size_t>(funcSize1);
+        *aivSize = RtValueToPtr<size_t>(funcSize2);
     }
     return RT_ERROR_NONE;
 }

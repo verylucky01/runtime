@@ -14,5 +14,3 @@ int tsDevSendMsgAsync(unsigned int devId, unsigned int tsId, char *msg, unsigned
 {
     return 0;
 }
-
-

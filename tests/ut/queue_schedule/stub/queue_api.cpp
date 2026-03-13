@@ -65,36 +65,7 @@ drvError_t halQueueGetQidbyName(unsigned int devid, const char *name, unsigned i
 drvError_t halQueueCtrlEvent (struct QueueSubscriber *subscriber, QUE_EVENT_CMD cmdType)
 { return DRV_ERROR_NONE; }
 
-int32_t TsdWaitForShutdown(const uint32_t deviceId, const TsdWaitType waitType,
-                           const uint32_t hostPid, const uint32_t vfId)
-{
-    return 0;
-}
-
 void DlogFlush() {}
-
-int32_t TsdReportStartOrStopErrCode(const uint32_t deviceId, const TsdWaitType waitType,
-                                    const uint32_t hostPid, const uint32_t vfId,
-                                    const char *errCode, const uint32_t errLen)
-{
-    return 0;
-}
-
-int32_t RegEventMsgCallBackFunc(const struct SubProcEventCallBackInfo *regInfo)
-{
-    return 0;   
-}
-
-void UnRegEventMsgCallBackFunc(const uint32_t eventType)
-{
-    return;
-}
-
-int32_t TsdDestroy(const uint32_t deviceId, const TsdWaitType waitType,
-                   const uint32_t hostPid, const uint32_t vfId)
-{
-    return 0;
-}
 
 drvError_t halQueueEnQueueBuff(unsigned int devId, unsigned int qid, struct buff_iovec *vector, int timeout)
 {

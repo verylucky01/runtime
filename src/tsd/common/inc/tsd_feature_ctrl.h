@@ -32,7 +32,6 @@ public:
 #endif
     }
 
-
     static inline bool IsVfMode(const uint32_t deviceId, const uint32_t vfId)
     {
         if ((IsVfModeCheckedByDeviceId(deviceId)) || (vfId > 0)) {

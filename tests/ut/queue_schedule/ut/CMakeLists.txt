@@ -60,6 +60,7 @@ set(LOCAL_SRC_FILES
     ../stub/msprof_stub.cpp
     ../stub/slog_stub.cpp
     ../stub/queue_schedule_stub.cpp
+    ${SRC_PATH}/stub/stub_tsd_event_client.cpp
     ${SRC_PATH}/client/bqs_client.cpp
     ${SRC_PATH}/client/ezcom_client.cpp
     ${SRC_PATH}/server/bqs_server.cpp

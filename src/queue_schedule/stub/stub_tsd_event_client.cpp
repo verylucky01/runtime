@@ -37,7 +37,6 @@ int32_t SetSubProcScheduleMode(const uint32_t deviceId, const uint32_t waitType,
 }
 
 extern "C" {
-
 // 修正函数签名，与头文件一致
 int32_t RegEventMsgCallBackFunc(const struct SubProcEventCallBackInfo *regInfo) {
     (void)regInfo;

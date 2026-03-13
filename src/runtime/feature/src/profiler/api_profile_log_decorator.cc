@@ -305,14 +305,6 @@ rtError_t ApiProfileLogDecorator::EventCreateEx(Event ** const evt, const uint64
     return error;
 }
 
-rtError_t ApiProfileLogDecorator::EventCreateForNotify(Event ** const evt)
-{
-    ProfileLogRecord record(PROFILE_RECORD_TYPE_RT_CALL_RT, RT_PROF_API_EVENT_CREATE, profiler_);
-    const rtError_t error = impl_->EventCreateForNotify(evt);
-    record.SaveRecord();
-    return error;
-}
-
 rtError_t ApiProfileLogDecorator::GetEventID(Event * const evt, uint32_t * const evtId)
 {
     ProfileLogRecord record(PROFILE_RECORD_TYPE_RT_CALL_RT, RT_PROF_API_GetEventID, profiler_);
@@ -333,14 +325,6 @@ rtError_t ApiProfileLogDecorator::EventRecord(Event * const evt, Stream * const 
 {
     ProfileLogRecord record(PROFILE_RECORD_TYPE_RT_CALL_RT, RT_PROF_API_EVENT_RECORD, profiler_);
     const rtError_t error = impl_->EventRecord(evt, stm);
-    record.SaveRecord();
-    return error;
-}
-
-rtError_t ApiProfileLogDecorator::EventRecordForNotify(Event * const evt, Stream * const stm)
-{
-    ProfileLogRecord record(PROFILE_RECORD_TYPE_RT_CALL_RT, RT_PROF_API_EVENT_RECORD, profiler_);
-    const rtError_t error = impl_->EventRecordForNotify(evt, stm);
     record.SaveRecord();
     return error;
 }

@@ -1230,12 +1230,6 @@ rtError_t ApiErrorDecorator::EventCreateEx(Event ** const evt, const uint64_t fl
     return error;
 }
 
-rtError_t ApiErrorDecorator::EventCreateForNotify(Event ** const evt)
-{
-    NULL_PTR_RETURN_MSG_OUTER(evt, RT_ERROR_INVALID_VALUE);
-    return impl_->EventCreateForNotify(evt);
-}
-
 rtError_t ApiErrorDecorator::EventDestroy(Event *evt)
 {
     NULL_PTR_RETURN_MSG_OUTER(evt, RT_ERROR_INVALID_VALUE);
@@ -1264,12 +1258,6 @@ rtError_t ApiErrorDecorator::EventRecord(Event * const evt, Stream * const stm)
     COND_RETURN_ERROR((error != RT_ERROR_NONE) && (error != RT_ERROR_FEATURE_NOT_SUPPORT),
         error, "Record event failed.");
     return error;
-}
-
-rtError_t ApiErrorDecorator::EventRecordForNotify(Event * const evt, Stream * const stm)
-{
-    NULL_PTR_RETURN_MSG_OUTER(evt, RT_ERROR_INVALID_VALUE);
-    return impl_->EventRecordForNotify(evt, stm);
 }
 
 rtError_t ApiErrorDecorator::GetEventID(Event * const evt, uint32_t * const evtId)

@@ -2031,25 +2031,6 @@ rtError_t ApiImpl::EventCreateEx(Event ** const evt, const uint64_t flag)
     return RT_ERROR_NONE;
 }
 
-rtError_t ApiImpl::EventCreateForNotify(Event ** const evt)
-{
-    TIMESTAMP_NAME(__func__);
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-
-    *evt = new (std::nothrow) Event(curCtx->Device_(), RT_EVENT_DEFAULT, curCtx);
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, *evt == nullptr, RT_ERROR_EVENT_NEW, "new event failed.");
-
-    const rtError_t error = (*evt)->Setup();
-    COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, DELETE_O(*evt);,
-                           "setup failed, retCode=%#x", error);
-    Device * const dev = curCtx->Device_();
-    if (dev != nullptr) {
-        dev->PushEvent(*evt);
-    }
-    return RT_ERROR_NONE;
-}
-
 rtError_t ApiImpl::EventDestroy(Event *evt)
 {
     TIMESTAMP_NAME(__func__);
@@ -2168,23 +2149,6 @@ rtError_t ApiImpl::EventRecord(Event * const evt, Stream * const stm)
     } else {
         return evt->Record(curStm, true);
     }
-}
-
-rtError_t ApiImpl::EventRecordForNotify(Event * const evt, Stream * const stm)
-{
-    TIMESTAMP_NAME(__func__);
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-
-    Stream *curStm = stm;
-    if (curStm == nullptr) {
-        curStm = curCtx->DefaultStream_();
-        NULL_STREAM_PTR_RETURN_MSG(curStm);
-    }
-    COND_RETURN_ERROR_MSG_INNER(curStm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
-        "Event record for notify failed, stream is not in current ctx, stream_id=%d.", curStm->Id_());
-
-    return evt->RecordForNotify(curStm);
 }
 
 rtError_t ApiImpl::GetEventID(Event * const evt, uint32_t * const evtId)

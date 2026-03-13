@@ -1698,20 +1698,12 @@ TEST_F(ProfilerTest, EventCreate_ProfileLog)
     rtError_t error = profiler->apiProfileLogDecorator_->EventCreate(&evt, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::EventCreateForNotify).stubs().will(returnValue(RT_ERROR_NONE));
-    error = profiler->apiProfileLogDecorator_->EventCreateForNotify(&evt2);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::GetEventID).stubs().will(returnValue(RT_ERROR_NONE));
     error = profiler->apiProfileLogDecorator_->GetEventID(evt, &evtId);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::EventRecord).stubs().will(returnValue(RT_ERROR_NONE));
     error = profiler->apiProfileLogDecorator_->EventRecord(evt, (Stream *)stream);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::EventRecordForNotify).stubs().will(returnValue(RT_ERROR_NONE));
-    error = profiler->apiProfileLogDecorator_->EventRecordForNotify(evt2, (Stream *)stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::EventDestroy).stubs().will(returnValue(RT_ERROR_NONE));
@@ -2917,8 +2909,6 @@ TEST_F(ProfilerTest, ProfileDecoratorNotifyApiTest)
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::CntNotifyReset).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::CntNotifyWaitWithTimeout).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::GetCntNotifyAddress).stubs().will(returnValue(RT_ERROR_NONE));
-    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::EventCreateForNotify).stubs().will(returnValue(RT_ERROR_NONE));
-    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::EventRecordForNotify).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::GetEventID).stubs().will(returnValue(RT_ERROR_NONE));
     Profiler *profiler = ((Runtime *)Runtime::Instance())->profiler_;
     profiler->SetProfLogEnable(true);
@@ -2933,10 +2923,6 @@ TEST_F(ProfilerTest, ProfileDecoratorNotifyApiTest)
     error = profiler->apiProfileDecorator_->CntNotifyWaitWithTimeout(nullptr, nullptr, nullptr);
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = profiler->apiProfileDecorator_->GetCntNotifyAddress(nullptr, nullptr, NOTIFY_TABLE_SLICE);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    error = profiler->apiProfileDecorator_->EventCreateForNotify(nullptr);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    error = profiler->apiProfileDecorator_->EventRecordForNotify(nullptr, nullptr);
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = profiler->apiProfileDecorator_->GetEventID(nullptr, nullptr);
     EXPECT_EQ(error, RT_ERROR_NONE);

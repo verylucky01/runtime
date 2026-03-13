@@ -245,8 +245,6 @@ public:
     virtual rtError_t EventDestroy(Event *evt) = 0;
     virtual rtError_t EventDestroySync(Event *evt) = 0;
     virtual rtError_t EventRecord(Event * const evt, Stream * const stm) = 0;
-    virtual rtError_t EventCreateForNotify(Event ** const evt) = 0;
-    virtual rtError_t EventRecordForNotify(Event * const evt, Stream * const stm) = 0;
     virtual rtError_t EventReset(Event * const evt, Stream * const stm) = 0;
     virtual rtError_t EventSynchronize(Event * const evt, const int32_t timeout = -1) = 0;
     virtual rtError_t EventQuery(Event * const evt) = 0;

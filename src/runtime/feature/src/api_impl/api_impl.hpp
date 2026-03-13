@@ -156,8 +156,6 @@ public:
     rtError_t EventDestroy(Event *evt) override;
     rtError_t EventDestroySync(Event *evt) override;
     rtError_t EventRecord(Event * const evt, Stream * const stm) override;
-    rtError_t EventCreateForNotify(Event ** const evt) override;
-    rtError_t EventRecordForNotify(Event * const evt, Stream * const stm) override;
     rtError_t EventReset(Event * const evt, Stream * const stm) override;
     rtError_t EventSynchronize(Event * const evt, const int32_t timeout) override;
     rtError_t EventQuery(Event * const evt) override;

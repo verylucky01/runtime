@@ -423,11 +423,6 @@ rtError_t ApiDecorator::EventCreateEx(Event ** const evt, const uint64_t flag)
     return impl_->EventCreateEx(evt, flag);
 }
 
-rtError_t ApiDecorator::EventCreateForNotify(Event ** const evt)
-{
-    return impl_->EventCreateForNotify(evt);
-}
-
 rtError_t ApiDecorator::EventDestroy(Event *evt)
 {
     return impl_->EventDestroy(evt);
@@ -441,11 +436,6 @@ rtError_t ApiDecorator::EventDestroySync(Event *evt)
 rtError_t ApiDecorator::EventRecord(Event * const evt, Stream * const stm)
 {
     return impl_->EventRecord(evt, stm);
-}
-
-rtError_t ApiDecorator::EventRecordForNotify(Event * const evt, Stream * const stm)
-{
-    return impl_->EventRecordForNotify(evt, stm);
 }
 
 rtError_t ApiDecorator::EventReset(Event * const evt, Stream * const stm)

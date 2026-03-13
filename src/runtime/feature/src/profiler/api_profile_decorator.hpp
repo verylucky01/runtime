@@ -92,8 +92,6 @@ public:
     rtError_t EventCreateEx(Event ** const evt, const uint64_t flag) override;
     rtError_t EventDestroy(Event *evt) override;
     rtError_t EventRecord(Event * const evt, Stream * const stm) override;
-    rtError_t EventCreateForNotify(Event ** const evt) override;
-    rtError_t EventRecordForNotify(Event * const evt, Stream * const stm) override;
     rtError_t EventSynchronize(Event * const evt, const int32_t timeout) override;
     rtError_t GetEventID(Event * const evt, uint32_t * const evtId) override;
     rtError_t IpcGetEventHandle(IpcEvent * const evt, rtIpcEventHandle_t *handle) override;

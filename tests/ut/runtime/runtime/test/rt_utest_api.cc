@@ -2024,25 +2024,6 @@ TEST_F(ApiTest, notify_record)
     device->platformConfig_ = 0;
 }
 
-TEST_F(ApiTest, notify_record_01)
-{
-    ApiImpl apiImpl;
-    Event* event;
-    rtError_t error;
-
-    error = rtSetDevice(0);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    error = apiImpl.EventCreateForNotify(&event);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    error = apiImpl.EventDestroy(event);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    error = rtDeviceReset(0);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-}
-
 TEST_F(ApiTest, notify_ipc1)
 {
     rtNotify_t notify;

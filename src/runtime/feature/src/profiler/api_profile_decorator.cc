@@ -497,14 +497,6 @@ rtError_t ApiProfileDecorator::EventCreateEx(Event ** const evt, const uint64_t 
     return error;
 }
 
-rtError_t ApiProfileDecorator::EventCreateForNotify(Event ** const evt)
-{
-    CallApiBegin(RT_PROF_API_EVENT_CREATE_FOR_NOTIFY);
-    const rtError_t error = impl_->EventCreateForNotify(evt);
-    CallApiEnd(error);
-    return error;
-}
-
 rtError_t ApiProfileDecorator::GetEventID(Event * const evt, uint32_t * const evtId)
 {
     CallApiBegin(RT_PROF_API_GetEventID);
@@ -525,14 +517,6 @@ rtError_t ApiProfileDecorator::EventRecord(Event * const evt, Stream * const stm
 {
     CallApiBegin(RT_PROF_API_EVENT_RECORD);
     const rtError_t error = impl_->EventRecord(evt, stm);
-    CallApiEnd(error);
-    return error;
-}
-
-rtError_t ApiProfileDecorator::EventRecordForNotify(Event * const evt, Stream * const stm)
-{
-    CallApiBegin(RT_PROF_API_EVENT_RECORD_FOR_NOTIFY);
-    const rtError_t error = impl_->EventRecordForNotify(evt, stm);
     CallApiEnd(error);
     return error;
 }

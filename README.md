@@ -210,7 +210,8 @@ bash build.sh --cann_3rd_lib_path=third_party
 ## 本地验证 
 
 编译完成后，用户可以进行开发测试（DT：Development Testing），验证项目功能是否正常。
-> 说明：执行UT用例依赖googletest单元测试框架，详细介绍参见[googletest官网](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)，生成代码覆盖率报告需要独立安装lcov软件（如果由于lcov工具版本的原因出现报错，请根据提示修改脚本相关内容，选择合适的参数进行适配）。
+> 说明：
+执行 UT 用例依赖 googletest 单元测试框架，详细介绍参见 [googletest 官网](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)。
 
 编译执行`UT`测试用例：
 
@@ -220,6 +221,7 @@ bash tests/build_ut.sh --ut=acl --target=ascendcl_utest -c --cann_3rd_lib_path={
 - `--ut`可以指定需要执行的`tests/ut`目录下的用例文件，例如`acl、runtime`等;
 - `--target`可以指定需要执行的用例文件编译出来的目标二进制文件（可能有多个），例如acl用例可以使用`tests/ut/acl/CMakeLists.txt`文件中定义的`ascendcl_utest`；runtime用例可以使用`tests/ut/runtime/runtime/CMakeLists.txt`文件中定义的`runtime_utest_task_910B`，执行runtime全量用例则需要指定target为`runtime_ut`;
 - `-c`可以获取覆盖率（如无需获取覆盖率，可省略此参数）。
+    > 需先安装 `lcov`(Ubuntu / Debian：`sudo apt install lcov`；openEuler：`sudo dnf install lcov`)；若因版本差异报错，请按提示调整脚本参数。
 - `--cann_3rd_lib_path`指定第三方依赖的路径，若在联网环境中，可省略此参数。
 
 UT测试用例编译输出目录为`build`，如果想清除历史编译记录，可以执行如下操作：

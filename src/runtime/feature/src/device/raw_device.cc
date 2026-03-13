@@ -2360,7 +2360,9 @@ void RawDevice::PollEndGraphNotifyInfo()
         Model* model;
         std::tie(streamId, model) = it->first;
         rtError_t ret = GetStreamSqCqManage()->GetStreamSharedPtrById(streamId, exeStream);
-        COND_PROC(((ret != RT_ERROR_NONE) || (exeStream == nullptr)), continue;);
+        COND_PROC(((ret != RT_ERROR_NONE) || (exeStream == nullptr)),
+            it = captureModelExeInfoMap_.erase(it);
+            continue;);
 
         std::list<uint32_t>& sqePosList = it->second;
         bool isAlreadyExecuted = JudgeIsEndGraphNotifyWaitExecuted(exeStream.get(), model, sqePosList);

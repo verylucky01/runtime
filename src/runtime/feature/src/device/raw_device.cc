@@ -2217,9 +2217,9 @@ rtError_t RawDevice::GetPrintFifoAddress(uint64_t * const addr, const uint32_t m
     return ret;
 }
 
-rtError_t RawDevice::StoreEndGraphNotifyInfo(Stream* exeStream, Model* captureModel, uint32_t endGraphNotifyPos)
+rtError_t RawDevice::StoreEndGraphNotifyInfo(const uint32_t streamId, Model* captureModel, uint32_t endGraphNotifyPos)
 {
-    auto key = std::make_tuple(exeStream, captureModel);
+    auto key = std::make_tuple(streamId, captureModel);
     uint32_t numOfPos = 0;
 
     captureModelExeInfoLock_.lock();
@@ -2237,13 +2237,13 @@ rtError_t RawDevice::StoreEndGraphNotifyInfo(Stream* exeStream, Model* captureMo
     captureModelExeInfoLock_.unlock();
 
     RT_LOG(RT_LOG_INFO, "Store exeStreamId=%u captureModelId=%u endGraphNotifyPos=%u in captureModelExeInfoMap_, numOfPos=%u.", 
-        exeStream->Id_(), captureModel->Id_(), endGraphNotifyPos, numOfPos);
+        streamId, captureModel->Id_(), endGraphNotifyPos, numOfPos);
     return RT_ERROR_NONE;    
 }
 
-rtError_t RawDevice::DeleteEndGraphNotifyInfo(Stream* exeStream, Model* captureModel, uint32_t endGraphNotifyPos)
+rtError_t RawDevice::DeleteEndGraphNotifyInfo(const uint32_t streamId, Model* captureModel, uint32_t endGraphNotifyPos)
 {
-    auto key = std::make_tuple(exeStream, captureModel);
+    auto key = std::make_tuple(streamId, captureModel);
     uint32_t numOfPos = 0;
 
     captureModelExeInfoLock_.lock();
@@ -2270,7 +2270,7 @@ rtError_t RawDevice::DeleteEndGraphNotifyInfo(Stream* exeStream, Model* captureM
     captureModelExeInfoLock_.unlock();
 
     RT_LOG(RT_LOG_INFO, "Delete exeStreamId=%u captureModelId=%u endGraphNotifyPos=%u in captureModelExeInfoMap_, numOfPos=%u.", 
-        exeStream->Id_(), captureModel->Id_(), endGraphNotifyPos, numOfPos);
+        streamId, captureModel->Id_(), endGraphNotifyPos, numOfPos);
     return RT_ERROR_NONE;
 }
 
@@ -2279,9 +2279,9 @@ rtError_t RawDevice::ClearEndGraphNotifyInfoByModel(Model* captureModel)
     captureModelExeInfoLock_.lock();
 
     for (auto it = captureModelExeInfoMap_.begin(); it != captureModelExeInfoMap_.end();) {
-        Stream* exeStream;
+        uint32_t streamId = 0U;
         Model* model;
-        std::tie(exeStream, model) = it->first;
+        std::tie(streamId, model) = it->first;
         
         if (model == captureModel) {
             it = captureModelExeInfoMap_.erase(it);
@@ -2354,14 +2354,17 @@ bool RawDevice::JudgeIsEndGraphNotifyWaitExecuted(const Stream* const exeStream,
 void RawDevice::PollEndGraphNotifyInfo()
 {
     captureModelExeInfoLock_.lock();
-
+    std::shared_ptr<Stream> exeStream = nullptr;
+    uint32_t streamId = 0U;
     for (auto it = captureModelExeInfoMap_.begin(); it != captureModelExeInfoMap_.end();) {
-        Stream* exeStream;
         Model* model;
-        std::tie(exeStream, model) = it->first;
-        
+        std::tie(streamId, model) = it->first;
+        rtError_t ret = GetStreamSqCqManage()->GetStreamSharedPtrById(streamId, exeStream);
+        COND_PROC(((ret != RT_ERROR_NONE) || (exeStream == nullptr)), continue;);
+
         std::list<uint32_t>& sqePosList = it->second;
-        bool isAlreadyExecuted = JudgeIsEndGraphNotifyWaitExecuted(exeStream, model, sqePosList);
+        bool isAlreadyExecuted = JudgeIsEndGraphNotifyWaitExecuted(exeStream.get(), model, sqePosList);
+        exeStream.reset();
         if (isAlreadyExecuted) {
             it = captureModelExeInfoMap_.erase(it);
         } else {

@@ -779,8 +779,8 @@ public:
     void WaitForParsePrintf() const override;
     rtError_t GetPrintFifoAddress(uint64_t * const addr, const uint32_t model) override;
 
-    rtError_t StoreEndGraphNotifyInfo(Stream* exeStream, Model* captureModel, uint32_t endGraphNotifyPos) override;
-    rtError_t DeleteEndGraphNotifyInfo(Stream* exeStream, Model* captureModel, uint32_t endGraphNotifyPos) override;
+    rtError_t StoreEndGraphNotifyInfo(const uint32_t streamId, Model* captureModel, uint32_t endGraphNotifyPos) override;
+    rtError_t DeleteEndGraphNotifyInfo(const uint32_t streamId, Model* captureModel, uint32_t endGraphNotifyPos) override;
     rtError_t ClearEndGraphNotifyInfoByModel(Model* captureModel) override;
     void PollEndGraphNotifyInfo();
 
@@ -999,7 +999,7 @@ private:
      * 支持的场景：exeStream多次执行相同的captureModel，exeStream执行多个不同的captureModel
      * 不支持的场景：不同的exestream执行相同的captureModel
      */
-    std::map<std::tuple<Stream*, Model*>, std::list<uint32_t>> captureModelExeInfoMap_;     // key: tuple<exeStream, captureModel>, value: endGraphNotifyPosList
+    std::map<std::tuple<uint32_t, Model*>, std::list<uint32_t>> captureModelExeInfoMap_;     // key: tuple<exeStreamId, captureModel>, value: endGraphNotifyPosList
     std::mutex captureModelExeInfoLock_;
     DeviceSqCqPool *deviceSqCqPool_;
     SqAddrMemoryOrder *sqAddrMemoryOrder_;

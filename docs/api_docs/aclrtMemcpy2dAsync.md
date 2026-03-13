@@ -40,7 +40,7 @@ aclError aclrtMemcpy2dAsync(void *dst, size_t dpitch, const void *src, size_t sp
 
 ## 约束说明
 
-本接口仅支持ACL\_MEMCPY\_HOST\_TO\_DEVICE、ACL\_MEMCPY\_DEVICE\_TO\_HOST、ACL\_MEMCPY\_DEVICE\_TO\_DEVICE内存复制类型。对于不支持的内存复制类型，接口返回ACL\_ERROR\_RT\_FEATURE\_NOT\_SUPPORT。
+本接口仅支持ACL\_MEMCPY\_HOST\_TO\_DEVICE、ACL\_MEMCPY\_DEVICE\_TO\_HOST、ACL\_MEMCPY\_DEVICE\_TO\_DEVICE内存复制类型。对于不支持的内存复制类型，接口返回ACL\_ERROR\_INVALID\_PARAM。
 
 ## 参考资源
 

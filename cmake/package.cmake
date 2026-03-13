@@ -397,23 +397,10 @@ install(TARGETS host_aicpu_scheduler_so
 )
 
 if(DEFINED ENV{TOOLCHAIN_DIR} AND NOT BUILD_HOST_ONLY)
-    install(FILES 
-        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libc_sec.so
-        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libascendalog.so
-        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libunified_dlog.so
-        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libascend_protobuf.a
-        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libmmpa.so
-        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libascend_hal.so
-        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libplatform_static.a
-        ${CHILD_INSTALL_DIR}/${DEVICE_LIBRARY_PATH}/libkernel_load_platform.so
-        DESTINATION ${INSTALL_DIR}/device
-        OPTIONAL
-    )
-
     install(FILES
-        ${CHILD_INSTALL_DIR}/runtime/cann-tsch-compat.tar.gz
-        DESTINATION runtime
-        OPTIONAL
+        ${CMAKE_BINARY_DIR}/device_build/device-npu-runtime.tar.gz
+        DESTINATION subprjs
+        COMPONENT npu-runtime
     )
 endif()
 

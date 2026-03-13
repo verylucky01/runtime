@@ -122,7 +122,7 @@ set_target_properties(slog
 endif ()
 
 install(TARGETS slog
-    DESTINATION ${DEVICE_LIBRARY_PATH} OPTIONAL COMPONENT npu-runtime
+    DESTINATION ${INSTALL_LIBRARY_DIR} OPTIONAL
 )
 
 ############################# ![ascend610/ascend610Lite/ascend610Lite] ###################################
@@ -192,7 +192,7 @@ set_target_properties(alog
 )
 
 install(TARGETS alog
-    DESTINATION ${DEVICE_LIBRARY_PATH} OPTIONAL COMPONENT npu-runtime
+    DESTINATION ${DEVICE_LIBRARY_PATH} ${INSTALL_OPTIONAL} COMPONENT npu-runtime
 )
 
 ############################# ![ascend610/ascend610Lite/ascend610Lite] ###################################
@@ -251,5 +251,5 @@ target_link_libraries(unified_dlog
 )
 
 install(TARGETS unified_dlog
-    DESTINATION ${DEVICE_LIBRARY_PATH} OPTIONAL COMPONENT npu-runtime
+    DESTINATION ${DEVICE_LIBRARY_PATH} ${INSTALL_OPTIONAL} COMPONENT npu-runtime
 )

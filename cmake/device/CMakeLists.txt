@@ -65,3 +65,5 @@ install(FILES
   DESTINATION runtime
   COMPONENT npu-runtime
 )
+
+set_subprj_package()

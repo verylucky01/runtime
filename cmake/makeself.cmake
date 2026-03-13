@@ -41,6 +41,18 @@ if(NOT INSTALL_RESULT EQUAL 0)
     message(FATAL_ERROR "Installation to staging directory failed: ${INSTALL_RESULT}")
 endif()
 
+# 解压子工程包
+execute_process(
+    COMMAND tar -zxpf "${STAGING_DIR}/subprjs/device-npu-runtime.tar.gz" -C "${STAGING_DIR}"
+    RESULT_VARIABLE RETCODE
+)
+if(RETCODE)
+    message(FATAL_ERROR "Extract device-npu-runtime.tar.gz failed, return code is ${RETCODE}.")
+endif()
+
+# 刪除子工程压缩包，避免打到run包中
+file(REMOVE_RECURSE "${STAGING_DIR}/subprjs")
+
 if(CPACK_REMOVE_LIB_FILES)
     message("Remove files from ${CPACK_CMAKE_BINARY_DIR}/_CPack_Packages/makeself_staging/lib")
     file(GLOB ALL_FILES "${CPACK_CMAKE_BINARY_DIR}/_CPack_Packages/makeself_staging/lib/*")

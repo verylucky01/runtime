@@ -481,6 +481,10 @@ macro(set_common_params base_dir)
     endif()
 
     include(${base_dir}/cmake/intf_pub_linux.cmake)
+    set(INSTALL_OPTIONAL "OPTIONAL")
+    if(ENABLE_OPEN_SRC)
+        set(INSTALL_OPTIONAL)
+    endif()
 endmacro()
 
 # 设置rts参数
@@ -496,4 +500,15 @@ function(add_subdirectories_relative base_dir)
         file(RELATIVE_PATH relative_dir "${base_dir}" "${source_dir}")
         add_subdirectory("${source_dir}" "${relative_dir}")
     endforeach()
+endfunction()
+
+# 设置子工程打包
+function(set_subprj_package)
+    get_cmake_property(CPACK_COMPONENTS_ALL COMPONENTS)
+    list(REMOVE_ITEM CPACK_COMPONENTS_ALL "Unspecified")
+
+    set(CPACK_GENERATOR TGZ)
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+    set(CPACK_ARCHIVE_FILE_NAME "${PRODUCT_SIDE}")
+    include(CPack)
 endfunction()

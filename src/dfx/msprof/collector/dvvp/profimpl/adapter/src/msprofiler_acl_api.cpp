@@ -53,6 +53,7 @@ std::map<uint32_t, std::string> g_subscribeTypeMap = {
     {ACL_GRPH_API_TYPE, "aclgraph"},
     {OP_TYPE, "op"},
 };
+static std::atomic<bool> g_isRepeatInvoking{false};
 
 aclError ProfInit(ProfType type, CONST_CHAR_PTR profilerResultPath, size_t length)
 {
@@ -283,13 +284,13 @@ aclError ProfStart(ProfType type, PROF_CONFIG_CONST_PTR profilerConfig)
         devIds.push_back(config->devIdList[i]);
     }
 
-    int32_t ret = ProfAclMgr::instance()->CheckConfigConsistency(static_cast<const MsprofConfig *>(&cfg), "start");
-    if (ret != ACL_SUCCESS) {
-        return ret;
-    }
-
     MSPROF_LOGI("Start to execute %s%s", g_subscribeTypeMap[type].c_str(), __func__);
     std::lock_guard<std::mutex> lock(g_profMutex);
+    if (g_isRepeatInvoking) {
+        return ProfAclMgr::instance()->CheckConfigConsistency(static_cast<const MsprofConfig *>(&cfg), "start");
+    } else {
+        g_isRepeatInvoking = true;
+    }
 
     if (ProfAclMgr::instance()->IsProfWarmup()) {
         ProfAclMgr::instance()->ChangeProfWarmupToStart(devIds);
@@ -349,6 +350,7 @@ aclError ProfStop(ProfType type, PROF_CONFIG_CONST_PTR profilerConfig)
     FUNRET_CHECK_EXPR_ACTION(ProfReporterMgr::GetInstance().StopReporters() != PROFILING_SUCCESS,
         return ACL_ERROR_PROFILING_FAILURE, "Failed to stop reporters.");
 
+    g_isRepeatInvoking = false;
     MSPROF_LOGI("Acl has been allocated stop config, successfully execute %s%s", g_subscribeTypeMap[type].c_str(), __func__);
     return ACL_SUCCESS;
 }

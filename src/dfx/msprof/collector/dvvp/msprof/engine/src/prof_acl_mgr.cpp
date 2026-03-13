@@ -2658,16 +2658,16 @@ int32_t ProfAclMgr::CheckConfigConsistency(const MsprofConfig *config, const std
             continue;
         }
         if (dataTypeConfig != config->profSwitch) {
-            MSPROF_LOGE("DataTypeConfig %s: %" PRIu64 " different from start: %" PRIu64,
+            MSPROF_LOGE("DataTypeConfig %s: 0x%" PRIx64 " different from start: 0x%" PRIx64,
                 action.c_str(), config->profSwitch, dataTypeConfig);
             const int32_t bufLength = 64;
             char profSwitchbuf[bufLength] = {0};
             char dataTypeConfigbuf[bufLength] = {0};
-            ret = snprintf_s(profSwitchbuf, bufLength, bufLength - 1, "%" PRIu64, config->profSwitch);
+            ret = snprintf_s(profSwitchbuf, bufLength, bufLength - 1, "0x%" PRIx64, config->profSwitch);
             if (ret == OSAL_EN_ERROR) {
                 MSPROF_LOGE("Unable to format config->profSwitch.");
             }
-            ret = snprintf_s(dataTypeConfigbuf, bufLength, bufLength - 1, "%" PRIu64, dataTypeConfig);
+            ret = snprintf_s(dataTypeConfigbuf, bufLength, bufLength - 1, "0x%" PRIx64, dataTypeConfig);
             if (ret == OSAL_EN_ERROR) {
                 MSPROF_LOGE("Unable to format dataTypeConfigbuf.");
             }

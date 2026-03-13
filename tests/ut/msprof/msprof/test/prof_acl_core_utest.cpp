@@ -407,6 +407,9 @@ TEST_F(MSPROF_ACL_CORE_UTEST, acl_api) {
     EXPECT_EQ(ACL_ERROR_INVALID_PARAM, aclprofStart(zeroConfig));
     EXPECT_EQ(200007, aclprofStart(invalidConfig));
     EXPECT_EQ(0, aclprofStart(aclConfig));
+    EXPECT_EQ(0, aclprofStart(aclConfig));
+    config.dataTypeConfig = 0x7d7f001f;
+    EXPECT_EQ(ACL_ERROR_INVALID_PROFILING_CONFIG, aclprofStart(aclConfig));
     EXPECT_TRUE(Msprofiler::Api::ProfAclMgr::instance()->IsAclApiReady());
 
     ProfConfig largeConfig;

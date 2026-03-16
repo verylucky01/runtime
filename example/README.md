@@ -5,6 +5,7 @@ examples目录下提供了一系列Runtime接口样例，包括Device管理、St
 
 |样例目录|子目录            | 功能介绍 |
 |--------|-----------------|--------------------------|
+|quickstart|[quickstart](./quickstart/)|本示例是使用Runtime接口的快速入门示示例。展示了如何使用 CANN Runtime 的 `aclnnAdd` API 执行向量加法操作。`aclnnAdd` 是 CANN 神经网络算子库提供的加法算子，实现了 `out = self + alpha * other` 的运算。|
 |device|[0_device_normal](./device/0_device_normal/)|本样例展示了从资源初始化、指定Device计算设备、在Device上执行Add算子、到最后销毁资源的全部流程，是一个基础的使用Device的样例。|
 |device|[1_device_multi_thread](./device/1_device_multi_thread/)|本用例展示了多线程的场景如何管理Device，主线程中设置Device，设置资源限制，另一个线程获取Device相关信息（例如昇腾AI处理器版本、Device运行模式、Device资源限制）后，再根据Device资源限制下发和执行和函数任务，线程结束时采用aclrtResetDeviceForce接口释放Device上的资源。|
 |device|[2_device_P2P](./device/2_device_P2P/)|本样例展示了如何在多个Device之间进行切换，并进行内存复制。|
@@ -26,6 +27,8 @@ examples目录下提供了一系列Runtime接口样例，包括Device管理、St
 |memory|[10_ipc_memory_withpid](./memory/10_ipc_memory_withpid)|本样例展示了同一个Device、两个进程间的内存共享，在共享内存时启用进程白名单校验。|
 |memory|[11_ipc_memory_withoutpid](./memory/11_ipc_memory_withoutpid)|本样例展示了同一个Device、两个进程间的内存共享，在内存共享时关闭进程白名单校验。|
 |memory|[12_cross_server_physical_memory_sharing_withoutpid](./memory/12_cross_server_physical_memory_sharing_withoutpid/)|本样例展示了两个服务器间的内存共享，在共享内存时关闭进程白名单校验。|
+|built_in_task|[0_reduce_task](./built_in_task/0_reduce_task/)|本示例展示了如何使用 CANN Runtime 的 `aclrtReduceAsync` API 执行规约（Reduce）操作。规约是并行计算中的常见操作，用于对数组元素进行求和、求最大值等操作。|
+|built_in_task|[1_random_num_task](./built_in_task/1_random_num_task/)|本示例展示了如何使用 CANN Runtime 的 `aclrtRandomNumAsync` API 生成随机数。支持多种随机数分布类型和数据类型，用于满足不同场景下的随机数生成需求。|
 |callback|[0_simple_callback](./callback/0_simple_callback/)|本样例展示了在Stream上下发一个Host侧函数，由用户显式注册线程，触发Host侧函数调用。|
 |callback|[1_callback_hostfunc](./callback/1_callback_hostfunc/)|本样例展示了在Stream上下发一个Host侧函数，该Host侧函数将在当前已下发的任务执行之后被调用，并会阻塞之后添加的任务。|
 |callback|[2_callback_exception](./callback/2_callback_exception/)|本样例展示了如何通过错误回调函数获取任务的异常信息，包括Device ID、Stream ID、Task ID、Error Code等。|
@@ -71,3 +74,12 @@ examples目录下提供了一系列Runtime接口样例，包括Device管理、St
   # 请注意部分用例的运行命令不同，具体以各用例目录下的README.md中的编译运行命令为准
   bash run.sh
   ```
+
+## 示例代码说明
+所有示例演示了 CANN Runtime API 的典型使用模式
+* 样例代码仅用于演示说明，并非生产环境代码
+* 为了简化示例，错误处理被简化
+* 在发生错误时，资源清理可能并不完整
+* 在未进行充分加固和完善之前，请勿直接用于商业应用
+
+用于生产环境时，请务必实现完善的错误处理机制以及 RAII 资源管理模式。

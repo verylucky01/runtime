@@ -483,7 +483,8 @@ rtError_t NpuDriver::GetAvailStreamNum(const uint32_t deviceId, const uint32_t t
     }
 
     *streamCount = queryInfoInput.capacity - queryInfoInput.usedNum;
-    RT_LOG(RT_LOG_INFO, "deviceId=%u, tsId=%u, availStreamCount=%u.", deviceId, tsId, *streamCount);
+    RT_LOG(RT_LOG_INFO, "deviceId=%u, tsId=%u, availStreamCount=%u, used=%u.", 
+        deviceId, tsId, *streamCount, queryInfoInput.usedNum);
 
     return RT_ERROR_NONE;
 }
@@ -503,15 +504,14 @@ rtError_t NpuDriver::GetAvailEventNum(const uint32_t deviceId, const uint32_t ts
     }
 
     *eventCount = queryInfoInput.capacity - queryInfoInput.usedNum;
-    RT_LOG(RT_LOG_INFO, "deviceId=%u, tsId=%u, availEventCount=%u", deviceId, tsId, *eventCount);
+    RT_LOG(RT_LOG_INFO, "deviceId=%u, tsId=%u, availEventCount=%u, used=%u", 
+        deviceId, tsId, *eventCount, queryInfoInput.usedNum);
 
     return RT_ERROR_NONE;
 }
 
 rtError_t NpuDriver::GetMaxModelNum(const uint32_t deviceId, const uint32_t tsId, uint32_t *maxModelCount)
 {
-    RT_LOG(RT_LOG_INFO, "get MaxModel. deviceId=%u, task=%u", deviceId, tsId);
-
     struct halResourceInfo queryInfoInput;
     queryInfoInput.capacity = 0U;
     COND_RETURN_INFO(halResourceInfoQuery == nullptr, RT_ERROR_NONE, "[drv api] halResourceInfoQuery does not exist.");
@@ -522,7 +522,7 @@ rtError_t NpuDriver::GetMaxModelNum(const uint32_t deviceId, const uint32_t tsId
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     *maxModelCount = queryInfoInput.capacity;
-    RT_LOG(RT_LOG_DEBUG, "GetMaxModelNum=%u.", *maxModelCount);
+    RT_LOG(RT_LOG_DEBUG, "deviceId=%u, tsId=%u, maxModelNum=%u.", deviceId, tsId, *maxModelCount);
 
     return RT_ERROR_NONE;
 }
@@ -1290,8 +1290,8 @@ rtError_t NpuDriver::NotifyIdAlloc(const int32_t deviceId, uint32_t * const id, 
     resAllocInput.res[1U] = drvFlag;
     resAllocOutput.resourceId = 0U;
 
-    RT_LOG(RT_LOG_INFO, "notify id alloc begin, device_id=%u, ts_id=%u, remote_notify_id=%u",
-        deviceId, resAllocInput.tsId, resAllocInput.res[1U]);
+    RT_LOG(RT_LOG_INFO, "notify id alloc begin, device_id=%u, ts_id=%u, remote_notify_id=%u, type=%d.",
+        deviceId, resAllocInput.tsId, resAllocInput.res[1U], static_cast<int32_t>(resAllocInput.type));
     drvError_t drvRet = halResourceIdAlloc(static_cast<uint32_t>(deviceId), &resAllocInput, &resAllocOutput);
     if (drvRet != DRV_ERROR_NONE) {
         if ((drvRet == DRV_ERROR_NO_NOTIFY_RESOURCES) && isEvent) {

@@ -16,7 +16,7 @@ get_filename_component(TOOLAHCIN_LOG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLU
 add_subdirectory(slog)
 
 if(PRODUCT)
-if ((${PRODUCT} STREQUAL "ascend610") OR (${PRODUCT} STREQUAL "ascend610Lite") OR (${PRODUCT} STREQUAL "ascend610Liteesl") OR (${PRODUCT} STREQUAL "as31xm1"))
-add_subdirectory(mergeslog)
+if(${PRODUCT} STREQUAL "pegasus")
+    add_subdirectory(mergeslog)
 endif ()
 endif ()

@@ -19,33 +19,32 @@ target_include_directories(slog_headers INTERFACE
     $<INSTALL_INTERFACE:include/slog/toolchain>
 )
 
-############################# [device] ########################################
-if (${PRODUCT_SIDE} STREQUAL "device")
 
-set(liblog_type "default")
-if(PRODUCT)
-if((${PRODUCT} STREQUAL "ascend610") OR (${PRODUCT} STREQUAL "ascend610Lite") OR (${PRODUCT} STREQUAL "ascend610Liteesl") OR (${PRODUCT} STREQUAL "as31xm1"))
+message("Variable value1: ${PRODUCT_SIDE}")
+message("Variable value2: ${PRODUCT}")
+
+if (${PRODUCT_SIDE} STREQUAL "device")
+    set(liblog_type "device")
+if (PRODUCT)
+if (${PRODUCT} STREQUAL "pegasus")
     set(liblog_type "mdc")
 endif()
 endif()
 
 if (${liblog_type} STREQUAL "mdc")
-############################# [ascend610/ascend610Lite/ascend610Lite] #########
+############################# [mdc] #########################################
+message("Variable value a")
 add_subdirectory(plog_device_mdc)
 else ()
-############################# ![ascend610/ascend610Lite/ascend610Lite] ########
+############################# [device] #######################################
+message("Variable value b")
 add_subdirectory(plog_device)
 endif ()
-
 ############################# [ host ] ########################################
 elseif (${PRODUCT_SIDE} STREQUAL "host")
-############################# [Windows] #######################################
-if (${TARGET_SYSTEM_NAME} STREQUAL "Windows")
-add_subdirectory(plog)
-add_subdirectory(plog_host_win)
-else ()
-############################# [ linux ] #######################################
+message("Variable value c")
 add_subdirectory(plog)
 add_subdirectory(plog_host)
 endif ()
-endif ()
+
+message("Variable value3: ${liblog_type}")

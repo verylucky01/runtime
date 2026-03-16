@@ -1126,14 +1126,14 @@ rtError_t Context::UpdateEndGraphTask(Stream * const origCaptureStream, Stream *
     COND_RETURN_ERROR(rtNotifyRecord->type != TS_TASK_TYPE_NOTIFY_RECORD, RT_ERROR_STREAM_INVALID,
         "EndGraph task type=%u", rtNotifyRecord->type);
     rtNotifyRecord->u.notifyrecordTask.notifyId = ntf->GetNotifyId();
-    rtStarsSqe_t sqeMem = {};
-    ConstructSqeForNotifyRecordTask(rtNotifyRecord, &sqeMem);
+    uint8_t sqeMem[RT_STARS_SQE_LEN] = {0};
+    ConstructStarsSqeForNotifyRecordTask(rtNotifyRecord, sqeMem);
 
     void *targetAddrOfUpdatedSqe = RtValueToPtr<void *>(origCaptureStream->GetSqBaseAddr() +
         (rtNotifyRecord->pos * sizeof(rtStarsSqe_t)));
     uint64_t realSize = 0U;
     auto error = MemcopyAsync(
-        targetAddrOfUpdatedSqe, sizeof(rtStarsSqe_t), &sqeMem, sizeof(sqeMem), RT_MEMCPY_HOST_TO_DEVICE_EX, exeStream,
+        targetAddrOfUpdatedSqe, sizeof(rtStarsSqe_t), sqeMem, sizeof(sqeMem), RT_MEMCPY_HOST_TO_DEVICE_EX, exeStream,
         &realSize);
     COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "update task fail error=0x%x", error);
     RT_LOG(RT_LOG_WARNING, "exec stream_id=%d target stream_id=%u pos=%u",

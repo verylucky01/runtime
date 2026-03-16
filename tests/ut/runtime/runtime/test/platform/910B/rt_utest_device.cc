@@ -2711,15 +2711,18 @@ TEST_F(CloudV2DeviceTest, StreamSetupTryAlloc)
     RawDevice *device = new RawDevice(0);
     device->Init();
     Stream *stream = new Stream(device, 0);
+    Stream *stream2 = new Stream(device, 0);
+
+    MOCKER_CPP(&StreamSqCqManage::AllocStreamSqCq).stubs().will(returnValue(RT_ERROR_DRV_NO_RESOURCES));
+    rtError_t ret = stream->Setup();
+    ASSERT_EQ(ret, RT_ERROR_DRV_NO_RESOURCES);
 
     DeviceSqCqPool *deviceSqCqPool = device->GetDeviceSqCqManage();
- 
     uint32_t allcocNum = 1U;
     rtDeviceSqCqInfo_t sqCqList = {};
     deviceSqCqPool->PreAllocSqCq();
 
-    MOCKER_CPP(&StreamSqCqManage::AllocStreamSqCq).stubs().will(returnValue(RT_ERROR_DRV_NO_RESOURCES));
-    rtError_t ret = stream->Setup();
+    ret = stream2->Setup();
     ASSERT_EQ(ret, RT_ERROR_DRV_NO_RESOURCES);
 
     ret = deviceSqCqPool->GetSqCqPoolFreeResNum();
@@ -2727,6 +2730,7 @@ TEST_F(CloudV2DeviceTest, StreamSetupTryAlloc)
 
     GlobalMockObject::verify();
     delete stream;
+    delete stream2;
     delete device;
 }
 

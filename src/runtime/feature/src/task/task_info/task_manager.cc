@@ -868,6 +868,90 @@ bool IsNeedFreeStreamRes(const TaskInfo *task)
 #endif
 
 #if F_DESC("钩子注册框架")
+static void RegDoCompleteSuccFunc(void)
+{
+    g_doCompleteSuccFunc[TS_TASK_TYPE_KERNEL_AICPU] = &DoCompleteSuccessForDavinciTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_KERNEL_AIVEC] = &DoCompleteSuccessForDavinciTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_KERNEL_AICORE] = &DoCompleteSuccessForDavinciTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MULTIPLE_TASK] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MEMCPY] = &DoCompleteSuccessForMemcpyAsyncTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_REDUCE_ASYNC_V2] = &DoCompleteSuccessForReduceAsyncV2Task;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_EVENT_RECORD] = &DoCompleteSuccessForEventRecordTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_EVENT_RESET] = &DoCompleteSuccessForEventResetTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_REMOTE_EVENT_WAIT] = &DoCompleteSuccessForRemoteEventWaitTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_WAIT_EVENT] = &DoCompleteSuccessForEventWaitTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MAINTENANCE] = &DoCompleteSuccessForMaintenanceTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_CREATE_STREAM] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_CREATE_L2_ADDR] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_FUSION_ISSUE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILER_DYNAMIC_ENABLE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILER_DYNAMIC_DISABLE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILING_ENABLE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILING_DISABLE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_ONLINEPROF_START] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_ONLINEPROF_STOP] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_ADCPROF] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_PCTRACE_ENABLE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_MAINTAINCE] = &DoCompleteSuccessForModelMaintainceTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_EXECUTE] = &DoCompleteSuccessForModelExecuteTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_RDMA_PI_VALUE_MODIFY] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_DEBUG_UNREGISTER_FOR_STREAM] = nullptr;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_END_GRAPH] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_EXIT_GRAPH] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_TO_AICPU] = &DoCompleteSuccForModelToAicpuTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_ACTIVE_AICPU_STREAM] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_HOSTFUNC_CALLBACK] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_LABEL_SWITCH_BY_INDEX] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_LABEL_GOTO] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_STARS_COMMON] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_FFTS_PLUS] = &DoCompleteSuccForFftsPlusTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_NPU_GET_FLOAT_STATUS] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_NPU_CLEAR_FLOAT_STATUS] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_SET_OVERFLOW_SWITCH] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_SET_STREAM_GE_OP_TAG] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_DEVICE_RINGBUFFER_CONTROL] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_WRITE_VALUE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_CMO] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_BARRIER] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_SET_STREAM_MODE] = nullptr;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_RDMA_SEND] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_RDMA_DB_SEND] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_NOTIFY_RECORD] = &DoCompleteSuccessForNotifyRecordTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_IPCINT_NOTICE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_NOTIFY_WAIT] = &DoCompleteSuccessForNotifyWaitTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_SWITCH] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_SWITCH_N] = nullptr;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_ACTIVE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_LABEL_SET] = nullptr;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_LABEL_SWITCH] = nullptr;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_LABEL_GOTO] = nullptr;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILER_TRACE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILER_TRACE_EX] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_FUSIONDUMP_ADDR_SET] = nullptr;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_DATADUMP_LOADINFO] = &DoCompleteSuccessForDataDumpLoadInfoTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_DEBUG_REGISTER] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_DEBUG_UNREGISTER] = nullptr;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_TASK_TIMEOUT_SET] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_GET_DEVICE_MSG] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_DEBUG_REGISTER_FOR_STREAM] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_ALLOC_DSA_ADDR] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_FLIP] = nullptr;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_GET_STARS_VERSION] = &DoCompleteSuccessForStarsVersionTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_SET_SQ_LOCK_UNLOCK] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_UPDATE_ADDRESS] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_TASK_UPDATE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_AICPU_INFO_LOAD] = &DoCompleteSuccessForAicpuInfoLoadTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_NOP] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_COMMON_CMD] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MEM_WRITE_VALUE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_MEM_WAIT_VALUE] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_CAPTURE_RECORD] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_CAPTURE_WAIT] = &DoCompleteSuccess;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_IPC_RECORD] = &DoCompleteSuccessForIpcRecordTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_IPC_WAIT] = &DoCompleteSuccessForIpcWaitTask;
+    g_doCompleteSuccFunc[TS_TASK_TYPE_TASK_SQE_UPDATE] = &DoCompleteSuccess;
+}
+
 void RegTaskToCommandFunc(void)
 {
     g_toCommandFunc[TS_TASK_TYPE_KERNEL_AICPU] = &ToCommandBodyForAicpuTask;
@@ -1120,90 +1204,6 @@ static void RegTaskToSqefunc(void)
     g_toSqeFunc[TS_TASK_TYPE_CAPTURE_WAIT] = &ConstructSqeForMemWaitValueTask;
     g_toSqeFunc[TS_TASK_TYPE_IPC_RECORD] = &ConstructSqeForMemWriteValueTask;
     g_toSqeFunc[TS_TASK_TYPE_IPC_WAIT] = &ConstructSqeForMemWaitValueTask;
-}
-
-static void RegDoCompleteSuccFunc(void)
-{
-    g_doCompleteSuccFunc[TS_TASK_TYPE_KERNEL_AICPU] = &DoCompleteSuccessForDavinciTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_KERNEL_AIVEC] = &DoCompleteSuccessForDavinciTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_KERNEL_AICORE] = &DoCompleteSuccessForDavinciTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MULTIPLE_TASK] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MEMCPY] = &DoCompleteSuccessForMemcpyAsyncTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_REDUCE_ASYNC_V2] = &DoCompleteSuccessForReduceAsyncV2Task;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_EVENT_RECORD] = &DoCompleteSuccessForEventRecordTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_EVENT_RESET] = &DoCompleteSuccessForEventResetTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_REMOTE_EVENT_WAIT] = &DoCompleteSuccessForRemoteEventWaitTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_WAIT_EVENT] = &DoCompleteSuccessForEventWaitTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MAINTENANCE] = &DoCompleteSuccessForMaintenanceTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_CREATE_STREAM] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_CREATE_L2_ADDR] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_FUSION_ISSUE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILER_DYNAMIC_ENABLE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILER_DYNAMIC_DISABLE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILING_ENABLE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILING_DISABLE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_ONLINEPROF_START] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_ONLINEPROF_STOP] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_ADCPROF] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_PCTRACE_ENABLE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_MAINTAINCE] = &DoCompleteSuccessForModelMaintainceTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_EXECUTE] = &DoCompleteSuccessForModelExecuteTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_RDMA_PI_VALUE_MODIFY] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_DEBUG_UNREGISTER_FOR_STREAM] = nullptr;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_END_GRAPH] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_EXIT_GRAPH] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_TO_AICPU] = &DoCompleteSuccForModelToAicpuTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_ACTIVE_AICPU_STREAM] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_HOSTFUNC_CALLBACK] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_LABEL_SWITCH_BY_INDEX] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_LABEL_GOTO] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_STARS_COMMON] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_FFTS_PLUS] = &DoCompleteSuccForFftsPlusTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_NPU_GET_FLOAT_STATUS] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_NPU_CLEAR_FLOAT_STATUS] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_SET_OVERFLOW_SWITCH] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_SET_STREAM_GE_OP_TAG] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_DEVICE_RINGBUFFER_CONTROL] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_WRITE_VALUE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_CMO] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_BARRIER] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_SET_STREAM_MODE] = nullptr;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_RDMA_SEND] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_RDMA_DB_SEND] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_NOTIFY_RECORD] = &DoCompleteSuccessForNotifyRecordTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_IPCINT_NOTICE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_NOTIFY_WAIT] = &DoCompleteSuccessForNotifyWaitTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_SWITCH] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_SWITCH_N] = nullptr;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_STREAM_ACTIVE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_LABEL_SET] = nullptr;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_LABEL_SWITCH] = nullptr;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_LABEL_GOTO] = nullptr;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILER_TRACE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_PROFILER_TRACE_EX] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_FUSIONDUMP_ADDR_SET] = nullptr;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_DATADUMP_LOADINFO] = &DoCompleteSuccessForDataDumpLoadInfoTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_DEBUG_REGISTER] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_DEBUG_UNREGISTER] = nullptr;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_TASK_TIMEOUT_SET] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_GET_DEVICE_MSG] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_DEBUG_REGISTER_FOR_STREAM] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_ALLOC_DSA_ADDR] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_FLIP] = nullptr;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_GET_STARS_VERSION] = &DoCompleteSuccessForStarsVersionTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_SET_SQ_LOCK_UNLOCK] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_UPDATE_ADDRESS] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MODEL_TASK_UPDATE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_AICPU_INFO_LOAD] = &DoCompleteSuccessForAicpuInfoLoadTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_NOP] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_COMMON_CMD] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MEM_WRITE_VALUE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_MEM_WAIT_VALUE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_CAPTURE_RECORD] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_CAPTURE_WAIT] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_IPC_RECORD] = &DoCompleteSuccessForIpcRecordTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_IPC_WAIT] = &DoCompleteSuccessForIpcWaitTask;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_TASK_SQE_UPDATE] = &DoCompleteSuccess;
 }
 
 void TaskFuncReg(void)

@@ -1701,4 +1701,8 @@ TEST_F(TaskTestDavid, StreamSetupTryAlloc)
 
     error = deviceSqCqPool->GetSqCqPoolFreeResNum();
     EXPECT_EQ(error, 0U);
+    MOCKER(ConstructDavidSqeForNotifyRecordTask).stubs().will(returnValue(RT_ERROR_NONE));
+    TaskInfo taskInfo = {0};
+    uint8_t sqeMem[RT_STARS_SQE_LEN] = {0};
+    ConstructStarsSqeForNotifyRecordTask(&taskInfo, sqeMem);
 }

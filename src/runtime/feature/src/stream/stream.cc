@@ -656,6 +656,10 @@ rtError_t Stream::Setup()
     error = stmSqCqManage->AllocStreamSqCq(this, priority_, 0U, tmpSqId, tmpCqId);
     if (error == RT_ERROR_DRV_NO_RESOURCES) {
         DeviceSqCqPool *sqcqPool = device_->GetDeviceSqCqManage();
+        if ((sqcqPool->GetSqCqPoolFreeResNum() == 0U) && (Context_() != nullptr)) {
+            Context_()->TryRecycleCaptureModelResource(1U, 0U, nullptr);
+        }
+
         if ((sqcqPool != nullptr) && (sqcqPool->GetSqCqPoolFreeResNum() != 0U)) {
             if (sqcqPool->TryFreeSqCqToDrv() == RT_ERROR_NONE) {
                 error = stmSqCqManage->AllocStreamSqCq(this, priority_, 0U, tmpSqId, tmpCqId);

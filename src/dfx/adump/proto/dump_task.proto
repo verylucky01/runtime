@@ -135,7 +135,8 @@ message OpOutput {
     int32 sub_format = 8;
     uint64 address = 9;
     repeated DimRange dim_range = 10;
-    uint32 arg_index = 11;
+    uint64 offset = 11;
+    uint32 arg_index = 12;
 }
 
 message OpInput {

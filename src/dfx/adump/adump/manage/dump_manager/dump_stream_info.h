@@ -157,8 +157,40 @@ public:
 
     void waitAndClear()
     {
+        // 等待 resourceMap_ 中的数据被清理
+        // 检查是否有待处理的 dump 任务，如果有则等待 5 秒让任务完成
+        constexpr uint32_t WAIT_INTERVAL_SEC = 5U;
+        constexpr uint32_t MAX_WAIT_COUNT = 12U; // 最多等待 60 秒 (5s * 12)
+        uint32_t waitCount = 0U;
+
+        while (waitCount < MAX_WAIT_COUNT) {
+            {
+                std::lock_guard<std::mutex> lock(mtx_);
+                if (resourceMap_.empty()) {
+                    IDE_LOGI("resourceMap_ is empty, proceed to cleanup");
+                    break;
+                }
+                IDE_LOGI(
+                    "resourceMap_ has %zu items, wait %us for dump tasks to complete, count: %u/%u",
+                    resourceMap_.size(), WAIT_INTERVAL_SEC, waitCount + 1, MAX_WAIT_COUNT);
+            }
+
+            // map 不为空，等待 5 秒让任务完成
+            std::this_thread::sleep_for(std::chrono::seconds(WAIT_INTERVAL_SEC));
+            waitCount++;
+        }
+
+        if (waitCount >= MAX_WAIT_COUNT) {
+            std::lock_guard<std::mutex> lock(mtx_);
+            IDE_LOGW("Wait timeout, resourceMap_ still has %zu items", resourceMap_.size());
+        }
+
+        // 停止 cleanup 线程并清理资源
         StopCleanupThread();
-        clear();
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            resourceMap_.clear();
+        }
         IDE_LOGI("All dump operations completed and resources cleared");
     }
 

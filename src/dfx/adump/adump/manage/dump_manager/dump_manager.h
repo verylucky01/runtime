@@ -35,7 +35,7 @@ public:
     int32_t SetDumpConfig(const char* dumpConfigData, size_t dumpConfigSize);
     int32_t UnSetDumpConfig();
     bool IsEnableDump(DumpType dumpType);
-    int32_t DumpOpertorWithCapture(
+    int32_t DumpOperatorWithCapture(
         const std::string& opType, const std::string& opName, const std::vector<DumpTensor>& inputTensors,
         const std::vector<DumpTensor>& outputTensors, aclrtStream mainStream);
     int32_t DumpOperator(
@@ -99,6 +99,7 @@ private:
     std::map<uint32_t, AdumpCallback> disableCallbackFunc_;
     std::string dumpConfigInfo_;
     bool isEnvExceptionDump_ = false;
+    bool isCaptureDumpServerInit_ = false;
 };
 } // namespace Adx
 #endif // DUMP_MANAGER_H

@@ -16,6 +16,7 @@
 #include "adx_msg_proto.h"
 #include "memory_utils.h"
 #include "sys_utils.h"
+#include "dump_datatype.h"
 
 namespace Adx {
 
@@ -115,14 +116,14 @@ int32_t DumpStreamCreate(DumpStreamInfo** ptr)
         return ADUMP_FAILED;
     }
 
-    rtError_t ret = rtEventCreateExWithFlag(&(dumpPtr->mainStmEvt), RT_EVENT_DEFAULT);
+    rtError_t ret = rtEventCreateExWithFlag(&(dumpPtr->mainStmEvt), RT_EVENT_DDSYNC_NS);
     if (ret != RT_ERROR_NONE) {
         IDE_LOGE("create main stream event failed");
         delete dumpPtr;
         return ret;
     }
 
-    ret = rtEventCreateExWithFlag(&(dumpPtr->dumpStmEvt), RT_EVENT_DEFAULT);
+    ret = rtEventCreateExWithFlag(&(dumpPtr->dumpStmEvt), RT_EVENT_DDSYNC_NS);
     if (ret != RT_ERROR_NONE) {
         IDE_LOGE("create dump stream event failed");
         rtEventDestroy(dumpPtr->mainStmEvt);
@@ -197,9 +198,14 @@ void FillTensorProtoInfo(const std::vector<DumpTensor>& tensors, toolkit::dump::
 
         if (isInput) {
             auto* opInput = data.add_input();
-            opInput->set_data_type(static_cast<toolkit::dump::OutputDataType>(item.GetDataType()));
+            // Convert data type using DumpDataType helper
+            opInput->set_data_type(
+                static_cast<toolkit::dump::OutputDataType>(
+                    DumpDataType::GetIrDataType(static_cast<GeDataType>(item.GetDataType()))));
             opInput->set_format(static_cast<toolkit::dump::OutputFormat>(GetPrimaryFormat(format)));
             opInput->set_sub_format(GetSubFormat(format));
+            // Address for input
+            opInput->set_address(reinterpret_cast<uint64_t>(item.GetAddress()));
             opInput->set_offset(item.GetArgsOffSet());
             opInput->set_size(item.GetSize());
 
@@ -213,9 +219,15 @@ void FillTensorProtoInfo(const std::vector<DumpTensor>& tensors, toolkit::dump::
             }
         } else {
             auto* opOutput = data.add_output();
-            opOutput->set_data_type(static_cast<toolkit::dump::OutputDataType>(item.GetDataType()));
+            // Convert data type using DumpDataType helper
+            opOutput->set_data_type(
+                static_cast<toolkit::dump::OutputDataType>(
+                    DumpDataType::GetIrDataType(static_cast<GeDataType>(item.GetDataType()))));
             opOutput->set_format(static_cast<toolkit::dump::OutputFormat>(GetPrimaryFormat(format)));
             opOutput->set_sub_format(GetSubFormat(format));
+            // Offset and address for output
+            opOutput->set_offset(item.GetArgsOffSet());
+            opOutput->set_address(reinterpret_cast<uint64_t>(item.GetAddress()));
             opOutput->set_size(item.GetSize());
 
             auto* shape = opOutput->mutable_shape();
@@ -288,11 +300,20 @@ int32_t FlushCurrentChunk(ChunkContext& ctx, uint32_t isLastChunk)
     if (ctx.offset == 0) {
         return ADUMP_SUCCESS;
     }
-    (void)DumpTensorPushToDumpQueue(
-        ctx.buffer.data(), static_cast<uint32_t>(ctx.offset), ctx.fileName.c_str(), 0, isLastChunk);
+    int32_t ret = DumpTensorPushToDumpQueue(
+        ctx.buffer.data(), static_cast<uint32_t>(ctx.offset), ctx.fileName.c_str(), -1, isLastChunk);
+    if (ret != ADUMP_SUCCESS) {
+        IDE_LOGW(
+            "DumpTensorPushToDumpQueue failed, ret: %d, fileName: %s, offset: %zu", ret, ctx.fileName.c_str(),
+            ctx.offset);
+    }
+
     ctx.offset = 0;
-    (void)memset_s(ctx.buffer.data(), DUMP_SLICE_SIZE, 0, DUMP_SLICE_SIZE);
-    return ADUMP_SUCCESS;
+    errno_t memRet = memset_s(ctx.buffer.data(), DUMP_SLICE_SIZE, 0, DUMP_SLICE_SIZE);
+    if (memRet != EOK) {
+        IDE_LOGW("memset_s failed, ret: %d", memRet);
+    }
+    return ret;
 }
 
 int32_t CopyTensorDataWithFlush(const DumpTensor& tensor, ChunkContext& ctx, bool isLastTensorForChunk)
@@ -304,11 +325,15 @@ int32_t CopyTensorDataWithFlush(const DumpTensor& tensor, ChunkContext& ctx, boo
 
     size_t remainSize = tensor.GetSize();
     size_t srcOffset = 0;
-
+    int32_t flushRet = ADUMP_SUCCESS;
     while (remainSize > 0) {
         size_t space = DUMP_SLICE_SIZE - ctx.offset;
         if (space == 0) {
-            (void)FlushCurrentChunk(ctx, 0);
+            flushRet = FlushCurrentChunk(ctx, 0);
+            if (flushRet != ADUMP_SUCCESS) {
+                IDE_LOGE("FlushCurrentChunk failed, ret: %d", flushRet);
+                return flushRet;
+            }
             space = DUMP_SLICE_SIZE;
         }
 
@@ -333,7 +358,11 @@ int32_t CopyTensorDataWithFlush(const DumpTensor& tensor, ChunkContext& ctx, boo
 
         bool isLastChunk = (remainSize == 0) && isLastTensorForChunk;
         if (ctx.offset >= DUMP_SLICE_SIZE) {
-            (void)FlushCurrentChunk(ctx, isLastChunk ? 1 : 0);
+            flushRet = FlushCurrentChunk(ctx, isLastChunk ? 1 : 0);
+            if (flushRet != ADUMP_SUCCESS) {
+                IDE_LOGE("FlushCurrentChunk failed, ret: %d", flushRet);
+                return flushRet;
+            }
         }
     }
     return ADUMP_SUCCESS;
@@ -383,6 +412,11 @@ void DumpTensorToQueue(DumpStreamInfo* dumpInfoPtr)
 
     ChunkContext ctx{chunkBuffer, currentOffset, fileName};
 
+    size_t inputTensorSize = 0;
+    for (size_t i = 0; i < dumpInfoPtr->inputTensors.size(); i++) {
+        inputTensorSize += dumpInfoPtr->inputTensors[i].GetSize();
+    }
+
     size_t outputTensorSize = 0;
     for (size_t i = 0; i < dumpInfoPtr->outputTensors.size(); i++) {
         outputTensorSize += dumpInfoPtr->outputTensors[i].GetSize();
@@ -402,7 +436,8 @@ void DumpTensorToQueue(DumpStreamInfo* dumpInfoPtr)
         (void)FlushCurrentChunk(ctx, 1);
     }
 
-    IDE_LOGI("%s dump success, total offset: %zu", fileName.c_str(), currentOffset);
+    IDE_LOGI("%s dump success, total size: %zu", fileName.c_str(), 
+        (sizeof(uint64_t) + protoSize + inputTensorSize + outputTensorSize));
 }
 
 int32_t CollectStreamContextInfo(
@@ -441,15 +476,21 @@ void DumpDataRecordInCaptureStream(void* fnArgs)
         return;
     }
 
-    DumpStreamInfo* args = static_cast<DumpStreamInfo*>(fnArgs);
+    std::unique_ptr<std::shared_ptr<DumpStreamInfo>> callbackArg(static_cast<std::shared_ptr<DumpStreamInfo>*>(fnArgs));
+    if (callbackArg == nullptr) {
+        IDE_LOGE("callbackArg is nullptr");
+        return;
+    }
+
+    std::shared_ptr<DumpStreamInfo> args = *callbackArg;
     if (args == nullptr) {
         IDE_LOGE("args is nullptr");
         return;
     }
 
-    IDE_LOGI("%s input tensor dump, size : %d", args->opName.c_str(), args->inputTensors.size());
-    IDE_LOGI("%s output tensor dump, size : %d", args->opName.c_str(), args->outputTensors.size());
-    DumpTensorToQueue(args);
+    IDE_LOGI("%s input tensor size : %d, output tensor size : %d", 
+        args->opName.c_str(), args->inputTensors.size(), args->outputTensors.size());
+    DumpTensorToQueue(args.get());
 
     DumpResourceSafeMap::Instance().EnqueueCleanup(args->mainStreamKey);
 }
@@ -468,11 +509,17 @@ int32_t SetupAsyncDump(
         ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) dump stream wait event failed, ret: %d", opName.c_str(),
         opType.c_str(), ret);
 
+    // 创建指向 shared_ptr 的指针，确保DumpStreamInfo的引用计数不为0, 并通过unique_ptr来保证指针释放
+    auto callbackArg = std::make_unique<std::shared_ptr<DumpStreamInfo>>(dumpInfoPtr);
+    // 提前 release 避免与回调争抢所有权
+    auto* rawContext = callbackArg.release();
     ret = rtsLaunchHostFunc(
-        dumpInfoPtr->stm, reinterpret_cast<rtCallback_t>(DumpDataRecordInCaptureStream), (void*)dumpInfoPtr.get());
-    IDE_CTRL_VALUE_FAILED(
-        ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) launch host function failed, ret: %d", opName.c_str(),
-        opType.c_str(), ret);
+        dumpInfoPtr->stm, reinterpret_cast<rtCallback_t>(DumpDataRecordInCaptureStream), (void*)rawContext);
+    if (ret != RT_ERROR_NONE) {
+        IDE_LOGE("%s(%s) launch host function failed, ret: %d", opName.c_str(), opType.c_str(), ret);
+        delete rawContext;
+        return ADUMP_FAILED;
+    }
 
     ret = rtEventRecord(dumpInfoPtr->dumpStmEvt, dumpInfoPtr->stm);
     IDE_CTRL_VALUE_FAILED(
@@ -483,6 +530,7 @@ int32_t SetupAsyncDump(
     IDE_CTRL_VALUE_FAILED(
         ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) main stream wait event failed, ret: %d", opName.c_str(),
         opType.c_str(), ret);
+
     return ADUMP_SUCCESS;
 }
 

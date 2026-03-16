@@ -526,18 +526,6 @@ extern "C" rtError_t rtGetStackBuffer(
     return RT_ERROR_STUB_FAILURE;
 }
 
-rtError_t rtsGetThreadLastTaskId(uint32_t* taskId)
-{
-    *taskId = 12345;
-    return RT_ERROR_NONE;
-}
-
-rtError_t rtsStreamGetId(rtStream_t stm, int32_t* streamId)
-{
-    *streamId = 54321;
-    return RT_ERROR_NONE;
-}
-
 rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t* val)
 {
     if (devFeatureType == RT_FEATURE_SYSTEM_TASKID_BIT_WIDTH) {
@@ -736,14 +724,6 @@ rtError_t rtsLaunchHostFunc(rtStream_t stm, const rtCallback_t callBackFunc, voi
 rtError_t rtEventDestroy(rtEvent_t evt)
 {
     if (evt == nullptr) {
-        return RT_ERROR_INVALID_VALUE;
-    }
-    return RT_ERROR_NONE;
-}
-
-rtError_t rtStreamDestroy(rtStream_t stm)
-{
-    if (stm == nullptr) {
         return RT_ERROR_INVALID_VALUE;
     }
     return RT_ERROR_NONE;

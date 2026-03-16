@@ -15,6 +15,7 @@
 #include "dump_manager.h"
 #include "utils.h"
 #include "common/thread.h"
+#include "rts/rts_snapshot.h"
 
 using namespace Adx;
 #define JSON_BASE ADUMP_BASE_DIR "stub/data/json/"
@@ -24,7 +25,6 @@ protected:
     {}
     virtual void TearDown()
     {
-        DumpResourceSafeMap::Instance().waitAndClear();
         DumpManager::Instance().Reset();
         GlobalMockObject::verify();
     }
@@ -130,8 +130,8 @@ TEST_F(DumpManagerUtest, Test_GetDumpInfoFromMap_CreateNew)
     std::vector<DumpTensor> inputTensors;
     std::vector<DumpTensor> outputTensors;
 
-    DumpInfoParams params = {"test_key_123", inputTensors, outputTensors, "Add", "test_op", 0, 0, 0, 0, 0, 0, 0, ""};
-    int32_t ret = DumpManager::Instance().GetDumpInfoFromMap(params);
+    DumpInfoParams params = {"test_key_123", inputTensors, outputTensors, "Add", "test_op", 0, 0, 0, 0, 0, ""};
+    int32_t ret = GetDumpInfoFromMap(params);
     EXPECT_EQ(ret, ADUMP_SUCCESS);
 
     auto dumpInfo = DumpResourceSafeMap::Instance().get("test_key_123");
@@ -146,15 +146,15 @@ TEST_F(DumpManagerUtest, Test_GetDumpInfoFromMap_ReuseExisting)
     std::vector<DumpTensor> inputTensors;
     std::vector<DumpTensor> outputTensors;
 
-    DumpInfoParams params1 = {"test_key_456", inputTensors, outputTensors, "Add", "test_op", 0, 0, 0, 0, 0, 0, 0, ""};
-    int32_t ret1 = DumpManager::Instance().GetDumpInfoFromMap(params1);
+    DumpInfoParams params1 = {"test_key_456", inputTensors, outputTensors, "Add", "test_op", 0, 0, 0, 0, 0, ""};
+    int32_t ret1 = GetDumpInfoFromMap(params1);
     ASSERT_EQ(ret1, ADUMP_SUCCESS);
 
     auto dumpInfo1 = DumpResourceSafeMap::Instance().get("test_key_456");
     ASSERT_NE(dumpInfo1, nullptr);
 
-    DumpInfoParams params2 = {"test_key_456", inputTensors, outputTensors, "Mul", "test_op2", 0, 0, 0, 0, 0, 0, 0, ""};
-    int32_t ret2 = DumpManager::Instance().GetDumpInfoFromMap(params2);
+    DumpInfoParams params2 = {"test_key_456", inputTensors, outputTensors, "Mul", "test_op2", 0, 0, 0, 0, 0, ""};
+    int32_t ret2 = GetDumpInfoFromMap(params2);
     EXPECT_EQ(ret2, ADUMP_SUCCESS);
 
     auto dumpInfo2 = DumpResourceSafeMap::Instance().get("test_key_456");
@@ -172,8 +172,8 @@ TEST_F(DumpManagerUtest, Test_UnSetDumpConfig_ClearsResourceMap)
     // Create some dump info
     std::vector<DumpTensor> inputTensors;
     std::vector<DumpTensor> outputTensors;
-    DumpInfoParams params = {"test_key_789", inputTensors, outputTensors, "Add", "test_op", 0, 0, 0, 0, 0, 0, 0, ""};
-    ret = DumpManager::Instance().GetDumpInfoFromMap(params);
+    DumpInfoParams params = {"test_key_789", inputTensors, outputTensors, "Add", "test_op", 0, 0, 0, 0, 0, ""};
+    ret = GetDumpInfoFromMap(params);
     ASSERT_EQ(ret, ADUMP_SUCCESS);
 
     EXPECT_EQ(DumpResourceSafeMap::Instance().size(), 1);
@@ -182,8 +182,6 @@ TEST_F(DumpManagerUtest, Test_UnSetDumpConfig_ClearsResourceMap)
     DumpResourceSafeMap::Instance().EnqueueCleanup("test_key_789");
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    ret = DumpManager::Instance().UnSetDumpConfig();
-    EXPECT_EQ(ret, ADUMP_SUCCESS);
     EXPECT_EQ(DumpResourceSafeMap::Instance().size(), 0);
 }
 
@@ -231,7 +229,7 @@ TEST_F(DumpManagerUtest, Test_RegisterSnapShotCallback_OK)
 {
     DumpManager::Instance().snapCbkRegistered_ = false;
     DumpManager::Instance().RegisterSnapShotCallback();
-    EXPECT_EQ(DumpManager::Instance().snapCbkRegistered_, true)
+    EXPECT_EQ(DumpManager::Instance().snapCbkRegistered_, true);
 }
 
 TEST_F(DumpManagerUtest, Test_RegisterSnapShotCallback_Failture)

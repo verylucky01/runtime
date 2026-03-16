@@ -36,8 +36,8 @@ namespace Adx {
 constexpr char EXCEPTION_CB_MODULE[] = "AdumpException";
 constexpr char COREDUMP_CB_MODULE[] = "AdumpCoredump";
 static const int32_t ADUMP_ACL_ERROR_RT_FEATURE_NOT_SUPPORT = 207000; // feature not support
-static const uint32_t ADUMP_ACL_ERROR_RT_AICORE_OVER_FLOW = 207003; // aicore over flow
-static const uint32_t ADUMP_ACL_ERROR_RT_AIVEC_OVER_FLOW = 207016;  // aivec over flow
+static const uint32_t ADUMP_ACL_ERROR_RT_AICORE_OVER_FLOW = 207003;   // aicore over flow
+static const uint32_t ADUMP_ACL_ERROR_RT_AIVEC_OVER_FLOW = 207016;    // aivec over flow
 
 std::vector<std::shared_ptr<OperatorPreliminary>> DumpManager::operatorMap_;
 
@@ -104,7 +104,6 @@ DumpManager& DumpManager::Instance()
     return instance;
 }
 
-
 DumpManager::DumpManager()
 {
     try {
@@ -129,8 +128,8 @@ bool DumpManager::StopDataDumpServer()
 #if !defined(ADUMP_SOC_HOST) || ADUMP_SOC_HOST == 1
     int32_t dumpNum = AdxDumpRecord::Instance().GetDumpInitNum();
     while (dumpNum > 0) {
-        IDE_CTRL_VALUE_FAILED(AdxDataDumpServerUnInit() == ADUMP_SUCCESS, return false,
-            "Stop data dump server failed!");
+        IDE_CTRL_VALUE_FAILED(
+            AdxDataDumpServerUnInit() == ADUMP_SUCCESS, return false, "Stop data dump server failed!");
         dumpNum = AdxDumpRecord::Instance().GetDumpInitNum();
     }
 #endif
@@ -145,8 +144,8 @@ void DumpManager::RegisterSnapShotCallback()
             IDE_LOGI("RTS does not support snapshot feature. ret=%d", ret);
             return;
         }
-        IDE_CTRL_VALUE_WARN(ret == ACL_SUCCESS, return,
-            "Register DumpSnapShotLockPreCallback to RTS failed. ret=%d", ret);
+        IDE_CTRL_VALUE_WARN(
+            ret == ACL_SUCCESS, return, "Register DumpSnapShotLockPreCallback to RTS failed. ret=%d", ret);
         snapCbkRegistered_ = true;
         IDE_LOGI("Register DumpSnapShotLockPreCallback success.");
     }
@@ -201,9 +200,9 @@ int32_t DumpManager::ExceptionConfig(DumpType dumpType, const DumpConfig& dumpCo
         return ADUMP_FAILED;
     }
 
-    IDE_RUN_LOGI("Set %s[%d] dump setting, status: %s, dump switch: %llu",
-        DumpConfigConverter::DumpTypeToStr(dumpType).c_str(), dumpType,
-        dumpConfig.dumpStatus.c_str(), dumpConfig.dumpSwitch);
+    IDE_RUN_LOGI(
+        "Set %s[%d] dump setting, status: %s, dump switch: %llu", DumpConfigConverter::DumpTypeToStr(dumpType).c_str(),
+        dumpType, dumpConfig.dumpStatus.c_str(), dumpConfig.dumpSwitch);
     if (exceptionDumper_.ExceptionDumperInit(dumpType, dumpConfig) != ADUMP_SUCCESS) {
         IDE_LOGW("Failed to initialize the exception dump.");
         return ADUMP_SUCCESS;
@@ -233,8 +232,8 @@ int32_t DumpManager::SetDumpConfig(DumpType dumpType, const DumpConfig& dumpConf
     }
 
     // 启动data dump server
-    IDE_CTRL_VALUE_FAILED(StartDataDumpServer(), return ADUMP_FAILED,
-        "Start data dump server failed! dumpType=%s[%d]",
+    IDE_CTRL_VALUE_FAILED(
+        StartDataDumpServer(), return ADUMP_FAILED, "Start data dump server failed! dumpType=%s[%d]",
         DumpConfigConverter::DumpTypeToStr(dumpType).c_str(), dumpType);
 
     if (CheckBinValidation() && (isKFCInit_ == false)) {
@@ -247,10 +246,11 @@ int32_t DumpManager::SetDumpConfig(DumpType dumpType, const DumpConfig& dumpConf
             return ADUMP_FAILED;
         }
     }
-    IDE_RUN_LOGI("Set %s[%d] dump setting, status: %s, mode: %s, data: %s, dump switch: %llu, path:%s, dump stats:%s.",
+    IDE_RUN_LOGI(
+        "Set %s[%d] dump setting, status: %s, mode: %s, data: %s, dump switch: %llu, path:%s, dump stats:%s.",
         DumpConfigConverter::DumpTypeToStr(dumpType).c_str(), dumpType, dumpConfig.dumpStatus.c_str(),
-        dumpConfig.dumpMode.c_str(), dumpConfig.dumpData.c_str(), dumpConfig.dumpSwitch,
-        dumpConfig.dumpPath.c_str(), StrUtils::ToString(dumpConfig.dumpStatsItem).c_str());
+        dumpConfig.dumpMode.c_str(), dumpConfig.dumpData.c_str(), dumpConfig.dumpSwitch, dumpConfig.dumpPath.c_str(),
+        StrUtils::ToString(dumpConfig.dumpStatsItem).c_str());
     return ADUMP_SUCCESS;
 }
 
@@ -310,10 +310,11 @@ int32_t DumpManager::UnSetDumpConfig()
     for (const auto dumpType : openedDump_) {
         if (IsEnableDump(dumpType)) {
             const auto ret = SetDumpConfig(dumpType, config);
-            IDE_CTRL_VALUE_FAILED(ret == ADUMP_SUCCESS, return ADUMP_FAILED,
-                "[Set][Dump]Set dump off failed! dumpType=%s[%d], ret=%d",
+            IDE_CTRL_VALUE_FAILED(
+                ret == ADUMP_SUCCESS, return ADUMP_FAILED, "[Set][Dump]Set dump off failed! dumpType=%s[%d], ret=%d",
                 DumpConfigConverter::DumpTypeToStr(dumpType).c_str(), dumpType, ret);
-            IDE_LOGI("[Set][Dump]Set dump off successfully, dumpType=%s[%d]",
+            IDE_LOGI(
+                "[Set][Dump]Set dump off successfully, dumpType=%s[%d]",
                 DumpConfigConverter::DumpTypeToStr(dumpType).c_str(), dumpType);
         }
     }
@@ -326,11 +327,11 @@ int32_t DumpManager::UnSetDumpConfig()
     dumpConfigInfo_.clear();
     IDE_LOGI("Dump config info cleared.");
 
-    // 停止data dump server
-    IDE_CTRL_VALUE_FAILED(StopDataDumpServer(), return ADUMP_FAILED, "Stop data dump server failed!");
-
     // 等待所有 dump 操作完成并清理资源
     DumpResourceSafeMap::Instance().waitAndClear();
+
+    // 停止data dump server
+    IDE_CTRL_VALUE_FAILED(StopDataDumpServer(), return ADUMP_FAILED, "Stop data dump server failed!");
 
     return ADUMP_SUCCESS;
 }
@@ -422,7 +423,7 @@ int32_t DumpManager::DumpOperatorV2(
     }
 
     if (status == RT_STREAM_CAPTURE_STATUS_ACTIVE) {
-        return DumpOpertorWithCapture(opType, opName, inputTensors, outputTensors, stream);
+        return DumpOperatorWithCapture(opType, opName, inputTensors, outputTensors, stream);
     }
 
     OperatorDumper opDumper(opType, opName);
@@ -438,13 +439,18 @@ int32_t DumpManager::DumpOperatorV2(
     return ADUMP_SUCCESS;
 }
 
-int32_t DumpManager::DumpOpertorWithCapture(
+int32_t DumpManager::DumpOperatorWithCapture(
     const std::string& opType, const std::string& opName, const std::vector<DumpTensor>& inputTensors,
     const std::vector<DumpTensor>& outputTensors, aclrtStream mainStream)
 {
     if (mainStream == nullptr) {
         IDE_LOGE("mainStream is nullptr.");
         return ADUMP_FAILED;
+    }
+
+    if (!isCaptureDumpServerInit_) {
+        IDE_CTRL_VALUE_FAILED(StartDataDumpServer(), return ADUMP_FAILED, "Start data dump server failed!");
+        isCaptureDumpServerInit_ = true;
     }
 
     uint32_t streamId = 0;

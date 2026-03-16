@@ -62,8 +62,9 @@ void TprtTimer::RunPeriodicTask()
         // 计算需要休眠的时间	 
         auto sleepTime = std::chrono::milliseconds(interval_) - elapsedTime;	 
         if (sleepTime.count() > 0) { 
-            // 执行休眠 
-            std::this_thread::sleep_for(sleepTime); 
+            // 执行可中断的休眠，可快速响应停止信号
+            std::unique_lock<std::mutex> lock(mutex_);
+            (void)cv_.wait_for(lock, sleepTime, [this]() { return !is_running_; });
         }
     }
 }
@@ -71,6 +72,7 @@ void TprtTimer::RunPeriodicTask()
 void TprtTimer::Stop() {
     if (is_running_) {
         is_running_ = false;
+        cv_.notify_all();
         if (workerThread_.joinable()) {
             workerThread_.join();
         }

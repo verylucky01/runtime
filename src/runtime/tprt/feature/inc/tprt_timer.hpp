@@ -14,6 +14,8 @@
 #include <chrono>
 #include <functional>
 #include <string>
+#include <mutex>
+#include <condition_variable>
 
 namespace cce {
 namespace tprt {
@@ -36,6 +38,8 @@ private:
     // the pattern of worker name is : {$pid}_{$devId}
     std::string workerName_;
     TprtDevice* device_;
+    std::mutex mutex_;
+    std::condition_variable cv_;
 
     void RunPeriodicTask();
 };

@@ -30,6 +30,7 @@ constexpr uint16_t TS_FFTS_TYPE_AIC_ONLY = 0U;
 constexpr uint16_t TS_FFTS_TYPE_AIV_ONLY = 1U;
 constexpr uint16_t TS_FFTS_TYPE_AIC_AIV_MIX = 5U;
 constexpr uint8_t RT_STARS_DCACHE_LOCK_OP = 0x0AU;
+constexpr uint8_t RT_STARS_SQE_LEN = 64U;
 
 enum rtStarsSqeType {
     RT_STARS_SQE_TYPE_FFTS            = 0, // FFTS

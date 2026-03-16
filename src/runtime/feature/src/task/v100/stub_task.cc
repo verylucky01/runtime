@@ -12,6 +12,7 @@
 #include "task.hpp"
 #include "profiler.hpp"
 #include "stream_factory.hpp"
+#include "notify_record_task.h"
 
 namespace cce {
 namespace runtime {
@@ -202,5 +203,11 @@ void RecycleThreadDoForStarsV2(Device *deviceInfo)
     UNUSED(deviceInfo);
     return;
 }
+
+void ConstructStarsSqeForNotifyRecordTask(TaskInfo *taskInfo, uint8_t *const command)
+{
+    ConstructSqeForNotifyRecordTask(taskInfo, RtPtrToPtr<rtStarsSqe_t *>(command));
+}
+
 }  // namespace runtime
 }  // namespace cce

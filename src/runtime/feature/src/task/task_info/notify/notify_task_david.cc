@@ -168,5 +168,10 @@ void ConstructDavidSqeForNotifyRecordTask(TaskInfo *taskInfo, rtDavidSqe_t *cons
         GetNotifySubType(sqe->subType), sqe->timeout);
 }
 
+void ConstructStarsSqeForNotifyRecordTask(TaskInfo *taskInfo, uint8_t *const command)
+{
+    ConstructDavidSqeForNotifyRecordTask(taskInfo, RtPtrToPtr<rtDavidSqe_t *>(command), 0U);
+}
+
 }  // namespace runtime
 }  // namespace cce

@@ -61,6 +61,8 @@ rtError_t TaskReclaimAllStream(const Device * const dev);
 
 rtError_t UpdateTimeoutConfigTaskSubmitDavid(Stream * const stm, const RtTimeoutConfig &timeoutConfig);
 
+void ConstructStarsSqeForNotifyRecordTask(TaskInfo *taskInfo, uint8_t *const command);
+
 }
 }
 #endif

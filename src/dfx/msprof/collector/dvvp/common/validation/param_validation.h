@@ -80,7 +80,6 @@ public:
     bool CheckArgRange(const std::string &switchName, const std::string &value, uint32_t min, uint32_t max) const;
     bool CheckLlcConfigValid(const std::string &config) const;
     bool CheckFreqIsValid(const std::string &switchName, uint32_t freq) const;
-    bool CheckMemServiceflowValid(const std::string &switchName, const std::string &config) const;
     bool CheckDuplicateSocPmu(const std::string &oriStr) const;
     bool CheckDuplicateScale(const std::string &oriStr) const;
     ProfSocPmuType GetSocPmuInfo(std::string &socPmuStr, std::string &eventStr) const;
@@ -92,7 +91,6 @@ public:
     bool CheckTaskBlockValid(const std::string &switchName, const std::string &config) const;
 
 private:
-    bool CheckControlSwitchProfiling(SHARED_PTR_ALIA<analysis::dvvp::message::ProfileParams> params);
     bool CheckTsSwitchProfiling(SHARED_PTR_ALIA<analysis::dvvp::message::ProfileParams> params);
     bool CheckPmuSwitchProfiling(SHARED_PTR_ALIA<analysis::dvvp::message::ProfileParams> params);
     bool IsValidInterval(const int32_t interval, const std::string &logKey) const;

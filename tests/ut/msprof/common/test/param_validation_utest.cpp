@@ -163,13 +163,6 @@ TEST_F(COMMON_VALIDATION_PARAM_VALIDATION_TEST, CheckSystemTraceSwitchProfiling)
     EXPECT_EQ(true, entry->CheckSystemTraceSwitchProfiling(params));
 }
 
-TEST_F(COMMON_VALIDATION_PARAM_VALIDATION_TEST, CheckControlSwitchProfiling) {
-    std::shared_ptr<analysis::dvvp::message::ProfileParams> params(new analysis::dvvp::message::ProfileParams());
-    auto entry = analysis::dvvp::common::validation::ParamValidation::instance();
-    params->taskTsfw = "asd";
-    EXPECT_EQ(true, entry->CheckControlSwitchProfiling(params));
-}
-
 TEST_F(COMMON_VALIDATION_PARAM_VALIDATION_TEST, CheckTsSwitchProfiling) {
     std::shared_ptr<analysis::dvvp::message::ProfileParams> params(new analysis::dvvp::message::ProfileParams());
     auto entry = analysis::dvvp::common::validation::ParamValidation::instance();
@@ -346,12 +339,6 @@ TEST_F(COMMON_VALIDATION_PARAM_VALIDATION_TEST, CheckAicoreMetricsIsValid) {
     aicoreMetrics = "aicoreMetricsAll";
     EXPECT_EQ(false, entry->CheckAicoreMetricsIsValid(aicoreMetrics));
     aicoreMetrics = "trace";
-    EXPECT_EQ(false, entry->CheckAicoreMetricsIsValid(aicoreMetrics));
-    aicoreMetrics = "Custom:0x0x0x0x00x0x0x0x00x0x0x0x00x0x0x0x00x0x0x0x00x0x0x0x00x0x0x0x0";
-    EXPECT_EQ(false, entry->CheckAicoreMetricsIsValid(aicoreMetrics));
-    aicoreMetrics = "Custom:0x500,0x502,0x504,0x506,0x508,0x50a,0xc,0xd";
-    EXPECT_EQ(true, entry->CheckAicoreMetricsIsValid(aicoreMetrics));
-    aicoreMetrics = "Custom:0x500,,0x504,0x506,0x508,0x50a,0xc,0xd";
     EXPECT_EQ(false, entry->CheckAicoreMetricsIsValid(aicoreMetrics));
     aicoreMetrics = "PipelineExecuteUtilization";
     EXPECT_EQ(false, entry->CheckAicoreMetricsIsValid(aicoreMetrics));

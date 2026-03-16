@@ -145,8 +145,7 @@ bool ProfAicpuJob::CheckMC2Switch(void)
     // MC2 check prof_level >= L1 (L1 or L2)
     if (Platform::instance()->CheckIfSupport(PLATFORM_MC2) &&
         ((collectionJobCfg_->comParams->params->prof_level.compare(MSVP_LEVEL_L1) == 0) ||
-        (collectionJobCfg_->comParams->params->prof_level.compare(MSVP_LEVEL_L2) == 0) ||
-        (collectionJobCfg_->comParams->params->prof_level.compare(MSVP_LEVEL_L3) == 0))) {
+        (collectionJobCfg_->comParams->params->prof_level.compare(MSVP_LEVEL_L2) == 0))) {
         return true;
     }
 

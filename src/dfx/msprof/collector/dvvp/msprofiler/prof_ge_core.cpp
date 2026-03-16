@@ -168,9 +168,6 @@ ACL_GRPH_PROF_CONFIG_PTR aclgrphProfCreateConfig(UINT32_T_PTR deviceidList, uint
     if ((dataTypeConfig & PROF_TASK_TIME_L2_MASK) != 0 || (dataTypeConfig & PROF_OP_ATTR_MASK) != 0) {
         config->config.dataTypeConfig |= PROF_TASK_TIME | PROF_TASK_TIME_L1;
     }
-    if ((dataTypeConfig & PROF_TASK_TIME_L3_MASK) != 0) {
-        config->config.dataTypeConfig |= PROF_TASK_TIME | PROF_TASK_TIME_L1 | PROF_TASK_TIME_L2;
-    }
     config->config.devIdList[config->config.devNums] = DEFAULT_HOST_ID;
     config->config.devNums++;
     config->config.aicoreMetrics = static_cast<ProfAicoreMetrics>(aicoreMetrics);

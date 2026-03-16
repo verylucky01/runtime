@@ -889,7 +889,6 @@ TEST_F(MSPROF_ACL_CORE_UTEST, ge_option) {
     message["training_trace"] = "on";
     message["task_trace"] = "on";
     message["aicpu"] = "on";
-    message["task_block"] = "on";
     message["sys_hardware_mem_freq"] = 50;
     message["sys_io_sampling_freq"] = 50;
     message["dvpp_freq"] = 50;
@@ -1455,7 +1454,6 @@ TEST_F(MSPROF_ACL_CORE_UTEST, MsprofInitGeOptionsParamAdaper) {
     message["aicpu"] = "on";
     message["training_trace"] = "on";
     message["task_trace"] = "on";
-    message["task_tsfw"] = "on";
     std::string jobInfo = "123";
 
     ProfAclMgr::instance()->MsprofInitGeOptionsParamAdaper(nullptr, jobInfo, message);
@@ -1463,7 +1461,6 @@ TEST_F(MSPROF_ACL_CORE_UTEST, MsprofInitGeOptionsParamAdaper) {
     EXPECT_EQ("on", params->aicpuTrace);
     EXPECT_EQ("on", params->ts_fw_training);
     EXPECT_EQ("level1", params->prof_level);
-    EXPECT_EQ("on", params->taskTsfw);
     EXPECT_EQ(analysis::dvvp::common::utils::Utils::GetPid(), params->host_sys_pid);
 }
 
@@ -1529,22 +1526,6 @@ TEST_F(MSPROF_ACL_CORE_UTEST, MsprofInitGeOptions) {
     strcpy(options.jobId, "123");
     strcpy(options.options, ge_json.c_str());
     EXPECT_EQ(MSPROF_ERROR_CONFIG_INVALID, ProfAclMgr::instance()->MsprofInitGeOptions((void *)&options, sizeof(options)));
-    ge_json = "{\"output\": \"/tmp/MsprofInitGeOptions\",\"aic_metrics\": \"Custom:0x500,0x502,0x504,0x506,0x508,0x50a,0xc,0xd\"}";
-    strcpy(options.jobId, "123");
-    strcpy(options.options, ge_json.c_str());
-    EXPECT_EQ(MSPROF_ERROR_NONE, ProfAclMgr::instance()->MsprofInitGeOptions((void *)&options, sizeof(options)));
-    ge_json = "{\"output\": \"/tmp/MsprofInitGeOptions\",\"aic_metrics\": \"Custom:0x500,0x502,0x504,0x506,0x508,0x50a,0xc,0xpp\"}";
-    strcpy(options.jobId, "123");
-    strcpy(options.options, ge_json.c_str());
-    EXPECT_EQ(MSPROF_ERROR_CONFIG_INVALID, ProfAclMgr::instance()->MsprofInitGeOptions((void *)&options, sizeof(options)));
-    ge_json = "{\"output\": \"/tmp/MsprofInitGeOptions\",\"aic_metrics\": \"Custom:0x500,0x502,0x504,0x506,0x508,0x50a,0xc,0x10,0x20\"}";
-    strcpy(options.jobId, "123");
-    strcpy(options.options, ge_json.c_str());
-    EXPECT_EQ(MSPROF_ERROR_CONFIG_INVALID, ProfAclMgr::instance()->MsprofInitGeOptions((void *)&options, sizeof(options)));
-    ge_json = "{\"output\": \"/tmp/MsprofInitGeOptions\",\"aic_metrics\": \"Custom:0x500,100,0x123,200\"}";
-    strcpy(options.jobId, "123");
-    strcpy(options.options, ge_json.c_str());
-    EXPECT_EQ(MSPROF_ERROR_NONE, ProfAclMgr::instance()->MsprofInitGeOptions((void *)&options, sizeof(options)));
     ge_json = "{\"output\": \"/tmp/MsprofInitGeOptions\",\"task_trace\": \"on\",\"ge_api\": \"off\"}";
     strcpy(options.jobId, "123");
     strcpy(options.options, ge_json.c_str());

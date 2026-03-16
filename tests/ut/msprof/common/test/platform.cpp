@@ -270,7 +270,7 @@ TEST_F(COMMON_PLATFORM_TEST, MdcMiniV3PlatformTest) {
     EXPECT_EQ(false, platform->CheckIfSupport(featureType));
 
     featureType = "task_tsfw";
-    EXPECT_EQ(true, platform->CheckIfSupport(featureType));
+    EXPECT_EQ(false, platform->CheckIfSupport(featureType));
 
     featureType = "task_framework";
     EXPECT_EQ(false, platform->CheckIfSupport(featureType));
@@ -338,10 +338,9 @@ TEST_F(COMMON_PLATFORM_TEST, CloudV2PlatformTest) {
     EXPECT_EQ(true, platform.FeatureIsSupport(PlatformFeature::PLATFORM_TASK_HCCL));
     EXPECT_EQ(true, platform.FeatureIsSupport(PlatformFeature::PLATFORM_TASK_MSPROFTX));
     EXPECT_EQ(true, platform.FeatureIsSupport(PlatformFeature::PLATFORM_SYS_DEVICE_INSTR_PROFILING));
-    EXPECT_EQ(true, platform.FeatureIsSupport(PlatformFeature::PLATFORM_TASK_TSFW));
     EXPECT_EQ(true, platform.FeatureIsSupport(PlatformFeature::PLATFORM_TASK_RUNTIME_API));
     EXPECT_EQ(true, platform.FeatureIsSupport(PlatformFeature::PLATFORM_TASK_ASCENDCL));
-    EXPECT_EQ(true, platform.FeatureIsSupport(PlatformFeature::PLATFORM_TASK_BLOCK));
+    EXPECT_EQ(false, platform.FeatureIsSupport(PlatformFeature::PLATFORM_TASK_BLOCK));
     EXPECT_EQ(false, platform.FeatureIsSupport(PlatformFeature::PLATFORM_SYS_DEVICE_LOW_POWER));
     EXPECT_EQ(true, platform.FeatureIsSupport(PlatformFeature::PLATFORM_TASK_TRAINING_TRACE));
 
@@ -438,7 +437,6 @@ TEST_F(COMMON_PLATFORM_TEST, MiniPlatformTest) {
     EXPECT_EQ(PROFILING_SUCCESS, platform.GetAiPmuMetrics("ResourceConflictRatio", aicEvent));
     EXPECT_EQ("0x64,0x65,0x66", aicEvent);
 
-    EXPECT_EQ(PROFILING_SUCCESS, platform.GetAiPmuMetrics("Custom:0x500,0x502,0x504,0x506,0x508,0x50a,0xc,0xd", aicEvent));
     EXPECT_EQ(PROFILING_FAILED, platform.GetAiPmuMetrics("PipeUtilizationExct", aicEvent));
     EXPECT_EQ(PROFILING_FAILED, platform.GetAiPmuMetrics("PipelineExecuteUtilization", aicEvent));
     EXPECT_EQ(PROFILING_FAILED, platform.GetAiPmuMetrics("PipeStallCycle", aicEvent));
@@ -489,7 +487,6 @@ TEST_F(COMMON_PLATFORM_TEST, MdcPlatformTest) {
     EXPECT_EQ(true, platform.FeatureIsSupport(PLATFORM_TASK_RUNTIME_API));
     EXPECT_EQ(true, platform.FeatureIsSupport(PLATFORM_TASK_SWITCH));
     EXPECT_EQ(true, platform.FeatureIsSupport(PLATFORM_TASK_TRACE));
-    EXPECT_EQ(true, platform.FeatureIsSupport(PLATFORM_TASK_TSFW));
     EXPECT_EQ(true, platform.FeatureIsSupport(PLATFORM_TASK_TS_MEMCPY));
     EXPECT_EQ(false, platform.FeatureIsSupport(PLATFORM_TASK_BLOCK));
     EXPECT_EQ(true, platform.FeatureIsSupport(PLATFORM_TASK_TS_KEYPOINT));
@@ -658,7 +655,7 @@ TEST_F(COMMON_PLATFORM_TEST, MdcLitePlatformTest) {
     EXPECT_EQ(false, platform->CheckIfSupport(featureType));
 
     featureType = "task_tsfw";
-    EXPECT_EQ(true, platform->CheckIfSupport(featureType));
+    EXPECT_EQ(false, platform->CheckIfSupport(featureType));
 
     featureType = "task_framework";
     EXPECT_EQ(false, platform->CheckIfSupport(featureType));
@@ -767,7 +764,7 @@ TEST_F(COMMON_PLATFORM_TEST, MiniV3PlatformTest) {
     EXPECT_EQ(false, platform->CheckIfSupport(featureType));
  
     featureType = "task_tsfw";
-    EXPECT_EQ(true, platform->CheckIfSupport(featureType));
+    EXPECT_EQ(false, platform->CheckIfSupport(featureType));
  
     featureType = "task_framework";
     EXPECT_EQ(false, platform->CheckIfSupport(featureType));

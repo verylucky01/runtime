@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------------------------------------
 
 add_custom_target(copy_acl_headers_and_libs)
-if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG AND NOT EXISTS "${CMAKE_BINARY_DIR}/include_acl")
+if (ENABLE_OPEN_SRC AND NOT EXISTS "${CMAKE_BINARY_DIR}/include_acl")
     include(ExternalProject)
     set(ACL_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/download")
     set(ACL_SOURCE_DIR "${CMAKE_BINARY_DIR}/acl")

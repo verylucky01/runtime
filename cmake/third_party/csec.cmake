@@ -10,7 +10,7 @@
 
 include(ExternalProject)
 set(ABL_CSEC ${RUNTIME_DIR}/../abl/libc_sec)
-if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
+if (ENABLE_OPEN_SRC)
     if (EXISTS "${ABL_CSEC}" AND IS_DIRECTORY "${ABL_CSEC}")
         message(STATUS "abl/libc_sec detected")
         add_subdirectory(${ABL_CSEC} ${CMAKE_BINARY_DIR}/libc_sec)

@@ -20,7 +20,7 @@ function(protobuf_generate comp c_var h_var)
     set(${h_var})
     set(_add_target FALSE)
 
-    if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
+    if (ENABLE_OPEN_SRC)
         set(_protoc_grogam "host_protoc")
     else()
         set(_protoc_grogam ${PROTOC_PROGRAM})
@@ -138,7 +138,7 @@ macro(install_package)
         configure_package_config_file(${RUNTIME_DIR}/cmake/config/pkg_config_template.cmake.in
             ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
             INSTALL_DESTINATION ${INSTALL_CONFIG_DIR}
-            PATH_VARS INSTALL_BASE_DIR INSTALL_INCLUDE_DIR INSTALL_LIBRARY_DIR INSTALL_RUNTIME_DIR INSTALL_CONFIG_DIR
+            PATH_VARS INSTALL_INCLUDE_DIR INSTALL_LIBRARY_DIR INSTALL_RUNTIME_DIR INSTALL_CONFIG_DIR
             INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}
         )
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}-config.cmake
@@ -436,7 +436,7 @@ endfunction()
 # 检查构建依赖
 function(check_pkg_build_deps pkg_name)
     execute_process(
-        COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_build_dependencies.py "${ASCEND_INSTALL_PATH}" ${CANN_VERSION_${pkg_name}_BUILD_DEPS}
+        COMMAND python3 ${PROJECT_BASE_DIR}/scripts/check_build_dependencies.py "${ASCEND_INSTALL_PATH}" ${CANN_VERSION_${pkg_name}_BUILD_DEPS}
         RESULT_VARIABLE result
     )
     if(result)
@@ -449,9 +449,9 @@ endfunction()
 function(add_version_info_targets)
     foreach(pkg_name ${CANN_VERSION_PACKAGES})
         add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/version.${pkg_name}.info
-            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_version_info.py --output ${CMAKE_BINARY_DIR}/version.${pkg_name}.info
+            COMMAND python3 ${PROJECT_BASE_DIR}/scripts/generate_version_info.py --output ${CMAKE_BINARY_DIR}/version.${pkg_name}.info
                     "${CANN_VERSION_${pkg_name}_VERSION}" ${CANN_VERSION_${pkg_name}_RUN_DEPS}
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/version.cmake ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_version_info.py
+            DEPENDS ${PROJECT_BASE_DIR}/version.cmake ${PROJECT_BASE_DIR}/scripts/generate_version_info.py
             VERBATIM
         )
         add_custom_target(version_${pkg_name}_info ALL DEPENDS ${CMAKE_BINARY_DIR}/version.${pkg_name}.info)
@@ -481,10 +481,27 @@ macro(set_common_params base_dir)
     endif()
 
     include(${base_dir}/cmake/intf_pub_linux.cmake)
+
+    set(INSTALL_LIBRARY_DIR lib)
+    set(INSTALL_RUNTIME_DIR bin)
+    set(INSTALL_INCLUDE_DIR include)
+    set(INSTALL_CONFIG_DIR cmake)
+
     set(INSTALL_OPTIONAL "OPTIONAL")
     if(ENABLE_OPEN_SRC)
         set(INSTALL_OPTIONAL)
     endif()
+    set(PROJECT_BASE_DIR "${base_dir}")  # 工程根目录，仅在func.cmake中使用
+
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+        message(STATUS "Detected architecture: x86_64")
+        set(HOST_ARCH x86_64)
+    elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|arm")
+        message(STATUS "Detected architecture: aarch64")
+        set(HOST_ARCH aarch64)
+    else ()
+        message(WARNING "Unknown architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+    endif ()
 endmacro()
 
 # 设置rts参数

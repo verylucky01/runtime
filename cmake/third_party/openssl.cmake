@@ -7,7 +7,7 @@
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
-if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
+if (ENABLE_OPEN_SRC)
     message(STATUS "openssl libpath: ${OPEN_SOURCE_DIR}/lib_cache/openssl-3.0.9")
     find_file(CRYPTO_LIB_PATH
         NAMES libcrypto.a

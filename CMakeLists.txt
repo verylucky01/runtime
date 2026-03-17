@@ -12,55 +12,12 @@ cmake_minimum_required(VERSION 3.14)
 project (rts)
 
 set(RUNTIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Project top directory")
-if(NOT DEFINED PRODUCT_SIDE)
-    set(PRODUCT_SIDE host)
-endif()
-
-if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    message(STATUS "Build with dependency cann pkgs installed")
-    option(BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG "Build with dependency cann pkgs installed" TRUE)
-else()
-    message(STATUS "Build with no dependency cann pkgs installed")
-    option(BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG "Build with no dependency cann pkgs installed" FALSE)
-endif()
-
-set(INSTALL_BASE_DIR "")
-set(INSTALL_LIBRARY_DIR lib)
-set(INSTALL_RUNTIME_DIR bin)
-set(INSTALL_INCLUDE_DIR include)
-set(INSTALL_CONFIG_DIR cmake)
-
-include(${RUNTIME_DIR}/cmake/func.cmake)
-
+include(cmake/func.cmake)
 set_common_params("${RUNTIME_DIR}")
 set_runtime_params()
 
-# third_party
-include(${RUNTIME_DIR}/cmake/third_party/protobuf.cmake)
-include(${RUNTIME_DIR}/cmake/third_party/json.cmake)
-include(${RUNTIME_DIR}/cmake/third_party/acl_compat.cmake)
-include(${RUNTIME_DIR}/cmake/third_party/csec.cmake)
-
-include(${RUNTIME_DIR}/src/inc/runtime/runtime_inner_headers.cmake)
-
 if (ENABLE_COV OR ENABLE_UT)
     set(DEFAULT_BUILD_TYPE "Debug")
-    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules 
-        ${OPEN_SOURCE_DIR}/cmake/modules
-    )
-    set(CMAKE_PREFIX_PATH ${OPEN_SOURCE_DIR}/json 
-        ${OPEN_SOURCE_DIR}/gtest_shared/lib64/cmake/GTest
-        ${ASCEND_INSTALL_PATH}
-        ${RUNTIME_DIR}/cmake
-    )
-    include(cmake/intf_pub_linux.cmake)
-    include(CMakePrintHelpers)
-    find_package(Threads)
-    include(cmake/third_party/boost.cmake)
-    include(cmake/third_party/mockcpp.cmake)
-    include(cmake/third_party/gtest_shared.cmake)
-    add_dependencies(GTest::gtest mockcpp)
-    add_subdirectory(tests) 
 else()
     set(DEFAULT_BUILD_TYPE "Release")
 endif()
@@ -69,31 +26,13 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING "Choose the build type: Release/Debug" FORCE)
 endif()
 
-get_filename_component(ASCEND_PROJECT_NAME "${CMAKE_CURRENT_BINARY_DIR}" NAME)
+# third_party
+include(${RUNTIME_DIR}/cmake/third_party/protobuf.cmake)
+include(${RUNTIME_DIR}/cmake/third_party/json.cmake)
+include(${RUNTIME_DIR}/cmake/third_party/acl_compat.cmake)
+include(${RUNTIME_DIR}/cmake/third_party/csec.cmake)
 
-add_subdirectory(src/aicpu_sched)
-add_subdirectory(src/queue_schedule)
-add_subdirectory(src/mmpa)
-add_subdirectory(cmake/stub)
-add_subdirectory(src/dfx/log/liblog)
-add_subdirectory(src/dfx/trace)
-add_subdirectory(src/tsd)
-add_subdirectory(src/dfx/error_manager)
-add_subdirectory(src/dfx/msprof)
-add_subdirectory(src/platform)
-add_subdirectory(src/dfx/adump)
-add_subdirectory(src/runtime EXCLUDE_FROM_ALL)
-add_subdirectory(src/acl/aclrt_impl)
-add_subdirectory(src/acl/aclrt)
-add_subdirectory(src/acl/acl_tdt_queue)
-add_subdirectory(src/acl/acl_tdt_channel)
-add_subdirectory(stub)
-
-include(${RUNTIME_DIR}/version.cmake)
-if(ENABLE_OPEN_SRC)
-    check_pkg_build_deps("npu-runtime")
-endif()
-add_version_info_targets()
+add_subdirectory(src)
 
 set(NPU_DEPENDENCIES platform runtime_v100 runtime runtime_common acl_rt_impl acl_rt 
         acl_tdt_queue acl_tdt_channel stub_acl_rt stub_acl_tdt_channel
@@ -103,21 +42,31 @@ set(NPU_DEPENDENCIES platform runtime_v100 runtime runtime_common acl_rt_impl ac
         runtime_v201 runtime_model_v200 copy_acl_headers_and_libs version_npu-runtime_info
 )
 
-if (NOT ENABLE_COV AND NOT ENABLE_UT)
-    add_dependencies(mmpa c_sec)
-    add_dependencies(runtime_platform_others c_sec)
-    add_dependencies(runtime_platform_tiny c_sec)
-    add_dependencies(runtime_platform_910B c_sec)
-    add_dependencies(runtime_platform_kirin c_sec)
-    add_custom_target(pre_npu_runtime DEPENDS c_sec)
-    foreach(depend ${NPU_DEPENDENCIES})
-        add_dependencies(${depend} pre_npu_runtime)
-    endforeach()
+if (ENABLE_COV OR ENABLE_UT)
+
+    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules 
+        ${OPEN_SOURCE_DIR}/cmake/modules
+    )
+    set(CMAKE_PREFIX_PATH ${OPEN_SOURCE_DIR}/json 
+        ${OPEN_SOURCE_DIR}/gtest_shared/lib64/cmake/GTest
+        ${ASCEND_INSTALL_PATH}
+        ${RUNTIME_DIR}/cmake
+    )
+
+    include(CMakePrintHelpers)
+    find_package(Threads)
+    include(cmake/third_party/boost.cmake)
+    include(cmake/third_party/mockcpp.cmake)
+    include(cmake/third_party/gtest_shared.cmake)
+    add_dependencies(GTest::gtest mockcpp)
+
+    add_subdirectory(tests)
 endif()
 
 if(DEFINED ENV{TOOLCHAIN_DIR} AND NOT BUILD_HOST_ONLY)
     message(STATUS "start build device")
     message(STATUS $ENV{TOOLCHAIN_DIR})
+
     set(TOOLCHAIN_DIR $ENV{TOOLCHAIN_DIR})
     # 对于libc_sec，只有makefile，需要传递编译器路径
     set(CMAKE_CXX_COMPILER_ "${TOOLCHAIN_DIR}/bin/aarch64-target-linux-gnu-g++")
@@ -136,7 +85,6 @@ if(DEFINED ENV{TOOLCHAIN_DIR} AND NOT BUILD_HOST_ONLY)
             -DOPEN_SOURCE_DIR=${OPEN_SOURCE_DIR}
             -DCMAKE_C_AR=${CMAKE_C_AR}
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER_}
-            -DBUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG=${BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER_}
             -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
             -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
@@ -151,9 +99,41 @@ if(DEFINED ENV{TOOLCHAIN_DIR} AND NOT BUILD_HOST_ONLY)
     )
     list(APPEND NPU_DEPENDENCIES device)
     add_dependencies(device copy_acl_headers_and_libs)
+
+    install(FILES
+        ${CMAKE_BINARY_DIR}/device_build/device-npu-runtime.tar.gz
+        DESTINATION subprjs
+        COMPONENT npu-runtime
+    )
 endif()
 
 add_custom_target(npu_runtime DEPENDS ${NPU_DEPENDENCIES})
-if (NOT ENABLE_COV AND NOT ENABLE_UT)
-    include(cmake/package.cmake)
+
+if (ENABLE_OPEN_SRC AND NOT ENABLE_COV AND NOT ENABLE_UT)
+    include(${RUNTIME_DIR}/cmake/makeself-fetch.cmake)
+    # ============= CPack =============
+    # acl-compat do not need pack
+    set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
+    set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}")
+
+    set(CPACK_INSTALL_PREFIX "/")
+
+    set(CPACK_CMAKE_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
+    set(CPACK_CMAKE_BINARY_DIR "${CMAKE_BINARY_DIR}")
+    set(CPACK_CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+    set(CPACK_CMAKE_CURRENT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    set(CPACK_ARCH "${HOST_ARCH}")
+    set(CPACK_SET_DESTDIR ON)
+    set(CPACK_GENERATOR External)
+    set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_SOURCE_DIR}/cmake/makeself.cmake")
+    set(CPACK_EXTERNAL_ENABLE_STAGING true)
+    set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}")
+    set(CPACK_MAKESELF_PATH "${MAKESELF_PATH}")
+    set(CPACK_PACKAGE_PARAM_NAME "runtime")
+    set(CPACK_VERSION_DEST "${CPACK_CMAKE_BINARY_DIR}/_CPack_Packages/makeself_staging/runtime")
+    set(CPACK_VERSION_SRC "${CPACK_CMAKE_BINARY_DIR}/runtime_version.h")
+    set(CPACK_EXTRA_VERSION_FILES "${CPACK_CMAKE_BINARY_DIR}/cann_version.h")
+    set(CPACK_BUILD_MODE "RUN_COPY")
+    include(CPack)
 endif()

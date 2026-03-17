@@ -8,7 +8,7 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
+if (ENABLE_OPEN_SRC)
   if(POLICY CMP0135)
       cmake_policy(SET CMP0135 NEW)
   endif()
@@ -219,7 +219,7 @@ if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
   )
   add_dependencies(host_protoc protobuf_host_build)
 
-  # if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG_COMMUNITY)
+  # if (ENABLE_OPEN_SRC)
   #   ExternalProject_Add(protobuf_static_build
   #     DEPENDS protobuf_src
   #     SOURCE_DIR ${PROTOBUF_SRC_DIR}

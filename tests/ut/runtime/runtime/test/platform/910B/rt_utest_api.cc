@@ -2894,24 +2894,19 @@ TEST_F(CloudV2ApiTest, rtCacheLastTaskOpInfo_success)
     error = rtsStreamGetAttribute(stream, RT_STREAM_ATTR_CACHE_OP_INFO, &stmModeRet);
     EXPECT_EQ(stmModeRet.cacheOpInfoSwitch, 1);
 
-    Runtime *rt = ((Runtime *)Runtime::Instance());
-    Profiler* profiler = rt->profiler_;
-    profiler->ReportCacheShapeInfo();
-
-    MOCKER(MsprofReportAdditionalInfo).stubs().will(returnValue((int)1));
-    profiler->ReportCacheShapeInfo();
-
     const size_t totalSize = sizeof(MsprofShapeInfo) + sizeof(MsprofShapeHeader) + infoSize;
     auto rawMemPtr = std::make_unique<uint8_t []>(totalSize);
     MsprofShapeInfo *shapeInfo = RtPtrToPtr<MsprofShapeInfo *, uint8_t *>(rawMemPtr.get());
     shapeInfo->dataLen = 0U;
     Model* mdl = captureStream->Model_();
     CaptureModel *captureMdl = dynamic_cast<CaptureModel *>(mdl);
-    captureMdl->AddShapeInfo(rawMemPtr);
-    profiler->ReportCacheShapeInfo();
+    captureMdl->SetShapeInfo(captureStream, 0U, rawMemPtr.get(), totalSize);
+    captureMdl->ReportShapeInfoForProfiling();
 
     error = rtStreamEndCapture(stream, &model);
     EXPECT_EQ(error, RT_ERROR_NONE);
+
+    captureMdl->ClearShapeInfo(captureStream->Id_(), 0U);
 
     error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);

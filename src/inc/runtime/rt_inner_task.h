@@ -37,6 +37,16 @@ typedef enum {
  */
 RTS_API rtError_t rtTaskGetType(rtTask_t task, rtTaskType* type);
 
+/**
+ * @ingroup rt_task
+ * @brief get sequence id of the task
+ * @param [in] task: task handle
+ * @param [out] id: sequence id of the task
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_INVALID_VALUE for error input
+ */
+RTS_API rtError_t rtTaskGetSeqId(rtTask_t task, uint32_t *id);
+
 #if defined(__cplusplus)
 }
 #endif

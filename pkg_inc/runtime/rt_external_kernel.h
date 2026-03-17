@@ -421,6 +421,31 @@ RTS_API rtError_t rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpExcept
  */
 RTS_API rtError_t rtGetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info, rtFuncHandle *func);
 
+/**
+ * @ingroup rt_kernel
+ * @brief get binary meta num
+ * @param [in] binHandle  binary handle
+ * @param [in] type       binary meta info type
+ * @param [out] numOfMeta  num of binary meta info
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_INVALID_VALUE for error input
+ */
+RTS_API rtError_t rtBinaryGetMetaNum(const rtBinHandle binHandle, const rtBinaryMetaType type, size_t *numOfMeta);
+
+/**
+ * @ingroup rt_kernel
+ * @brief get binary meta info
+ * @param [in] binHandle  binary handle
+ * @param [in] type       binary meta info type
+ * @param [in] numOfMeta  num of binary meta info
+ * @param [out] data      binary meta info addr
+ * @param [in] dataSize   binary meta info length
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_INVALID_VALUE for error input
+ */
+RTS_API rtError_t rtBinaryGetMetaInfo(const rtBinHandle binHandle, const rtBinaryMetaType type, const size_t numOfMeta,
+    void **data, const size_t *dataSize);
+
 #if defined(__cplusplus)
 }
 #endif

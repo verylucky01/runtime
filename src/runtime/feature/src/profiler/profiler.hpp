@@ -58,7 +58,7 @@ public:
     TaskTrackInfo& GetProfTaskTrackData(void) const;
     void ReportProfApi(const uint32_t devId, RuntimeProfApiData &profApiData) const;
     void ReportTaskTrack(TaskInfo * const taskInfo, const uint32_t devId) const;
-    void ModifyTrackData(RuntimeProfTrackData *trackData) const;
+    void ModifyTrackData(TaskInfo * const taskInfo, const uint32_t devId, RuntimeProfTrackData *trackData) const;
     void ReportDestroyFlipTask(const Stream * const stm, const uint32_t devId) const;
     void ReportStreamSynctaskFinish(const uint16_t profileType) const;
 
@@ -75,6 +75,7 @@ public:
     void TsProfilerStop(const uint64_t profConfig, const uint32_t devId, Device * const dev,
         const bool needCloseTimeline);
     void TrackDataInit(void) const;
+    void ReportTrackData(const Stream *const s, const uint16_t taskId) const;
     void SetTrackProfEnable(bool trackProfEnable, uint32_t cacheFlag = 0)
     {
         if (trackProfEnable) {
@@ -83,7 +84,6 @@ public:
         trackProfEnable_ = trackProfEnable;
         if (trackProfEnable) {
             (void)ReportCacheTrack(cacheFlag);
-            (void)ReportCacheShapeInfo();
         }
     }
 
@@ -138,7 +138,6 @@ public:
     void InsertStream(Stream * const stm);
     void EraseStream(Stream * const stm);
     rtError_t ReportCacheTrack(uint32_t cacheFlag);
-    rtError_t ReportCacheShapeInfo() const;
 
 private:
     Api *api_;

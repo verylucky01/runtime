@@ -1713,3 +1713,33 @@ TEST_F(CloudV2CaptureModelTest, task_get_type_normal_02)
     free(type);
     free(taskInfo);
 }
+
+TEST_F(CloudV2CaptureModelTest, task_get_seq_id)
+{
+    TaskInfo *taskInfo = createTaskInfo();
+    taskInfo->modelSeqId = 2;
+
+    rtStream_t stream;
+    EXPECT_EQ(rtStreamCreate(&stream, 0), RT_ERROR_NONE);
+    Stream* stm = static_cast<Stream*>(stream);
+    taskInfo->stream = stm;
+
+    Model model(RT_MODEL_CAPTURE_MODEL);
+    stm->SetModel(&model);
+
+    uint32_t id = 0;
+    auto error = rtTaskGetSeqId(nullptr, &id);
+    EXPECT_EQ(error,  ACL_ERROR_RT_PARAM_INVALID);
+
+    rtTask_t task = (rtTask_t)taskInfo;
+    error = rtTaskGetSeqId(task, nullptr);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+
+    error = rtTaskGetSeqId(task, &id);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+    EXPECT_EQ(id, 2);
+
+    free(taskInfo);
+    stm->DelModel(&model);
+    EXPECT_EQ(rtStreamDestroy(stream), RT_ERROR_NONE);
+}

@@ -35,8 +35,9 @@ public:
                                       Kernel ** const funcHandle) override;
     rtError_t BinaryGetFunctionByEntry(const Program * const binHandle, const uint64_t funcEntry,
                                        Kernel ** const funcHandle) override;
-    rtError_t BinaryGetMetaInfo(Program * const binHandle, const rtBinaryMetaType type,
-                                void *data, const uint32_t length) override;
+    rtError_t BinaryGetMetaNum(Program * const binHandle, const rtBinaryMetaType type, size_t *numOfMeta) override;
+    rtError_t BinaryGetMetaInfo(Program * const binHandle, const rtBinaryMetaType type, const size_t numOfMeta,
+                                void **data, const size_t *dataSize) override;
     rtError_t FunctionGetMetaInfo(const Kernel * const funcHandle, const rtFunctionMetaType type,
                                   void *data, const uint32_t length) override;
     rtError_t RegisterCpuFunc(rtBinHandle binHandle, const char_t * const funcName,
@@ -437,6 +438,7 @@ public:
     rtError_t ModelGetStreams(const Model * const mdl, Stream **streams, uint32_t *numStreams) override;
     rtError_t StreamGetTasks(Stream * const stm, void **tasks, uint32_t *numTasks) override;
     rtError_t TaskGetType(const TaskInfo * const task, rtTaskType *type) override;
+    rtError_t TaskGetSeqId(const TaskInfo * const task, uint32_t *id) override;
     rtError_t ModelDestroyRegisterCallback(Model * const mdl, const rtCallback_t fn, void* ptr) override;
     rtError_t ModelDestroyUnregisterCallback(Model * const mdl, const rtCallback_t fn) override;
 

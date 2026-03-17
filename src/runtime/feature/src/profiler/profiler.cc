@@ -151,17 +151,6 @@ void Profiler::ReportStreamSynctaskFinish(const uint16_t profileType) const
     RT_LOG(RT_LOG_DEBUG, "profileType=%hu", profileType);
 }
 
-void Profiler::ModifyTrackData(RuntimeProfTrackData *trackData) const
-{
-    RuntimeProfApiData &profApiData = GetProfApiData();
-    if (apiProfEnable_ && profApiData.entryTime != 0) {
-        trackData->compactInfo.timeStamp =
-            profApiData.entryTime + 1;  // trackData的时间戳只要在api的begin和end的范围之内就是合理的
-    } else {
-        trackData->compactInfo.timeStamp = MsprofSysCycleTime();
-    }
-}
-
 static void ChangeTrackDataTaskType(struct MsprofRuntimeTrack &runtimeTrack, const TaskInfo *const taskInfo)
 {
     if (taskInfo->type == TS_TASK_TYPE_KERNEL_AICORE || taskInfo->type == TS_TASK_TYPE_KERNEL_AIVEC) {
@@ -178,18 +167,78 @@ static void ChangeTrackDataTaskType(struct MsprofRuntimeTrack &runtimeTrack, con
     }
 }
 
+void Profiler::ModifyTrackData(TaskInfo *const taskInfo, const uint32_t devId, RuntimeProfTrackData *trackData) const
+{
+    const Stream *const stm = taskInfo->stream;
+    trackData->isModel = (stm == nullptr) ? false : stm->GetBindFlag();  // is it a model task 
+    trackData->compactInfo.level = MSPROF_REPORT_RUNTIME_LEVEL; 
+    trackData->compactInfo.type = RT_PROFILE_TYPE_TASK_TRACK;  // RT_PROFILE_TYPE_TASK_TRACK regitered in init 
+
+    RuntimeProfApiData &profApiData = GetProfApiData();
+    if (apiProfEnable_ && profApiData.entryTime != 0) {
+        trackData->compactInfo.timeStamp =
+            profApiData.entryTime + 1;  // trackData的时间戳只要在api的begin和end的范围之内就是合理的
+    } else {
+        trackData->compactInfo.timeStamp = MsprofSysCycleTime();
+    }
+
+    trackData->compactInfo.threadId = GetCurrentTid(); 
+    trackData->compactInfo.dataLen = static_cast<uint32_t>(sizeof(MsprofRuntimeTrack));
+    trackData->compactInfo.data.runtimeTrack.deviceId = static_cast<uint16_t>(devId); 
+    trackData->compactInfo.data.runtimeTrack.streamId = 
+        (stm == nullptr) ? RT_MAX_STREAM_ID : static_cast<uint16_t>(stm->Id_());
+
+    if (taskInfo->type == TS_TASK_TYPE_FLIP) { 
+        trackData->compactInfo.data.runtimeTrack.taskId = 
+            GetFlipTaskId(taskInfo->id, taskInfo->u.flipTask.flipNumReport); 
+    } else { 
+        trackData->compactInfo.data.runtimeTrack.taskId = GetProfTaskId(taskInfo); 
+    } 
+    trackData->compactInfo.data.runtimeTrack.taskType = taskInfo->type; 
+    ChangeTrackDataTaskType(trackData->compactInfo.data.runtimeTrack, taskInfo); 
+    trackData->compactInfo.data.runtimeTrack.kernelName = GetKernelNameId(*taskInfo); 
+
+    // for mutil enable profiling 
+    taskInfo->taskTrackTimeStamp = trackData->compactInfo.timeStamp; 
+
+    RT_LOG(RT_LOG_INFO, "ReportTaskTrack, runtimeTrack->taskId=%u, taskInfo->id=%u, taskInfo->flipNum=%u", 
+        trackData->compactInfo.data.runtimeTrack.taskId, taskInfo->id, taskInfo->flipNum);
+}
+
+static int32_t ReportCompactInfo(RuntimeProfTrackData *const trackData)
+{
+    RT_LOG(RT_LOG_DEBUG, "Report compact info, isModel=%u, threadId=%u, timeStamp=%llu, devId=%hu, "
+        "streamId=%hu, taskId=%u ,taskType=%llu, kernelName=%llu",
+        trackData->isModel,
+        trackData->compactInfo.threadId,
+        trackData->compactInfo.timeStamp,
+        trackData->compactInfo.data.runtimeTrack.deviceId,
+        trackData->compactInfo.data.runtimeTrack.streamId,
+        trackData->compactInfo.data.runtimeTrack.taskId,
+        trackData->compactInfo.data.runtimeTrack.taskType,
+        trackData->compactInfo.data.runtimeTrack.kernelName);
+    const bool agingFlag = (trackData->isModel != 0) ? false : true;
+    return MsprofReportCompactInfo(static_cast<uint32_t>(agingFlag), &trackData->compactInfo,
+        static_cast<uint32_t>(sizeof(MsprofCompactInfo)));
+}
+
 void Profiler::ReportTaskTrack(TaskInfo *const taskInfo, const uint32_t devId) const
 {
     // cache model task and model stream, report when taskTrack switch is turned on
     // When the stream is destroyed, clear the cached model stream object
     if ((taskInfo->stream != nullptr) && (taskInfo->stream->GetBindFlag())) {
         taskInfo->taskTrackTimeStamp = MsprofSysCycleTime();
-        taskInfo->stream->CacheBindTrackTaskId(taskInfo->id);
         // cache model task's stream, report when taskTrack switch is turned on
-        RT_LOG(RT_LOG_DEBUG,
-            "cache task profiling info, stream_id=%d, task_id=%u.",
-            taskInfo->stream->Id_(),
-            taskInfo->id);
+        RT_LOG(RT_LOG_DEBUG, "Cache task profiling info, stream_id=%d, task_id=%u.",
+            taskInfo->stream->Id_(), taskInfo->id);
+
+        const Model* m = taskInfo->stream->Model_();
+        if ((m != nullptr) && (m->GetModelType() == RT_MODEL_CAPTURE_MODEL)) {
+            taskInfo->stream->CacheCaptureTaskId(taskInfo->id);
+            return;
+        } else {
+            taskInfo->stream->CacheBindTrackTaskId(taskInfo->id);
+        }
     }
 
     if (!GetTrackProfEnable()) {
@@ -203,21 +252,7 @@ void Profiler::ReportTaskTrack(TaskInfo *const taskInfo, const uint32_t devId) c
         RuntimeProfTrackData *trackData;
         for (uint32_t i = 0U; i < RUNTIME_TASK_TRACK_BUFF_NUM; i++) {
             trackData = &trackMngInfo.trackBuff[i];
-            RT_LOG(RT_LOG_DEBUG,
-                "isModel=%u, threadId=%u, timeStamp=%llu, devId=%u, "
-                "stream_id=%u, task_id=%u, task_type=%u, kernel_name=%llu",
-                trackData->isModel,
-                trackData->compactInfo.threadId,
-                trackData->compactInfo.timeStamp,
-                trackData->compactInfo.data.runtimeTrack.deviceId,
-                trackData->compactInfo.data.runtimeTrack.streamId,
-                trackData->compactInfo.data.runtimeTrack.taskId,
-                trackData->compactInfo.data.runtimeTrack.taskType,
-                trackData->compactInfo.data.runtimeTrack.kernelName);
-            const bool agingFlag = (trackData->isModel != 0) ? false : true;
-            const int32_t ret = MsprofReportCompactInfo(static_cast<uint32_t>(agingFlag),
-                &trackData->compactInfo,
-                static_cast<uint32_t>(sizeof(MsprofCompactInfo)));
+            const int32_t ret = ReportCompactInfo(trackData);
             if (ret != MSPROF_ERROR_NONE) {
                 RT_LOG_CALL_MSG(ERR_MODULE_PROFILE, "Profiling reporter report task_track failed, ret=%d.", ret);
                 return;
@@ -229,55 +264,11 @@ void Profiler::ReportTaskTrack(TaskInfo *const taskInfo, const uint32_t devId) c
     }
 
     RuntimeProfTrackData *trackData = &(trackMngInfo.trackBuff[taskNum]);
-    const Stream *const stm = taskInfo->stream;
-
-    trackData->isModel = (stm == nullptr) ? false : stm->GetBindFlag();  // is it a model task
-
-    trackData->compactInfo.level = MSPROF_REPORT_RUNTIME_LEVEL;
-    trackData->compactInfo.type = RT_PROFILE_TYPE_TASK_TRACK;  // RT_PROFILE_TYPE_TASK_TRACK regitered in init
-    ModifyTrackData(trackData);
-    trackData->compactInfo.threadId = GetCurrentTid();
-    trackData->compactInfo.dataLen = static_cast<uint32_t>(sizeof(MsprofRuntimeTrack));
-    trackData->compactInfo.data.runtimeTrack.deviceId = static_cast<uint16_t>(devId);
-    trackData->compactInfo.data.runtimeTrack.streamId =
-        (stm == nullptr) ? RT_MAX_STREAM_ID : static_cast<uint16_t>(stm->Id_());
-    if (taskInfo->type == TS_TASK_TYPE_FLIP) {
-        trackData->compactInfo.data.runtimeTrack.taskId =
-            GetFlipTaskId(taskInfo->id, taskInfo->u.flipTask.flipNumReport);
-    } else {
-        trackData->compactInfo.data.runtimeTrack.taskId = GetProfTaskId(taskInfo);
-    }
-    trackData->compactInfo.data.runtimeTrack.taskType = taskInfo->type;
-    ChangeTrackDataTaskType(trackData->compactInfo.data.runtimeTrack, taskInfo);
-    trackData->compactInfo.data.runtimeTrack.kernelName = GetKernelNameId(*taskInfo);
-
-    // for mutil enable profiling
-    taskInfo->taskTrackTimeStamp = trackData->compactInfo.timeStamp;
-
-    RT_LOG(RT_LOG_INFO,
-        "ReportTaskTrack, runtimeTrack->taskId=%u, taskInfo->id=%u, taskInfo->flipNum=%u",
-        trackData->compactInfo.data.runtimeTrack.taskId,
-        taskInfo->id,
-        taskInfo->flipNum);
-
+    ModifyTrackData(taskInfo, devId, trackData);
     trackMngInfo.taskNum++;
 
     if (!GetApiProfEnable()) {  // if not open api profiling, will send taskTrack separately
-        RT_LOG(RT_LOG_DEBUG,
-            "isModel=%u, threadId=%u, timeStamp=%llu, devId=%u, stream_id=%u, task_id=%u, "
-            "task_type=%u, kernel_name=%llu",
-            trackData->isModel,
-            trackData->compactInfo.threadId,
-            trackData->compactInfo.timeStamp,
-            trackData->compactInfo.data.runtimeTrack.deviceId,
-            trackData->compactInfo.data.runtimeTrack.streamId,
-            trackData->compactInfo.data.runtimeTrack.taskId,
-            trackData->compactInfo.data.runtimeTrack.taskType,
-            trackData->compactInfo.data.runtimeTrack.kernelName);
-        const bool agingFlag = (trackData->isModel != 0) ? false : true;
-        const int32_t ret = MsprofReportCompactInfo(static_cast<uint32_t>(agingFlag),
-            &trackData->compactInfo,
-            static_cast<uint32_t>(sizeof(MsprofCompactInfo)));
+        const int32_t ret = ReportCompactInfo(trackData);
         if (ret != MSPROF_ERROR_NONE) {
             RT_LOG_CALL_MSG(ERR_MODULE_PROFILE, "Profiling reporter report task_track failed, ret=%d.", ret);
             return;
@@ -400,10 +391,43 @@ void Profiler::RuntimeProfilerStart(void) const
     COND_RETURN_VOID(ret != RT_ERROR_NONE, "runtime init profiling failed, retCode=%#x.", ret);
 }
 
+void Profiler::ReportTrackData(const Stream *const s, const uint16_t taskId) const
+{
+    if ((s == nullptr) || (s->Device_() == nullptr)) {
+        RT_LOG(RT_LOG_WARNING, "This task stream is invalid");
+        return;
+    }
+
+    const int32_t steamId = s->Id_();
+    const uint32_t devId = s->Device_()->Id_();
+    RT_LOG(RT_LOG_DEBUG, "Report track data, deviceId=%u, streamId=%d, taskId=%u", devId, steamId, taskId);
+    TaskInfo *task = GetTaskInfo(s->Device_(), static_cast<uint32_t>(steamId), static_cast<uint32_t>(taskId));
+    if (task == nullptr) {
+        RT_LOG(RT_LOG_WARNING, "Get task info is null, deviceId=%u, streamId=%d, taskId=%u", devId, steamId, taskId);
+        return;
+    }
+
+    RuntimeProfTrackData trackData{};
+    trackData.isModel = true;
+    trackData.compactInfo.level = MSPROF_REPORT_RUNTIME_LEVEL;
+    trackData.compactInfo.type = RT_PROFILE_TYPE_TASK_TRACK;  // RT_PROFILE_TYPE_TASK_TRACK register in init
+    trackData.compactInfo.timeStamp = task->taskTrackTimeStamp;
+    trackData.compactInfo.threadId = task->tid;
+    trackData.compactInfo.dataLen = static_cast<uint32_t>(sizeof(MsprofRuntimeTrack));
+
+    trackData.compactInfo.data.runtimeTrack.deviceId = static_cast<uint16_t>(devId);
+    trackData.compactInfo.data.runtimeTrack.streamId = static_cast<uint32_t>(steamId);
+    trackData.compactInfo.data.runtimeTrack.taskId = GetProfTaskId(task);
+    trackData.compactInfo.data.runtimeTrack.taskType = task->type;
+    ChangeTrackDataTaskType(trackData.compactInfo.data.runtimeTrack, task);
+    trackData.compactInfo.data.runtimeTrack.kernelName = GetKernelNameId(*task);
+    (void)ReportCompactInfo(&trackData);
+    return;
+}
+
 // report cache task track and clear streamSet_
 rtError_t Profiler::ReportCacheTrack(uint32_t cacheFlag)
 {
-    const Runtime *const rtInstance = Runtime::Instance();
     streamSetMutex_.lock();
     if (streamSet_.empty()) {
         RT_LOG(RT_LOG_INFO, "the cache is empty");
@@ -413,96 +437,38 @@ rtError_t Profiler::ReportCacheTrack(uint32_t cacheFlag)
 
     RT_LOG(RT_LOG_INFO, "begin report cache track, stream set size=%zu", streamSet_.size());
     for (Stream *const it : streamSet_) {
-        RuntimeProfTrackData trackData{};
-        if ((it == nullptr) || (it->Device_() == nullptr)) {
-            RT_LOG(RT_LOG_WARNING, "this cacheTask stream is invalid");
-            continue;
-        }
-
-        const int32_t steamId = it->Id_();
-        const uint32_t devId = it->Device_()->Id_();
-        RT_LOG(RT_LOG_DEBUG, "report cache, steamId=%d, device id=%u", steamId, devId);
         // Repetitive enable profiling
-        TaskInfo *cacheTask = nullptr;
         const std::list<uint16_t> &cacheTrackTaskIdList = it->GetCacheTrackTaskList();
         for (const uint16_t taskId : cacheTrackTaskIdList) {
-            cacheTask = GetTaskInfo(it->Device_(), static_cast<uint32_t>(steamId), static_cast<uint32_t>(taskId));
-            if (cacheTask == nullptr) {
-                RT_LOG(RT_LOG_WARNING, "cacheTask is null");
-                continue;
-            }
-
-            trackData.isModel = true;
-            trackData.compactInfo.level = MSPROF_REPORT_RUNTIME_LEVEL;
-            trackData.compactInfo.type = RT_PROFILE_TYPE_TASK_TRACK;  // RT_PROFILE_TYPE_TASK_TRACK register in init
-            trackData.compactInfo.timeStamp = cacheTask->taskTrackTimeStamp;
-            trackData.compactInfo.threadId = cacheTask->tid;
-            trackData.compactInfo.dataLen = static_cast<uint32_t>(sizeof(MsprofRuntimeTrack));
-
-            trackData.compactInfo.data.runtimeTrack.deviceId = static_cast<uint16_t>(devId);
-            trackData.compactInfo.data.runtimeTrack.streamId = static_cast<uint32_t>(steamId);
-            trackData.compactInfo.data.runtimeTrack.taskId = GetProfTaskId(cacheTask);
-            trackData.compactInfo.data.runtimeTrack.taskType = cacheTask->type;
-            ChangeTrackDataTaskType(trackData.compactInfo.data.runtimeTrack, cacheTask);
-            trackData.compactInfo.data.runtimeTrack.kernelName = GetKernelNameId(*cacheTask);
-            RT_LOG(RT_LOG_DEBUG,
-                "isModel=%u, threadId=%u, timeStamp=%llu, devId=%hu, "
-                "stream_id=%hu, task_id=%u ,task_type=%llu, kernel_name=%llu",
-                trackData.isModel,
-                trackData.compactInfo.threadId,
-                trackData.compactInfo.timeStamp,
-                trackData.compactInfo.data.runtimeTrack.deviceId,
-                trackData.compactInfo.data.runtimeTrack.streamId,
-                trackData.compactInfo.data.runtimeTrack.taskId,
-                trackData.compactInfo.data.runtimeTrack.taskType,
-                trackData.compactInfo.data.runtimeTrack.kernelName);
-            const bool agingFlag = (trackData.isModel != 0) ? false : true;
-            (void)MsprofReportCompactInfo(static_cast<uint32_t>(agingFlag),
-                &trackData.compactInfo,
-                static_cast<uint32_t>(sizeof(MsprofCompactInfo)));
+            ReportTrackData(it, taskId);
         }
-        if (cacheFlag == 1) {
+        if ((it != nullptr) && (cacheFlag == 1)) {
             it->ClearCacheTrackTaskList();
         }
     }
     streamSetMutex_.unlock();
 
-    Context *curCtx = rtInstance->CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_PROC_RETURN(curCtx, RT_ERROR_CONTEXT_NULL,);
-    SpinLock &modelLock = curCtx->GetModelLock();
-    modelLock.Lock();
-    for (const auto it : curCtx->GetModelList()) {
-        if (it != nullptr && it->GetModelType() == RT_MODEL_CAPTURE_MODEL) {
-            const CaptureModel *captureMdl = dynamic_cast<const CaptureModel *>(it);
-            captureMdl->ReportedStreamInfoForProfiling();
-        }
-    }
-    modelLock.Unlock();
     RT_LOG(RT_LOG_INFO, "end report cache track");
-    return RT_ERROR_NONE;
-}
-
-rtError_t Profiler::ReportCacheShapeInfo() const
-{
-    RT_LOG(RT_LOG_INFO, "Begin report cache shape info");
-    Context * const curCtx = Runtime::Instance()->CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_PROC_RETURN(curCtx, RT_ERROR_CONTEXT_NULL,);
-    SpinLock &modelLock = curCtx->GetModelLock();
-    modelLock.Lock();
-    for (const auto it : curCtx->GetModelList()) {
-        if (it != nullptr && it->GetModelType() == RT_MODEL_CAPTURE_MODEL) {
-            const CaptureModel *captureMdl = dynamic_cast<const CaptureModel *>(it);
-            captureMdl->ReportShapeInfoForProfiling();
-        }
-    }
-    modelLock.Unlock();
-    RT_LOG(RT_LOG_INFO, "End report cache shape info");
     return RT_ERROR_NONE;
 }
 
 void Profiler::RuntimeProfilerStop(void) const
 {
     RT_LOG(RT_LOG_INFO, "ProfilerStop");
+    const Runtime *const rtInstance = Runtime::Instance();
+    Context *curCtx = rtInstance->CurrentContext();
+    if (curCtx != nullptr) {
+        SpinLock &modelLock = curCtx->GetModelLock();
+        modelLock.Lock();
+        for (auto it : curCtx->GetModelList()) {
+            if (it != nullptr && it->GetModelType() == RT_MODEL_CAPTURE_MODEL) {
+                CaptureModel *captureMdl = dynamic_cast<CaptureModel *>(it);
+                captureMdl->ResetTrackDataReportFlag();
+            }
+        }
+        modelLock.Unlock();
+    }
+
     const auto ret = ProfilingAgent::Instance().UnInit();
     COND_RETURN_VOID(ret != RT_ERROR_NONE, "runtime UnInit profiling failed, retCode=%#x.", ret);
 }

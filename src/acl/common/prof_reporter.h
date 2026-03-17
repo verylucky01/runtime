@@ -282,6 +282,7 @@ namespace acl {
         AclrtMemPoolDestroy,
         AclrtMemPoolSetAttr,
         AclrtMemPoolGetAttr,
+        AclmdlRITaskGetSeqId,
         AclmdlRIGetStreams,
         AclmdlRIGetTasksByStream,
         AclmdlRITaskGetType,

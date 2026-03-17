@@ -513,12 +513,21 @@ rtError_t ApiErrorDecorator::BinaryGetFunctionByEntry(const Program * const binH
     return impl_->BinaryGetFunctionByEntry(binHandle, funcEntry, funcHandle);
 }
 
+rtError_t ApiErrorDecorator::BinaryGetMetaNum(Program * const binHandle, const rtBinaryMetaType type,
+                                              size_t *numOfMeta)
+{
+    NULL_PTR_RETURN_MSG_OUTER(binHandle, RT_ERROR_INVALID_VALUE);
+    NULL_PTR_RETURN_MSG_OUTER(numOfMeta, RT_ERROR_INVALID_VALUE);
+    return impl_->BinaryGetMetaNum(binHandle, type, numOfMeta);
+}
+
 rtError_t ApiErrorDecorator::BinaryGetMetaInfo(Program * const binHandle, const rtBinaryMetaType type,
-                                               void *data, const uint32_t length)
+                                               const size_t numOfMeta, void **data, const size_t *dataSize)
 {
     NULL_PTR_RETURN_MSG_OUTER(binHandle, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(data, RT_ERROR_INVALID_VALUE);
-    return impl_->BinaryGetMetaInfo(binHandle, type, data, length);
+    NULL_PTR_RETURN_MSG_OUTER(dataSize, RT_ERROR_INVALID_VALUE);
+    return impl_->BinaryGetMetaInfo(binHandle, type, numOfMeta, data, dataSize);
 }
 
 rtError_t ApiErrorDecorator::FunctionGetMetaInfo(const Kernel * const funcHandle, const rtFunctionMetaType type, 
@@ -6345,6 +6354,13 @@ rtError_t ApiErrorDecorator::TaskGetType(const TaskInfo * const task, rtTaskType
     NULL_PTR_RETURN_MSG_OUTER(task, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(type, RT_ERROR_INVALID_VALUE);
     return impl_->TaskGetType(task, type);
+}
+
+rtError_t ApiErrorDecorator::TaskGetSeqId(const TaskInfo * const task, uint32_t *id)
+{
+    NULL_PTR_RETURN_MSG_OUTER(task, RT_ERROR_INVALID_VALUE);
+    NULL_PTR_RETURN_MSG_OUTER(id, RT_ERROR_INVALID_VALUE);
+    return impl_->TaskGetSeqId(task, id);
 }
 
 }  // namespace runtime

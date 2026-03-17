@@ -3523,18 +3523,6 @@ rtError_t rtBinaryGetFunctionByName(rtBinHandle binHandle, const char *kernelNam
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtBinaryGetMetaInfo(const rtBinHandle binHandle, const rtBinaryMetaType type, void *data, const uint32_t length)
-{
-    GLOBAL_STATE_WAIT_IF_LOCKED();
-    Api * const apiInstance = Api::Instance();
-    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t ret = apiInstance->BinaryGetMetaInfo(RtPtrToPtr<Program *>(binHandle), type, data, length);
-
-    ERROR_RETURN_WITH_EXT_ERRCODE(ret);
-    return ACL_RT_SUCCESS;
-}
-
-VISIBILITY_DEFAULT
 rtError_t rtFunctionGetMetaInfo(const rtFuncHandle funcHandle, const rtFunctionMetaType type, void *data, const uint32_t length)
 {
     GLOBAL_STATE_WAIT_IF_LOCKED();

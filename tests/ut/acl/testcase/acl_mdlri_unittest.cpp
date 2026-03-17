@@ -288,3 +288,16 @@ TEST_F(UTEST_ACL_Modelri, TestaclmdlRITaskGetType)
         ret = aclmdlRITaskGetType(task, &type);
         EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
 }
+
+TEST_F(UTEST_ACL_Modelri, TestaclrtTaskGetSeqId)
+{
+    aclmdlRITask task = (aclmdlRITask)0x01;
+    uint32_t id;
+    auto ret = aclmdlRITaskGetSeqId(task, &id);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+    
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), rtTaskGetSeqId(_,_))
+        .WillOnce(Return(ACL_ERROR_RT_PARAM_INVALID));
+    ret = aclmdlRITaskGetSeqId(task, &id);
+    EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
+}

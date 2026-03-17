@@ -172,8 +172,10 @@ public:
     void DebugDotPrintTaskGroups(const uint32_t deviceId) const;
     void ReportedStreamInfoForProfiling() const;
     void EraseStreamInfoForProfiling() const;
-    rtError_t FillShapeInfo(const Stream* const stm, const VOID * const infoPtr, const size_t infoSize, 
-        MsprofShapeInfo * const shapeInfo) const;
+    rtError_t SetShapeInfo(const Stream* const stm, const uint32_t taskId, const void * const infoPtr,
+                           const size_t infoSize);
+    void ClearShapeInfo(const int32_t streamId, const uint32_t taskId);
+
     rtError_t CacheLastTaskOpInfo(const void * const infoPtr, const size_t infoSize, const Stream * const stm);
     void ReportShapeInfoForProfiling() const;
     void SetModelCacheOpInfoSwitch(const uint32_t status) const;
@@ -181,11 +183,6 @@ public:
     uint32_t GetModelCacheOpInfoSwitch() const
     {
         return cacheOpInfoSwitch_;
-    }
-
-    void AddShapeInfo(std::unique_ptr<uint8_t []> &shapeInfo) 
-    {
-        shapeInfoList_.push_back(std::move(shapeInfo));
     }
 
     void InsertRdmaPiValueModifyInfo(int32_t streamId, uint16_t taskId)
@@ -230,6 +227,16 @@ public:
         return isSqeSendFinish_;
     }
 
+    void ResetTrackDataReportFlag()
+    {
+        trackDataReportFlag_ = false;
+    }
+
+    uint32_t GenerateSeqId()
+    {
+        return seqId_++;
+    }
+
     rtError_t ReleaseNotifyId(void);
     rtError_t UpdateNotifyId(Stream * const exeStream);
     // endGraph + alloc sq cq + Send sqe + bind sq cq + load complete + update task
@@ -254,9 +261,11 @@ private:
     rtError_t BindSqCqAndSendSqe(void);
     rtError_t ConfigSqTail(void) const;
     rtError_t BindStreamToModel(void);
+    void ReportCacheTrackData();
+
     RtModelCaptureStatus captureStatus_{RT_MODEL_CAPTURE_STATUS_NONE};
     mutable uint32_t cacheOpInfoSwitch_{0U}; // aclgraph stream status: 0: false, 1:true
-    std::vector<std::unique_ptr<uint8_t []>> shapeInfoList_;
+    std::map<int32_t, std::map<uint32_t, std::unique_ptr<uint8_t []>>> shapeInfos_;
     std::unordered_map<int32_t, std::unordered_set<int32_t>> singleOperStmIdAndCaptureStmIdMap_;
     std::set<Event *> singleOperEvents_;
     std::set<Event *> captureEvents_;
@@ -279,6 +288,8 @@ private:
     bool isSqeSendFinish_{false};
     bool isNeedUpdateEndGraph_{false};
     uint64_t beginCaptureTimeStamp_{0UL};
+    bool trackDataReportFlag_{false};
+    std::atomic<uint32_t> seqId_{0};
 };
 }
 }

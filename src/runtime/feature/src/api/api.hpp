@@ -136,8 +136,10 @@ public:
                                               Kernel ** const funcHandle) = 0;
     virtual rtError_t BinaryGetFunctionByEntry(const Program * const binHandle, const uint64_t funcEntry,
                                                Kernel ** const funcHandle) = 0;
-    virtual rtError_t BinaryGetMetaInfo(Program * const binHandle, const rtBinaryMetaType type,  
-                                        void *data, const uint32_t length) = 0;
+    virtual rtError_t BinaryGetMetaNum(Program * const binHandle, const rtBinaryMetaType type,  
+                                       size_t *numOfMeta) = 0;
+    virtual rtError_t BinaryGetMetaInfo(Program * const binHandle, const rtBinaryMetaType type, const size_t numOfMeta,
+                                        void **data, const size_t *dataSize) = 0;
     virtual rtError_t FunctionGetMetaInfo(const Kernel * const funcHandle, const rtFunctionMetaType type, 
                                           void *data, const uint32_t length) = 0;
     virtual rtError_t RegisterCpuFunc(rtBinHandle binHandle, const char_t * const funcName,
@@ -521,6 +523,7 @@ public:
     virtual rtError_t ModelGetStreams(const Model * const mdl, Stream **streams, uint32_t *numStreams) = 0;
     virtual rtError_t StreamGetTasks(Stream * const stm, void **tasks, uint32_t *numTasks) = 0;
     virtual rtError_t TaskGetType(const TaskInfo * const task, rtTaskType *type) = 0;
+    virtual rtError_t TaskGetSeqId(const TaskInfo * const task, uint32_t *id) = 0;
     virtual rtError_t ModelDestroyRegisterCallback(Model * const mdl, const rtCallback_t fn, void* ptr) = 0;
     virtual rtError_t ModelDestroyUnregisterCallback(Model * const mdl, const rtCallback_t fn) = 0;
 

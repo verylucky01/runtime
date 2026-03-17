@@ -39,6 +39,16 @@ RTS_API rtError_t rtTaskGetType(rtTask_t task, rtTaskType *type)
     return ACL_RT_SUCCESS;
 }
 
+VISIBILITY_DEFAULT
+RTS_API rtError_t rtTaskGetSeqId(rtTask_t task, uint32_t *id)
+{
+    Api * const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    const rtError_t error = apiInstance->TaskGetSeqId(static_cast<TaskInfo *>(task), id);
+    ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    return ACL_RT_SUCCESS;
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

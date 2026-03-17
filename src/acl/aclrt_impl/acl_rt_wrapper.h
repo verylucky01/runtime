@@ -339,6 +339,7 @@
     _(aclError, aclmdlRISetName, (aclmdlRI modelRI, const char * name), (modelRI, name)) \
     _(aclError, aclmdlRIGetName, (aclmdlRI modelRI, uint32_t maxLen, char * name), (modelRI, maxLen, name)) \
     _(aclError, aclmdlRIAbort, (aclmdlRI modelRI), (modelRI)) \
+    _(aclError, aclmdlRITaskGetSeqId, (aclmdlRITask task, uint32_t *id), (task, id)) \
     _(aclError, aclmdlRIGetStreams, (aclmdlRI modelRI, aclrtStream *streams, uint32_t *numStreams), (modelRI, streams, numStreams)) \
     _(aclError, aclmdlRIGetTasksByStream, (aclrtStream stream, aclmdlRITask *tasks, uint32_t *numTasks), (stream, tasks, numTasks)) \
     _(aclError, aclmdlRITaskGetType, (aclmdlRITask task, aclmdlRITaskType *type), (task, type)) \

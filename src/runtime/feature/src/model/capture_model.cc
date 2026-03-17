@@ -154,6 +154,28 @@ bool CaptureModel::IsAddStream(const Stream *stm) const
     return false;
 }
 
+void CaptureModel::ReportCacheTrackData()
+{
+    if (trackDataReportFlag_) {
+        return;
+    }
+    Profiler* profilerPtr = Runtime::Instance()->Profiler_();
+    if ((profilerPtr == nullptr) || !(profilerPtr->GetTrackProfEnable())) {
+        return;
+    }
+    for (const auto &s : StreamList_()) {
+        if (s == nullptr) {
+            continue;
+        }
+        for (const auto &taskId : s->GetCacheCaptureTaskId()) {
+            profilerPtr->ReportTrackData(s, taskId);
+        }
+    }
+    ReportedStreamInfoForProfiling();
+    ReportShapeInfoForProfiling();
+    trackDataReportFlag_ = true;
+}
+
 rtError_t CaptureModel::ExecuteCommon(Stream * const stm, int32_t timeout, const uint8_t executeMode)
 {
     RT_LOG(RT_LOG_INFO, "capture model execute, model_id=%u!", Id_());
@@ -173,6 +195,7 @@ rtError_t CaptureModel::ExecuteCommon(Stream * const stm, int32_t timeout, const
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
         "build sq cq failed, stream_id=%d, model_id=%u", stm->Id_(), Id_());  
 
+    ReportCacheTrackData();
     if (executeMode == RT_MODEL_CAPTURE_EXECUTE_DEFAULT) {
         error = Model::Execute(stm, timeout);
     } else {
@@ -802,14 +825,33 @@ void CaptureModel::SetModelCacheOpInfoSwitch(const uint32_t status) const {
     }
 }
 
-rtError_t CaptureModel::FillShapeInfo(const Stream* const stm, const VOID * const infoPtr, const size_t infoSize,
-    MsprofShapeInfo * const shapeInfo) const
+void CaptureModel::ClearShapeInfo(const int32_t streamId, const uint32_t taskId)
 {
+    const auto &it = shapeInfos_.find(streamId);
+    if (it != shapeInfos_.end()) {
+        const auto &it2 = it->second.find(taskId);
+        if (it2 != it->second.end()) {
+            it->second.erase(it2);
+        }
+    }
+}
+
+rtError_t CaptureModel::SetShapeInfo(const Stream* const stm, const uint32_t taskId, const void * const infoPtr,
+                                     const size_t infoSize)
+{
+    const size_t totalSize = MS_PROF_SHAPE_INFO_SIZE + MS_PROF_SHAPE_HEADER_SIZE + infoSize;
+    auto rawMemPtr = std::make_unique<uint8_t []>(totalSize);
+    if (unlikely(rawMemPtr == nullptr)) {
+        RT_LOG(RT_LOG_ERROR, "New memory failed, stream_id=%d, task_id=%u.", stm->Id_(), taskId);
+        return RT_ERROR_MEMORY_ALLOCATION;
+    }
+    MsprofShapeInfo *shapeInfo = RtPtrToPtr<MsprofShapeInfo *, uint8_t *>(rawMemPtr.get());
+
     MsprofShapeHeader header;
-    header.modelId  = stm->Model_()->Id_();
+    header.modelId = stm->Model_()->Id_();
     header.deviceId = Context_()->Device_()->Id_();
-    header.streamId = InnerThreadLocalContainer::GetLastStreamId();
-    header.taskId   = InnerThreadLocalContainer::GetLastTaskId();
+    header.streamId = stm->Id_();
+    header.taskId = taskId;
 
     MsprofShapeInfo tempShape;
     shapeInfo->magicNumber = tempShape.magicNumber;
@@ -835,6 +877,7 @@ rtError_t CaptureModel::FillShapeInfo(const Stream* const stm, const VOID * cons
 
     shapeInfo->dataLen = static_cast<uint32_t>(MS_PROF_SHAPE_HEADER_SIZE + infoSize);
 
+    shapeInfos_[stm->Id_()][taskId] = std::move(rawMemPtr);
     return RT_ERROR_NONE;
 }
 
@@ -846,53 +889,47 @@ rtError_t CaptureModel::CacheLastTaskOpInfo(const void * const infoPtr, const si
     }
 
     const uint32_t lastTaskId = InnerThreadLocalContainer::GetLastTaskId();
-    const size_t totalSize = MS_PROF_SHAPE_INFO_SIZE + MS_PROF_SHAPE_HEADER_SIZE + infoSize;
-    auto rawMemPtr = std::make_unique<uint8_t []>(totalSize);
-    if (unlikely(rawMemPtr == nullptr)) {
-        RT_LOG(RT_LOG_ERROR, "New memory failed, stream_id=%d, task_id=%u.", stm->Id_(), lastTaskId);
-        return RT_ERROR_MEMORY_ALLOCATION;
-    }
-
-    MsprofShapeInfo *shapeInfo = RtPtrToPtr<MsprofShapeInfo *, uint8_t *>(rawMemPtr.get());
-
-    const rtError_t ret = FillShapeInfo(stm, infoPtr, infoSize, shapeInfo);
-    ERROR_RETURN(ret, "FillShapeInfo failed, stream_id=%d, task_id=%u.", stm->Id_(), lastTaskId);
- 
-    AddShapeInfo(rawMemPtr);
+    const rtError_t ret = SetShapeInfo(stm, lastTaskId, infoPtr, infoSize);
+    ERROR_RETURN(ret, "SetShapeInfo failed, streamId=%d, taskId=%u.", stm->Id_(), lastTaskId);
     return RT_ERROR_NONE;
 }
 
 void CaptureModel::ReportShapeInfoForProfiling() const
 {
-    for (const auto& shapeInfoPtr : shapeInfoList_) {
-        MsprofShapeInfo *shapeInfo = RtPtrToPtr<MsprofShapeInfo *, uint8_t *>(shapeInfoPtr.get());
- 
-        if (shapeInfo->dataLen < MS_PROF_SHAPE_HEADER_SIZE) {
-            RT_LOG(RT_LOG_ERROR, "Report capture shape info for profiling failed, data length = %u, header size = %u",
-                shapeInfo->dataLen, MS_PROF_SHAPE_HEADER_SIZE);
-            continue;
+    for (const auto &it1 : shapeInfos_) {
+        for (const auto &it2 : it1.second) {
+            if (it2.second == nullptr) {
+                continue;
+            }
+            MsprofShapeInfo *shapeInfo = RtPtrToPtr<MsprofShapeInfo *, uint8_t *>(it2.second.get());
+
+            if (shapeInfo->dataLen < MS_PROF_SHAPE_HEADER_SIZE) {
+                RT_LOG(RT_LOG_ERROR, "Report capture shape info for profiling failed, data length = %u, header size = %u",
+                    shapeInfo->dataLen, MS_PROF_SHAPE_HEADER_SIZE);
+                continue;
+            }
+
+            MsprofShapeHeader header = {};
+            auto err = memcpy_s(&header, MS_PROF_SHAPE_HEADER_SIZE, shapeInfo->data, MS_PROF_SHAPE_HEADER_SIZE);
+            if (err != EOK) {
+                RT_LOG(RT_LOG_ERROR, "Memcpy shape header failed.");
+                continue;
+            }
+            const uint32_t shapeSize = shapeInfo->dataLen - MS_PROF_SHAPE_HEADER_SIZE;
+
+            const uint32_t totalSize = MS_PROF_SHAPE_INFO_SIZE + shapeInfo->dataLen;
+            err = MsprofReportAdditionalInfo(0, shapeInfo, totalSize);
+            if (err != MSPROF_ERROR_NONE) {
+                RT_LOG(RT_LOG_ERROR, "Report capture shape info for profiling failed, stream_id=%u, task_id=%u, "
+                "model_id=%u, device_id=%u, thread_id=%u, total_len=%u, shape_len=%u, ret=%d.", header.streamId, header.taskId,
+                    header.modelId, header.deviceId, shapeInfo->threadId, shapeInfo->dataLen, shapeSize, err);
+                continue;
+            }
+
+            RT_LOG(RT_LOG_DEBUG, "Report capture shape info for profiling successfully, stream_id=%u, task_id=%u, "
+                "model_id=%u, device_id=%u, thread_id=%u, total_len=%u, shape_len=%u.", header.streamId, header.taskId, 
+                header.modelId, header.deviceId, shapeInfo->threadId, shapeInfo->dataLen, shapeSize);
         }
- 
-        MsprofShapeHeader header = {};
-        auto err = memcpy_s(&header, MS_PROF_SHAPE_HEADER_SIZE, shapeInfo->data, MS_PROF_SHAPE_HEADER_SIZE);
-        if (err != EOK) {
-            RT_LOG(RT_LOG_ERROR, "Memcpy shape header failed.");
-            continue;
-        }
-        const uint32_t shapeSize = shapeInfo->dataLen - MS_PROF_SHAPE_HEADER_SIZE;
- 
-        const uint32_t totalSize = MS_PROF_SHAPE_INFO_SIZE + shapeInfo->dataLen;
-        err = MsprofReportAdditionalInfo(0, shapeInfo, totalSize);
-        if (err != MSPROF_ERROR_NONE) {
-            RT_LOG(RT_LOG_ERROR, "Report capture shape info for profiling failed, stream_id=%u, task_id=%u, "
-            "model_id=%u, device_id=%u, thread_id=%u, total_len=%u, shape_len=%u, ret=%d.", header.streamId, header.taskId,
-                header.modelId, header.deviceId, shapeInfo->threadId, shapeInfo->dataLen, shapeSize, err);
-            continue;
-        }
-        
-        RT_LOG(RT_LOG_DEBUG, "Report capture shape info for profiling successfully, stream_id=%u, task_id=%u, "
-            "model_id=%u, device_id=%u, thread_id=%u, total_len=%u, shape_len=%u.", header.streamId, header.taskId, 
-            header.modelId, header.deviceId, shapeInfo->threadId, shapeInfo->dataLen, shapeSize);
     }
 }
 

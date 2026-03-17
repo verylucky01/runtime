@@ -223,10 +223,15 @@ rtError_t ApiDecorator::BinaryGetFunctionByEntry(const Program * const binHandle
     return impl_->BinaryGetFunctionByEntry(binHandle, funcEntry, funcHandle);
 }
 
-rtError_t ApiDecorator::BinaryGetMetaInfo(Program * const binHandle, const rtBinaryMetaType type,
-                                          void *data, const uint32_t length)
+rtError_t ApiDecorator::BinaryGetMetaNum(Program * const binHandle, const rtBinaryMetaType type, size_t *numOfMeta)
 {
-    return impl_->BinaryGetMetaInfo(binHandle, type, data, length);
+    return impl_->BinaryGetMetaNum(binHandle, type, numOfMeta);
+}
+
+rtError_t ApiDecorator::BinaryGetMetaInfo(Program * const binHandle, const rtBinaryMetaType type,
+                                          const size_t numOfMeta, void **data, const size_t *dataSize)
+{
+    return impl_->BinaryGetMetaInfo(binHandle, type, numOfMeta, data, dataSize);
 }
 
 rtError_t ApiDecorator::FunctionGetMetaInfo(const Kernel * const funcHandle, const rtFunctionMetaType type,
@@ -2567,5 +2572,9 @@ rtError_t ApiDecorator::TaskGetType(const TaskInfo * const task, rtTaskType *typ
     return impl_->TaskGetType(task, type);
 }
 
+rtError_t ApiDecorator::TaskGetSeqId(const TaskInfo * const task, uint32_t *id)
+{
+    return impl_->TaskGetSeqId(task, id);
+}
 }  // namespace runtime
 }  // namespace cce

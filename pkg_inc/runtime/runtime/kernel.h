@@ -1170,15 +1170,28 @@ rtError_t rtBinaryUnLoad(rtBinHandle binHandle);
 
 /**
  * @ingroup rt_kernel
- * @brief get binary meta info
+ * @brief get binary meta num
  * @param [in] binHandle  binary handle
  * @param [in] type       binary meta info type
- * @param [out] data      binary meta info addr
- * @param [in] length     binary meta info length
+ * @param [out] numOfMeta  num of binary meta info
  * @return RT_ERROR_NONE for ok
  * @return RT_ERROR_INVALID_VALUE for error input
  */
-rtError_t rtBinaryGetMetaInfo(const rtBinHandle binHandle, const rtBinaryMetaType type, void *data, const uint32_t length);
+RTS_API rtError_t rtBinaryGetMetaNum(const rtBinHandle binHandle, const rtBinaryMetaType type, size_t *numOfMeta);
+
+/**
+ * @ingroup rt_kernel
+ * @brief get binary meta info
+ * @param [in] binHandle  binary handle
+ * @param [in] type       binary meta info type
+ * @param [in] numOfMeta  num of binary meta info
+ * @param [out] data      binary meta info addr
+ * @param [in] dataSize   binary meta info length
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_INVALID_VALUE for error input
+ */
+RTS_API rtError_t rtBinaryGetMetaInfo(const rtBinHandle binHandle, const rtBinaryMetaType type, const size_t numOfMeta,
+    void **data, const size_t *dataSize);
 
 /**
  * @ingroup rt_kernel

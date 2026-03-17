@@ -4139,8 +4139,7 @@ rtError_t Stream::AllocCaptureTaskWithoutLock(tsTaskType_t taskType, uint32_t sq
         if (error != RT_ERROR_NONE) {
             ctx->FreeCascadeCaptureStream(newCaptureStream);
             SingleStreamTerminateCapture();
-            RT_LOG(RT_LOG_ERROR, "stream active failed, device_id=%u, original stream_id=%d.",
-                device_->Id_(), Id_());
+            RT_LOG(RT_LOG_ERROR, "stream active failed, device_id=%u, original stream_id=%d.", device_->Id_(), Id_());
             return error;
         }
         UpdateCascadeCaptureStreamInfo(newCaptureStream, curCaptureStream);
@@ -4154,14 +4153,18 @@ rtError_t Stream::AllocCaptureTaskWithoutLock(tsTaskType_t taskType, uint32_t sq
         curCaptureStream->AddCaptureSqeNum(sqeNum);
         (*task)->stream = curCaptureStream;
         Runtime::Instance()->AllocTaskSn((*task)->taskSn); // 只有A5用了这个字段，其他形态的分配了不用
+        Model *m = curCaptureStream->Model_();
+        if ((m != nullptr) && (m->GetModelType() == RT_MODEL_CAPTURE_MODEL)) {
+            (*task)->modelSeqId = dynamic_cast<CaptureModel *>(m)->GenerateSeqId();
+        }
     } else {
         SingleStreamTerminateCapture();
         return errCode;
     }
 
     RT_LOG(RT_LOG_INFO,
-        "Alloc task in capture stream successfully, device id = %u, origin stream_id=%d, capture stream_id=%d.",
-        device_->Id_(), Id_(), curCaptureStream->Id_());
+        "Alloc task in capture stream successfully, device id=%u, origin stream_id=%d, capture stream_id=%d, "
+        "task sequence id=%u.", device_->Id_(), Id_(), curCaptureStream->Id_(), (*task)->modelSeqId);
     return RT_ERROR_NONE;
 }
 

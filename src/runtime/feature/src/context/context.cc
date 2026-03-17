@@ -4414,13 +4414,6 @@ rtError_t Context::StreamEndCapture(Stream * const stm, Model ** const captureMd
             device_->Id_(), stm->Id_(), captureModel->Id_(), captureStream->Id_(), error);
     }
 
-    Profiler *profilerPtr = Runtime::Instance()->Profiler_();
-    if (profilerPtr != nullptr) {
-        if (profilerPtr->GetTrackProfEnable()) {
-            captureModelTmp->ReportedStreamInfoForProfiling();
-        }
-    }
-
     (void)captureModel->ModelExecuteType();
     /* stm end capture */
     stm->ExitCapture();

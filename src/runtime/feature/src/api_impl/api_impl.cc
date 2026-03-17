@@ -970,11 +970,20 @@ rtError_t ApiImpl::BinaryGetFunctionByEntry(const Program * const binHandle, con
     return RT_ERROR_NONE;
 }
 
-rtError_t ApiImpl::BinaryGetMetaInfo(Program * const binHandle, const rtBinaryMetaType type,
-                                     void *data, const uint32_t length)
+rtError_t ApiImpl::BinaryGetMetaNum(Program * const binHandle, const rtBinaryMetaType type, size_t *numOfMeta)
 {
-    Program * const prog = binHandle;
-    const rtError_t error = prog->BinaryGetMetaInfo(type, data, length);
+    const rtError_t error = binHandle->BinaryGetMetaNum(type, numOfMeta);
+    if (error != RT_ERROR_NONE) {
+        RT_LOG(RT_LOG_WARNING, "BinaryGetMetaNum failed, type=%u", type);
+        return error;
+    }
+    return RT_ERROR_NONE;
+}
+
+rtError_t ApiImpl::BinaryGetMetaInfo(Program * const binHandle, const rtBinaryMetaType type, const size_t numOfMeta,
+                                     void **data, const size_t *dataSize)
+{
+    const rtError_t error = binHandle->BinaryGetMetaInfo(type, numOfMeta, data, dataSize);
     if (error != RT_ERROR_NONE) {
         RT_LOG(RT_LOG_WARNING, "BinaryGetMetaInfo failed, type=%u", type);
         return error;
@@ -8987,5 +8996,17 @@ rtError_t ApiImpl::TaskGetType(const TaskInfo * const task, rtTaskType *type)
     return GetTaskType(task, type);
 }
 
+rtError_t ApiImpl::TaskGetSeqId(const TaskInfo * const task, uint32_t *id)
+{
+    const Stream* stm = task->stream;
+    NULL_PTR_RETURN(stm, RT_ERROR_STREAM_NULL);
+    const Model* mdl = stm->Model_();
+    NULL_PTR_RETURN(mdl, RT_ERROR_MODEL_NULL);
+    COND_RETURN_ERROR(mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_INVALID_VALUE,
+        "Now only support aclGraph to get sequence id");
+    *id = task->modelSeqId;
+    RT_LOG(RT_LOG_INFO, "Get task sequence id=%u, streamId=%d, taskId=%u.", *id, stm->Id_(), task->id);
+    return RT_ERROR_NONE;
+}
 }  // namespace runtime
 }  // namespace cce

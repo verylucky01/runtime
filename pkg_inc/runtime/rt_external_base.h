@@ -187,6 +187,16 @@ typedef enum {
     RT_DEV_RES_TYPE_MAX
 } rtDevResLimitType_t;
 
+typedef enum {
+    RT_BINARY_TYPE_BIN_VERSION = 0U,
+    RT_BINARY_TYPE_DEBUG_INFO = 1U,
+    RT_BINARY_TYPE_DYNAMIC_PARAM = 2U,
+    RT_BINARY_TYPE_OPTIONAL_PARAM = 3U,
+    RT_BINARY_TYPE_RUNTIME_IMPLICIT_INFO = 4U,
+    RT_BINARY_TYPE_SK_INFO = 5U,
+    RT_BINARY_TYPE_MAX
+} rtBinaryMetaType;
+
 /**
  * @ingroup dvrt_base
  * @brief Program handle.

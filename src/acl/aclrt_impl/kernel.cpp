@@ -674,6 +674,18 @@ aclError aclrtGetFunctionAttributeImpl(aclrtFuncHandle funcHandle, aclrtFuncAttr
     return ACL_SUCCESS;
 }
 
+aclError aclmdlRITaskGetSeqIdImpl(aclmdlRITask task, uint32_t *id)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclmdlRITaskGetSeqId);
+
+    const rtError_t rtErr = rtTaskGetSeqId(static_cast<rtTask_t>(task), id);
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("call rtModelTaskGetSeqId failed, runtime result = %d", static_cast<int32_t>(rtErr));
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    return ACL_SUCCESS;
+}
+
 aclError aclmdlRITaskGetTypeImpl(aclmdlRITask task, aclmdlRITaskType *type)
 {
     ACL_PROFILING_REG(acl::AclProfType::AclmdlRITaskGetType);

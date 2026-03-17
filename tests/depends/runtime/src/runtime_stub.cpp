@@ -2337,6 +2337,13 @@ rtError_t aclStub::rtTaskGetType(rtTask_t task, rtTaskType *type)
     return RT_ERROR_NONE;
 }
 
+rtError_t aclStub::rtTaskGetSeqId(rtTask_t task, uint32_t *id)
+{
+    (void)task;
+    (void)id;
+    return RT_ERROR_NONE;
+}
+
 MockFunctionTest& MockFunctionTest::aclStubInstance()
 {
     static MockFunctionTest stub;
@@ -4225,4 +4232,9 @@ rtError_t rtStreamGetTasks(rtStream_t const stm, rtTask_t *tasks, uint32_t *numT
 rtError_t rtTaskGetType(rtTask_t task, rtTaskType *type)
 {
     return MockFunctionTest::aclStubInstance().rtTaskGetType(task, type);
+}
+
+rtError_t rtTaskGetSeqId(rtTask_t task, uint32_t *id)
+{
+    return MockFunctionTest::aclStubInstance().rtTaskGetSeqId(task, id);
 }

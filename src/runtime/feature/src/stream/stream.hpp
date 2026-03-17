@@ -538,7 +538,8 @@ public:
 
     rtError_t AddTaskToStream(const TaskInfo * const tsk);
 
-    void CacheBindTrackTaskId(const uint16_t taskId){
+    void CacheBindTrackTaskId(const uint16_t taskId)
+    {
         cacheTrackTaskid_.push_back(taskId);
     }
 
@@ -547,6 +548,16 @@ public:
     void ClearCacheTrackTaskList()
     {
         cacheTrackTaskid_.clear();
+    }
+
+    void CacheCaptureTaskId(const uint16_t taskId)
+    {
+        cacheCaptureTaskid_.push_back(taskId);
+    }
+
+    const std::list<uint16_t> &GetCacheCaptureTaskId() const
+    {
+        return cacheCaptureTaskid_;
     }
 
     void InsertCacheStream();
@@ -1432,6 +1443,7 @@ private:
     Atomic<uint32_t> countingActiveNum_;
     // save not report track task for bind stream, clean when stream destroy or reported
     std::list<uint16_t> cacheTrackTaskid_;
+    std::list<uint16_t> cacheCaptureTaskid_;
     uint32_t lastEventId_{MAX_UINT32_NUM};
     std::vector<uint32_t> waitTaskList_;
 

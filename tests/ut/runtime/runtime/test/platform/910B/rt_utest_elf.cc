@@ -27,6 +27,8 @@
 #include "thread_local_container.hpp"
 
 #include "elf.hpp"
+#include "api_impl.hpp"
+#include "api_decorator.hpp"
 
 using namespace testing;
 using namespace cce::runtime;
@@ -1426,8 +1428,15 @@ TEST_F(CloudV2ELFTest, GetMetaInfo)
 
     uint64_t data = 0;
     uint32_t length = 4;
+    size_t numOfMeta = 0U;
 
-    error = GetBinaryMetaInfo(elfData, BinaryTLVType, RtPtrToPtr<void *>(&data), length);
+    error = GetBinaryMetaNum(elfData, BinaryTLVType, &numOfMeta);
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+
+    std::vector<uint8_t> value(10, 0);
+    std::vector<size_t> size(numOfMeta, 10);
+    std::vector<void *> info(numOfMeta, (void *)value.data());
+    error = GetBinaryMetaInfo(elfData, BinaryTLVType, numOfMeta, info.data(), size.data());
     EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
 
     error = GetFunctionMetaInfo(elfData, "", FuncTLVType, RtPtrToPtr<void *>(&data), length);
@@ -1438,10 +1447,18 @@ TEST_F(CloudV2ELFTest, GetMetaInfo)
     elfData->elf_header.e_shnum = 3;
     // 0 string sec, 1 binary meta info, 2 func meta info
     elfData->section_headers = new Elf_Internal_Shdr[3];
-
     elfData->section_headers[0].sh_size = 0;
-    error = GetBinaryMetaInfo(elfData, BinaryTLVType, RtPtrToPtr<void *>(&data), length);
+
+    error = GetBinaryMetaNum(elfData, BinaryTLVType, &numOfMeta);
     EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+    error = GetBinaryMetaInfo(elfData, BinaryTLVType, numOfMeta, info.data(), size.data());
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+
+    Elf_Internal_Shdr metaSection = {};
+    metaSection.sh_size = 20;
+    std::vector<uint8_t> obj(500, 0);
+    elfData->obj_ptr_origin = (char *)obj.data();
+    GetMetaInfo(elfData, &metaSection, BinaryTLVType);
 
     error = GetFunctionMetaInfo(elfData, "", FuncTLVType, RtPtrToPtr<void *>(&data), length);
     EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
@@ -1473,22 +1490,37 @@ TEST_F(CloudV2ELFTest, rtGetMetaInfo)
     Kernel *funcHandle = new Kernel("func", "func", "func");
     uint64_t data = 0;
     uint32_t length = 0;
-    rtError_t error;
 
     delete prog->elfData_;
     prog->elfData_ = nullptr;
     funcHandle->program_ = RtPtrToPtr<Program *>(prog);
 
-    error = rtBinaryGetMetaInfo(nullptr, RT_BINARY_TYPE_BIN_VERSION, RtPtrToPtr<void *>(&data), length);
+    size_t numOfMeta = 0;
+    rtError_t error = rtBinaryGetMetaNum(RtPtrToPtr<rtBinHandle>(prog), RT_BINARY_TYPE_BIN_VERSION, &numOfMeta);
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
 
-    error = rtBinaryGetMetaInfo(RtPtrToPtr<rtBinHandle>(prog), RT_BINARY_TYPE_BIN_VERSION, nullptr, length);
+    error = rtBinaryGetMetaNum(RtPtrToPtr<rtBinHandle>(prog2), RT_BINARY_TYPE_BIN_VERSION, &numOfMeta);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    ApiImpl impl;
+    ApiDecorator apiDecorator(&impl);
+    error = apiDecorator.BinaryGetMetaNum((Program *)prog2, RT_BINARY_TYPE_BIN_VERSION, &numOfMeta);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    numOfMeta = 2;
+    std::vector<uint8_t> v(10, 0);
+    std::vector<size_t> size(numOfMeta, 10);
+    std::vector<void *> info(numOfMeta, (void *)v.data());
+    error = rtBinaryGetMetaInfo(RtPtrToPtr<rtBinHandle>(prog), RT_BINARY_TYPE_BIN_VERSION, numOfMeta, info.data(),
+        size.data());
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
 
-    error = rtBinaryGetMetaInfo(RtPtrToPtr<rtBinHandle>(prog), RT_BINARY_TYPE_BIN_VERSION, RtPtrToPtr<void *>(&data), length);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+    error = rtBinaryGetMetaInfo(RtPtrToPtr<rtBinHandle>(prog2), RT_BINARY_TYPE_BIN_VERSION, numOfMeta, info.data(),
+        size.data());
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
 
-    error = rtBinaryGetMetaInfo(RtPtrToPtr<rtBinHandle>(prog2), RT_BINARY_TYPE_BIN_VERSION, RtPtrToPtr<void *>(&data), length);
+    error = apiDecorator.BinaryGetMetaInfo((Program *)prog2, RT_BINARY_TYPE_BIN_VERSION, numOfMeta,
+        info.data(), size.data());
     EXPECT_EQ(error, ACL_RT_SUCCESS);
 
     error = rtFunctionGetMetaInfo(nullptr, RT_FUNCTION_TYPE_KERNEL_TYPE, RtPtrToPtr<void *>(&data), length);

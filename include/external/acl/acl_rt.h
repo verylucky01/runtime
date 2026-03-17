@@ -4322,6 +4322,16 @@ ACL_FUNC_VISIBILITY aclError aclmdlRITaskGetType(aclmdlRITask task, aclmdlRITask
 
 /**
  * @ingroup AscendCL
+ * @brief get sequence id of the task
+ * @param [in] task: task handle
+ * @param [out] id: sequence id of the task
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval OtherValues Failure
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlRITaskGetSeqId(aclmdlRITask task, uint32_t *id);
+
+/**
+ * @ingroup AscendCL
  * @brief query ACL interface version
  *
  * @param majorVersion[OUT] ACL interface major version

@@ -418,7 +418,11 @@ rtError_t UpdateKernelsMinStackSizeInfo(
 rtError_t RefreshSymbolAddress(rtElfData *elfData);
 void SetSymbolAddress(const char_t *stringTab, const Elf_Internal_Sym * const psym,
     const uint64_t numSyms, rtElfData * const elfData);
-rtError_t GetBinaryMetaInfo(const rtElfData * const elfData, const uint16_t type, void *data, const uint32_t length);
+rtError_t GetBinaryMetaNum(const rtElfData * const elfData, const uint16_t type, size_t *numOfMeta);
+rtError_t GetBinaryMetaInfo(const rtElfData * const elfData, const uint16_t type, const size_t numOfMeta, void **data,
+                            const size_t *dataSize);
+std::vector<std::pair<void*, uint32_t>> GetMetaInfo(const rtElfData * const elfData,
+    const Elf_Internal_Shdr * const metaSection, const uint16_t type);
 rtError_t GetFunctionMetaInfo(const rtElfData * const elfData, const std::string &kernelName, const uint16_t type,
                               void *data, const uint32_t length);
 }

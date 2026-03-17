@@ -34,6 +34,7 @@ typedef struct tagTaskInfoStru {
     uint32_t pos;
     uint32_t stmArgPos;
     uint32_t liteStreamResId;
+    uint32_t modelSeqId;
     uint16_t liteTaskResId;
     uint16_t mte_error;
     uint16_t id;

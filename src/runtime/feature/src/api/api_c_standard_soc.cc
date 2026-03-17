@@ -1367,6 +1367,32 @@ rtError_t rtFuncGetSize(const rtFuncHandle funcHandle, size_t *aicSize, size_t *
 }
 
 VISIBILITY_DEFAULT
+rtError_t rtBinaryGetMetaNum(const rtBinHandle binHandle, const rtBinaryMetaType type, size_t *numOfMeta)
+{
+    Api * const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    const rtError_t ret = apiInstance->BinaryGetMetaNum(RtPtrToPtr<Program *>(binHandle), type, numOfMeta);
+
+    COND_RETURN_WITH_NOLOG(ret == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    ERROR_RETURN_WITH_EXT_ERRCODE(ret);
+    return ACL_RT_SUCCESS;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtBinaryGetMetaInfo(const rtBinHandle binHandle, const rtBinaryMetaType type, const size_t numOfMeta,
+    void **data, const size_t *dataSize)
+{
+    Api * const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    const rtError_t ret =
+        apiInstance->BinaryGetMetaInfo(RtPtrToPtr<Program *>(binHandle), type, numOfMeta, data, dataSize);
+
+    COND_RETURN_WITH_NOLOG(ret == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    ERROR_RETURN_WITH_EXT_ERRCODE(ret);
+    return ACL_RT_SUCCESS;
+}
+
+VISIBILITY_DEFAULT
 rtError_t rtGetSocSpec(const char* label, const char* key, char* val, const uint32_t maxLen)
 {
     PARAM_NULL_RETURN_ERROR_WITH_EXT_ERRCODE(label, RT_ERROR_INVALID_VALUE);

@@ -1055,6 +1055,35 @@ rtError_t rtTaskGetType(rtTask_t task, rtTaskType *type)
     return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
 }
 
+VISIBILITY_DEFAULT
+RTS_API rtError_t rtTaskGetSeqId(rtTask_t task, uint32_t *id)
+{
+    UNUSED(task);
+    UNUSED(id);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtBinaryGetMetaNum(const rtBinHandle binHandle, const rtBinaryMetaType type, size_t *numOfMeta)
+{
+    UNUSED(binHandle);
+    UNUSED(type);
+    UNUSED(numOfMeta);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtBinaryGetMetaInfo(const rtBinHandle binHandle, const rtBinaryMetaType type, const size_t numOfMeta,
+    void **data, const size_t *dataSize)
+{
+    UNUSED(binHandle);
+    UNUSED(type);
+    UNUSED(numOfMeta);
+    UNUSED(data);
+    UNUSED(dataSize);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

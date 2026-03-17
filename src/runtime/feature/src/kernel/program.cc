@@ -833,11 +833,20 @@ void PlainProgram::AdaptKernelAttrType(const RtKernel * const kernelInput, Kerne
     return;
 }
 
-rtError_t PlainProgram::BinaryGetMetaInfo(const rtBinaryMetaType type, void *data, const uint32_t length)
+rtError_t PlainProgram::BinaryGetMetaNum(const rtBinaryMetaType type, size_t *numOfMeta)
 {
     UNUSED(type);
+    UNUSED(numOfMeta);
+    return RT_ERROR_NONE;
+}
+
+rtError_t PlainProgram::BinaryGetMetaInfo(const rtBinaryMetaType type, const size_t numOfMeta, void **data,
+                                          const size_t *dataSize)
+{
+    UNUSED(type);
+    UNUSED(numOfMeta);
     UNUSED(data);
-    UNUSED(length);
+    UNUSED(dataSize);
     return RT_ERROR_NONE;
 }
 
@@ -1493,9 +1502,15 @@ rtError_t ElfProgram::RefreshSymbolAddr()
     return RefreshSymbolAddress(elfData_);
 }
 
-rtError_t ElfProgram::BinaryGetMetaInfo(const rtBinaryMetaType type, void *data, const uint32_t length)
+rtError_t ElfProgram::BinaryGetMetaNum(const rtBinaryMetaType type, size_t *numOfMeta)
 {
-    return GetBinaryMetaInfo(elfData_, type, data, length);
+    return GetBinaryMetaNum(elfData_, type, numOfMeta);
+}
+
+rtError_t ElfProgram::BinaryGetMetaInfo(const rtBinaryMetaType type, const size_t numOfMeta, void **data,
+                                        const size_t *dataSize)
+{
+    return GetBinaryMetaInfo(elfData_, type, numOfMeta, data, dataSize);
 }
 
 rtError_t ElfProgram::FunctionGetMetaInfo(const std::string &kernelName, const rtFunctionMetaType type,

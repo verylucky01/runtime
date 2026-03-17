@@ -301,7 +301,9 @@ public:
     virtual rtError_t GetKernel(const void * const symbol, RtKernel &kernel) = 0;
     virtual bool HasMixKernel() = 0;
     virtual rtError_t RefreshSymbolAddr() = 0;
-    virtual rtError_t BinaryGetMetaInfo(const rtBinaryMetaType type, void *data, const uint32_t length) = 0;
+    virtual rtError_t BinaryGetMetaNum(const rtBinaryMetaType type, size_t *numOfMeta) = 0;
+    virtual rtError_t BinaryGetMetaInfo(const rtBinaryMetaType type, const size_t numOfMeta, void **data,
+                                        const size_t *dataSize) = 0;
     virtual void AdaptKernelAttrType(const RtKernel * const kernelInput, Kernel *kernelOutput) = 0;
     virtual rtError_t FunctionGetMetaInfo(const std::string &kernelName, const rtFunctionMetaType type,
                                           void *data, const uint32_t length) = 0;
@@ -394,7 +396,9 @@ public:
     rtError_t GetKernel(const void * const symbol, RtKernel &kernel) override;
     bool HasMixKernel() override;
     rtError_t RefreshSymbolAddr() override;
-    rtError_t BinaryGetMetaInfo(const rtBinaryMetaType type, void *data, const uint32_t length) override;
+    rtError_t BinaryGetMetaNum(const rtBinaryMetaType type, size_t *numOfMeta) override;
+    rtError_t BinaryGetMetaInfo(const rtBinaryMetaType type, const size_t numOfMeta, void **data,
+                                const size_t *dataSize) override;
     rtError_t FunctionGetMetaInfo(const std::string &kernelName, const rtFunctionMetaType type,
                                   void *data, const uint32_t length) override;
     void AdaptKernelAttrType(const RtKernel * const kernelInput, Kernel *kernelOutput) override;
@@ -413,7 +417,9 @@ public:
     rtError_t GetKernel(const void * const symbol, RtKernel &kernel) override;
     bool HasMixKernel() override;
     rtError_t RefreshSymbolAddr() override;
-    rtError_t BinaryGetMetaInfo(const rtBinaryMetaType type, void *data, const uint32_t length) override;
+    rtError_t BinaryGetMetaInfo(const rtBinaryMetaType type, const size_t numOfMeta, void **data,
+                                const size_t *dataSize) override;
+    rtError_t BinaryGetMetaNum(const rtBinaryMetaType type, size_t *numOfMeta) override;
     rtError_t FunctionGetMetaInfo(const std::string &kernelName, const rtFunctionMetaType type,
                                   void *data, const uint32_t length) override;
 

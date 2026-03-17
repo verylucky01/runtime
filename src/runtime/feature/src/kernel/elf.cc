@@ -1421,15 +1421,7 @@ static RtKernel *ProcessSymbolTable(rtElfData * const elfData, const uint32_t pr
     return kernels;
 }
 
-static int32_t GetFileHeader(rtElfData * const elfData)
-{
-    errno_t ret = memcpy_s(elfData->elf_header.e_ident, static_cast<size_t>(EI_NIDENT), elfData->obj_ptr,
-        static_cast<size_t>(EI_NIDENT));
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, ELF_FAIL,
-        "Get file header failed, memcpy_s failed, size=%zu, retCode=%d!", static_cast<size_t>(EI_NIDENT), ret);
-    elfData->obj_ptr += EI_NIDENT;
-
-    /* Determine how to read the rest of the header.  */
+static void SetGetByteFunc(const rtElfData * const elfData) {
     switch (static_cast<int32_t>(elfData->elf_header.e_ident[EI_DATA])) {
         case ELFDATANONE:
         case ELFDATA2LSB:
@@ -1442,6 +1434,18 @@ static int32_t GetFileHeader(rtElfData * const elfData)
             GetByte = &ByteGetLittleEndian;
             break;
     }
+}
+
+static int32_t GetFileHeader(rtElfData * const elfData)
+{
+    errno_t ret = memcpy_s(elfData->elf_header.e_ident, static_cast<size_t>(EI_NIDENT), elfData->obj_ptr,
+        static_cast<size_t>(EI_NIDENT));
+    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, ELF_FAIL,
+        "Get file header failed, memcpy_s failed, size=%zu, retCode=%d!", static_cast<size_t>(EI_NIDENT), ret);
+    elfData->obj_ptr += EI_NIDENT;
+
+    /* Determine how to read the rest of the header.  */
+    SetGetByteFunc(elfData);
 
     /* For now we only support 64 bit ELF objects.  */
     const bool is32bitElf = (static_cast<int32_t>(elfData->elf_header.e_ident[EI_CLASS]) != ELFCLASS64);
@@ -1610,9 +1614,11 @@ static rtError_t GetMetaSection(const rtElfData * const elfData, Elf_Internal_Sh
     return RT_ERROR_NONE;
 }
 
-static rtError_t GetMetaInfo(const rtElfData * const elfData, const Elf_Internal_Shdr * const metaSection,
-                             const uint16_t type, uint64_t *data, const uint32_t length)
+std::vector<std::pair<void*, uint32_t>> GetMetaInfo(const rtElfData * const elfData,
+    const Elf_Internal_Shdr * const metaSection, const uint16_t type)
 {
+    SetGetByteFunc(elfData);
+    std::vector<std::pair<void*, uint32_t>> out;
     uint64_t remainLen = metaSection->sh_size;
     uint8_t *curBuf = RtPtrToPtr<uint8_t *>(elfData->obj_ptr_origin) + metaSection->sh_offset;
 
@@ -1620,46 +1626,70 @@ static rtError_t GetMetaInfo(const rtElfData * const elfData, const Elf_Internal
         const ElfTlvHead *tlvHead = RtPtrToPtr<const ElfTlvHead *>(curBuf);
         const uint16_t tlvType = static_cast<uint16_t>(GetByte(RtPtrToPtr<const uint8_t *>(&(tlvHead->type)),
             sizeof(uint16_t)));
-        const uint16_t tlvLength = static_cast<uint16_t>(GetByte(RtPtrToPtr<const uint8_t *>(&(tlvHead->length)),
+        const uint32_t tlvLength = static_cast<uint32_t>(GetByte(RtPtrToPtr<const uint8_t *>(&(tlvHead->length)),
             sizeof(uint16_t)));
         if ((sizeof(ElfTlvHead) + tlvLength) > remainLen) {
             break;
         }
+        RT_LOG(RT_LOG_DEBUG, "Get meta info segment, type=%u, size=%u, target type=%u", tlvType, tlvLength, type);
         if (tlvType == type) {
-            COND_RETURN_ERROR_MSG_INNER(length != tlvLength, RT_ERROR_INVALID_VALUE, 
-                                        "length is not equal tlvLength, length = %u, tlvLength = %u, type = %u.", length, tlvLength, type);
-            *data = RtPtrToPtr<uint64_t>(curBuf + sizeof(ElfTlvHead));
-            RT_LOG(RT_LOG_INFO, "Get meta info segment, type = %u", type);
-            return RT_ERROR_NONE;
+            out.push_back({curBuf + sizeof(ElfTlvHead), tlvLength});
         }
         curBuf = curBuf + sizeof(ElfTlvHead) + tlvLength;
         remainLen = remainLen - (sizeof(ElfTlvHead) + tlvLength);
     }
 
-    RT_LOG(RT_LOG_WARNING, "No data segment with the type value of %u was found.", type);
-    return RT_ERROR_INVALID_VALUE;
+    return out;
 }
 
-rtError_t GetBinaryMetaInfo(const rtElfData * const elfData, const uint16_t type, void *data, const uint32_t length)
+rtError_t GetBinaryMetaNum(const rtElfData * const elfData, const uint16_t type, size_t *numOfMeta)
 {
-    if (elfData == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "elfData is nullptr.");
-        return RT_ERROR_INVALID_VALUE;
-    }
-
-    if (type > RT_BINARY_TYPE_RUNTIME_IMPLICIT_INFO) {
-        RT_LOG(RT_LOG_WARNING, "No data segment with the type value of %u was found.", type);
-        return RT_ERROR_INVALID_VALUE;
-    }
+    NULL_PTR_RETURN(elfData, RT_ERROR_INVALID_VALUE);
+    // 若查询的meta type超过rts定义的范围，返回错误码并打印warning日志，调用端判断版本配套关系
+    COND_RETURN_WARN((type >= RT_BINARY_TYPE_MAX), RT_ERROR_FEATURE_NOT_SUPPORT,
+        "Binary meta type=%u is invalid.", type);
 
     Elf_Internal_Shdr *section = nullptr;
     const rtError_t error = GetMetaSection(elfData, section, ELF_SECTION_ASCEND_META);
-    if (error != RT_ERROR_NONE) {
-        RT_LOG(RT_LOG_ERROR, "Get meta section failed!");
-        return error;
-    }
+    ERROR_RETURN(error, "Get meta section failed, ret=%d", error);
 
-    return GetMetaInfo(elfData, section, type, RtPtrToPtr<uint64_t *>(data), length);
+    auto metaInfo = GetMetaInfo(elfData, section, type);
+    *numOfMeta = metaInfo.size();
+    return RT_ERROR_NONE;
+}
+
+rtError_t GetBinaryMetaInfo(const rtElfData * const elfData, const uint16_t type, const size_t numOfMeta, void **data,
+                            const size_t *dataSize)
+{
+    NULL_PTR_RETURN(elfData, RT_ERROR_INVALID_VALUE);
+    COND_RETURN_WARN((type >= RT_BINARY_TYPE_MAX), RT_ERROR_FEATURE_NOT_SUPPORT,
+        "Binary meta type=%u is invalid.", type);
+
+    Elf_Internal_Shdr *section = nullptr;
+    const rtError_t error = GetMetaSection(elfData, section, ELF_SECTION_ASCEND_META);
+    ERROR_RETURN(error, "Get meta section failed, ret=%d", error);
+
+    auto metaInfo = GetMetaInfo(elfData, section, type);
+    // numOfMeta为0不需要特殊处理
+    if (metaInfo.size() != numOfMeta) {
+        RT_LOG_OUTER_MSG_INVALID_PARAM(numOfMeta, metaInfo.size());
+        return RT_ERROR_INVALID_VALUE;
+    }
+    
+    for (size_t i = 0U; i < numOfMeta; i++) {
+        if (dataSize[i] != metaInfo[i].second) {
+            RT_LOG_OUTER_MSG_INVALID_PARAM(dataSize[i], metaInfo[i].second);
+            return RT_ERROR_INVALID_VALUE;
+        }
+
+        const errno_t ret = memcpy_s(data[i], dataSize[i], metaInfo[i].first, metaInfo[i].second);
+        COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, ELF_FAIL,
+            "Call memcpy_s failed, dst addr=%p, dst size=%zu, src addr=%p, src size=%u, retCode=%d!", 
+            data[i], dataSize[i], metaInfo[i].first, metaInfo[i].second, ret);
+
+        RT_LOG(RT_LOG_INFO, "Get meta info segment, type=%u, size=%zu", type, dataSize[i]);
+    }
+    return RT_ERROR_NONE;
 }
 
 rtError_t GetFunctionMetaInfo(const rtElfData * const elfData, const std::string &kernelName, const uint16_t type,
@@ -1685,7 +1715,16 @@ rtError_t GetFunctionMetaInfo(const rtElfData * const elfData, const std::string
         return error;
     }
 
-    return GetMetaInfo(elfData, section, type, RtPtrToPtr<uint64_t *>(data), length);
+    auto metaInfo = GetMetaInfo(elfData, section, type);
+    COND_RETURN_WARN((metaInfo.empty()), RT_ERROR_INVALID_VALUE, "No meta info with type %u was found.", type);
+
+    if (length != metaInfo[0].second) {
+        RT_LOG_OUTER_MSG_INVALID_PARAM(length, metaInfo[0].second);
+        return RT_ERROR_INVALID_VALUE;
+    }
+    uint64_t *out = RtPtrToPtr<uint64_t *>(data);
+    *out = RtPtrToValue(metaInfo[0].first);
+    return RT_ERROR_NONE;
 }
 }
 }

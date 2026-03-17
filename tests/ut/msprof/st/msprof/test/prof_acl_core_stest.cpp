@@ -2524,11 +2524,29 @@ TEST_F(MSPROF_ACL_CORE_STEST, aclprofSetConfig_not_support) {
     EXPECT_EQ(ACL_ERROR_INVALID_PARAM, aclprofSetConfig(ACL_PROF_ARGS_MAX, nullptr, 0));
 }
 
-TEST_F(MSPROF_ACL_CORE_STEST, aclprofSetConfig_not_init) {
-    Msprofiler::Api::ProfAclMgr::instance()->mode_ = Msprofiler::Api::WORK_MODE_OFF;
-    Msprofiler::Api::ProfAclMgr::instance()->UnInit();
+TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfigWillReturnUnintializeWhenInitParmasFail)
+{
     std::string config("50");
-    EXPECT_EQ(ACL_ERROR_UNINITIALIZE, Msprofiler::AclApi::ProfSetConfig(ACL_PROF_DVPP_FREQ, config.c_str(), config.size()));
+    Msprofiler::Api::ProfAclMgr::instance()->mode_ = Msprofiler::Api::WORK_MODE_OFF;
+    MOCKER_CPP(&Msprofiler::Api::ProfAclMgr::InitParams)
+        .stubs()
+        .will(returnValue(ACL_ERROR_PROFILING_FAILURE));
+    EXPECT_EQ(ACL_ERROR_UNINITIALIZE, Msprofiler::AclApi::ProfSetConfig(ACL_PROF_DVPP_FREQ,
+        config.c_str(), config.size()));
+}
+
+TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfigWillReturnUnintializeWhenPlatformInitFail)
+{
+    std::string config("50");
+    Msprofiler::Api::ProfAclMgr::instance()->mode_ = Msprofiler::Api::WORK_MODE_OFF;
+    MOCKER_CPP(&Msprofiler::Api::ProfAclMgr::InitParams)
+        .stubs()
+        .will(returnValue(ACL_SUCCESS));
+    MOCKER_CPP(&Analysis::Dvvp::Common::Platform::Platform::Init)
+        .stubs()
+        .will(returnValue(PROFILING_FAILED));
+    EXPECT_EQ(ACL_ERROR_UNINITIALIZE, Msprofiler::AclApi::ProfSetConfig(ACL_PROF_DVPP_FREQ,
+        config.c_str(), config.size()));
 }
 
 TEST_F(MSPROF_ACL_CORE_STEST, IsValidProfConfig) {

@@ -354,10 +354,7 @@ int32_t ProfAclMgr::ProfAclInit(const std::string &profResultPath)
         return ACL_ERROR_INVALID_FILE;
     }
     path = Utils::CanonicalizePath(path);
-    if (path.empty()) {
-        MSPROF_LOGE("Invalid path of profInit");
-        return ACL_ERROR_INVALID_FILE;
-    }
+    FUNRET_CHECK_EXPR_ACTION(path.empty(), return ACL_ERROR_INVALID_FILE, "Invalid path for aclprofInit");
 
     // Check path is valid
     if (!Utils::IsDirAccessible(path)) {
@@ -378,9 +375,18 @@ int32_t ProfAclMgr::ProfAclInit(const std::string &profResultPath)
     // reset device index
     devUuid_.clear();
 
-    MSVP_MAKE_SHARED0(params_, analysis::dvvp::message::ProfileParams, return ACL_ERROR_PROFILING_FAILURE);
+    FUNRET_CHECK_EXPR_ACTION(InitParams() != ACL_SUCCESS, return ACL_ERROR_PROFILING_FAILURE, "Failed to init params");
 
     mode_ = WORK_MODE_API_CTRL;
+    return ACL_SUCCESS;
+}
+
+int32_t ProfAclMgr::InitParams()
+{
+    if (params_ != nullptr) {
+        return ACL_SUCCESS;
+    }
+    MSVP_MAKE_SHARED0(params_, analysis::dvvp::message::ProfileParams, return ACL_ERROR_PROFILING_FAILURE);
     return ACL_SUCCESS;
 }
 

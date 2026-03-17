@@ -401,9 +401,15 @@ PROF_CONFIG_CONST_PTR ProfGetCurrentConfig()
 
 aclError ProfSetConfig(aclprofConfigType configType, const char *config, size_t configLength)
 {
+    std::lock_guard<std::mutex> lock(g_profMutex);
     if (ProfAclMgr::instance()->ProfSetConfigPrecheck() != ACL_SUCCESS) {
-        MSPROF_LOGE("[aclprofSetConfig]Fail to set profiling config as api has not initialized yet.");
-        return ACL_ERROR_UNINITIALIZE;
+        // If precheck failed, it means aclprofInit is not called,
+        // we need to init params and platform first to set config successfully.
+        if (ProfAclMgr::instance()->InitParams() != ACL_SUCCESS ||
+            Platform::instance()->Init() != PROFILING_SUCCESS) {
+                MSPROF_LOGE("Failed to init params when set config");
+                return ACL_ERROR_UNINITIALIZE;
+            }
     }
     if (Platform::instance()->PlatformIsHelperHostSide()) {
         MSPROF_LOGE("acl api not support in helper");

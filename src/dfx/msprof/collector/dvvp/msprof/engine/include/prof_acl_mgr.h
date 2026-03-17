@@ -190,6 +190,7 @@ public:
 
     // api ctrl
     int32_t ProfAclInit(const std::string& profResultPath);
+    int32_t InitParams();
     bool IsInited();
     bool EnableRpcHelperMode(std::string msprofPath);
     int32_t InitUploader(const std::string& devIdStr);

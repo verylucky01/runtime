@@ -3274,43 +3274,65 @@ TEST_F(MSPROF_ACL_CORE_UTEST, ProfStop) {
     EXPECT_EQ(ACL_ERROR_INVALID_PROFILING_CONFIG, Msprofiler::AclApi::ProfStop(ACL_API_TYPE, &config));
 }
 
-TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfig)
+TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfigWillReturnUnintializeWhenInitParmasFail)
 {
-    // Simulate the failure to initialize the MSP.
-    Msprofiler::Api::ProfAclMgr::instance()->mode_ = Msprofiler::Api::WORK_MODE_OFF;
-    Msprofiler::Api::ProfAclMgr::instance()->UnInit();
     std::string config("50");
-    EXPECT_EQ(ACL_ERROR_UNINITIALIZE, Msprofiler::AclApi::ProfSetConfig(ACL_PROF_DVPP_FREQ, config.c_str(), config.size()));
+    Msprofiler::Api::ProfAclMgr::instance()->mode_ = Msprofiler::Api::WORK_MODE_OFF;
+    MOCKER_CPP(&Msprofiler::Api::ProfAclMgr::InitParams)
+        .stubs()
+        .will(returnValue(ACL_ERROR_PROFILING_FAILURE));
+    EXPECT_EQ(ACL_ERROR_UNINITIALIZE, Msprofiler::AclApi::ProfSetConfig(ACL_PROF_DVPP_FREQ,
+        config.c_str(), config.size()));
+}
 
-    // aclprofInit
+TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfigWillReturnUnintializeWhenPlatformInitFail)
+{
+    std::string config("50");
+    Msprofiler::Api::ProfAclMgr::instance()->mode_ = Msprofiler::Api::WORK_MODE_OFF;
+    MOCKER_CPP(&Msprofiler::Api::ProfAclMgr::InitParams)
+        .stubs()
+        .will(returnValue(ACL_SUCCESS));
+    MOCKER_CPP(&Analysis::Dvvp::Common::Platform::Platform::Init)
+        .stubs()
+        .will(returnValue(PROFILING_FAILED));
+    EXPECT_EQ(ACL_ERROR_UNINITIALIZE, Msprofiler::AclApi::ProfSetConfig(ACL_PROF_DVPP_FREQ,
+        config.c_str(), config.size()));
+}
+
+TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfigWillReturnUnsupportedWhenPlatformIsHelperHostSide)
+{
+    std::string config("50");
+    Msprofiler::Api::ProfAclMgr::instance()->mode_ = Msprofiler::Api::WORK_MODE_OFF;
+    MOCKER_CPP(&Analysis::Dvvp::Common::Platform::Platform::Init)
+        .stubs()
+        .will(returnValue(PROFILING_SUCCESS));
     MOCKER(&Analysis::Dvvp::Common::Platform::Platform::PlatformIsHelperHostSide)
         .stubs()
-        .then(returnValue(false))
-        .then(returnValue(true))
-        .then(returnValue(false));
-    std::string result = "/tmp/acl_prof_api_utest_new";
-    EXPECT_EQ(ACL_SUCCESS, aclprofInit(result.c_str(), result.size()));
+        .then(returnValue(true));
+    EXPECT_EQ(ACL_ERROR_FEATURE_UNSUPPORTED, Msprofiler::AclApi::ProfSetConfig(ACL_PROF_DVPP_FREQ,
+        config.c_str(), config.size()));
+}
 
-    aclprofConfigType configType = ACL_PROF_DVPP_FREQ;
-    EXPECT_EQ(ACL_ERROR_FEATURE_UNSUPPORTED, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
+TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfigWillCheckConfigWhenPlatformSupported)
+{
+    std::string config("50");
+    Msprofiler::Api::ProfAclMgr::instance()->mode_ = Msprofiler::Api::WORK_MODE_API_CTRL;
+    MOCKER(&Analysis::Dvvp::Common::Platform::Platform::PlatformIsHelperHostSide)
+        .stubs()
+        .then(returnValue(false));
     MOCKER_CPP(&Platform::CheckIfSupport, bool (Platform::*)(const PlatformFeature) const)
         .stubs()
-        .will(returnValue(false))
-        .then(returnValue(false))
         .then(returnValue(true));
-    EXPECT_EQ(ACL_ERROR_INVALID_PROFILING_CONFIG, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
+    aclprofConfigType configType = ACL_PROF_DVPP_FREQ;
     EXPECT_EQ(ACL_SUCCESS, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
-
     configType = ACL_PROF_SYS_HARDWARE_MEM_FREQ;
     EXPECT_EQ(ACL_SUCCESS, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
     configType = ACL_PROF_SYS_IO_FREQ;
     EXPECT_EQ(ACL_SUCCESS, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
     configType = ACL_PROF_SYS_INTERCONNECTION_FREQ;
     EXPECT_EQ(ACL_SUCCESS, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
-
     configType = ACL_PROF_SYS_MEM_SERVICEFLOW;
     EXPECT_EQ(ACL_SUCCESS, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
-
     configType = ACL_PROF_HOST_SYS_USAGE_FREQ;
     EXPECT_EQ(ACL_SUCCESS, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
     MOCKER_CPP(&Platform::GetPlatformType)
@@ -3319,11 +3341,12 @@ TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfig)
         .then(returnValue(PlatformTypeEnum::CHIP_CLOUD));
     configType = ACL_PROF_LLC_MODE;
     config = "read";
-    EXPECT_EQ(ACL_ERROR_INVALID_PROFILING_CONFIG, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
+    int expectRet = ACL_ERROR_INVALID_PROFILING_CONFIG;
+    EXPECT_EQ(expectRet, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
     config = "capacity";
-    EXPECT_EQ(ACL_ERROR_INVALID_PROFILING_CONFIG, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
+    EXPECT_EQ(expectRet, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
     config = "bandwidth";
-    EXPECT_EQ(ACL_ERROR_INVALID_PROFILING_CONFIG, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
+    EXPECT_EQ(expectRet, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
     config = "read";
     EXPECT_EQ(ACL_SUCCESS, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
     config = "write";
@@ -3331,15 +3354,28 @@ TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfig)
     configType = ACL_PROF_HOST_SYS;
     config = "cpu,mem,disk,network,osrt";
     EXPECT_EQ(ACL_SUCCESS, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
-
     configType = ACL_PROF_STORAGE_LIMIT;
     config = "100MB";
-    EXPECT_EQ(ACL_ERROR_INVALID_PROFILING_CONFIG, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
+    EXPECT_EQ(expectRet, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
     config = "100";
     EXPECT_EQ(ACL_SUCCESS, Msprofiler::AclApi::ProfSetConfig(ACL_PROF_LOW_POWER_FREQ, config.c_str(), config.size()));
     configType = static_cast<aclprofConfigType>(2);
-    EXPECT_EQ(ACL_ERROR_INVALID_PROFILING_CONFIG, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
-    EXPECT_EQ(MSPROF_ERROR_NONE, aclprofFinalize());
+    EXPECT_EQ(expectRet, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
+}
+
+TEST_F(MSPROF_ACL_CORE_UTEST, ProfSetConfigWillReturnInvalidConfigWhenPlatformNotSupported)
+{
+    std::string config("50");
+    Msprofiler::Api::ProfAclMgr::instance()->mode_ = Msprofiler::Api::WORK_MODE_API_CTRL;
+    MOCKER(&Analysis::Dvvp::Common::Platform::Platform::PlatformIsHelperHostSide)
+        .stubs()
+        .then(returnValue(false));
+    MOCKER_CPP(&Platform::CheckIfSupport, bool (Platform::*)(const PlatformFeature) const)
+        .stubs()
+        .then(returnValue(false));
+    aclprofConfigType configType = ACL_PROF_DVPP_FREQ;
+    int expectRet = ACL_ERROR_INVALID_PROFILING_CONFIG;
+    EXPECT_EQ(expectRet, Msprofiler::AclApi::ProfSetConfig(configType, config.c_str(), config.size()));
 }
 
 TEST_F(MSPROF_ACL_CORE_UTEST, CreateParserTransport)

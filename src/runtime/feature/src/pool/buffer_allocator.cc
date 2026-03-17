@@ -26,7 +26,7 @@ BufferAllocator::BufferAllocator(const uint32_t size, const uint32_t initCnt, co
       itemSize_(size),
       initCount_((initCnt < maxCnt) ? initCnt : maxCnt),
       maxCount_(maxCnt),
-      poolSize_(GetPoolIndex(maxCount_ - 1U) + 1U),
+      poolSize_(0),
       bitmap_(maxCnt <= BUFF_SLIP_NUMBER ? maxCnt : BUFF_SLIP_NUMBER),
       para_(allocParam),
       pool_(nullptr),
@@ -40,6 +40,7 @@ BufferAllocator::BufferAllocator(const uint32_t size, const uint32_t initCnt, co
         return;
     }
 
+    poolSize_ = GetPoolIndex(maxCount_ - 1U) + 1U;
     const uint32_t poolArraySize = (GetPoolIndex(maxCount_ - 1U) + 1U) * sizeof(uint8_t *);
     pool_ = RtPtrToPtr<uint8_t **>(malloc(static_cast<size_t>(poolArraySize)));
     if (pool_ == nullptr) {

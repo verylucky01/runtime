@@ -111,7 +111,7 @@ private:
     const uint32_t itemSize_;
     const uint32_t initCount_;
     const uint32_t maxCount_;
-    const uint32_t poolSize_;
+    uint32_t poolSize_;
     Bitmap bitmap_;
     void *const para_;
     uint8_t *volatile *pool_;

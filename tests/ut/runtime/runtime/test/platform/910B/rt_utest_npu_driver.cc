@@ -1251,6 +1251,25 @@ TEST_F(CloudV2NpuDriverTest, buffer_allocator_error3)
     EXPECT_TRUE(id==-1||id>=0);
 }
 
+TEST_F(CloudV2NpuDriverTest, buffer_allocator_error_initCount_zero)
+{
+    BufferAllocator alloc(sizeof(uint32_t), 0, 100);
+
+    // 验证对象处于半构造状态
+    EXPECT_EQ(alloc.initCount_, 0);
+    EXPECT_EQ(alloc.pool_, nullptr);
+
+    auto item = alloc.GetItemById(0);
+    EXPECT_EQ(item, nullptr);
+
+    auto idByItem = alloc.GetIdByItem(nullptr);
+    EXPECT_EQ(idByItem, -1);
+
+    // 测试AllocItem
+    auto allocItem = alloc.AllocItem();
+    EXPECT_EQ(allocItem, nullptr);
+}
+
 TEST_F(CloudV2NpuDriverTest, bitmap_occypy_test1)
 {
     Bitmap bitmap(128);

@@ -427,13 +427,9 @@ static void ConstructDavidSqeForDavinciMultipleTask(TaskInfo * const taskInfo, r
     }
 }
 
-static void ConstructDavidSqeForModelMaintainceTask(TaskInfo * const taskInfo, rtDavidSqe_t * const davidSqe,
-    uint64_t sqBaseAddr)
+static void ConstructSqeForModelMaintainceTaskCommon(TaskInfo * const taskInfo, RtDavidPlaceHolderSqe * const sqe)
 {
-    UNUSED(sqBaseAddr);
     ModelMaintainceTaskInfo * const modelMaintainceTaskInfo = &(taskInfo->u.modelMaintainceTaskInfo);
-    ConstructDavidSqeForHeadCommon(taskInfo, davidSqe);
-    RtDavidPlaceHolderSqe * const sqe = &(davidSqe->phSqe);
     sqe->header.type = RT_DAVID_SQE_TYPE_PLACE_HOLDER;
     sqe->kernelCredit = RT_STARS_DEFAULT_KERNEL_CREDIT_DAVID;
     sqe->taskType = TS_TASK_TYPE_MODEL_MAINTAINCE;
@@ -443,6 +439,18 @@ static void ConstructDavidSqeForModelMaintainceTask(TaskInfo * const taskInfo, r
     sqe->u.modelMaintainceInfo.operation = static_cast<uint16_t>(modelMaintainceTaskInfo->type);
     sqe->u.modelMaintainceInfo.streamType = static_cast<uint16_t>(modelMaintainceTaskInfo->streamType);
     sqe->u.modelMaintainceInfo.firstTaskId = static_cast<uint16_t>(modelMaintainceTaskInfo->firstTaskId);
+    sqe->u.modelMaintainceInfo.opSqId = modelMaintainceTaskInfo->opStream->GetSqId();
+    sqe->u.modelMaintainceInfo.sqId = taskInfo->stream->GetSqId();
+}
+
+static void ConstructDavidSqeForModelMaintainceTask(TaskInfo * const taskInfo, rtDavidSqe_t * const davidSqe,
+    uint64_t sqBaseAddr)
+{
+    UNUSED(sqBaseAddr);
+    ModelMaintainceTaskInfo * const modelMaintainceTaskInfo = &(taskInfo->u.modelMaintainceTaskInfo);
+    ConstructDavidSqeForHeadCommon(taskInfo, davidSqe);
+    RtDavidPlaceHolderSqe * const sqe = &(davidSqe->phSqe);
+    ConstructSqeForModelMaintainceTaskCommon(taskInfo, sqe);
 
     const int32_t type = static_cast<int32_t>(modelMaintainceTaskInfo->type);
     switch (type) {

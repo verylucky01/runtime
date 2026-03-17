@@ -79,7 +79,9 @@ struct DavidStarsModelMaintaince {
     uint16_t endgraphNotifyId;
     uint32_t executorFlag;
     uint64_t streamExecTimesAddr;
-    uint32_t reserved[6];
+    uint32_t opSqId;
+    uint32_t sqId;
+    uint32_t reserved[4];
 };
 
 struct DavidRingBufferControl {

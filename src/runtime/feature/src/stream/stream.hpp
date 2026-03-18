@@ -147,6 +147,11 @@ enum class UpdateTaskFlag : int32_t {
     NOT_SUPPORT_AND_SKIP,
 };
 
+enum class StreamStatus : uint8_t {
+    NORMAL = 0U,
+    ABNORMAL = 1U
+};
+
 // A stream is a sequence of task that execute in order.
 class Stream : public NoCopy {
 public:
@@ -1352,6 +1357,17 @@ public:
     {
         return argsHandle_;
     }
+
+    void SetStreamStatus(StreamStatus status)
+    {
+        streamStatus_ = status;
+    }
+
+    StreamStatus GetStreamStatus() const
+    {
+        return streamStatus_;
+    }
+
     rtError_t RestoreForSoftwareSq();
 private:
     // submit create stream task
@@ -1501,6 +1517,7 @@ private:
     uint32_t beginCaptureThreadId_{UINT32_MAX};
     uint64_t sqIdMemAddr_{0UL};
     void *argsHandle_{nullptr};
+    StreamStatus streamStatus_{StreamStatus::NORMAL};
 public:
     TaskResManage *taskResMang_{nullptr};
     bool isHasPcieBar_{false};

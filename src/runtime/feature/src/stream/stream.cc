@@ -1613,6 +1613,8 @@ rtError_t Stream::SynchronizeExecutedTask(const uint32_t taskId, const mmTimespe
             }
         }
         COND_RETURN_ERROR((abortStatus_ == RT_ERROR_STREAM_ABORT), RT_ERROR_STREAM_ABORT, "stream_id=%d is abort.", streamId_);
+        COND_RETURN_ERROR((GetStreamStatus() != StreamStatus::NORMAL), RT_ERROR_STREAM_SYNC,
+ 	        "stream status is %u, device_id=%u, stream_id=%d.", GetStreamStatus(), device_->Id_(), Id_());
         error = CheckContextStatus(false);
         COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "context is abort, status=%#x.", static_cast<uint32_t>(error));
         if ((IsTaskExcuted(GetExecuteEndTaskId(), taskId)) || (sqHead == GetTaskPosTail())) {
@@ -3956,6 +3958,7 @@ void Stream::ResetStreamConstruct()
     errorMsg_.clear();
     taskIdToTaskTagMap_.clear();
     latestConcernedTaskId.Set(MAX_UINT16_NUM);
+    SetStreamStatus(StreamStatus::NORMAL);
     if (taskResMang_ != nullptr) {
         taskResMang_->ResetTaskRes();
     }

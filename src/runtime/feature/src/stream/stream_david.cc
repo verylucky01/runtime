@@ -453,7 +453,6 @@ rtError_t DavidStream::TearDown(const bool terminal, bool flag)
     Stream *exeStream = this;
     Device * const dev = device_;
     const int32_t stmId = streamId_;
-    bool isForceRecycle = GetForceRecycleFlag(flag);
     uint16_t head = 0U;
     uint16_t tail = 0U;
     uint32_t tryWaitCnt = 0U;
@@ -473,6 +472,7 @@ rtError_t DavidStream::TearDown(const bool terminal, bool flag)
  	}
 
     (dynamic_cast<TaskResManageDavid *>(taskResMang_))->GetHeadTail(head, tail);
+    bool isForceRecycle = (GetForceRecycleFlag(flag) || (GetStreamStatus() != StreamStatus::NORMAL));
     if (isForceRecycle) {
         exeStream = dev->PrimaryStream_();
         if (this == exeStream) {
@@ -1017,6 +1017,7 @@ void DavidStream::ResetDavidStreamConstruct()
     errorMsg_.clear();
     latestConcernedTaskId.Set(MAX_UINT16_NUM);
     SetExecuteEndTaskId(static_cast<uint16_t>(MAX_UINT16_NUM));
+    SetStreamStatus(StreamStatus::NORMAL);
     if (taskResMang_ != nullptr) {
         (dynamic_cast<TaskResManageDavid *>(taskResMang_))->ResetTaskRes();
     }

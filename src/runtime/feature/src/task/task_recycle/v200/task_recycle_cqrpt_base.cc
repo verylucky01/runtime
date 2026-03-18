@@ -77,7 +77,7 @@ static bool IsNeedMoveMultipleSteps(tsTaskType_t type)
             (type == TS_TASK_TYPE_FUSION_KERNEL);
 }
 
-static rtError_t PollingSqDisable(const rtLogicCqReport_t *logicCq, const Stream * const failStm)
+static rtError_t PollingSqDisable(const rtLogicCqReport_t *logicCq, Stream * const failStm)
 {
     rtError_t error = RT_ERROR_NONE;
     Device * const dev = failStm->Device_();
@@ -96,7 +96,10 @@ static rtError_t PollingSqDisable(const rtLogicCqReport_t *logicCq, const Stream
         if ((cnt++ % RT_GET_HEAD_CYCLE_NUM) == 0U) {
             queryCnt++;
             error = devDrv->GetSqEnable(devId, tsId, logicCq->sqId, enable);
-            ERROR_RETURN_MSG_INNER(error, "Failed to get sq enable, stream_id=%d.", failStm->Id_());
+            COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
+                failStm->SetStreamStatus(StreamStatus::ABNORMAL);,
+                "Failed to get sq enable, device_id=%u, stream_id=%d, retCode=%#x.",
+                dev->Id_(), failStm->Id_(), static_cast<uint32_t>(error));
             if ((cnt % RT_QUERY_CNT_NUM) == 0U) {
                 RT_LOG(RT_LOG_EVENT, "dev_id=%u, ts_id=%u, stream_id=%d, enable=%u",
                     devId, tsId, logicCq->sqId, enable);
@@ -119,6 +122,7 @@ static rtError_t PollingSqDisable(const rtLogicCqReport_t *logicCq, const Stream
             const uint64_t count = (endCnt > beginCnt) ? (endCnt - beginCnt) : 0ULL;
             const int32_t spendTime = static_cast<int32_t>(count);
             if (spendTime > getSqTimeout) {
+                failStm->SetStreamStatus(StreamStatus::ABNORMAL);
                 RT_LOG(RT_LOG_ERROR, "sq disable timeout, stream_id=%d, sync reamintime=%d.",
                     failStm->Id_(), failStm->GetSyncRemainTime());
                 return RT_ERROR_REPORT_TIMEOUT;
@@ -148,7 +152,7 @@ rtError_t StarsResumeRtsq(const rtLogicCqReport_t *logicCq, const TaskInfo * con
     }
 
     rtError_t error = RT_ERROR_NONE;
-    const Stream * const failStm = taskInfo->stream;
+    Stream * const failStm = taskInfo->stream;
     Device * const dev = failStm->Device_();
     const uint32_t devId = dev->Id_();
     Driver * const devDrv = dev->Driver_();
@@ -173,7 +177,9 @@ rtError_t StarsResumeRtsq(const rtLogicCqReport_t *logicCq, const TaskInfo * con
         "stream is in stream abort status, device_id=%u, stream_id=%d",
         devId, failStm->Id_());
     error = devDrv->SetSqHead(devId, tsId, static_cast<uint32_t>(logicCq->sqId), head);
-    ERROR_RETURN_MSG_INNER(error, "set sq head failed, stream_id=%d, sq_id=%hu, device_id=%u, retCode=%#x.",
+    COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
+        failStm->SetStreamStatus(StreamStatus::ABNORMAL);,
+        "Enable sq failed, stream_id=%d, sq_id=%hu, device_id=%u, retCode=%#x.",
         failStm->Id_(), logicCq->sqId, devId, static_cast<uint32_t>(error));
 
     if (failStm->GetFailureMode() == ABORT_ON_FAILURE) {

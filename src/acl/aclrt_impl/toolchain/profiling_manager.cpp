@@ -284,6 +284,10 @@ namespace acl {
         {AclProfType::AclmdlRITaskGetType,                      "aclmdlRITaskGetType"},
         {AclProfType::AclmdlRIDestroyRegisterCallback,          "aclmdlRIDestroyRegisterCallback"},
         {AclProfType::AclmdlRIDestroyUnregisterCallback,        "aclmdlRIDestroyUnregisterCallback"},
+        {AclProfType::AclmdlRITaskGetParams,                    "aclmdlRITaskGetParams"},
+        {AclProfType::AclmdlRITaskSetParams,                    "aclmdlRITaskSetParams"},
+        {AclProfType::AclmdlRIUpdate,                           "aclmdlRIUpdate"},
+        {AclProfType::AclmdlRITaskDisable,                      "aclmdlRITaskDisable"},
 };
 
 aclError RegisterType(const uint32_t index) {

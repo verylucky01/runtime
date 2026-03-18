@@ -1158,6 +1158,29 @@ rtError_t NpuDriver::StreamIdFree(const int32_t id, const uint32_t deviceId, con
     return RT_ERROR_NONE;
 }
 
+rtError_t NpuDriver::StreamIdReservedFree(const int32_t id, const uint32_t deviceId, const uint32_t tsId)
+{
+    struct halResourceIdInputInfo resFreeInput;
+
+    (void)memset_s(resFreeInput.res, sizeof(resFreeInput.res), 0U, sizeof(resFreeInput.res));
+    resFreeInput.type = DRV_STREAM_ID;
+    resFreeInput.tsId = tsId;
+    resFreeInput.resourceId = static_cast<uint32_t>(id);
+    resFreeInput.res[1U] = TSDRV_RES_RESERVED_ID;
+
+    RT_LOG(RT_LOG_INFO, "stream id free begin, device_id=%u, stream_id=%u, ts_id=%u, remote_stream_id=%u",
+        deviceId, resFreeInput.resourceId, resFreeInput.tsId, resFreeInput.res[1U]);
+    const drvError_t drvRet = halResourceIdFree(deviceId, &resFreeInput);
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "[drv api] halResourceIdFree failed: stream_id=%d, device_id=%u, "
+            "ts_id=%u, drvRetCode=%d!", id, deviceId, tsId, static_cast<int32_t>(drvRet));
+        return RT_GET_DRV_ERRCODE(drvRet);
+    }
+
+    RT_LOG(RT_LOG_INFO, "Stream id free success, stream_id=%d, device_id=%u, tsId=%u", id, deviceId, tsId);
+    return RT_ERROR_NONE;
+}
+
 rtError_t NpuDriver::EventIdAlloc(int32_t * const id, const uint32_t deviceId, const uint32_t tsId,
                                   const uint32_t eventFlag, const bool createFlag)
 {

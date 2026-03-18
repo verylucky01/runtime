@@ -5816,6 +5816,14 @@ rtError_t ApiErrorDecorator::StreamAddToModel(Stream * const stm, Model * const 
     return impl_->StreamAddToModel(stm, captureMdl);
 }
 
+rtError_t ApiErrorDecorator::ModelUpdate(Model* mdl)
+{
+    NULL_PTR_RETURN_MSG_OUTER(mdl, RT_ERROR_INVALID_VALUE);
+    COND_RETURN_ERROR_MSG_INNER(
+        mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_INVALID_VALUE, "now only support aclGraph.");
+    return impl_->ModelUpdate(mdl);
+}
+
 rtError_t ApiErrorDecorator::ModelDestroyRegisterCallback(Model * const mdl, const rtCallback_t fn, void* ptr)
 {
     NULL_PTR_RETURN_MSG_OUTER(mdl, RT_ERROR_INVALID_VALUE);
@@ -6327,6 +6335,20 @@ rtError_t ApiErrorDecorator::GetFuncHandleFromExceptionInfo(const rtExceptionInf
     return impl_->GetFuncHandleFromExceptionInfo(info, funcHandle);
 }
 
+rtError_t ApiErrorDecorator::TaskGetParams(const TaskInfo * const taskInfo, rtTaskParams* const params)
+{
+    NULL_PTR_RETURN_MSG_OUTER(taskInfo, RT_ERROR_INVALID_VALUE);
+    NULL_PTR_RETURN_MSG_OUTER(params, RT_ERROR_INVALID_VALUE);
+    return impl_->TaskGetParams(taskInfo, params);
+}
+
+rtError_t ApiErrorDecorator::TaskSetParams(TaskInfo * const taskInfo, rtTaskParams* const params)
+{
+    NULL_PTR_RETURN_MSG_OUTER(taskInfo, RT_ERROR_INVALID_VALUE);
+    NULL_PTR_RETURN_MSG_OUTER(params, RT_ERROR_INVALID_VALUE);
+    return impl_->TaskSetParams(taskInfo, params);
+}
+
 rtError_t ApiErrorDecorator::SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func)
 {
     COND_RETURN_AND_MSG_OUTER_WITH_PARAM((type < RT_KERNEL_DFX_INFO_DEFAULT || type > RT_KERNEL_DFX_INFO_BLOCK_INFO),
@@ -6361,6 +6383,12 @@ rtError_t ApiErrorDecorator::TaskGetSeqId(const TaskInfo * const task, uint32_t 
     NULL_PTR_RETURN_MSG_OUTER(task, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(id, RT_ERROR_INVALID_VALUE);
     return impl_->TaskGetSeqId(task, id);
+}
+
+rtError_t ApiErrorDecorator::ModelTaskDisable(TaskInfo* const task)
+{
+    NULL_PTR_RETURN_MSG_OUTER(task, RT_ERROR_INVALID_VALUE);
+    return impl_->ModelTaskDisable(task);
 }
 
 }  // namespace runtime

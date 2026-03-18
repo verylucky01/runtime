@@ -517,6 +517,30 @@ typedef enum aclmdlRITaskType {
     ACL_MODEL_RI_TASK_VALUE_WAIT,
 } aclmdlRITaskType;
 
+typedef struct aclmdlRIKernelTaskParams {
+    aclrtFuncHandle funcHandle;
+    aclrtLaunchKernelCfg* cfg;
+    void* args;
+    uint32_t isHostArgs;
+    size_t argsSize;
+    uint32_t numBlocks;
+    uint32_t rsv[10];
+} aclmdlRIKernelTaskParams;
+
+typedef struct aclmdlRITaskParams {
+    aclmdlRITaskType type;
+    uint32_t rsv0[3];
+    aclrtTaskGrp taskGrp;
+    void* opInfoPtr;
+    size_t opInfoSize;
+    uint8_t rsv1[32];
+
+    union {
+        uint8_t rsv2[128];
+        struct aclmdlRIKernelTaskParams kernelTaskParams;
+    };
+} aclmdlRITaskParams;
+
 typedef enum {
     ACL_DEV_ATTR_AICPU_CORE_NUM  = 1,    // number of AI CPUs
 
@@ -3245,6 +3269,48 @@ ACL_FUNC_VISIBILITY aclError aclrtKernelArgsParaUpdate(aclrtArgsHandle argsHandl
 ACL_FUNC_VISIBILITY aclError aclrtLaunchKernelWithConfig(aclrtFuncHandle funcHandle, uint32_t numBlocks,
                                                          aclrtStream stream, aclrtLaunchKernelCfg *cfg,
                                                          aclrtArgsHandle argsHandle, void *reserve);
+
+/**
+ * @ingroup AscendCL
+ * @brief Get task parameters
+ * @details Retrieve current parameter information from the specified task
+ * @note  This API only supports AclGraph
+ * @param task [in] task handle
+ * @param params [out] Output parameter to store the retrieved parameter information
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval OtherValues Failure
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlRITaskGetParams(aclmdlRITask task, aclmdlRITaskParams* params);
+
+/**
+ * @ingroup AscendCL
+ * @brief Set task parameters
+ * @details Update parameter information for the specified task
+ * @note  This API only supports AclGraph 
+ * @param task [in] task handle
+ * @param params [in] Input parameter containing parameter information to be set
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval OtherValues Failure
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlRITaskSetParams(aclmdlRITask task, aclmdlRITaskParams* params);
+
+/**
+ * @ingroup AscendCL
+ * @brief update model
+ * @param modelRI [in] model runtime instance
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval OtherValues Failure
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlRIUpdate(aclmdlRI modelRI);
+
+/**
+ * @ingroup AscendCL
+ * @brief Set the task update flag to disabled
+ * @param [in] task  task handle
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval OtherValues Failure
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlRITaskDisable(aclmdlRITask task);
 
 /**
  * @ingroup AscendCL

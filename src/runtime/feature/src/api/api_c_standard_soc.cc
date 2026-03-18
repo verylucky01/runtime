@@ -691,6 +691,16 @@ rtError_t rtStreamAddToModel(rtStream_t stm, rtModel_t captureMdl)
 }
 
 VISIBILITY_DEFAULT
+rtError_t rtModelUpdate(rtModel_t mdl)
+{
+    Api* const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    const rtError_t error = apiInstance->ModelUpdate(RtPtrToPtr<Model*>(mdl));
+    ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    return ACL_RT_SUCCESS;
+}
+
+VISIBILITY_DEFAULT
 rtError_t rtStreamBeginCapture(rtStream_t stm, const rtStreamCaptureMode mode)
 {
     GLOBAL_STATE_WAIT_IF_LOCKED();

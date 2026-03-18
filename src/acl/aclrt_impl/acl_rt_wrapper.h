@@ -175,6 +175,9 @@
     _(aclError, aclrtKernelArgsGetPlaceHolderBuffer, (aclrtArgsHandle argsHandle, aclrtParamHandle paramHandle, size_t dataSize, void ** bufferAddr), (argsHandle, paramHandle, dataSize, bufferAddr)) \
     _(aclError, aclrtKernelArgsParaUpdate, (aclrtArgsHandle argsHandle, aclrtParamHandle paramHandle, void * param, size_t paramSize), (argsHandle, paramHandle, param, paramSize)) \
     _(aclError, aclrtLaunchKernelWithConfig, (aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream, aclrtLaunchKernelCfg * cfg, aclrtArgsHandle argsHandle, void * reserve), (funcHandle, numBlocks, stream, cfg, argsHandle, reserve)) \
+    _(aclError, aclmdlRITaskGetParams, (aclmdlRITask task, aclmdlRITaskParams* params), (task, params)) \
+    _(aclError, aclmdlRITaskSetParams, (aclmdlRITask task, aclmdlRITaskParams* params), (task, params)) \
+    _(aclError, aclmdlRIUpdate, (aclmdlRI modelRI), (modelRI)) \
     _(aclError, aclrtKernelArgsFinalize, (aclrtArgsHandle argsHandle), (argsHandle)) \
     _(aclError, aclrtValueWrite, (void* devAddr, uint64_t value, uint32_t flag, aclrtStream stream), (devAddr, value, flag, stream)) \
     _(aclError, aclrtValueWait, (void* devAddr, uint64_t value, uint32_t flag, aclrtStream stream), (devAddr, value, flag, stream)) \
@@ -343,6 +346,7 @@
     _(aclError, aclmdlRIGetStreams, (aclmdlRI modelRI, aclrtStream *streams, uint32_t *numStreams), (modelRI, streams, numStreams)) \
     _(aclError, aclmdlRIGetTasksByStream, (aclrtStream stream, aclmdlRITask *tasks, uint32_t *numTasks), (stream, tasks, numTasks)) \
     _(aclError, aclmdlRITaskGetType, (aclmdlRITask task, aclmdlRITaskType *type), (task, type)) \
+    _(aclError, aclmdlRITaskDisable, (aclmdlRITask task), (task)) \
     _(aclError, aclmdlRIDestroyRegisterCallback, (aclmdlRI modelRI, aclrtCallback func, void *userData), (modelRI, func, userData)) \
     _(aclError, aclmdlRIDestroyUnregisterCallback, (aclmdlRI modelRI, aclrtCallback func), (modelRI, func)) \
     

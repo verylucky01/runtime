@@ -334,5 +334,72 @@ void KernelTable::ResetAllKernelNameId()
     kernelMapLock_.Unlock();
 }
 
+rtError_t GetPrefetchCntAndMixTypeWithKernel(const Kernel * const kernelPtr, uint32_t machine,
+    uint32_t &icachePrefetchCnt1, uint32_t &icachePrefetchCnt2, uint8_t &mixType)
+{
+    // 32KB, K=1024. aicore can prefetch 32KB at most.
+    constexpr uint32_t aicoreIcachePrefetchSizeMax = 32768U;
+    // 16KB, K=1024. aivector can prefetch 16KB at most.
+    constexpr uint32_t aivectorIcachePrefetchSizeMax = 16384U;
+    // 0KB, aicpu task not need prefetch
+    constexpr uint32_t aicpuIcachePrefetchSizeMax = 0U;
+    icachePrefetchCnt2 = 0U;
+
+    if (machine == Program::MACH_AI_MIX_KERNEL) {
+        machine = kernelPtr->KernelType_();
+    }
+
+    uint32_t restSize1 = 0U;
+    uint32_t restSize2 = 0U;
+    kernelPtr->GetKernelLength(restSize1, restSize2);
+    mixType = kernelPtr->GetMixType();
+
+    uint32_t prefetchMaxSize1 = 0U;
+    uint32_t prefetchMaxSize2 = 0U;
+    if (mixType == static_cast<uint8_t>(MIX_AIC)) {
+        prefetchMaxSize1 = aicoreIcachePrefetchSizeMax;
+    } else if (mixType == static_cast<uint8_t>(MIX_AIV)) {
+        prefetchMaxSize1 = aivectorIcachePrefetchSizeMax;
+    } else if (mixType == static_cast<uint8_t>(MIX_AIC_AIV_MAIN_AIC) ||
+               mixType == static_cast<uint8_t>(MIX_AIC_AIV_MAIN_AIV)) {
+        prefetchMaxSize1 = aicoreIcachePrefetchSizeMax;
+        prefetchMaxSize2 = aivectorIcachePrefetchSizeMax;
+    } else {
+        switch (machine) {
+            case Program::MACH_AI_CPU:
+                prefetchMaxSize1 = aicpuIcachePrefetchSizeMax;
+                break;
+            case Program::MACH_AI_CORE:
+                prefetchMaxSize1 = aicoreIcachePrefetchSizeMax;
+                break;
+            case Program::MACH_AI_CVMIX:
+                prefetchMaxSize1 = aicoreIcachePrefetchSizeMax;
+                break;
+            case Program::MACH_AI_VECTOR:
+                prefetchMaxSize1 = aivectorIcachePrefetchSizeMax;
+                break;
+            default:
+                RT_LOG(RT_LOG_ERROR, "get prefetch cnt failed, machine=%u.", machine);
+                return RT_ERROR_INVALID_VALUE;
+        }
+    }
+    // Icache_prefetch_cnt:aic aiv prefetch instruction length, the unit is 2KB, K=1024
+    constexpr uint32_t prefetchUnits = 2048U;
+    uint32_t restSizeCnt1 = restSize1 / prefetchUnits;
+    const uint32_t prefetchMaxSizeCnt1 = prefetchMaxSize1 / prefetchUnits;
+    if (mixType == static_cast<uint8_t>(MIX_AIC_AIV_MAIN_AIC)) {
+        restSizeCnt1 = (restSize1 + prefetchUnits - 1U) / prefetchUnits;
+        const uint32_t restSizeCnt2 = (restSize2 + prefetchUnits - 1U)  / prefetchUnits;
+        const uint32_t prefetchMaxSizeCnt2 = prefetchMaxSize2 / prefetchUnits;
+        icachePrefetchCnt2 = (restSizeCnt2 > prefetchMaxSizeCnt2) ? prefetchMaxSizeCnt2 : restSizeCnt2;
+    }
+    icachePrefetchCnt1 = (restSizeCnt1 > prefetchMaxSizeCnt1) ? prefetchMaxSizeCnt1 : restSizeCnt1;
+
+    RT_LOG(RT_LOG_DEBUG, "get prefetch cnt success, prefetchCnt1=%u, prefetchCnt2=%u, mixType=%hu.",
+           icachePrefetchCnt1, icachePrefetchCnt2, mixType);
+
+    return RT_ERROR_NONE;
+}
+
 }  // namespace runtime
 }  // namespace cce

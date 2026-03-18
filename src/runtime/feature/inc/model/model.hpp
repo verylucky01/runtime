@@ -121,6 +121,17 @@ public:
         return nullptr;
     }
 
+    void* GetAndEraseArgHandle(const uint16_t streamId, const uint16_t taskId)
+    {
+        const uint32_t key = (streamId << 16U) | taskId;
+        auto iter = argLoaderRecord_.find(key);
+        if (iter != argLoaderRecord_.end()) {
+            argLoaderRecord_.erase(iter);
+            return iter->second;
+        }
+        return nullptr;
+    }
+
     void ReplaceArgHandle(const uint16_t streamId, const uint16_t taskId, void *argHandle);
 
     void PushbackDmaAddr(struct DMA_ADDR &dmaAddr)

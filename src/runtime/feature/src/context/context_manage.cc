@@ -491,7 +491,7 @@ rtError_t ContextManage::AclGraphRestore(Device * const dev)
             RT_LOG(RT_LOG_WARNING, "Dynamic cast to CaptureModel failed, modelId=%u.", mdl->Id_());
             continue;
         }
-        if (capMdl->IsSoftwareSqEnable() && capMdl->IsCaptureFinish()) {
+        if (capMdl->IsSoftwareSqEnable() && capMdl->IsCaptureReady()) {
             // 恢复modelID
             rtError_t err = drv->ReAllocResourceId(deviceId, tsId, 0U, mdl->Id_(), DRV_MODEL_ID);
             ERROR_RETURN(err, "Realloc modelId failed, deviceId=%u, tsId=%u, retCode=%#x!",

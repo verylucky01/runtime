@@ -288,6 +288,10 @@ namespace acl {
         AclmdlRITaskGetType,
         AclmdlRIDestroyRegisterCallback,
         AclmdlRIDestroyUnregisterCallback,
+        AclmdlRITaskGetParams,
+        AclmdlRITaskSetParams,
+        AclmdlRIUpdate,
+        AclmdlRITaskDisable,
         // this is the end, can not add after AclRtProfTypeEnd
         AclRtProfTypeEnd
     };

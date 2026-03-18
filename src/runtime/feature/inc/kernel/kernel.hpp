@@ -507,6 +507,9 @@ private:
 };
 
 rtError_t GetPrefetchCnt(const Program *prog, Kernel * const kernel);
+
+rtError_t GetPrefetchCntAndMixTypeWithKernel(const Kernel * const kernelPtr, uint32_t machine,
+    uint32_t &icachePrefetchCnt1, uint32_t &icachePrefetchCnt2, uint8_t &mixType);
 }
 }
 

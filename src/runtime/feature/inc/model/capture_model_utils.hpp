@@ -23,6 +23,9 @@ bool IsCrossCaptureModel(const Event * const evt, const Stream * const stm);
 bool IsCapturedTask(const Stream * const launchStm, const TaskInfo *submitTask);
 rtError_t GetCaptureStream(Context * const ctx, Stream * const stm, const Event * const evt, Stream ** const captureStm);
 rtError_t CheckCaptureStreamThreadIsMatch(const Stream * const stm);
+rtError_t CheckCaptureModelSupportSoftwareSq(Device* const dev);
+rtError_t ConstructNopTask(Stream* stm, uint8_t* sqeBufferBackup, uint32_t& sendSqeNum);
+rtError_t CheckCaptureModelForUpdate(Stream* stm);
 bool IsSoftwareSqCaptureModel(Model * const mdl);
 }
 }

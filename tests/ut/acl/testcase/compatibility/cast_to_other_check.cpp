@@ -856,3 +856,22 @@ TEST_F(UTEST_ACL_compatibility_cast_check, aclmdlRITaskType)
 
     EXPECT_EQ(sizeof(aclmdlRITaskType), sizeof(rtTaskType));
 }
+
+TEST_F(UTEST_ACL_compatibility_cast_check, aclmdlRITaskParams)
+{
+    size_t acl_offset, rt_offset;
+    acl_offset = OFFSET_OF_MEMBER(aclmdlRITaskParams, type);
+    rt_offset = OFFSET_OF_MEMBER(rtTaskParams, type);
+    EXPECT_EQ(acl_offset, rt_offset);
+
+    acl_offset = OFFSET_OF_MEMBER(aclmdlRITaskParams, taskGrp);
+    rt_offset = OFFSET_OF_MEMBER(rtTaskParams, taskGrp);
+    EXPECT_EQ(acl_offset, rt_offset);
+
+    acl_offset = OFFSET_OF_MEMBER(aclmdlRITaskParams, opInfoSize);
+    rt_offset = OFFSET_OF_MEMBER(rtTaskParams, opInfoSize);
+    EXPECT_EQ(acl_offset, rt_offset);
+
+    // check total size
+    EXPECT_EQ(sizeof(aclmdlRITaskParams), sizeof(rtTaskParams));
+}

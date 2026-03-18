@@ -448,7 +448,7 @@ TEST_F(SnapshotTest, SnapShotProcessRestore3)
     captureModel->context_ = curCtx;
     captureModel->isSoftwareSqEnable_ = true;
     captureModel->modelType_ = ModelType::RT_MODEL_CAPTURE_MODEL;
-    captureModel->captureStatus_ = RtModelCaptureStatus::RT_MODEL_CAPTURE_STATUS_FINISH;
+    captureModel->captureModelStatus_ = RtCaptureModelStatus::RT_CAPTURE_MODEL_STATUS_READY;
     captureModel1->modelType_ = ModelType::RT_MODEL_NORMAL;
     captureModel1->context_ = curCtx;
     curCtx->models_.push_back(captureModel1);

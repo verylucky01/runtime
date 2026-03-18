@@ -27,6 +27,30 @@ typedef enum {
     RT_TASK_VALUE_WAIT,
 } rtTaskType;
 
+typedef struct rtKernelTaskParams {
+    rtFuncHandle funcHandle;
+    rtKernelLaunchCfg_t* cfg;
+    void* args;
+    uint32_t isHostArgs;
+    size_t argsSize;
+    uint32_t numBlocks;
+    uint32_t rsv[10];
+} rtKernelTaskParams;
+
+typedef struct rtTaskParams {
+    rtTaskType type;
+    uint32_t rsv0[3];
+    rtTaskGrp_t taskGrp;
+    void* opInfoPtr;
+    size_t opInfoSize;
+    uint8_t rsv1[32];
+
+    union {
+        uint8_t rsv2[128];
+        struct rtKernelTaskParams kernelTaskParams;
+    };
+} rtTaskParams;
+
 /**
  * @ingroup rt_task
  * @brief get the type of the task
@@ -46,6 +70,39 @@ RTS_API rtError_t rtTaskGetType(rtTask_t task, rtTaskType* type);
  * @return RT_ERROR_INVALID_VALUE for error input
  */
 RTS_API rtError_t rtTaskGetSeqId(rtTask_t task, uint32_t *id);
+
+/**
+ * @ingroup rt_task
+ * @brief Get task parameters
+ * @details Retrieve current parameter information from the specified task
+ * @note  This API only supports AclGraph
+ * @param task [in] task handle
+ * @param params [out] Output parameter to store the retrieved parameter information
+ * @retval RT_ERROR_NONE for ok
+ * @retval OtherValues Failure
+ */
+RTS_API rtError_t rtModelTaskGetParams(rtTask_t task, rtTaskParams* params);
+
+/**
+ * @ingroup rt_task
+ * @brief Set task parameters
+ * @details Update parameter information for the specified task
+ * @note  This API only supports AclGraph 
+ * @param task [in] task handle
+ * @param params [in] Input parameter containing parameter information to be set
+ * @retval RT_ERROR_NONE for ok
+ * @retval OtherValues Failure
+ */
+RTS_API rtError_t rtModelTaskSetParams(rtTask_t task, rtTaskParams* params);
+
+/**
+ * @ingroup rt_task
+ * @brief Set the task to disabled
+ * @param [in, out] task: task handle
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_INVALID_VALUE for error input
+ */
+RTS_API rtError_t rtModelTaskDisable(rtTask_t task);
 
 #if defined(__cplusplus)
 }

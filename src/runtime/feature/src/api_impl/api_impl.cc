@@ -8962,6 +8962,84 @@ rtError_t ApiImpl::GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info,
     return RT_ERROR_NONE;
 }
 
+rtError_t ApiImpl::TaskGetParams(const TaskInfo* const taskInfo, rtTaskParams* const params)
+{
+    const Stream* stm = taskInfo->stream;
+    NULL_PTR_RETURN(stm, RT_ERROR_STREAM_NULL);
+    rtError_t error = CheckCaptureModelSupportSoftwareSq(stm->Device_());
+    COND_RETURN_WITH_NOLOG((error != RT_ERROR_NONE), error);
+
+    (void)memset_s(params, sizeof(rtTaskParams), 0, sizeof(rtTaskParams));
+    error = GetTaskType(taskInfo, &params->type);
+    ERROR_RETURN(error, "get task type failed, retCode=%d.", error);
+    switch (taskInfo->type) {
+        case TS_TASK_TYPE_KERNEL_AICORE:
+        case TS_TASK_TYPE_KERNEL_AIVEC:
+            error = GetKernelTaskParams(taskInfo, params);
+            break;
+        default:
+            RT_LOG(
+                RT_LOG_ERROR,
+                "now this task doesn't support get params, stream_id=%d, task_id=%hu, typeName=%s, task type=%d",
+                stm->Id_(), taskInfo->id, taskInfo->typeName, taskInfo->type);
+            error = RT_ERROR_INVALID_VALUE;
+    }
+
+    return error;
+}
+
+rtError_t ApiImpl::TaskSetParams(TaskInfo* const taskInfo, rtTaskParams* const params)
+{
+    rtError_t error = CheckCaptureModelForUpdate(taskInfo->stream);
+    ERROR_RETURN(error, "check capture model failed");
+
+    CaptureModel* captureModel = dynamic_cast<CaptureModel*>(taskInfo->stream->Model_());
+    NULL_PTR_RETURN(captureModel, RT_ERROR_MODEL_NULL);
+
+    captureModel->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_UPDATING);
+
+    switch (params->type) {
+        case RT_TASK_KERNEL:
+            error = UpdateKernelParams(taskInfo, params);
+            break;
+        default:
+            RT_LOG_OUTER_MSG_INVALID_PARAM(params->type, "[0, " + std::to_string(RT_TASK_VALUE_WAIT) + "]");
+            error = RT_ERROR_INVALID_VALUE;
+            break;
+    }
+    ERROR_PROC_RETURN_MSG_INNER(error, captureModel->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_FAULT);,
+        "task set params failed");
+    taskInfo->updateFlag = RT_TASK_UPDATE;
+    RT_LOG(
+        RT_LOG_INFO, "stream_id=%d, task_id=%hu, typeName=%s, task type=%d, target type=%d", taskInfo->stream->Id_(),
+        taskInfo->id, taskInfo->typeName, taskInfo->type, params->type);
+    return RT_ERROR_NONE;
+}
+
+rtError_t ApiImpl::ModelUpdate(Model* mdl)
+{
+    const Stream* stm = mdl->StreamList_().back();
+    NULL_PTR_RETURN(stm, RT_ERROR_STREAM_NULL);
+    const auto error = CheckCaptureModelSupportSoftwareSq(stm->Device_());
+    COND_RETURN_WITH_NOLOG((error != RT_ERROR_NONE), error);
+    CaptureModel* captureModel = dynamic_cast<CaptureModel*>(mdl);
+
+    if (captureModel->GetCaptureModelStatus() != RT_CAPTURE_MODEL_STATUS_UPDATING) {
+        RT_LOG(
+            RT_LOG_ERROR, "model is not ready for update, model_id=%u, current status=%d", captureModel->Id_(),
+            captureModel->GetCaptureModelStatus());
+        return RT_ERROR_MODEL_NOT_READY_FOR_UPDATE;
+    }
+
+    rtError_t ret = captureModel->Update();
+    if (ret == RT_ERROR_NONE) {
+        captureModel->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_READY);
+    } else {
+        captureModel->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_FAULT);
+    }
+    return ret;
+}
+
 rtError_t ApiImpl::SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func)
 {
     KernelDfxInfo *kernelDfxInfoInstance = KernelDfxInfo::Instance();
@@ -8995,6 +9073,21 @@ rtError_t ApiImpl::StreamGetTasks(Stream * const stm, void **tasks, uint32_t *nu
 rtError_t ApiImpl::TaskGetType(const TaskInfo * const task, rtTaskType *type)
 {
     return GetTaskType(task, type);
+}
+
+rtError_t ApiImpl::ModelTaskDisable(TaskInfo* const task)
+{
+ 	rtError_t error = CheckCaptureModelForUpdate(task->stream);
+    ERROR_RETURN(error, "check capture model failed");
+
+    CaptureModel* captureModel = dynamic_cast<CaptureModel*>(task->stream->Model_());
+    NULL_PTR_RETURN(captureModel, RT_ERROR_MODEL_NULL);
+
+    captureModel->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_UPDATING);
+    task->updateFlag = RT_TASK_DISABLE;
+    RT_LOG(RT_LOG_INFO, "stream_id=%d, task_id=%hu, typeName=%s, task type=%d",
+ 	        task->stream->Id_(), task->id, task->typeName, task->type);
+    return RT_ERROR_NONE;
 }
 
 rtError_t ApiImpl::TaskGetSeqId(const TaskInfo * const task, uint32_t *id)

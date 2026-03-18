@@ -51,6 +51,15 @@ RTS_API rtError_t rtModelDestroyRegisterCallback(rtModel_t const mdl, rtCallback
  */
 RTS_API rtError_t rtModelDestroyUnregisterCallback(rtModel_t const mdl, rtCallback_t fn);
 
+/**
+ * @ingroup rt_model
+ * @brief update model
+ * @param [in] mdl
+ * @return ACL_RT_SUCCESS for ok
+ * @return ACL_ERROR_RT_PARAM_INVALID for error input
+ */
+RTS_API rtError_t rtModelUpdate(rtModel_t mdl);
+
 #if defined(__cplusplus)
 }
 #endif

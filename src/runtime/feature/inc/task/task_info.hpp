@@ -17,6 +17,12 @@
 namespace cce {
 namespace runtime {
 
+enum TaskUpdateFlag : uint8_t {
+    RT_TASK_KEEP = 0,
+    RT_TASK_UPDATE,
+    RT_TASK_DISABLE
+};
+
 /**
  * @ingroup
  * @brief the struct define of task
@@ -26,6 +32,8 @@ typedef struct tagTaskInfoStru {
     const char_t *typeName;
     tsTaskType_t type;
     uint64_t taskTrackTimeStamp;
+    const void* infoPtr;
+    size_t infoSize;
     uint32_t tid;
     uint32_t error;
     uint32_t drvErr;
@@ -40,6 +48,7 @@ typedef struct tagTaskInfoStru {
     uint16_t id;
     uint16_t flipNum;
     uint8_t profEn;
+    uint8_t updateFlag;
 
     uint8_t serial : 1;   // false
     uint8_t terminal : 1;

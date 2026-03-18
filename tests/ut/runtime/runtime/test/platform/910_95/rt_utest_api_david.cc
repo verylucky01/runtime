@@ -7683,7 +7683,7 @@ TEST_F(ApiDavidTest, captureEvent4)
     EXPECT_EQ(error, ACL_RT_SUCCESS);
 
     ((Stream *)stream1)->SetModel(static_cast<Model *>(captureModel));
-    captureModel->SetModelCaptureStatus(RT_MODEL_CAPTURE_STATUS_ACTIVE);
+    captureModel->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_CAPTURE_ACTIVE);
     ((Stream *)stream)->UpdateCaptureStream((Stream *)stream1);
     ((Stream *)stream)->SetCaptureStatus(RT_STREAM_CAPTURE_STATUS_ACTIVE);
 
@@ -7722,7 +7722,7 @@ TEST_F(ApiDavidTest, captureEvent6)
     EXPECT_EQ(error, ACL_RT_SUCCESS);
 
     ((Stream *)stream1)->SetModel(static_cast<Model *>(captureModel));
-    captureModel->SetModelCaptureStatus(RT_MODEL_CAPTURE_STATUS_ACTIVE);
+    captureModel->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_CAPTURE_ACTIVE);
     ((Stream *)stream)->UpdateCaptureStream((Stream *)stream1);
     ((Stream *)stream)->SetCaptureStatus(RT_STREAM_CAPTURE_STATUS_ACTIVE);
 
@@ -7902,7 +7902,7 @@ TEST_F(ApiDavidTest, captureStreamCascade)
 
     CaptureModel *mdl = dynamic_cast<CaptureModel *>(model);
     ((Stream *)stream1)->SetModel(model);
-    mdl->SetModelCaptureStatus(RT_MODEL_CAPTURE_STATUS_ACTIVE);
+    mdl->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_CAPTURE_ACTIVE);
     ((Stream *)stream)->UpdateCaptureStream((Stream *)stream1);
     ((Stream *)stream)->SetCaptureStatus(RT_STREAM_CAPTURE_STATUS_ACTIVE);
 
@@ -7923,7 +7923,7 @@ TEST_F(ApiDavidTest, captureStreamCascade)
     ((Event *)event)->SetCaptureEvent(nullptr);
     ((Stream *)stream)->UpdateCaptureStream(nullptr);
     ((Stream *)stream1)->DelModel(mdl);
-    mdl->SetModelCaptureStatus(RT_MODEL_CAPTURE_STATUS_NONE);
+    mdl->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_NONE);
     ((Stream *)stream)->SetCaptureStatus(RT_STREAM_CAPTURE_STATUS_NONE);
     error = ctx->ModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);

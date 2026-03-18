@@ -2344,6 +2344,32 @@ rtError_t aclStub::rtTaskGetSeqId(rtTask_t task, uint32_t *id)
     return RT_ERROR_NONE;
 }
 
+rtError_t aclStub::rtModelTaskGetParams(rtTask_t task, rtTaskParams* params)
+{
+    (void)task;
+    (void)params;
+    return RT_ERROR_NONE;
+}
+
+rtError_t aclStub::rtModelTaskSetParams(rtTask_t task, rtTaskParams* params)
+{
+    (void)task;
+    (void)params;
+    return RT_ERROR_NONE;
+}
+
+rtError_t aclStub::rtModelTaskDisable(rtTask_t task)
+{
+    (void)task;
+    return RT_ERROR_NONE;
+}
+
+rtError_t aclStub::rtModelUpdate(rtModel_t mdl)
+{
+    (void)mdl;
+    return RT_ERROR_NONE;
+}
+
 MockFunctionTest& MockFunctionTest::aclStubInstance()
 {
     static MockFunctionTest stub;
@@ -4237,4 +4263,24 @@ rtError_t rtTaskGetType(rtTask_t task, rtTaskType *type)
 rtError_t rtTaskGetSeqId(rtTask_t task, uint32_t *id)
 {
     return MockFunctionTest::aclStubInstance().rtTaskGetSeqId(task, id);
+}
+
+rtError_t rtModelTaskGetParams(rtTask_t task, rtTaskParams* params)
+{
+    return MockFunctionTest::aclStubInstance().rtModelTaskGetParams(task, params);
+}
+
+rtError_t rtModelTaskSetParams(rtTask_t task, rtTaskParams* params)
+{
+    return MockFunctionTest::aclStubInstance().rtModelTaskSetParams(task, params);
+}
+
+rtError_t rtModelTaskDisable(rtTask_t task)
+{
+    return MockFunctionTest::aclStubInstance().rtModelTaskDisable(task);
+}
+
+rtError_t rtModelUpdate(rtModel_t mdl)
+{
+    return MockFunctionTest::aclStubInstance().rtModelUpdate(mdl);
 }

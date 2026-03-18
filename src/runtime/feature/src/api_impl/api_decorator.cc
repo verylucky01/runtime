@@ -2234,6 +2234,11 @@ rtError_t ApiDecorator::StreamAddToModel(Stream * const stm, Model * const captu
     return impl_->StreamAddToModel(stm, captureMdl);
 }
 
+rtError_t ApiDecorator::ModelUpdate(Model* mdl)
+{
+    return impl_->ModelUpdate(mdl);
+}
+
 rtError_t ApiDecorator::ModelDestroyRegisterCallback(Model * const mdl, const rtCallback_t fn, void* ptr)
 {
     return impl_->ModelDestroyRegisterCallback(mdl, fn, ptr);
@@ -2552,6 +2557,16 @@ rtError_t ApiDecorator::GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *
     return impl_->GetFuncHandleFromExceptionInfo(info, funcHandle);
 }
 
+rtError_t ApiDecorator::TaskGetParams(const TaskInfo * const taskInfo, rtTaskParams* const params)
+{
+    return impl_->TaskGetParams(taskInfo, params);
+}
+
+rtError_t ApiDecorator::TaskSetParams(TaskInfo * const taskInfo, rtTaskParams* const params)
+{
+    return impl_->TaskSetParams(taskInfo, params);
+}
+
 rtError_t ApiDecorator::SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func)
 {
     return impl_->SetKernelDfxInfoCallback(type, func);
@@ -2575,6 +2590,11 @@ rtError_t ApiDecorator::TaskGetType(const TaskInfo * const task, rtTaskType *typ
 rtError_t ApiDecorator::TaskGetSeqId(const TaskInfo * const task, uint32_t *id)
 {
     return impl_->TaskGetSeqId(task, id);
+}
+
+rtError_t ApiDecorator::ModelTaskDisable(TaskInfo* const task)
+{
+    return impl_->ModelTaskDisable(task);
 }
 }  // namespace runtime
 }  // namespace cce

@@ -971,6 +971,36 @@ rtError_t rtFunctionGetAttribute(rtFuncHandle funcHandle, rtFuncAttribute attrTy
 }
 
 VISIBILITY_DEFAULT
+rtError_t rtModelTaskGetParams(rtTask_t task, rtTaskParams* params)
+{
+    UNUSED(task);
+    UNUSED(params);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtModelTaskSetParams(rtTask_t task, rtTaskParams* params)
+{
+    UNUSED(task);
+    UNUSED(params);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtModelUpdate(rtModel_t mdl)
+{
+    UNUSED(mdl);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtModelTaskDisable(rtTask_t task)
+{
+    UNUSED(task);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
 rtError_t rtFuncGetSize(const rtFuncHandle funcHandle, size_t *aicSize, size_t *aivSize)
 {
     UNUSED(funcHandle);

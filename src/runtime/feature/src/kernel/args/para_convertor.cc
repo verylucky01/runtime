@@ -41,7 +41,6 @@ rtError_t ConvertArgsByArgsHandle(rtArgsEx_t &oldArgs, const RtArgsHandle *const
 
     oldArgs.hostInputInfoPtr = specialArgsInfos;
     oldArgs.hostInputInfoNum = argsHandle->placeHolderNum;
-
     return RT_ERROR_NONE;
 }
 

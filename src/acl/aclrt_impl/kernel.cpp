@@ -113,6 +113,17 @@ aclError aclrtBinaryGetFunctionImpl(const aclrtBinHandle binHandle, const char *
   return ACL_SUCCESS;
 }
 
+aclError aclmdlRITaskDisableImpl(aclmdlRITask task)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclmdlRITaskDisable);
+    const rtError_t rtErr = rtModelTaskDisable(static_cast<rtTask_t>(task));
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("rtModelTaskDisable failed, runtime result = %d.", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    return ACL_SUCCESS;
+}
+
 aclError aclrtLaunchKernelImpl(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData,
                                size_t argsSize, aclrtStream stream)
 {
@@ -238,6 +249,28 @@ aclError aclrtLaunchKernelWithConfigImpl(aclrtFuncHandle funcHandle, uint32_t nu
             ACL_LOG_CALL_ERROR("Launch kernel with config failed, runtime result = %d.", rtErr);
             return ACL_GET_ERRCODE_RTS(rtErr);
         }
+    }
+    return ACL_SUCCESS;
+}
+
+aclError aclmdlRITaskGetParamsImpl(aclmdlRITask task, aclmdlRITaskParams* params)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclmdlRITaskGetParams);
+    const auto rtErr = rtModelTaskGetParams(static_cast<rtTask_t>(task), reinterpret_cast<rtTaskParams*>(params));
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("Get kernel params failed, runtime result = %d", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    return ACL_SUCCESS;
+}
+
+aclError aclmdlRITaskSetParamsImpl(aclmdlRITask task, aclmdlRITaskParams* params)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclmdlRITaskSetParams);
+    const auto rtErr = rtModelTaskSetParams(static_cast<rtTask_t>(task), reinterpret_cast<rtTaskParams*>(params));
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("Set kernel params failed, runtime result = %d", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
     }
     return ACL_SUCCESS;
 }

@@ -74,6 +74,12 @@ CaptureModel::~CaptureModel() noexcept
          DELETE_O(notify);
     }
     executeNotifyList_.clear();
+
+    ArgLoader * const argLoaderObj = Context_()->Device_()->ArgLoader_();
+    for (auto argHandle : argLoaderBackup_) {
+        (void)argLoaderObj->Release(argHandle);
+    }
+    argLoaderBackup_.clear();
 }
 
 rtError_t CaptureModel::SetNotifyBeforeExecute(Stream * const exeStm, CaptureModel* const captureMdl)
@@ -185,6 +191,11 @@ rtError_t CaptureModel::ExecuteCommon(Stream * const stm, int32_t timeout, const
         return RT_ERROR_MODEL_CAPTURED;
     }
 
+    if (captureModelStatus_ != RT_CAPTURE_MODEL_STATUS_READY) {
+        RT_LOG(RT_LOG_ERROR, "model is not ready, can't execute, model_id=%u, status=%d", Id_(), captureModelStatus_);
+        return RT_ERROR_MODEL_NOT_READY;
+    }
+
     rtError_t error;
     // begin execute
     error = SetNotifyBeforeExecute(stm, this);
@@ -235,13 +246,13 @@ rtError_t CaptureModel::TearDown()
 
 void CaptureModel::EnterCaptureNotify(const int32_t singleOperStmId, const int32_t captureStmId)
 {
-    SetModelCaptureStatus(RT_MODEL_CAPTURE_STATUS_ACTIVE);
+    SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_CAPTURE_ACTIVE);
     InsertSingleOperStmIdAndCaptureStmId(singleOperStmId, captureStmId);
 }
 
 void CaptureModel::ExitCaptureNotify()
 {
-    SetModelCaptureStatus(RT_MODEL_CAPTURE_STATUS_FINISH);
+    SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_READY);
 
     Device * const dev = Context_()->Device_();
     for (const auto& iter: singleOperStmIdAndCaptureStmIdMap_) {
@@ -289,6 +300,19 @@ rtError_t CaptureModel::AddStreamToCaptureModel(Stream * const stm)
             "already add stream_id=%d to capture model, device_id=%u, model_id=%u.", streamId, Context_()->Device_()->Id_(), Id_());
     }
     return RT_ERROR_NONE;
+}
+
+const TaskGroup* CaptureModel::GetTaskGroup(uint16_t streamId, uint16_t taskId)
+{
+    const std::unique_lock<std::mutex> lk(taskGroupListMutex_);
+    for (const auto& taskGroup : taskGroupList_) {
+        for (const auto& streamIdAndTaskId : taskGroup->taskIds) {
+            if (streamIdAndTaskId.first == streamId && streamIdAndTaskId.second == taskId) {
+                return taskGroup.get();
+            }
+        }
+    }
+    return nullptr;
 }
 
 void CaptureModel::DebugDotPrintTaskGroups(const uint32_t deviceId) const
@@ -805,6 +829,38 @@ rtError_t CaptureModel::SendSqe(void)
     }
 
     isSqeSendFinish_ = true;
+    return RT_ERROR_NONE;
+}
+
+void CaptureModel::BackupArgHandle(const uint16_t streamId, const uint16_t taskId)
+{
+    void* argHandle = GetAndEraseArgHandle(streamId, taskId);
+    if (argHandle != nullptr) {
+        argLoaderBackup_.insert(argHandle);
+    }
+}
+
+rtError_t CaptureModel::Update(void)
+{
+    uint32_t releaseNum = 0U;
+    rtError_t error = ReleaseSqCq(releaseNum);
+    ERROR_RETURN(error, "release sq cq failed, model_id=%d.", Id_());
+    for (Stream* stm : StreamList_()) {
+        const int32_t streamId = stm->Id_();
+        error = stm->ReBuildDriverStreamResource();
+        ERROR_RETURN(error, "free stream id and realloc stream id failed, stream_id=%d, model_id=%d.", streamId, Id_());
+        error = stm->UpdateAllPersistentTask();
+        ERROR_RETURN(error, "stream update failed, stream_id=%d, model_id=%d.", streamId, Id_());
+        if (stm->GetDelayRecycleTaskSqeNum() == 0U) {
+            error = Context_()->ModelDelStream(this, stm);
+            ERROR_RETURN(error, "remove stream from model failed, stream_id=%d, model_id=%d.", streamId, Id_());
+            error = Context_()->StreamDestroy(stm, true);
+            ERROR_RETURN(error, "destroy stream failed, stream_id=%d, model_id=%d.", streamId, Id_());
+        }
+    }
+
+    isSqeSendFinish_ = false;
+    RT_LOG(RT_LOG_INFO, "update finish, model_id=%u, releaseNum=%u.", Id_(), releaseNum);
     return RT_ERROR_NONE;
 }
 

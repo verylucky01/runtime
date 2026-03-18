@@ -332,6 +332,10 @@ public:
     virtual rtError_t rtStreamGetTasks(rtStream_t const stm, rtTask_t *tasks, uint32_t *numTasks);
     virtual rtError_t rtTaskGetType(rtTask_t task, rtTaskType *type);
     virtual rtError_t rtTaskGetSeqId(rtTask_t task, uint32_t *id);
+    virtual rtError_t rtModelTaskGetParams(rtTask_t task, rtTaskParams* params);
+    virtual rtError_t rtModelTaskSetParams(rtTask_t task, rtTaskParams* params);
+    virtual rtError_t rtModelTaskDisable(rtTask_t task);
+    virtual rtError_t rtModelUpdate(rtModel_t mdl);
 
     virtual rtError_t rtsMemcpyAsyncWithDesc(rtMemcpyDesc_t desc, rtMemcpyKind kind, rtMemcpyConfig_t *config, rtStream_t stream);
     virtual rtError_t rtMemcpyAsyncWithOffset(void **dst, uint64_t dstMax, uint64_t dstDataOffset, const void **src,
@@ -791,6 +795,10 @@ public:
     MOCK_METHOD3(rtStreamGetTasks, rtError_t(rtStream_t const stm, rtTask_t *tasks, uint32_t *numTasks));
     MOCK_METHOD2(rtTaskGetType, rtError_t(rtTask_t task, rtTaskType *type));
     MOCK_METHOD2(rtTaskGetSeqId, rtError_t(rtTask_t task, uint32_t *id));
+    MOCK_METHOD2(rtModelTaskGetParams, rtError_t(rtTask_t task, rtTaskParams* params));
+    MOCK_METHOD2(rtModelTaskSetParams, rtError_t(rtTask_t task, rtTaskParams* params));
+    MOCK_METHOD1(rtModelTaskDisable, rtError_t(rtTask_t task));
+    MOCK_METHOD1(rtModelUpdate, rtError_t(rtModel_t mdl));
 
     MOCK_METHOD4(rtsMemcpyAsyncWithDesc, rtError_t(rtMemcpyDesc_t desc, rtMemcpyKind kind, rtMemcpyConfig_t *config,
                                                    rtStream_t stream));

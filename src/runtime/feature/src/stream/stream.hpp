@@ -69,6 +69,7 @@ class TaskResManage;
 class StreamSqCqManage;
 class EngineStreamObserver;
 class TaskAllocator;
+class CaptureModel;
 
 typedef enum TagtsSqAllocType {
     SQ_ALLOC_TYPE_RT_DEFAULT = 0,
@@ -188,6 +189,7 @@ public:
     virtual rtError_t SqCqUpdate();
 
     virtual rtError_t ReAllocStreamId();
+    rtError_t ReBuildDriverStreamResource();
 
     virtual rtError_t Restore();
 
@@ -543,6 +545,8 @@ public:
 
     rtError_t AddTaskToStream(const TaskInfo * const tsk);
 
+    rtError_t UpdateAllPersistentTask();
+
     void CacheBindTrackTaskId(const uint16_t taskId)
     {
         cacheTrackTaskid_.push_back(taskId);
@@ -584,6 +588,7 @@ public:
 
     virtual rtError_t StarsAddTaskToStream(TaskInfo * const tsk, const uint32_t sendSqeNum);
 
+    rtError_t StarsAddTaskToStreamForModelUpdate(TaskInfo* const tsk, const uint32_t sendSqeNum);
     rtError_t TryDelRecordedTask(const bool isTaskBind, const uint16_t tailTaskId);
 
     rtError_t StarsTryDelRecordedTask(const TaskInfo * const workTask, const bool isTaskBind, const uint16_t tailTaskId);
@@ -1118,6 +1123,11 @@ public:
         return isLastLevelCaptureStream_;
     }
 
+    void SetParentCaptureStream(Stream* stm) 
+    {
+        parentCaptureStream_ = stm;
+    }
+
     uint32_t GetDavinciTaskHead(void) const
     {
         return davinciTaskHead_;
@@ -1387,6 +1397,9 @@ private:
     rtError_t SubmitStreamRecycle(Stream* exeStream, bool isForceRecycle, uint16_t logicCqId, TaskInfo *&task) const;
     void ResetHostResourceForPersistentStream();
     void RecycleModelDelayRecycleTask();
+    rtError_t HandleTaskUpdate(TaskInfo* workTask, CaptureModel* model, uint8_t* sqeBufferBackup, uint32_t sendSqeNum);
+    rtError_t HandleTaskDisable(TaskInfo* workTask, CaptureModel* model);
+    rtError_t HandleTaskDefault(TaskInfo* workTask, CaptureModel* model, uint8_t* sqeBufferBackup, uint32_t sendSqeNum);
 public:
     bool isDeviceSyncFlag = false;
     uint32_t streamResId;
@@ -1509,6 +1522,7 @@ private:
     std::mutex captureLock_;       // used to mutually exclusive alloc task between begin/end capture
     bool isOrigCaptureStream_{false};
     bool isLastLevelCaptureStream_{true};
+    Stream* parentCaptureStream_{nullptr}; // 级联场景下的上级流
     rtStreamCaptureMode streamCaptureMode_{RT_STREAM_CAPTURE_MODE_MAX};
     StreamTaskGroupStatus taskGroupStatus_{StreamTaskGroupStatus::NONE}; // only for single-operator stream
     std::unique_ptr<TaskGroup> taskGroup_ = nullptr; // only for capture stream

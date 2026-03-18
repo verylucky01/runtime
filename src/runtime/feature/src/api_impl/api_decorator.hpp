@@ -420,10 +420,12 @@ public:
     rtError_t ModelDebugDotPrint(const Model * const mdl) override;
     rtError_t ModelDebugJsonPrint(const Model * const mdl, const char* path, const uint32_t flags) override;
     rtError_t StreamAddToModel(Stream * const stm, Model * const captureMdl) override;
+    rtError_t ModelUpdate(Model* mdl) override;
     rtError_t ModelGetStreams(const Model * const mdl, Stream **streams, uint32_t *numStreams) override;
     rtError_t StreamGetTasks(Stream * const stm, void **tasks, uint32_t *numTasks) override;
     rtError_t TaskGetType(const TaskInfo * const task, rtTaskType *type) override;
     rtError_t TaskGetSeqId(const TaskInfo * const task, uint32_t *id) override;
+    rtError_t ModelTaskDisable(TaskInfo* const task) override;
     rtError_t ModelDestroyRegisterCallback(Model * const mdl, const rtCallback_t fn, void* ptr) override;
     rtError_t ModelDestroyUnregisterCallback(Model * const mdl, const rtCallback_t fn) override;
 
@@ -702,6 +704,10 @@ public:
     
     rtError_t BinarySetExceptionCallback(Program *binHandle, void *callback, void *userData) override;
     rtError_t GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info, Kernel ** const funcHandle) override;
+
+    // task
+    rtError_t TaskGetParams(const TaskInfo * const taskInfo, rtTaskParams* const params) override;
+    rtError_t TaskSetParams(TaskInfo * const taskInfo, rtTaskParams* const params) override;
 
     rtError_t SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func) override;
 protected:

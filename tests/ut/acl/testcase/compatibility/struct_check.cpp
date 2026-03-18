@@ -557,3 +557,57 @@ TEST_F(UTEST_ACL_compatibility_struct_check, aclrtMemUsageInfo)
     EXPECT_EQ(sizeof(aclrtMemUsageInfo),
         sizeof(char) * 32 + sizeof(uint64_t) * 2 + sizeof(size_t) * 8);
 }
+
+TEST_F(UTEST_ACL_compatibility_struct_check, aclmdlRITaskParams)
+{
+    size_t offset;
+    // 测试结构体 aclmdlRITaskParams 中的 type 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRITaskParams, type);
+    EXPECT_EQ(offset, 0);
+
+    // 测试结构体 aclmdlRITaskParams 中的 taskGrp 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRITaskParams, taskGrp);
+    EXPECT_EQ(offset, 16);
+
+    // 测试结构体 aclmdlRITaskParams 中的 opInfoPtr 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRITaskParams, opInfoPtr);
+    EXPECT_EQ(offset, 24);
+
+    // 测试结构体 aclmdlRITaskParams 中的 opInfoSize 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRITaskParams, opInfoSize);
+    EXPECT_EQ(offset, 32);
+
+    // 检查整个结构体的大小是否正确
+    EXPECT_EQ(sizeof(aclmdlRITaskParams), 40 + 32 + 128);
+}
+
+TEST_F(UTEST_ACL_compatibility_struct_check, aclmdlRIKernelTaskParams)
+{
+    size_t offset;
+    // 测试结构体 aclmdlRIKernelTaskParams 中的 funcHandle 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRIKernelTaskParams, funcHandle);
+    EXPECT_EQ(offset, 0);
+
+    // 测试结构体 aclmdlRIKernelTaskParams 中的 cfg 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRIKernelTaskParams, cfg);
+    EXPECT_EQ(offset, 8);
+
+    // 测试结构体 aclmdlRIKernelTaskParams 中的 args 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRIKernelTaskParams, args);
+    EXPECT_EQ(offset, 16);
+
+    // 测试结构体 aclmdlRIKernelTaskParams 中的 isHostArgs 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRIKernelTaskParams, isHostArgs);
+    EXPECT_EQ(offset, 24);
+
+    // 测试结构体 aclmdlRIKernelTaskParams 中的 argsSize 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRIKernelTaskParams, argsSize);
+    EXPECT_EQ(offset, 32);
+
+    // 测试结构体 aclmdlRIKernelTaskParams 中的 numBlocks 字段偏移量
+    offset = OFFSET_OF_MEMBER(aclmdlRIKernelTaskParams, numBlocks);
+    EXPECT_EQ(offset, 40);
+
+    // 检查整个结构体的大小是否正确
+    EXPECT_EQ(sizeof(aclmdlRIKernelTaskParams), sizeof(uint32_t) * 10 + 48);
+}

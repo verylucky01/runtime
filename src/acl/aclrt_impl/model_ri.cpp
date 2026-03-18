@@ -118,6 +118,18 @@ aclError aclmdlRICaptureEndImpl(aclrtStream stream, aclmdlRI *modelRI)
     return ACL_SUCCESS;
 }
 
+aclError aclmdlRIUpdateImpl(aclmdlRI modelRI)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclmdlRIUpdate);
+    const rtError_t rtErr = rtModelUpdate(static_cast<rtModel_t>(modelRI));
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("model update failed, runtime result=%d", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    ACL_LOG_INFO("successfully execute aclmdlRIUpdate");
+    return ACL_SUCCESS;
+}
+
 aclError aclmdlRIDebugPrintImpl(aclmdlRI modelRI)
 {
     ACL_PROFILING_REG(acl::AclProfType::AclmdlRIDebugPrint);

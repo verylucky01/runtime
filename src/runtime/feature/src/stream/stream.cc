@@ -36,6 +36,7 @@
 #include "capture_adapt.hpp"
 #include "memory_task.h"
 #include "sq_addr_memory_pool.hpp"
+#include "capture_model_utils.hpp"
 #include "davinci_kernel_task.h"
 #include <thread>
 #include "ctrl_sq.hpp"
@@ -1059,6 +1060,18 @@ rtError_t Stream::ReAllocStreamId()
 
     error = SetSqRegVirtualAddrToDevice(sqRegVirtualAddr_);
     ERROR_RETURN_MSG_INNER(error, "Fail to copy sqid=%u virtual addr to device, error=%d.", sqId_, error);
+    return error;
+}
+
+rtError_t Stream::ReBuildDriverStreamResource()
+{
+    rtError_t error = device_->Driver_()->StreamIdReservedFree(streamId_, device_->Id_(), device_->DevGetTsId());
+    COND_RETURN_ERROR(
+        error, error, "free stream id failed, streamId=%d, deviceId=%u, ret=%d.", streamId_, device_->Id_(), error);
+    error = device_->Driver_()->ReAllocResourceId(
+        device_->Id_(), device_->DevGetTsId(), priority_, static_cast<uint32_t>(streamId_), DRV_STREAM_ID);
+    COND_RETURN_ERROR(
+        error, error, "realloc stream id failed, streamId=%d, deviceId=%u, ret=%d.", streamId_, device_->Id_(), error);
     return error;
 }
 
@@ -3090,6 +3103,193 @@ rtError_t Stream::StarsAddTaskToStream(TaskInfo * const tsk, const uint32_t send
     return RT_ERROR_NONE;
 }
 
+// taskPersistentTail_/taskPosTail_ save the postion of rtsq tail
+rtError_t Stream::StarsAddTaskToStreamForModelUpdate(TaskInfo* const tsk, const uint32_t sendSqeNum)
+{
+    const uint32_t posTail = taskPersistentTail_.Value();
+    const uint32_t rtsqDepth = GetSqDepth();
+    const uint32_t newPosTail = (posTail + sendSqeNum) % rtsqDepth;
+    // If model stream is already full, return STREAM_FULL.
+    COND_RETURN_ERROR(
+        (posTail + sendSqeNum >= rtsqDepth), RT_ERROR_STREAM_FULL,
+        "model stream full, stream_id=%d, task_id=%u, posTail=%u, sendSqeNum=%u, rtsqDepth=%u", streamId_, tsk->id,
+        posTail, sendSqeNum, rtsqDepth);
+    taskPersistentTail_.Set(newPosTail);
+    delayRecycleTaskid_.push_back(tsk->id);
+
+    posToTaskIdMapLock_.lock();
+    for (uint32_t i = 0U; i < sendSqeNum; ++i) {
+        posToTaskIdMap_[((posTail + i) % rtsqDepth)] = tsk->id;
+    }
+    posToTaskIdMapLock_.unlock();
+
+    SetSqPos(tsk, posTail);
+    SetLastTaskId(static_cast<uint32_t>(tsk->id));
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::HandleTaskUpdate(
+    TaskInfo* workTask, CaptureModel* model, uint8_t* sqeBufferBackup, uint32_t sendSqeNum)
+{
+    RT_LOG(
+        RT_LOG_INFO, "update task begin, stream_id=%d, task_id=%hu, task_type=%d(%s).", streamId_, workTask->id,
+        workTask->type, workTask->typeName);
+    // 将model中的argsHandle备份，然后将新的argsHandle添加到model中
+    model->BackupArgHandle(streamId_, workTask->id);
+    model->SetKernelTaskId(static_cast<uint32_t>(workTask->id), streamId_);
+    rtTsCommand_t cmdLocal = {};
+    cmdLocal.cmdType = RT_TASK_COMMAND_TYPE_STARS_SQE;
+    ToConstructSqe(workTask, cmdLocal.cmdBuf.u.starsSqe);
+    // Update the host-side head and tail
+    // 这里的pending num再发生错误的时候不需要减1
+    rtError_t error = StarsAddTaskToStreamForModelUpdate(workTask, sendSqeNum);
+    ERROR_RETURN(error, "Add task failed stream_id=%d, task_id=%u.", streamId_, workTask->id);
+
+    auto ret = memcpy_s(
+        RtPtrToPtr<void*>(sqeBufferBackup + sizeof(rtStarsSqe_t) * workTask->pos), sendSqeNum * sizeof(rtStarsSqe_t),
+        RtPtrToPtr<void*, rtStarsSqe_t*>(cmdLocal.cmdBuf.u.starsSqe), sendSqeNum * sizeof(rtStarsSqe_t));
+
+    COND_RETURN_ERROR(
+        ret != EOK, RT_ERROR_INVALID_VALUE,
+        "memcpy_s failed, device_id=%u, stream_id=%d, task_id=%hu, task_type=%d(%s), error=%d", device_->Id_(),
+        streamId_, workTask->id, workTask->type, workTask->typeName, ret);
+    Complete(workTask, device_->Id_());
+    if (workTask->infoPtr != nullptr && workTask->infoSize != 0) {
+        error = model->SetShapeInfo(this, workTask->id, workTask->infoPtr, workTask->infoSize);
+    } else {
+        model->ClearShapeInfo(streamId_, workTask->id);
+    }
+    ERROR_RETURN(error, "update shape info failed, stream_id=%d, task_id=%u.", streamId_, workTask->id);
+    RT_LOG(
+        RT_LOG_INFO, "update task finish, stream_id=%d, task_id=%hu, task_type=%d(%s), infoPtr=%p, infoSize=%zu.",
+        streamId_, workTask->id, workTask->type, workTask->typeName, workTask->infoPtr, workTask->infoSize);
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::HandleTaskDisable(TaskInfo* workTask, CaptureModel* model)
+{
+    RT_LOG(
+        RT_LOG_INFO, "disable task, stream_id=%d, task_id=%hu, task_type=%d(%s).", streamId_, workTask->id,
+        workTask->type, workTask->typeName);
+    // 保存argsHandle
+    model->BackupArgHandle(streamId_, workTask->id);
+    model->ClearShapeInfo(streamId_, workTask->id);
+    // 释放老的taskInfo 释放mix任务的subContext
+    (void)device_->GetTaskFactory()->Recycle(workTask);
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::HandleTaskDefault(TaskInfo* workTask, CaptureModel* model, uint8_t* sqeBufferBackup, uint32_t sendSqeNum)
+{
+    model->SetKernelTaskId(static_cast<uint32_t>(workTask->id), streamId_);
+    // 获取老的sqe
+    uint8_t* oldhostSqeAddr = sqeBuffer_ + sizeof(rtStarsSqe_t) * workTask->pos;
+    // Update the host-side head and tail
+    rtError_t error = StarsAddTaskToStreamForModelUpdate(workTask, sendSqeNum);
+    ERROR_RETURN(error, "Add task failed stream_id=%d, task_id=%u.", streamId_, workTask->id);
+
+    auto ret = memcpy_s(
+        RtPtrToPtr<void*>(sqeBufferBackup + sizeof(rtStarsSqe_t) * workTask->pos), sendSqeNum * sizeof(rtStarsSqe_t),
+        RtPtrToPtr<void*>(oldhostSqeAddr), sendSqeNum * sizeof(rtStarsSqe_t));
+
+    COND_RETURN_ERROR(
+        ret != EOK, RT_ERROR_INVALID_VALUE,
+        "memcpy_s failed, device_id=%u, stream_id=%d, task_id=%hu, task_type=%d(%s), error=%d", device_->Id_(),
+        streamId_, workTask->id, workTask->type, workTask->typeName, ret);
+    RT_LOG(
+        RT_LOG_INFO, "handle default task finish, stream_id=%d, task_id=%hu, task_type=%d(%s).", streamId_,
+        workTask->id, workTask->type, workTask->typeName);
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::UpdateAllPersistentTask()
+{
+    std::vector<uint16_t> taskIdVec = delayRecycleTaskid_;
+    delayRecycleTaskid_.clear();
+    taskPersistentHead_.Set(0U);
+    taskPersistentTail_.Set(0U);
+    errno_t ret = memset_s(taskPersistentBuff_, sizeof(taskPersistentBuff_), 0U, sizeof(taskPersistentBuff_));
+    COND_RETURN_ERROR(ret != EOK, RT_ERROR_STREAM_NEW, "Memset taskPersistentBuff_ failed, retCode=%d.", ret);
+    ret =
+        memset_s(posToTaskIdMap_, posToTaskIdMapSize_ * sizeof(uint16_t), 0XFF, posToTaskIdMapSize_ * sizeof(uint16_t));
+    COND_RETURN_ERROR(ret != EOK, RT_ERROR_STREAM_NEW, "Memset posToTaskIdMap failed, retCode=%d.", ret);
+    Model* mdl = Model_();
+    CaptureModel* captureModel = dynamic_cast<CaptureModel*>(mdl);
+    // 存在融合后sqe变多的场景
+    std::unique_ptr<uint8_t[]> sqeBufferBackup(new (std::nothrow) uint8_t[sqeBufferSize_]);
+    COND_RETURN_ERROR(!sqeBufferBackup, RT_ERROR_STREAM_NEW, "New sqeBufferBackup failed, size=%u", sqeBufferSize_);
+    ret = memset_s(sqeBufferBackup.get(), sqeBufferSize_, 0U, sqeBufferSize_);
+    COND_RETURN_ERROR(ret != EOK, RT_ERROR_STREAM_NEW, "Memset sqeBufferBackup failed, retCode=%d.", ret);
+
+    uint32_t totalSendSqeNum = 0U;
+    rtError_t error = RT_ERROR_NONE;
+    for (uint16_t taskId : taskIdVec) {
+        TaskInfo* workTask = device_->GetTaskFactory()->GetTask(streamId_, taskId);
+        COND_RETURN_ERROR(
+            workTask == nullptr, RT_ERROR_TASK_NULL, "GetTask failed, stream_id=%d, task_id=%hu", streamId_, taskId);
+        const uint32_t sendSqeNum = GetSendSqeNum(workTask);
+        COND_RETURN_ERROR(
+            sendSqeNum > SQE_NUM_PER_STARS_TASK_MAX, RT_ERROR_INVALID_VALUE,
+            "sendSqeNum %u more than max num %d. task_id=%hu, task_type=%d(%s).", sendSqeNum,
+            SQE_NUM_PER_STARS_TASK_MAX, workTask->id, workTask->type, workTask->typeName);
+        if (workTask->updateFlag == RT_TASK_UPDATE || workTask->updateFlag == RT_TASK_KEEP) {
+            COND_RETURN_ERROR(
+                (totalSendSqeNum + sendSqeNum) >= STREAM_SQ_MAX_DEPTH, RT_ERROR_INVALID_VALUE,
+                "tatal sqe num more than max num %d.", STREAM_SQ_MAX_DEPTH);
+        }
+        switch (workTask->updateFlag) {
+            case RT_TASK_UPDATE:
+                error = HandleTaskUpdate(workTask, captureModel, sqeBufferBackup.get(), sendSqeNum);
+                totalSendSqeNum += sendSqeNum;
+                break;
+            case RT_TASK_DISABLE:
+                error = HandleTaskDisable(workTask, captureModel);
+                break;
+            case RT_TASK_KEEP:
+                error = HandleTaskDefault(workTask, captureModel, sqeBufferBackup.get(), sendSqeNum);
+                totalSendSqeNum += sendSqeNum;
+                break;
+            default:
+                RT_LOG(
+                    RT_LOG_ERROR, "Invalid updateFlag: upateFlag=%d, stream_id=%d, task_id=%hu", workTask->updateFlag,
+                    streamId_, workTask->id);
+                error = RT_ERROR_INVALID_VALUE;
+                break;
+        }
+        ERROR_RETURN(
+            error, "deal with task faield, stream_id=%d, task_id=%hu, task_type=%d(%s).", streamId_, workTask->id,
+            workTask->type, workTask->typeName);
+    }
+
+    if (totalSendSqeNum == 0U && parentCaptureStream_ != nullptr) {
+        uint32_t nopSqeNum = 0U;
+        error = ConstructNopTask(this, sqeBufferBackup.get(), nopSqeNum);
+        ERROR_RETURN(error, "construct nop failed.");
+        totalSendSqeNum += nopSqeNum;
+    }
+
+    if (totalSendSqeNum > 0U) {
+        ret = memcpy_s(
+            RtPtrToPtr<void*>(sqeBuffer_), totalSendSqeNum * sizeof(rtStarsSqe_t), sqeBufferBackup.get(),
+            totalSendSqeNum * sizeof(rtStarsSqe_t));
+        COND_RETURN_ERROR(
+            ret != EOK, RT_ERROR_STREAM_NEW, "memcpy_s failed, device_id=%u, stream_id=%d, totalSendSqeNum, error=%d",
+            device_->Id_(), streamId_, totalSendSqeNum, ret);
+
+        taskPersistentHead_.Set(taskPersistentTail_.Value());
+    } else {
+        ret = memset_s(sqeBuffer_, sqeBufferSize_, 0U, sqeBufferSize_);
+        COND_RETURN_ERROR(
+            ret != EOK, RT_ERROR_STREAM_NEW,
+            "memset sqeBuffer failed, device_id=%u, stream_id=%d, totalSendSqeNum, error=%d", device_->Id_(), streamId_,
+            totalSendSqeNum, ret);
+        taskPersistentHead_.Set(0U);
+        taskPersistentTail_.Set(0U);
+    }
+    RT_LOG(RT_LOG_INFO, "update all task finish, stream_id=%d, totalSendSqeNum=%u.", streamId_, totalSendSqeNum);
+    return RT_ERROR_NONE;
+}
+
 bool Stream::StarsCheckSqeFull(const uint32_t sendSqeNum)
 {
     const uint32_t rtsqDepth = GetSqDepth();
@@ -4098,6 +4298,7 @@ void Stream::UpdateCascadeCaptureStreamInfo(Stream *newCaptureStream, Stream *cu
     curCaptureStream->CancelLastLevelCaptureStream();
     newCaptureStream->MarkOrigCaptureStream(curCaptureStream->IsOrigCaptureStream());
     newCaptureStream->UpdateCurrentTaskGroup(curCaptureStream->GetCurrentTaskGroup());
+    newCaptureStream->SetParentCaptureStream(curCaptureStream);
     curCaptureStream->ResetTaskGroup();
     CaptureModel *captureModel = static_cast<CaptureModel *>(curCaptureStream->Model_());
     if (captureModel != nullptr) {
@@ -4329,44 +4530,44 @@ bool Stream::IsStreamFull(const uint32_t head, const uint32_t tail, const uint32
 
 void Stream::GetTaskEventIdOrNotifyId(TaskInfo *taskInfo, int32_t &eventId, uint32_t &notifyId, uint64_t &devAddr) const
 {
-    EventRecordTaskInfo *eventRecordTask = nullptr;
-    EventWaitTaskInfo *eventWaitTask = nullptr;
+    EventRecordTaskInfo *eventRecordTaskInfo = nullptr;
+    EventWaitTaskInfo *eventWaitTaskInfo = nullptr;
     EventResetTaskInfo *eventResetTaskInfo = nullptr;
-    NotifyWaitTaskInfo* notifyWaitTask = nullptr;
-    NotifyRecordTaskInfo *notifyRecord = nullptr;
-    MemWriteValueTaskInfo *memWriteValueTask = nullptr;
-    MemWaitValueTaskInfo *memWaitValueTask = nullptr;
+    NotifyWaitTaskInfo* notifyWaitTaskInfo = nullptr;
+    NotifyRecordTaskInfo *notifyRecordInfo = nullptr;
+    MemWriteValueTaskInfo *memWriteValueTaskInfo = nullptr;
+    MemWaitValueTaskInfo *memWaitValueTaskInfo = nullptr;
 
     switch (taskInfo->type) {
         case TS_TASK_TYPE_EVENT_RECORD:
-            eventRecordTask = &(taskInfo->u.eventRecordTaskInfo);
-            eventId = eventRecordTask->eventid;
+            eventRecordTaskInfo = &(taskInfo->u.eventRecordTaskInfo);
+            eventId = eventRecordTaskInfo->eventid;
             break;
         case TS_TASK_TYPE_STREAM_WAIT_EVENT:
-            eventWaitTask = &(taskInfo->u.eventWaitTaskInfo);
-            eventId = eventWaitTask->eventId;
+            eventWaitTaskInfo = &(taskInfo->u.eventWaitTaskInfo);
+            eventId = eventWaitTaskInfo->eventId;
             break;
         case TS_TASK_TYPE_EVENT_RESET:
             eventResetTaskInfo = &(taskInfo->u.eventResetTaskInfo);
             eventId = eventResetTaskInfo->eventid;
             break;
         case TS_TASK_TYPE_NOTIFY_WAIT:
-            notifyWaitTask = &(taskInfo->u.notifywaitTask);
-            notifyId = notifyWaitTask->notifyId;
+            notifyWaitTaskInfo = &(taskInfo->u.notifywaitTask);
+            notifyId = notifyWaitTaskInfo->notifyId;
             break;
         case TS_TASK_TYPE_NOTIFY_RECORD:
-            notifyRecord = &(taskInfo->u.notifyrecordTask);
-            notifyId = notifyRecord->notifyId;
+            notifyRecordInfo = &(taskInfo->u.notifyrecordTask);
+            notifyId = notifyRecordInfo->notifyId;
             break;
         case TS_TASK_TYPE_CAPTURE_RECORD:
         case TS_TASK_TYPE_MEM_WRITE_VALUE:
-            memWriteValueTask = &taskInfo->u.memWriteValueTask;
-            devAddr = memWriteValueTask->devAddr;
+            memWriteValueTaskInfo = &taskInfo->u.memWriteValueTask;
+            devAddr = memWriteValueTaskInfo->devAddr;
             break;
         case TS_TASK_TYPE_CAPTURE_WAIT:
         case TS_TASK_TYPE_MEM_WAIT_VALUE:
-            memWaitValueTask = &taskInfo->u.memWaitValueTask;
-            devAddr = memWaitValueTask->devAddr;
+            memWaitValueTaskInfo = &taskInfo->u.memWaitValueTask;
+            devAddr = memWaitValueTaskInfo->devAddr;
             break;
 
         default:

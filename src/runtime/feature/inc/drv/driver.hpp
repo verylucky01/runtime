@@ -269,6 +269,8 @@ public:
     virtual rtError_t StreamIdFree(const int32_t id, const uint32_t deviceId, const uint32_t tsId,
                                    const uint32_t streamFlag = 0) = 0;
 
+    virtual rtError_t StreamIdReservedFree(const int32_t id, const uint32_t deviceId, const uint32_t tsId) = 0;
+
     // Alloc event ID.
     virtual rtError_t EventIdAlloc(int32_t * const id, const uint32_t deviceId, const uint32_t tsId,
                                    const uint32_t eventFlag = 0, const bool createFlag = false) = 0;

@@ -135,7 +135,7 @@ void SetTprtResultForDavinciTask(TaskInfo* taskInfo, const TprtLogicCqReport_t &
             STREAM_REPORT_ERR_MSG(taskInfo->stream, ERR_MODULE_HCCL,
                 "AICPU Kernel task happen error, retCode=%#x, streamId=%d, taskId=%u.", taskInfo->errorCode, taskInfo->stream->Id_(), taskInfo->id);
         } else {
-            RT_LOG(RT_LOG_ERROR, "only support aicpu, streamId=%u, taskId=%u.", taskInfo->stream->Id_(), taskInfo->id);
+            RT_LOG(RT_LOG_ERROR, "only support aicpu, streamId=%d, taskId=%u.", taskInfo->stream->Id_(), taskInfo->id);
         }
     }
 }

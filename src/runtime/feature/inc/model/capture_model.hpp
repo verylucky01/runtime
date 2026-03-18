@@ -20,12 +20,13 @@ namespace cce {
 namespace runtime {
 class Event;
 
-enum RtModelCaptureStatus {
-    RT_MODEL_CAPTURE_STATUS_NONE        = 0, /* init status */
-    RT_MODEL_CAPTURE_STATUS_ACTIVE      = 1, /* enter capture */
-    RT_MODEL_CAPTURE_STATUS_INVALIDATED = 2, /* invalid capture */
-    RT_MODEL_CAPTURE_STATUS_FINISH      = 3, /* exit capture */
-    RT_MODEL_CAPTURE_STATUS_MAX         = 4
+enum RtCaptureModelStatus {
+    RT_CAPTURE_MODEL_STATUS_NONE = 0,            // init status
+    RT_CAPTURE_MODEL_STATUS_CAPTURE_ACTIVE,      // capture status
+    RT_CAPTURE_MODEL_STATUS_CAPTURE_INVALIDATED, // capture invalidated status
+    RT_CAPTURE_MODEL_STATUS_UPDATING,            // updating status
+    RT_CAPTURE_MODEL_STATUS_FAULT,               // fault status
+    RT_CAPTURE_MODEL_STATUS_READY,               // capture or updating finish
 };
 
 struct MsprofShapeHeader {
@@ -55,32 +56,54 @@ public:
     void EnterCaptureNotify(const int32_t singleOperStmId, const int32_t captureStmId);
     void ExitCaptureNotify();
 
-    void SetModelCaptureStatus(RtModelCaptureStatus captureStatus)
+    void SetCaptureModelStatus(RtCaptureModelStatus status)
     {
-        captureStatus_ = captureStatus;
+        captureModelStatus_ = status;
+    }
+
+    RtCaptureModelStatus GetCaptureModelStatus() const
+    {
+        return captureModelStatus_;
     }
 
     void TerminateCapture()
     {
-        if (captureStatus_ == RT_MODEL_CAPTURE_STATUS_ACTIVE) {
-            captureStatus_ = RT_MODEL_CAPTURE_STATUS_INVALIDATED;
+        if (captureModelStatus_ == RT_CAPTURE_MODEL_STATUS_CAPTURE_ACTIVE) {
+            captureModelStatus_ = RT_CAPTURE_MODEL_STATUS_CAPTURE_INVALIDATED;
         }
+    }
+
+    bool IsCaptureReady() const
+    {
+        return (captureModelStatus_ == RT_CAPTURE_MODEL_STATUS_READY);
     }
 
     bool IsCaptureFinish() const
     {
-        return (captureStatus_ == RT_MODEL_CAPTURE_STATUS_FINISH);
+        return (captureModelStatus_ > RT_CAPTURE_MODEL_STATUS_CAPTURE_INVALIDATED);
     }
 
     bool IsCapturing() const
     {
-        return ((captureStatus_ == RT_MODEL_CAPTURE_STATUS_ACTIVE) ||
-                (captureStatus_ == RT_MODEL_CAPTURE_STATUS_INVALIDATED));
+        return ((captureModelStatus_ == RT_CAPTURE_MODEL_STATUS_CAPTURE_ACTIVE) ||
+                (captureModelStatus_ == RT_CAPTURE_MODEL_STATUS_CAPTURE_INVALIDATED));
     }
 
     bool IsCaptureInvalid() const
     {
-        return (captureStatus_ == RT_MODEL_CAPTURE_STATUS_INVALIDATED);
+        return (captureModelStatus_ == RT_CAPTURE_MODEL_STATUS_CAPTURE_INVALIDATED);
+    }
+
+    bool IsUpdating() const
+    {
+        return (captureModelStatus_ == RT_CAPTURE_MODEL_STATUS_UPDATING);
+    }
+
+    bool CanUpdate() const
+    {
+        return ((!IsCaptureModelRunning()) && 
+                (captureModelStatus_ == RT_CAPTURE_MODEL_STATUS_READY ||
+                 captureModelStatus_ == RT_CAPTURE_MODEL_STATUS_UPDATING));
     }
 
     void InsertSingleOperStmIdAndCaptureStmId(const int32_t singleOperStmId, const int32_t captureStmId)
@@ -156,6 +179,7 @@ public:
 
     void AddTaskGroupList(std::unique_ptr<TaskGroup> &taskGrp)
     {
+        const std::unique_lock<std::mutex> lk(taskGroupListMutex_);
         taskGroupList_.push_back(std::move(taskGrp));
     }
 
@@ -237,6 +261,10 @@ public:
         return seqId_++;
     }
 
+    const TaskGroup* GetTaskGroup(uint16_t streamId, uint16_t taskId);
+    void BackupArgHandle(const uint16_t streamId, const uint16_t taskId);
+    rtError_t Update(void);
+
     rtError_t ReleaseNotifyId(void);
     rtError_t UpdateNotifyId(Stream * const exeStream);
     // endGraph + alloc sq cq + Send sqe + bind sq cq + load complete + update task
@@ -263,7 +291,7 @@ private:
     rtError_t BindStreamToModel(void);
     void ReportCacheTrackData();
 
-    RtModelCaptureStatus captureStatus_{RT_MODEL_CAPTURE_STATUS_NONE};
+    RtCaptureModelStatus captureModelStatus_{RT_CAPTURE_MODEL_STATUS_NONE};
     mutable uint32_t cacheOpInfoSwitch_{0U}; // aclgraph stream status: 0: false, 1:true
     std::map<int32_t, std::map<uint32_t, std::unique_ptr<uint8_t []>>> shapeInfos_;
     std::unordered_map<int32_t, std::unordered_set<int32_t>> singleOperStmIdAndCaptureStmIdMap_;
@@ -273,6 +301,7 @@ private:
     std::vector<Notify *> addStreamNotifyList_;
     std::vector<Notify *> executeNotifyList_;
     std::mutex notifyMutex_;
+    std::mutex taskGroupListMutex_;
     std::set<uint16_t> taskGroupStmIds_;
     std::vector<std::unique_ptr<TaskGroup>> taskGroupList_;
     rtError_t taskGroupErrCode_{RT_ERROR_NONE};
@@ -290,6 +319,7 @@ private:
     uint64_t beginCaptureTimeStamp_{0UL};
     bool trackDataReportFlag_{false};
     std::atomic<uint32_t> seqId_{0};
+    std::set<void *> argLoaderBackup_;
 };
 }
 }

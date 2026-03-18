@@ -43,7 +43,7 @@ typedef float float32_t;
 typedef double float64_t;
 #endif
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && (__GNUC__ >= 6)
     #define RT_DEPRECATED __attribute__((deprecated))
     #define RT_DEPRECATED_MESSAGE(message) __attribute__((deprecated(message)))
 #elif defined(_MSC_VER)

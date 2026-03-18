@@ -209,7 +209,7 @@ bash build.sh --cann_3rd_lib_path=third_party
   
 ## 本地验证 
 
-编译完成后，用户可以进行开发测试（DT：Development Testing），验证项目功能是否正常。
+编译完成后，用户可以进行开发测试，验证项目功能是否正常，本节将介绍如何做单元测试(UT: Unit Testing)。
 > 说明：
 执行 UT 用例依赖 googletest 单元测试框架，详细介绍参见 [googletest 官网](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)。
 

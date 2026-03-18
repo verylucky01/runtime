@@ -21,6 +21,7 @@
 #include "log/adx_log.h"
 #include "runtime/context.h"
 #include "rts/rts_snapshot.h"
+#include "error_codes/rt_error_codes.h"
 #include "adump_dsmi.h"
 #include "common_utils.h"
 #include "exception_info_common.h"
@@ -35,7 +36,6 @@
 namespace Adx {
 constexpr char EXCEPTION_CB_MODULE[] = "AdumpException";
 constexpr char COREDUMP_CB_MODULE[] = "AdumpCoredump";
-static const int32_t ADUMP_ACL_ERROR_RT_FEATURE_NOT_SUPPORT = 207000; // feature not support
 static const uint32_t ADUMP_ACL_ERROR_RT_AICORE_OVER_FLOW = 207003;   // aicore over flow
 static const uint32_t ADUMP_ACL_ERROR_RT_AIVEC_OVER_FLOW = 207016;    // aivec over flow
 
@@ -111,8 +111,6 @@ DumpManager::DumpManager()
         EnableExceptionDumpWithEnv();
         // 2. 通过环境变量使能Kernel Dfx Dump
         KernelDfxDumper::Instance();
-        // 3. 注册快照回调：快照备份前关闭Data Dump Server
-        RegisterSnapShotCallback();
     } catch (...) {
         IDE_LOGW("Enable dump function with env variable failed!");
     }
@@ -120,7 +118,16 @@ DumpManager::DumpManager()
 
 bool DumpManager::StartDataDumpServer()
 {
-    return AdxDataDumpServerInit() == ADUMP_SUCCESS;
+    // 注册快照回调：快照备份前关闭Data Dump Server
+    RegisterSnapShotCallback();
+#if !defined(ADUMP_SOC_HOST) || ADUMP_SOC_HOST == 1
+    // 如果没有启动Data Dump Server，启动Data Dump Server
+    int32_t dumpNum = AdxDumpRecord::Instance().GetDumpInitNum();
+    if (dumpNum == 0) {
+        return AdxDataDumpServerInit() == ADUMP_SUCCESS;
+    }
+#endif
+    return true;
 }
 
 bool DumpManager::StopDataDumpServer()
@@ -140,7 +147,7 @@ void DumpManager::RegisterSnapShotCallback()
 {
     if (!snapCbkRegistered_) {
         rtError_t ret = rtSnapShotCallbackRegister(RT_SNAPSHOT_LOCK_PRE, DumpSnapShotLockPreCallback, nullptr);
-        if (ret == ADUMP_ACL_ERROR_RT_FEATURE_NOT_SUPPORT) {
+        if (ret == ACL_ERROR_RT_FEATURE_NOT_SUPPORT) {
             IDE_LOGI("RTS does not support snapshot feature. ret=%d", ret);
             return;
         }
@@ -231,10 +238,12 @@ int32_t DumpManager::SetDumpConfig(DumpType dumpType, const DumpConfig& dumpConf
         return ret;
     }
 
-    // 启动data dump server
-    IDE_CTRL_VALUE_FAILED(
-        StartDataDumpServer(), return ADUMP_FAILED, "Start data dump server failed! dumpType=%s[%d]",
-        DumpConfigConverter::DumpTypeToStr(dumpType).c_str(), dumpType);
+    // 启动Data Dump Server
+    if (dumpConfig.dumpStatus != ADUMP_DUMP_STATUS_SWITCH_OFF) {
+        IDE_CTRL_VALUE_FAILED(StartDataDumpServer(), return ADUMP_FAILED,
+            "Start data dump server failed! dumpType=%s[%d]",
+            DumpConfigConverter::DumpTypeToStr(dumpType).c_str(), dumpType);
+    }
 
     if (CheckBinValidation() && (isKFCInit_ == false)) {
         auto kfcBind = std::bind(&DumpManager::KFCResourceInit, this);

@@ -49,6 +49,7 @@ public:
     void UpdateLatestRecord(const DavidRecordTaskInfo &recordInfo, const DavidEventState_t latestStatus,
         const uint64_t timeStamp);
     rtError_t GenEventId() override;
+    bool IsEventInModel() override;
     bool IsEventWithoutWaitTask() const override {
         return (((eventFlag_ & (RT_EVENT_DDSYNC | RT_EVENT_DDSYNC_NS | RT_EVENT_MC2 | RT_EVENT_EXTERNAL)) == 0U));
     }

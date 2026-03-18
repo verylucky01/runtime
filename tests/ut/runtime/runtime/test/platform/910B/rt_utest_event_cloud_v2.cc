@@ -492,3 +492,48 @@ TEST_F(EventTest910B, TestAllocEventIdFromPool)
     EXPECT_EQ(result, false);
     delete eventPool;
 }
+
+TEST_F(EventTest910B, TestEventSynchronizeWithEventInModel)
+{
+    rtError_t error;
+    rtEvent_t event;
+    rtStream_t stream;
+    rtModel_t  model;
+    error = rtModelCreate(&model, 0);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtEventCreateExWithFlag(&event, RT_EVENT_WITH_FLAG);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtEventRecord(event, stream);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    Event* evt = (Event*)event;
+    Stream* stm = (Stream*)stream;
+    std::shared_ptr<Stream> stmSharedPtr = stm->GetSharedPtr();
+    MOCKER_CPP(&StreamSqCqManage::GetStreamSharedPtrById)
+        .stubs()
+        .with(mockcpp::any(), outBound(stmSharedPtr))
+        .will(returnValue(RT_ERROR_NONE));
+        
+    error = rtModelBindStream(model, stream, 0);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtEventSynchronize(event);
+    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+
+    error = rtModelUnbindStream(model, stream);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtEventSynchronize(event);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtEventDestroy(event);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtStreamDestroy(stream);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+}

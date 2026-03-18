@@ -387,5 +387,15 @@ rtError_t DavidEvent::ClearRecordStatus()
     return RT_ERROR_NONE;
 }
 
+bool DavidEvent::IsEventInModel()
+{
+    std::shared_ptr<Stream> stm = nullptr;
+    rtError_t error = device_->GetStreamSqCqManage()->GetStreamSharedPtrById(latestRecordTask_.streamId, stm);
+    if ((error == RT_ERROR_NONE) && (stm != nullptr) && (stm->GetBindFlag())) {
+        return true;
+    }
+    return false;
+}
+
 }
 }

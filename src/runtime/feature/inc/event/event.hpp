@@ -95,6 +95,7 @@ public:
     rtError_t CaptureEventProcess(Stream * const stm);
     rtError_t CaptureWaitProcess(Stream * const stm);
     rtError_t CaptureResetProcess(Stream * const stm);
+    virtual bool IsEventInModel();
     // simple tools for access private.
     void SetName(const char_t *name)
     {

@@ -1119,3 +1119,53 @@ TEST_F(EventTestDavid, EvtResetSoftwareMode1)
     rtStreamDestroy(stream);
 }
 
+TEST_F(EventTestDavid, TestEventSynchronizeWithEventInModel)
+{
+    rtError_t error;
+    rtEvent_t event;
+    rtStream_t stream;
+    rtModel_t model;
+
+    rtEventCreate(&event);
+    DavidEvent* evt = (DavidEvent*)event;
+    rtStreamCreate(&stream, 0);
+    Stream* stm = (Stream*)stream;
+
+    DavidRecordTaskInfo latestRecord = {stm->Id_(), 0U};
+    evt->UpdateLatestRecord(latestRecord, DavidEventState_t::EVT_RECORDED, UINT64_MAX);
+
+    std::shared_ptr<Stream> stmSharedPtr(stm, [](Stream*){});
+    MOCKER_CPP(&StreamSqCqManage::GetStreamSharedPtrById)
+        .stubs()
+        .with(mockcpp::any(), outBound(stmSharedPtr))
+        .will(returnValue(RT_ERROR_NONE));
+
+    Driver *driver = ((Runtime *)Runtime::Instance())->driverFactory_.GetDriver(NPU_DRIVER);
+    MOCKER_CPP_VIRTUAL(stm, &Stream::Synchronize).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(driver, &Driver::GetSqTail).stubs().will(returnValue(1));
+    stm->flags_ = stm->flags_  | RT_STREAM_PERSISTENT;
+
+    error = rtModelCreate(&model, 0);
+    error = rtModelBindStream(model, stm, 0);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtEventSynchronize(event);
+    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+
+    error = rtModelUnbindStream(model, stm);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtEventSynchronize(event);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    TaskResManageDavid *taskResMang = ((TaskResManageDavid *)(static_cast<Stream *>(device_->PrimaryStream_())->taskResMang_ ));
+    taskResMang->ResetTaskRes();
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtEventDestroy(event);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtStreamDestroy(stream);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+}

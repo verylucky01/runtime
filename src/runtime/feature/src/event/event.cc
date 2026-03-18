@@ -1248,5 +1248,16 @@ bool Event::ToBeCaptured(const Stream * const stm) const
     return false;
 }
 
+bool Event::IsEventInModel()
+{
+    const std::lock_guard<std::mutex> latestStateLock(recordStateMutex_);
+    std::shared_ptr<Stream> stm = nullptr;
+    rtError_t error = device_->GetStreamSqCqManage()->GetStreamSharedPtrById(latestRecord_.streamId, stm);
+    if ((error == RT_ERROR_NONE) && (stm != nullptr) && (stm->GetBindFlag())) {
+        return true;
+    }
+    return false;
+}
+
 }
 }

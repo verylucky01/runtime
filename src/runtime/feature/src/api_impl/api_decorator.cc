@@ -2557,14 +2557,14 @@ rtError_t ApiDecorator::GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *
     return impl_->GetFuncHandleFromExceptionInfo(info, funcHandle);
 }
 
-rtError_t ApiDecorator::TaskGetParams(const TaskInfo * const taskInfo, rtTaskParams* const params)
+rtError_t ApiDecorator::TaskGetParams(rtTask_t task, rtTaskParams* const params)
 {
-    return impl_->TaskGetParams(taskInfo, params);
+    return impl_->TaskGetParams(task, params);
 }
 
-rtError_t ApiDecorator::TaskSetParams(TaskInfo * const taskInfo, rtTaskParams* const params)
+rtError_t ApiDecorator::TaskSetParams(rtTask_t task, rtTaskParams* const params)
 {
-    return impl_->TaskSetParams(taskInfo, params);
+    return impl_->TaskSetParams(task, params);
 }
 
 rtError_t ApiDecorator::SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func)
@@ -2582,17 +2582,17 @@ rtError_t ApiDecorator::StreamGetTasks(Stream * const stm, void **tasks, uint32_
     return impl_->StreamGetTasks(stm, tasks, numTasks);
 }
 
-rtError_t ApiDecorator::TaskGetType(const TaskInfo * const task, rtTaskType *type)
+rtError_t ApiDecorator::TaskGetType(rtTask_t task, rtTaskType *type)
 {
     return impl_->TaskGetType(task, type);
 }
 
-rtError_t ApiDecorator::TaskGetSeqId(const TaskInfo * const task, uint32_t *id)
+rtError_t ApiDecorator::TaskGetSeqId(rtTask_t task, uint32_t *id)
 {
     return impl_->TaskGetSeqId(task, id);
 }
 
-rtError_t ApiDecorator::ModelTaskDisable(TaskInfo* const task)
+rtError_t ApiDecorator::ModelTaskDisable(rtTask_t task)
 {
     return impl_->ModelTaskDisable(task);
 }

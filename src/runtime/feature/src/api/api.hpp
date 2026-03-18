@@ -522,12 +522,12 @@ public:
     virtual rtError_t StreamAddToModel(Stream * const stm, Model * const captureMdl) = 0;
     virtual rtError_t ModelGetStreams(const Model * const mdl, Stream **streams, uint32_t *numStreams) = 0;
     virtual rtError_t StreamGetTasks(Stream * const stm, void **tasks, uint32_t *numTasks) = 0;
-    virtual rtError_t TaskGetType(const TaskInfo * const task, rtTaskType *type) = 0;
+    virtual rtError_t TaskGetType(rtTask_t task, rtTaskType *type) = 0;
     virtual rtError_t ModelUpdate(Model* mdl) = 0;
-    virtual rtError_t TaskGetSeqId(const TaskInfo * const task, uint32_t *id) = 0;
+    virtual rtError_t TaskGetSeqId(rtTask_t task, uint32_t *id) = 0;
     virtual rtError_t ModelDestroyRegisterCallback(Model * const mdl, const rtCallback_t fn, void* ptr) = 0;
     virtual rtError_t ModelDestroyUnregisterCallback(Model * const mdl, const rtCallback_t fn) = 0;
-    virtual rtError_t ModelTaskDisable(TaskInfo* const task) = 0;
+    virtual rtError_t ModelTaskDisable(rtTask_t task) = 0;
 
     /* hardware Info */
     virtual rtError_t GetAiCoreCount(uint32_t * const aiCoreCnt) = 0;
@@ -820,8 +820,8 @@ public:
     virtual rtError_t GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info, Kernel ** const funcHandle) = 0;
     
     // task
-    virtual rtError_t TaskGetParams(const TaskInfo * const taskInfo, rtTaskParams* const params) = 0;
-    virtual rtError_t TaskSetParams(TaskInfo * const taskInfo, rtTaskParams* const params) = 0;
+    virtual rtError_t TaskGetParams(rtTask_t task, rtTaskParams* const params) = 0;
+    virtual rtError_t TaskSetParams(rtTask_t task, rtTaskParams* const params) = 0;
 
     virtual rtError_t SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func) = 0;
 };

@@ -6335,18 +6335,18 @@ rtError_t ApiErrorDecorator::GetFuncHandleFromExceptionInfo(const rtExceptionInf
     return impl_->GetFuncHandleFromExceptionInfo(info, funcHandle);
 }
 
-rtError_t ApiErrorDecorator::TaskGetParams(const TaskInfo * const taskInfo, rtTaskParams* const params)
+rtError_t ApiErrorDecorator::TaskGetParams(rtTask_t task, rtTaskParams* const params)
 {
-    NULL_PTR_RETURN_MSG_OUTER(taskInfo, RT_ERROR_INVALID_VALUE);
+    NULL_PTR_RETURN_MSG_OUTER(task, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(params, RT_ERROR_INVALID_VALUE);
-    return impl_->TaskGetParams(taskInfo, params);
+    return impl_->TaskGetParams(task, params);
 }
 
-rtError_t ApiErrorDecorator::TaskSetParams(TaskInfo * const taskInfo, rtTaskParams* const params)
+rtError_t ApiErrorDecorator::TaskSetParams(rtTask_t task, rtTaskParams* const params)
 {
-    NULL_PTR_RETURN_MSG_OUTER(taskInfo, RT_ERROR_INVALID_VALUE);
+    NULL_PTR_RETURN_MSG_OUTER(task, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(params, RT_ERROR_INVALID_VALUE);
-    return impl_->TaskSetParams(taskInfo, params);
+    return impl_->TaskSetParams(task, params);
 }
 
 rtError_t ApiErrorDecorator::SetKernelDfxInfoCallback(rtKernelDfxInfoType type, rtKernelDfxInfoProFunc func)
@@ -6371,21 +6371,21 @@ rtError_t ApiErrorDecorator::StreamGetTasks(Stream * const stm, void **tasks, ui
     return impl_->StreamGetTasks(stm, tasks, numTasks);
 }
 
-rtError_t ApiErrorDecorator::TaskGetType(const TaskInfo * const task, rtTaskType *type)
+rtError_t ApiErrorDecorator::TaskGetType(rtTask_t task, rtTaskType *type)
 {
     NULL_PTR_RETURN_MSG_OUTER(task, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(type, RT_ERROR_INVALID_VALUE);
     return impl_->TaskGetType(task, type);
 }
 
-rtError_t ApiErrorDecorator::TaskGetSeqId(const TaskInfo * const task, uint32_t *id)
+rtError_t ApiErrorDecorator::TaskGetSeqId(rtTask_t task, uint32_t *id)
 {
     NULL_PTR_RETURN_MSG_OUTER(task, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(id, RT_ERROR_INVALID_VALUE);
     return impl_->TaskGetSeqId(task, id);
 }
 
-rtError_t ApiErrorDecorator::ModelTaskDisable(TaskInfo* const task)
+rtError_t ApiErrorDecorator::ModelTaskDisable(rtTask_t task)
 {
     NULL_PTR_RETURN_MSG_OUTER(task, RT_ERROR_INVALID_VALUE);
     return impl_->ModelTaskDisable(task);

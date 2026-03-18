@@ -8962,8 +8962,9 @@ rtError_t ApiImpl::GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info,
     return RT_ERROR_NONE;
 }
 
-rtError_t ApiImpl::TaskGetParams(const TaskInfo* const taskInfo, rtTaskParams* const params)
+rtError_t ApiImpl::TaskGetParams(rtTask_t task, rtTaskParams* const params)
 {
+    const TaskInfo* const taskInfo = static_cast<const TaskInfo * const>(task);
     const Stream* stm = taskInfo->stream;
     NULL_PTR_RETURN(stm, RT_ERROR_STREAM_NULL);
     rtError_t error = CheckCaptureModelSupportSoftwareSq(stm->Device_());
@@ -8988,8 +8989,9 @@ rtError_t ApiImpl::TaskGetParams(const TaskInfo* const taskInfo, rtTaskParams* c
     return error;
 }
 
-rtError_t ApiImpl::TaskSetParams(TaskInfo* const taskInfo, rtTaskParams* const params)
+rtError_t ApiImpl::TaskSetParams(rtTask_t task, rtTaskParams* const params)
 {
+    TaskInfo* const taskInfo = static_cast<TaskInfo * const>(task);
     rtError_t error = CheckCaptureModelForUpdate(taskInfo->stream);
     ERROR_RETURN(error, "check capture model failed");
 
@@ -9070,36 +9072,39 @@ rtError_t ApiImpl::StreamGetTasks(Stream * const stm, void **tasks, uint32_t *nu
     return stm->StreamGetTasks(tasks, numTasks);
 }
 
-rtError_t ApiImpl::TaskGetType(const TaskInfo * const task, rtTaskType *type)
+rtError_t ApiImpl::TaskGetType(rtTask_t task, rtTaskType *type)
 {
-    return GetTaskType(task, type);
+    const TaskInfo* const taskInfo = static_cast<const TaskInfo * const>(task);
+    return GetTaskType(taskInfo, type);
 }
 
-rtError_t ApiImpl::ModelTaskDisable(TaskInfo* const task)
+rtError_t ApiImpl::ModelTaskDisable(rtTask_t task)
 {
- 	rtError_t error = CheckCaptureModelForUpdate(task->stream);
+    TaskInfo* const taskInfo = static_cast<TaskInfo * const>(task);
+ 	rtError_t error = CheckCaptureModelForUpdate(taskInfo->stream);
     ERROR_RETURN(error, "check capture model failed");
 
-    CaptureModel* captureModel = dynamic_cast<CaptureModel*>(task->stream->Model_());
+    CaptureModel* captureModel = dynamic_cast<CaptureModel*>(taskInfo->stream->Model_());
     NULL_PTR_RETURN(captureModel, RT_ERROR_MODEL_NULL);
 
     captureModel->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_UPDATING);
-    task->updateFlag = RT_TASK_DISABLE;
+    taskInfo->updateFlag = RT_TASK_DISABLE;
     RT_LOG(RT_LOG_INFO, "stream_id=%d, task_id=%hu, typeName=%s, task type=%d",
- 	        task->stream->Id_(), task->id, task->typeName, task->type);
+ 	        taskInfo->stream->Id_(), taskInfo->id, taskInfo->typeName, taskInfo->type);
     return RT_ERROR_NONE;
 }
 
-rtError_t ApiImpl::TaskGetSeqId(const TaskInfo * const task, uint32_t *id)
+rtError_t ApiImpl::TaskGetSeqId(rtTask_t task, uint32_t *id)
 {
-    const Stream* stm = task->stream;
+    const TaskInfo* const taskInfo = static_cast<const TaskInfo * const>(task);
+    const Stream* stm = taskInfo->stream;
     NULL_PTR_RETURN(stm, RT_ERROR_STREAM_NULL);
     const Model* mdl = stm->Model_();
     NULL_PTR_RETURN(mdl, RT_ERROR_MODEL_NULL);
     COND_RETURN_ERROR(mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_INVALID_VALUE,
         "Now only support aclGraph to get sequence id");
-    *id = task->modelSeqId;
-    RT_LOG(RT_LOG_INFO, "Get task sequence id=%u, streamId=%d, taskId=%u.", *id, stm->Id_(), task->id);
+    *id = taskInfo->modelSeqId;
+    RT_LOG(RT_LOG_INFO, "Get task sequence id=%u, streamId=%d, taskId=%u.", *id, stm->Id_(), taskInfo->id);
     return RT_ERROR_NONE;
 }
 }  // namespace runtime

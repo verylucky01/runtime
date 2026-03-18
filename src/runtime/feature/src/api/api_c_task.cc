@@ -34,7 +34,7 @@ RTS_API rtError_t rtTaskGetType(rtTask_t task, rtTaskType *type)
     
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->TaskGetType(static_cast<TaskInfo *>(task), type);
+    const rtError_t error = apiInstance->TaskGetType(task, type);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -44,7 +44,7 @@ RTS_API rtError_t rtTaskGetSeqId(rtTask_t task, uint32_t *id)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->TaskGetSeqId(static_cast<TaskInfo *>(task), id);
+    const rtError_t error = apiInstance->TaskGetSeqId(task, id);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -54,7 +54,7 @@ RTS_API rtError_t rtModelTaskGetParams(rtTask_t task, rtTaskParams* params)
 {
     Api* const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->TaskGetParams(RtPtrToPtr<const TaskInfo*>(task), params);
+    const rtError_t error = apiInstance->TaskGetParams(task, params);
     COND_RETURN_WITH_NOLOG(
         (error == RT_ERROR_FEATURE_NOT_SUPPORT || error == RT_ERROR_DRV_NOT_SUPPORT), ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
@@ -67,7 +67,7 @@ RTS_API rtError_t rtModelTaskSetParams(rtTask_t task, rtTaskParams* params)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api* const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->TaskSetParams(RtPtrToPtr<TaskInfo*>(task), params);
+    const rtError_t error = apiInstance->TaskSetParams(task, params);
     COND_RETURN_WITH_NOLOG(
         (error == RT_ERROR_FEATURE_NOT_SUPPORT || error == RT_ERROR_DRV_NOT_SUPPORT), ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
@@ -80,7 +80,7 @@ rtError_t rtModelTaskDisable(rtTask_t task)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelTaskDisable(static_cast<TaskInfo *>(task));
+    const rtError_t error = apiInstance->ModelTaskDisable(task);
     COND_RETURN_WITH_NOLOG(
         (error == RT_ERROR_FEATURE_NOT_SUPPORT || error == RT_ERROR_DRV_NOT_SUPPORT), ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);

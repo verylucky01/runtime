@@ -75,11 +75,14 @@
     - make
     - asan （仅执行UT时依赖。asan通常不需要单独安装，已集成在gcc中，如需要单独安装asan，请确保与gcc版本兼容，例如gcc 9.5.0匹配libasan6版本。）
 
-    上述依赖包（asan除外）可通过项目根目录下install_deps.sh安装，命令如下。
+    Ubuntu/Debian操作系统安装命令示例如下：
     ```bash
-    bash install_deps.sh
+    sudo apt install python3 python3-pip python3-dev gcc-9 g++-9 cmake ccache autoconf gperf libtool libtool-bin make
     ```
-    注意：该脚本中会通过 `sudo` 执行系统级依赖安装，需要当前用户在sudoers中；如果当前用户无法配置该权限，建议手动通过源码安装上述依赖包。
+    CentOS/EulerOS操作系统安装命令示例如下：
+    ```bash
+    sudo yum install python3 python3-pip python3-devel gcc gcc-c++ cmake ccache autoconf gperf libtool make
+    ```
 
 2. **安装驱动与固件（运行态依赖）**
 

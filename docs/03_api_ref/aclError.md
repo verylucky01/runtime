@@ -132,6 +132,7 @@ typedef int aclError;
 | static const int32_t  ACL_ERROR_RT_STREAM_CAPTURE_UNMATCHED  = 107036; | 捕获过程中发现不匹配的操作，没有调用aclmdlRICaptureBegin接口开始捕获Stream上的任务。 | 请检查代码逻辑，先调用aclmdlRICaptureBegin接口开始捕获Stream上的任务，再调用aclmdlRICaptureEnd接口结束捕获。 |
 | static const int32_t  ACL_ERROR_RT_MODEL_RUNNING = 107037; | 当前模型正在执行，不能销毁。 | 请检查代码逻辑，在模型执行完成后，再销毁模型。 |
 | static const int32_t  ACL_ERROR_RT_STREAM_CAPTURE_WRONG_THREAD = 107038; | aclmdlRICaptureEnd与aclmdlRICaptureBegin不在同一个线程中。 | 在aclmdlRICaptureBegin接口中，如果将mode设置为非ACL_MODEL_RI_CAPTURE_MODE_RELAXED的值，则aclmdlRICaptureEnd接口和aclmdlRICaptureBegin接口必须位于同一线程中。 |
+| static const int32_t  ACL_ERROR_RT_INSUFFICIENT_INPUT_ARRAY = 107039; | 数组空间不足，数组大小小于实际所需数组大小。 | 调整输入的数组大小。 |
 | static const int32_t ACL_ERROR_RT_FEATURE_NOT_SUPPORT = 207000; | 特性不支持。 | 您可以获取日志后单击[Link](https://www.hiascend.com/support)联系技术支持。 |
 | static const int32_t ACL_ERROR_RT_MEMORY_ALLOCATION = 207001; | 内存申请失败。 | 请检查硬件环境上的存储剩余情况。 |
 | static const int32_t ACL_ERROR_RT_MEMORY_FREE = 207002; | 内存释放失败。 | 您可以获取日志后单击[Link](https://www.hiascend.com/support)联系技术支持。 |

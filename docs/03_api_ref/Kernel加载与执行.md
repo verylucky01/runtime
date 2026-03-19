@@ -32,4 +32,5 @@
 -   **[aclrtDestroyBinary](aclrtDestroyBinary.md)**  
 -   **[aclrtBinaryLoad](aclrtBinaryLoad.md)**  
 -   **[aclrtBinaryUnLoad](aclrtBinaryUnLoad.md)**  
+-   **[aclrtFunctionGetBinary](aclrtFunctionGetBinary.md)** 
 

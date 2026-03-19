@@ -184,6 +184,13 @@ TEST_F(TinyStubTest, api_c_stub)
     EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ret = rtLaunchDqsTask(nullptr, nullptr);
     EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    rtMemManagedLocation location;
+    ret = rtMemManagedAdvise(nullptr, 0, 0, location);
+    EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    ret = rtMemManagedGetAttr(rtMemRangeAttributeReadMostly, nullptr, 0, nullptr, 0);
+    EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    ret = rtMemManagedGetAttrs(nullptr, 0, nullptr, 0, nullptr, 0);
+    EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
 }
 
 TEST_F(TinyStubTest, api_error_stub)
@@ -260,6 +267,13 @@ TEST_F(TinyStubTest, api_error_stub)
     ret = api.IpcGetEventHandle(nullptr, nullptr);
     EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
     ret = api.IpcOpenEventHandle(nullptr, nullptr);
+    EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
+    rtMemManagedLocation location;
+    ret = api.MemManagedAdvise(nullptr, 0, 0, location);
+    EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
+    ret = api.MemManagedGetAttr(rtMemRangeAttributeReadMostly, nullptr, 0, nullptr, 0);
+    EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
+    ret = api.MemManagedGetAttrs(nullptr, 0, nullptr, 0, nullptr, 0);
     EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
 }
 
@@ -342,6 +356,13 @@ TEST_F(TinyStubTest, api_impl_stub)
     ret = impl.IpcGetEventHandle(nullptr, nullptr);
     EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
     ret = impl.IpcOpenEventHandle(nullptr, nullptr);
+    EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
+    rtMemManagedLocation location;
+    ret = impl.MemManagedAdvise(nullptr, 0, 0, location);
+    EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
+    ret = impl.MemManagedGetAttr(rtMemRangeAttributeReadMostly, nullptr, 0, nullptr, 0);
+    EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
+    ret = impl.MemManagedGetAttrs(nullptr, 0, nullptr, 0, nullptr, 0);
     EXPECT_EQ(ret, RT_ERROR_FEATURE_NOT_SUPPORT);
 }
 

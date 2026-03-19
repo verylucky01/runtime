@@ -116,8 +116,9 @@ rtError_t GetKernelTaskParams(const TaskInfo* const taskInfo, rtTaskParams* cons
     CaptureModel* captureModel = dynamic_cast<CaptureModel*>(mdl);
     const TaskGroup* taskGroup = captureModel->GetTaskGroup(stm->Id_(), taskInfo->id);
     params->taskGrp = static_cast<void*>(RtPtrToUnConstPtr<TaskGroup*>(taskGroup));
-    params->opInfoPtr = const_cast<void*>(taskInfo->infoPtr);
-    params->opInfoSize = taskInfo->infoSize;
+    size_t infoSize = 0;
+    params->opInfoPtr = captureModel->GetShapeInfo(stm->Id_(), taskInfo->id, infoSize);
+    params->opInfoSize = infoSize;
 
     RT_LOG(
         RT_LOG_INFO,
@@ -206,10 +207,20 @@ rtError_t UpdateKernelParams(TaskInfo* const taskInfo, rtTaskParams* const param
     ERROR_RETURN(error, "update task info failed, retCode=%#x.", error);
     error = WaitAsyncCopyComplete(taskInfo);
     ERROR_RETURN(error, "WaitAsyncCopyComplete Failed");
-    
-    /* update profling shape info */
-    taskInfo->infoPtr = params->opInfoPtr;
-    taskInfo->infoSize = params->opInfoSize;
+
+    Stream* stm = taskInfo->stream;
+    Model* mdl = stm->Model_();
+    NULL_PTR_RETURN(mdl, RT_ERROR_MODEL_NULL);
+    COND_RETURN_ERROR(
+        mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_INVALID_VALUE, "now only support aclGraph");
+    CaptureModel* captureModel = dynamic_cast<CaptureModel*>(mdl);
+
+    if (params->opInfoPtr != nullptr && params->opInfoSize != 0) {
+        error = captureModel->SetShapeInfo(stm, taskInfo->id, params->opInfoPtr, params->opInfoSize);
+        ERROR_RETURN(error, "update shape info failed, stream_id=%d, task_id=%u.", stm->Id_(), taskInfo->id);
+    } else {
+        captureModel->ClearShapeInfo(stm->Id_(), taskInfo->id);
+    }
 
     return RT_ERROR_NONE;
 }

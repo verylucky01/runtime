@@ -9095,6 +9095,7 @@ rtError_t ApiImpl::ModelTaskDisable(rtTask_t task)
     NULL_PTR_RETURN(captureModel, RT_ERROR_MODEL_NULL);
 
     captureModel->SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_UPDATING);
+    captureModel->ClearShapeInfo(taskInfo->stream->Id_(), taskInfo->id);
     taskInfo->updateFlag = RT_TASK_DISABLE;
     RT_LOG(RT_LOG_INFO, "stream_id=%d, task_id=%hu, typeName=%s, task type=%d",
  	        taskInfo->stream->Id_(), taskInfo->id, taskInfo->typeName, taskInfo->type);

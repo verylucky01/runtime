@@ -3154,15 +3154,9 @@ rtError_t Stream::HandleTaskUpdate(
         "memcpy_s failed, device_id=%u, stream_id=%d, task_id=%hu, task_type=%d(%s), error=%d", device_->Id_(),
         streamId_, workTask->id, workTask->type, workTask->typeName, ret);
     Complete(workTask, device_->Id_());
-    if (workTask->infoPtr != nullptr && workTask->infoSize != 0) {
-        error = model->SetShapeInfo(this, workTask->id, workTask->infoPtr, workTask->infoSize);
-    } else {
-        model->ClearShapeInfo(streamId_, workTask->id);
-    }
-    ERROR_RETURN(error, "update shape info failed, stream_id=%d, task_id=%u.", streamId_, workTask->id);
     RT_LOG(
-        RT_LOG_INFO, "update task finish, stream_id=%d, task_id=%hu, task_type=%d(%s), infoPtr=%p, infoSize=%zu.",
-        streamId_, workTask->id, workTask->type, workTask->typeName, workTask->infoPtr, workTask->infoSize);
+        RT_LOG_INFO, "update task finish, stream_id=%d, task_id=%hu, task_type=%d(%s).",
+        streamId_, workTask->id, workTask->type, workTask->typeName);
     return RT_ERROR_NONE;
 }
 
@@ -3173,7 +3167,6 @@ rtError_t Stream::HandleTaskDisable(TaskInfo* workTask, CaptureModel* model)
         workTask->type, workTask->typeName);
     // 保存argsHandle
     model->BackupArgHandle(streamId_, workTask->id);
-    model->ClearShapeInfo(streamId_, workTask->id);
     // 释放老的taskInfo 释放mix任务的subContext
     (void)device_->GetTaskFactory()->Recycle(workTask);
     return RT_ERROR_NONE;

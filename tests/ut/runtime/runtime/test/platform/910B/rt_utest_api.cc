@@ -3062,6 +3062,14 @@ TEST_F(CloudV2ApiTest, rtCacheLastTaskOpInfo_success)
     Model* mdl = captureStream->Model_();
     CaptureModel *captureMdl = dynamic_cast<CaptureModel *>(mdl);
     captureMdl->SetShapeInfo(captureStream, 0U, rawMemPtr.get(), totalSize);
+
+    size_t infoSizeGet = 0;
+    void *infoPtr = captureMdl->GetShapeInfo(captureStream->Id_(), 0U, infoSizeGet);
+    EXPECT_EQ(infoSizeGet, totalSize);
+
+    int cmpRet = memcmp(infoPtr, (void *)rawMemPtr.get(), totalSize);
+    EXPECT_EQ(cmpRet, 0);
+
     captureMdl->ReportShapeInfoForProfiling();
 
     error = rtStreamEndCapture(stream, &model);

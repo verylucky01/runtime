@@ -199,6 +199,7 @@ public:
     rtError_t SetShapeInfo(const Stream* const stm, const uint32_t taskId, const void * const infoPtr,
                            const size_t infoSize);
     void ClearShapeInfo(const int32_t streamId, const uint32_t taskId);
+    void* GetShapeInfo(const int32_t streamId, const uint32_t taskId, size_t &infoSize) const;
 
     rtError_t CacheLastTaskOpInfo(const void * const infoPtr, const size_t infoSize, const Stream * const stm);
     void ReportShapeInfoForProfiling() const;

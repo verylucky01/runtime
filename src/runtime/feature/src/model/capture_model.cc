@@ -892,6 +892,26 @@ void CaptureModel::ClearShapeInfo(const int32_t streamId, const uint32_t taskId)
     }
 }
 
+void* CaptureModel::GetShapeInfo(const int32_t streamId, const uint32_t taskId, size_t &infoSize) const
+{
+    void *infoPtr = nullptr;
+    infoSize = 0;
+    const auto &it = shapeInfos_.find(streamId);
+    if (it != shapeInfos_.end()) {
+        const auto &it2 = it->second.find(taskId);
+        if (it2 != it->second.end()) {
+            MsprofShapeInfo *shapeInfo = RtPtrToPtr<MsprofShapeInfo *, uint8_t *>(it2->second.get());
+            if (shapeInfo != nullptr) {
+                uint8_t *headerCursor = shapeInfo->data;
+                infoPtr = RtPtrToPtr<void *, uint8_t *>(headerCursor + MS_PROF_SHAPE_HEADER_SIZE);
+                infoSize = static_cast<size_t>(shapeInfo->dataLen - MS_PROF_SHAPE_HEADER_SIZE);
+            }
+        }
+    }
+
+    return infoPtr;
+}
+
 rtError_t CaptureModel::SetShapeInfo(const Stream* const stm, const uint32_t taskId, const void * const infoPtr,
                                      const size_t infoSize)
 {

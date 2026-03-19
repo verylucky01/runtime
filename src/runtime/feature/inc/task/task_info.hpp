@@ -32,8 +32,6 @@ typedef struct tagTaskInfoStru {
     const char_t *typeName;
     tsTaskType_t type;
     uint64_t taskTrackTimeStamp;
-    const void* infoPtr;
-    size_t infoSize;
     uint32_t tid;
     uint32_t error;
     uint32_t drvErr;

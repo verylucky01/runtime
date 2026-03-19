@@ -540,9 +540,12 @@ rtError_t MemcpyAsyncTaskInitV2(TaskInfo * const taskInfo, void *const dst, cons
         ERROR_RETURN_MSG_INNER(error, "invoke rtMemcpy2DAsync failed, retCode=%#x.", error);
         memcpyAsyncTaskInfo->isConcernedRecycle = true;
         memcpyAsyncTaskInfo->size = memcpyAsyncTaskInfo->dmaAddr.fixed_size;
+        if (stream->Device_()->IsDavidPlatform() && IsPcieDma(memcpyAsyncTaskInfo->copyType) && !(Runtime::Instance()->GetConnectUbFlag())) {
+            memcpyAsyncTaskInfo->dmaKernelConvertFlag = true;
+        }
         RT_LOG(RT_LOG_DEBUG, "MemcpyAsync2dTask Init, dstPitch=%" PRIu64 ", srcPitch=%" PRIu64
-        ", width=%" PRIu64 ", height=%" PRIu64 ", fixedSize:%" PRIu64 ", copyType=%u.",
-        dstPitch, srcPitch, width, height, fixedSize, memcpyAsyncTaskInfo->copyType);
+        ", width=%" PRIu64 ", height=%" PRIu64 ", fixedSize:%" PRIu64 ", copyType=%u, dmaKernelConvertFlag=%u.",
+        dstPitch, srcPitch, width, height, fixedSize, memcpyAsyncTaskInfo->copyType, memcpyAsyncTaskInfo->dmaKernelConvertFlag);
         return RT_ERROR_NONE;
     }
 }

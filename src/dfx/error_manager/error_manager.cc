@@ -13,6 +13,7 @@
 #include <mutex>
 #include <nlohmann/json.hpp>
 #include <sstream>
+#include <exception>
 #include <securec.h>
 #include "mmpa/mmpa_api.h"
 #include "dlog_pub.h"
@@ -1134,3 +1135,78 @@ std::vector<ErrMsgRawItem> GetErrMgrRawErrorMessages() {
   return raw_items;
 }
 }  // namespace error_message
+
+extern "C" {
+int32_t RegisterFormatErrorMessageForC(const char *error_msg, unsigned long error_msg_len) {
+  if (error_msg == nullptr) {
+    GELOGE("[Check][Param] error_msg is null");
+    return -1;
+  }
+  try {
+    return error_message::RegisterFormatErrorMessage(error_msg, error_msg_len);
+  } catch (const std::exception &e) {
+    GELOGE("[Check][Exception] RegisterFormatErrorMessageForC caught exception: %s", e.what());
+    return -1;
+  } catch (...) {
+    GELOGE("[Check][Exception] RegisterFormatErrorMessageForC caught unknown exception");
+    return -1;
+  }
+}
+
+int32_t ReportPredefinedErrMsgForC(const char *error_code, const char **key, const char **value, unsigned long arg_num) {
+  if (error_code == nullptr) {
+    GELOGE("[Check][Param] error_code is null");
+    return -1;
+  }
+  if ((arg_num != 0U) && ((key == nullptr) || (value == nullptr))) {
+    GELOGE("[Check][Param] Argument arrays are null when arg_num:[%lu]", arg_num);
+    return -1;
+  }
+
+  for (size_t i = 0U; i < arg_num; ++i) {
+    if ((key[i] == nullptr) || (value[i] == nullptr)) {
+      GELOGE("[Check][Param] Argument array contains null entry at index:[%zu]", i);
+      return -1;
+    }
+  }
+
+  try {
+    std::vector<const char *> key_vec;
+    std::vector<const char *> value_vec;
+    key_vec.reserve(arg_num);
+    value_vec.reserve(arg_num);
+    for (size_t i = 0U; i < arg_num; ++i) {
+      key_vec.push_back(key[i]);
+      value_vec.push_back(value[i]);
+    }
+    return error_message::ReportPredefinedErrMsg(error_code, key_vec, value_vec);
+  } catch (const std::exception &e) {
+    GELOGE("[Check][Exception] ReportPredefinedErrMsgForC caught exception: %s", e.what());
+    return -1;
+  } catch (...) {
+    GELOGE("[Check][Exception] ReportPredefinedErrMsgForC caught unknown exception");
+    return -1;
+  }
+}
+
+int32_t ReportInnerErrMsgForC(const char *file_name, const char *func, uint32_t line, const char *error_code,
+                              const char *format, ...) {
+  if ((file_name == nullptr) || (func == nullptr) || (error_code == nullptr) || (format == nullptr)) {
+    GELOGE("[Check][Param] file_name or func or error_code or format is null");
+    return -1;
+  }
+
+  va_list arg_list;
+  va_start(arg_list, format);
+  int32_t ret = -1;
+  try {
+    ret = ReportInnerErrorMessage(file_name, func, line, error_code, format, arg_list);
+  } catch (const std::exception &e) {
+    GELOGE("[Check][Exception] ReportInnerErrMsgForC caught exception: %s", e.what());
+  } catch (...) {
+    GELOGE("[Check][Exception] ReportInnerErrMsgForC caught unknown exception");
+  }
+  va_end(arg_list);
+  return ret;
+}
+}  // extern "C"

@@ -123,6 +123,9 @@ namespace {
 REG_FORMAT_ERROR_MSG(g_msg1.c_str(), g_msg1.size());
 REG_FORMAT_ERROR_MSG(g_msg2.c_str(), g_msg2.size());
 REG_FORMAT_ERROR_MSG(g_msg3.c_str(), g_msg3.size());
+
+const char kStringArgFormat[] = "%s";
+const char kErrMsgFormat[] = "errmsg:%s";
 }
 
   class UtestErrorManager : public testing::Test {
@@ -1013,6 +1016,117 @@ TEST_F(UtestErrorManager, RegisterFormatErrorMessage_Failed) {
 }
 )";
   EXPECT_EQ(error_message::RegisterFormatErrorMessage(msg2.c_str(), msg2.size()), -1);
+}
+
+TEST_F(UtestErrorManager, RegisterFormatErrorMessageForC_Success) {
+  const std::string msg = R"(
+{
+  "error_info_list": [
+    {
+      "errClass": "GE Errors",
+      "errTitle": "Invalid Driver State",
+      "ErrCode": "E10026",
+      "ErrMessage": "Module [%s] failed. Reason: %s",
+      "Arglist": "module,reason",
+      "suggestion": {
+        "Possible Cause": "N/A",
+        "Solution": "Registered from C callback."
+      }
+    }
+  ]
+}
+)";
+  EXPECT_EQ(RegisterFormatErrorMessageForC(msg.c_str(), msg.size()), 0);
+  EXPECT_EQ(error_message::ReportPredefinedErrMsg("E10026", {"module", "reason"}, {"driver", "test"}), 0);
+
+  auto err_msg = error_message::GetErrMgrErrorMessage();
+  ASSERT_NE(err_msg, nullptr);
+  const std::string error_message(err_msg.get());
+  EXPECT_NE(error_message.find("E10026"), std::string::npos);
+  EXPECT_NE(error_message.find("Registered from C callback"), std::string::npos);
+}
+
+TEST_F(UtestErrorManager, RegisterFormatErrorMessageForC_Failed) {
+  const std::string msg = R"(
+{
+    123,
+    "errClass": "GE Errors",
+    "ErrCode": "E10027"
+}
+)";
+  EXPECT_EQ(RegisterFormatErrorMessageForC(msg.c_str(), msg.size()), -1);
+}
+
+TEST_F(UtestErrorManager, RegisterFormatErrorMessageForC_Failed_NullErrorMessage) {
+  EXPECT_EQ(RegisterFormatErrorMessageForC(nullptr, 1U), -1);
+}
+
+TEST_F(UtestErrorManager, ReportPredefinedErrMsgForC_Success) {
+  const char *keys[] = {"value", "parameter", "reason"};
+  const char *values[] = {"1", "2", "le 0"};
+  EXPECT_EQ(ReportPredefinedErrMsgForC("E10001", keys, values, 3U), 0);
+
+  auto err_msg = error_message::GetErrMgrErrorMessage();
+  ASSERT_NE(err_msg, nullptr);
+  const std::string error_message(err_msg.get());
+  EXPECT_NE(error_message.find("E10001"), std::string::npos);
+  EXPECT_NE(error_message.find("Invalid_Argument"), std::string::npos);
+}
+
+TEST_F(UtestErrorManager, ReportPredefinedErrMsgForC_Failed_NullptrInput) {
+  EXPECT_EQ(ReportPredefinedErrMsgForC("E10001", nullptr, nullptr, 1U), -1);
+}
+
+TEST_F(UtestErrorManager, ReportPredefinedErrMsgForC_Failed_NullErrorCode) {
+  const char *keys[] = {"value", "parameter", "reason"};
+  const char *values[] = {"1", "2", "le 0"};
+  EXPECT_EQ(ReportPredefinedErrMsgForC(nullptr, keys, values, 3U), -1);
+}
+
+TEST_F(UtestErrorManager, ReportPredefinedErrMsgForC_Failed_PartialNullArray) {
+  const char *keys[] = {"value"};
+  const char *values[] = {"1"};
+  EXPECT_EQ(ReportPredefinedErrMsgForC("E10001", nullptr, values, 1U), -1);
+  EXPECT_EQ(ReportPredefinedErrMsgForC("E10001", keys, nullptr, 1U), -1);
+}
+
+TEST_F(UtestErrorManager, ReportPredefinedErrMsgForC_Failed_NullArrayElement) {
+  const char *keys[] = {"value", nullptr, "reason"};
+  const char *values[] = {"1", "2", "le 0"};
+  EXPECT_EQ(ReportPredefinedErrMsgForC("E10001", keys, values, 3U), -1);
+
+  const char *valid_keys[] = {"value", "parameter", "reason"};
+  const char *invalid_values[] = {"1", nullptr, "le 0"};
+  EXPECT_EQ(ReportPredefinedErrMsgForC("E10001", valid_keys, invalid_values, 3U), -1);
+}
+
+TEST_F(UtestErrorManager, ReportPredefinedErrMsgForC_ZeroArg_NullArrays) {
+  EXPECT_EQ(ReportPredefinedErrMsgForC("E10001", nullptr, nullptr, 0U), -1);
+}
+
+TEST_F(UtestErrorManager, ReportInnerErrMsgForC_Success) {
+  const std::string errmsg = "Report inner err msg from C callback";
+  EXPECT_EQ(ReportInnerErrMsgForC(__FILE__, __FUNCTION__, __LINE__, "E18888", kStringArgFormat, errmsg.c_str()), 0);
+
+  auto err_msg = error_message::GetErrMgrErrorMessage();
+  ASSERT_NE(err_msg, nullptr);
+  const std::string error_message(err_msg.get());
+  EXPECT_NE(error_message.find("E18888"), std::string::npos);
+  EXPECT_NE(error_message.find(errmsg), std::string::npos);
+}
+
+TEST_F(UtestErrorManager, ReportInnerErrMsgForC_Failed_MessageLengthExceedsLimits_1024) {
+  EXPECT_EQ(ReportInnerErrMsgForC(__FILE__, __FUNCTION__, __LINE__, "E18888", kErrMsgFormat,
+                                  std::string(1025U, 'a').c_str()),
+            -1);
+  EXPECT_TRUE(std::string(error_message::GetErrMgrErrorMessage().get()).empty());
+}
+
+TEST_F(UtestErrorManager, ReportInnerErrMsgForC_Failed_NullParam) {
+  EXPECT_EQ(ReportInnerErrMsgForC(nullptr, __FUNCTION__, __LINE__, "E18888", kStringArgFormat, "msg"), -1);
+  EXPECT_EQ(ReportInnerErrMsgForC(__FILE__, nullptr, __LINE__, "E18888", kStringArgFormat, "msg"), -1);
+  EXPECT_EQ(ReportInnerErrMsgForC(__FILE__, __FUNCTION__, __LINE__, nullptr, kStringArgFormat, "msg"), -1);
+  EXPECT_EQ(ReportInnerErrMsgForC(__FILE__, __FUNCTION__, __LINE__, "E18888", nullptr), -1);
 }
 
 TEST_F(UtestErrorManager, GetSetErrorManagerContext) {

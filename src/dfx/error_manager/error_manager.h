@@ -282,4 +282,65 @@ class ErrorManager {
   std::vector<ErrorItem> error_message_process_; // 进程粒度，所有的errmsg存到同一个vector
   std::vector<ErrorItem> warning_messages_process_; // 进程粒度，所有的warning msg存到同一个vector
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if defined(__GNUC__)
+#ifndef GE_FUNC_HOST_VISIBILITY
+#if defined(HOST_VISIBILITY)
+#define GE_FUNC_HOST_VISIBILITY __attribute__((visibility("default")))
+#else
+#define GE_FUNC_HOST_VISIBILITY
+#endif
+#endif  // GE_FUNC_HOST_VISIBILITY
+
+#ifndef GE_FUNC_DEV_VISIBILITY
+#if defined(DEV_VISIBILITY)
+#define GE_FUNC_DEV_VISIBILITY __attribute__((visibility("default")))
+#else
+#define GE_FUNC_DEV_VISIBILITY
+#endif
+#endif  // GE_FUNC_DEV_VISIBILITY
+
+#ifndef FORMAT_PRINTF
+#define FORMAT_PRINTF(format_idx, first_arg) __attribute__((format(printf, (format_idx), (first_arg))))
+#endif
+
+#else
+#ifndef GE_FUNC_HOST_VISIBILITY
+#define GE_FUNC_HOST_VISIBILITY
+#endif
+
+#ifndef GE_FUNC_DEV_VISIBILITY
+#define GE_FUNC_DEV_VISIBILITY
+#endif
+
+#ifndef FORMAT_PRINTF
+#define FORMAT_PRINTF(format_idx, first_arg)
+#endif
+#endif
+
+
+GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
+int32_t RegisterFormatErrorMessageForC(const char *error_msg, unsigned long error_msg_len);
+
+GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
+int32_t ReportPredefinedErrMsgForC(const char *error_code, const char **key, const char **value, unsigned long arg_num);
+
+#ifdef __GNUC__
+GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
+int32_t ReportInnerErrMsgForC(const char *file_name, const char *func, uint32_t line,
+                              const char *error_code, const char *format, ...) FORMAT_PRINTF(5, 6);
+#else
+GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
+int32_t ReportInnerErrMsgForC(const char *file_name, const char *func, uint32_t line,
+                              const char *error_code, const char *format, ...);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif  // ERROR_MANAGER_H_

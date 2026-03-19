@@ -1,0 +1,44 @@
+# 获取Runtime错误码
+
+所有Runtime接口都会返回一个错误码。然而，对于异步接口（参见[异步任务执行](异步任务执行.md)），由于接口在Device任务完成前就已经返回，因此无法报告Device上可能发生的异步任务错误。它只能返回在Device任务执行前发生在Host上的错误，例如参数校验失败。如果发生异步任务错误，对应的错误码将在后续某个无关的Runtime接口调用时返回。
+
+因此，若要在某个异步函数调用后立即检查异步错误，唯一的方法是在调用该函数后立即调用aclrtSynchronizeDevice接口（或使用[显式同步](显式同步.md)中描述的任何其他同步机制）进行同步，并检查aclrtSynchronizeDevice接口返回的错误码。
+
+Runtime会为每个Host线程维护一个错误变量，该变量初始化为ACL\_RT\_SUCCESS，并在每次发生错误（无论是参数校验错误还是异步错误）时被错误码覆盖。aclrtPeekAtLastError接口会返回这个变量的值。aclrtGetLastError接口也会返回这个变量，但同时会将其重置为ACL\_RT\_SUCCESS。
+
+```
+// 指定Device，所有的runtime函数都会返回其错误码，可以校验其执行是否成功
+aclError error = aclrtSetDevice(0);
+
+// 创建Stream
+aclrtStream stream;
+error = aclrtCreateStream(&stream);
+
+// 设置遇错即停模式
+aclrtSetStreamFailureMode(stream, ACL_STOP_ON_FAILURE);
+
+// 在Stream上下发任务，返回码仅表示下发是否成功，通常是host上参数校验错误，无法表示device上的实际执行错误
+error = aclrtMemcpyAsync(devPtr, devSize, hostPtr, hostSize, ACL_MEMCPY_HOST_TO_DEVICE, stream);
+error = myKernel<<<8, nullptr, stream>>>();
+error = aclrtMemcpyAsync(hostPtr, hostSize, devPtr, devSize, ACL_MEMCPY_DEVICE_TO_HOST, stream);
+
+// 阻塞应用程序运行，直到正在运算中的Device完成运算，并获取当前异步任务的错误码
+error = aclrtSynchronizeDevice();
+
+// 可以获取到当前线程最近的发生的错误
+error = aclrtPeekAtLastError(ACL_RT_THREAD_LEVEL);
+
+// 获取当前线程最近的错误并将状态重置为ACL_RT_SUCCESS
+error = aclrtGetLastError(ACL_RT_THREAD_LEVEL);
+
+// 获取ErrorMsg，输出到日志中
+char *errMsg = aclGetRecentErrMsg();
+......
+
+// 资源销毁
+error = aclrtDestroyStream(stream);
+error = aclrtResetDevice(0);
+```
+
+**注意：**在遇错继续模式下（具体请参见[配置任务遇错即停](配置任务遇错即停.md)），如果一条Stream上的任务执行出现异常，该Stream上的其他未执行任务仍可继续执行，同时也不会阻止向该Stream及同处于同一Context下的其他Stream下发新任务。此时，aclrtPeekAtLastError和aclrtGetLastError返回的可能不是首次错误的信息。
+

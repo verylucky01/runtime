@@ -50,6 +50,7 @@ add_version_info_targets()
 
 if(NOT ENABLE_COV AND NOT ENABLE_UT)
     add_dependencies(mmpa c_sec)
+    add_dependencies(static_mmpa c_sec)
     add_dependencies(runtime_platform_others c_sec)
     add_dependencies(runtime_platform_tiny c_sec)
     add_dependencies(runtime_platform_910B c_sec)

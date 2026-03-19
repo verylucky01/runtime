@@ -1,4 +1,4 @@
-# aclmdlRITaskGetSeqId
+# aclmdlRITaskDisable
 
 **须知：本接口为试验特性，后续版本可能会存在变更，不支持应用于商用产品中。**
 
@@ -12,14 +12,14 @@
 
 ## 功能说明
 
-获取任务序列ID。
+设置指定任务的更新标记为去使能。
 
-调用本接口之前，先调用[aclmdlRIGetTasksByStream](aclmdlRIGetTasksByStream.md)接口获取指定Stream中的所有任务，再根据指定任务获取其序列ID。
+调用本接口之前，先调用[aclmdlRIGetTasksByStream](aclmdlRIGetTasksByStream.md)接口获取指定Stream中的所有任务，再根据指定任务设置其更新标记为去使能。
 
 ## 函数原型
 
 ```
-aclError aclmdlRITaskGetSeqId(aclmdlRITask task, uint32_t *id)
+aclError aclmdlRITaskDisable(aclmdlRITask task)
 ```
 
 ## 参数说明
@@ -28,9 +28,7 @@ aclError aclmdlRITaskGetSeqId(aclmdlRITask task, uint32_t *id)
 | 参数名 | 输入/输出 | 说明 |
 | --- | --- | --- |
 | task | 输入 | 指定任务，类型定义请参见aclmdlRITask。 |
-| id | 输出 | 序列ID。 |
 
 ## 返回值说明
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](aclError.md)。
-

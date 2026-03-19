@@ -27,8 +27,8 @@ aclError aclmdlRITaskGetType(aclmdlRITask task, aclmdlRITaskType *type)
 
 | 参数名 | 输入/输出 | 说明 |
 | --- | --- | --- |
-| task | 输入 | 指定任务。 |
-| type | 输出 | 任务类型。 |
+| task | 输入 | 指定任务，类型定义请参见aclmdlRITask。 |
+| type | 输出 | 任务类型，类型定义请参见aclmdlRITaskType。 |
 
 ## 返回值说明
 

@@ -1,4 +1,4 @@
-# aclmdlRITaskGetSeqId
+# aclmdlRITaskGetParams
 
 **须知：本接口为试验特性，后续版本可能会存在变更，不支持应用于商用产品中。**
 
@@ -12,14 +12,14 @@
 
 ## 功能说明
 
-获取任务序列ID。
+获取指定任务的参数信息。
 
-调用本接口之前，先调用[aclmdlRIGetTasksByStream](aclmdlRIGetTasksByStream.md)接口获取指定Stream中的所有任务，再根据指定任务获取其序列ID。
+调用本接口之前，先调用[aclmdlRIGetTasksByStream](aclmdlRIGetTasksByStream.md)接口获取指定Stream中的所有任务，再根据指定任务获取其参数信息。
 
 ## 函数原型
 
 ```
-aclError aclmdlRITaskGetSeqId(aclmdlRITask task, uint32_t *id)
+aclError aclmdlRITaskGetParams(aclmdlRITask task, aclmdlRITaskParams* params)
 ```
 
 ## 参数说明
@@ -28,9 +28,8 @@ aclError aclmdlRITaskGetSeqId(aclmdlRITask task, uint32_t *id)
 | 参数名 | 输入/输出 | 说明 |
 | --- | --- | --- |
 | task | 输入 | 指定任务，类型定义请参见aclmdlRITask。 |
-| id | 输出 | 序列ID。 |
+| params | 输出 | 参数信息，类型定义请参见aclmdlRITaskParams。 |
 
 ## 返回值说明
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](aclError.md)。
-

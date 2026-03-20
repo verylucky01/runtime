@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include <gtest/gtest.h>
+#include <atomic>
 #include <fstream>
 #include <functional>
 #include <thread>
@@ -16,13 +17,17 @@
 #include "utils.h"
 #include "common/thread.h"
 #include "rts/rts_snapshot.h"
+#include "adx_dump_record.h"
 
 using namespace Adx;
 #define JSON_BASE ADUMP_BASE_DIR "stub/data/json/"
 class DumpManagerUtest : public testing::Test {
 protected:
     virtual void SetUp()
-    {}
+    {
+        MOCKER(Thread::CreateDetachTaskWithDefaultAttr).stubs().will(returnValue(EN_OK));
+        MOCKER(&AdxDumpRecord::RecordDumpDataToQueue).stubs().will(returnValue(true));
+    }
     virtual void TearDown()
     {
         DumpManager::Instance().Reset();
@@ -139,6 +144,9 @@ TEST_F(DumpManagerUtest, Test_GetDumpInfoFromMap_CreateNew)
     EXPECT_EQ(dumpInfo->mainStreamKey, "test_key_123");
     EXPECT_EQ(dumpInfo->opType, "Add");
     EXPECT_EQ(dumpInfo->opName, "test_op");
+    
+    DumpResourceSafeMap::Instance().EnqueueCleanup("test_key_123");
+    DumpResourceSafeMap::Instance().waitAndClear();
 }
 
 TEST_F(DumpManagerUtest, Test_GetDumpInfoFromMap_ReuseExisting)
@@ -161,6 +169,9 @@ TEST_F(DumpManagerUtest, Test_GetDumpInfoFromMap_ReuseExisting)
     EXPECT_EQ(dumpInfo1.get(), dumpInfo2.get());
     EXPECT_EQ(dumpInfo2->opType, "Add");
     EXPECT_EQ(dumpInfo2->opName, "test_op");
+
+    DumpResourceSafeMap::Instance().EnqueueCleanup("test_key_456");
+    DumpResourceSafeMap::Instance().waitAndClear();
 }
 
 TEST_F(DumpManagerUtest, Test_UnSetDumpConfig_ClearsResourceMap)
@@ -208,6 +219,7 @@ TEST_F(DumpManagerUtest, Test_DumpOperatorV2_WithCapture_MultipleTensors)
         tensors.push_back(tensor);
     }
 
+    
     rtStream_t stream = reinterpret_cast<rtStream_t>(0x1);
     ret = DumpManager::Instance().DumpOperatorV2("Mul", "mul_op", tensors, stream);
     EXPECT_EQ(ret, ADUMP_SUCCESS);
@@ -241,4 +253,41 @@ TEST_F(DumpManagerUtest, Test_RegisterSnapShotCallback_Failture)
 
     DumpManager::Instance().RegisterSnapShotCallback();
     EXPECT_EQ(DumpManager::Instance().snapCbkRegistered_, false);
+}
+
+static int32_t g_callbackInvoked = 0;
+
+static int32_t CallbackWithLockAccess(uint64_t dumpSwitch, const char* dumpConfig, int32_t size)
+{
+    g_callbackInvoked++;
+    const char* path = DumpManager::Instance().GetDataDumpPath();
+    return 0;
+}
+
+TEST_F(DumpManagerUtest, Test_StartDumpArgs_CallbackNoDeadlock)
+{
+    g_callbackInvoked = 0;
+
+    int32_t ret = DumpManager::Instance().RegisterCallback(100, CallbackWithLockAccess, CallbackWithLockAccess);
+    EXPECT_EQ(ret, ADUMP_SUCCESS);
+
+    MOCKER(Thread::CreateDetachTaskWithDefaultAttr).stubs().will(returnValue(EN_OK));
+    std::string validConfigData = ReadFileToString(JSON_BASE "datadump/dump_data_stats.json");
+    ret = DumpManager::Instance().SetDumpConfig(validConfigData.c_str(), validConfigData.size());
+    EXPECT_EQ(ret, ADUMP_SUCCESS);
+
+    std::string dumpPath = "./llt_test_dump_args";
+    system("rm -rf ./llt_test_dump_args");
+
+    ret = DumpManager::Instance().StartDumpArgs(dumpPath);
+    EXPECT_EQ(ret, ADUMP_SUCCESS);
+
+    EXPECT_EQ(g_callbackInvoked, 3);
+
+    ret = DumpManager::Instance().StopDumpArgs();
+    EXPECT_EQ(ret, ADUMP_SUCCESS);
+
+    system("rm -rf ./llt_test_dump_args");
+
+    DumpManager::Instance().StopDataDumpServer();
 }

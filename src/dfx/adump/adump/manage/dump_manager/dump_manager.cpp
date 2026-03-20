@@ -602,33 +602,35 @@ int32_t DumpManager::RegisterCallback(uint32_t moduleId, AdumpCallback enableFun
 
 int32_t DumpManager::StartDumpArgs(const std::string& dumpPath)
 {
-    std::lock_guard<std::mutex> lk(resourceMtx_);
-    uint64_t dumpSwitch = dumpSetting_.GetDumpSwitch();
-    if ((dumpSwitch & OP_INFO_RECORD_DUMP) == OP_INFO_RECORD_DUMP) {
-        IDE_LOGW("Double OpInfoRecord Start Entry");
-        return -1;
-    }
-
-    Adx::Path path(dumpPath);
-    if (path.Empty()) {
-        IDE_LOGE("OpInfoRecord path[%s] is empty", dumpPath.c_str());
-        return -1;
-    }
-    if (!path.Exist()) {
-        if (!path.CreateDirectory(true)) {
-            IDE_LOGE("Create path[%s] failed, strerr: %s", dumpPath.c_str(), strerror(errno));
+    uint64_t dumpSwitch = 0;
+    {
+        std::lock_guard<std::mutex> lk(resourceMtx_);
+        dumpSwitch = dumpSetting_.GetDumpSwitch();
+        if ((dumpSwitch & OP_INFO_RECORD_DUMP) == OP_INFO_RECORD_DUMP) {
+            IDE_LOGW("Double OpInfoRecord Start Entry");
             return -1;
         }
-    }
-    if (!path.IsDirectory()) {
-        IDE_LOGE("OpInfoRecord path[%s] is not directory!", dumpPath.c_str());
-        return -1;
-    }
 
-    dumpSwitch |= OP_INFO_RECORD_DUMP;
-    dumpSetting_.InitDumpSwitch(dumpSwitch);
-    opInfoRecordPath_ = path.GetString();
+        Adx::Path path(dumpPath);
+        if (path.Empty()) {
+            IDE_LOGE("OpInfoRecord path[%s] is empty", dumpPath.c_str());
+            return -1;
+        }
+        if (!path.Exist()) {
+            if (!path.CreateDirectory(true)) {
+                IDE_LOGE("Create path[%s] failed, strerr: %s", dumpPath.c_str(), strerror(errno));
+                return -1;
+            }
+        }
+        if (!path.IsDirectory()) {
+            IDE_LOGE("OpInfoRecord path[%s] is not directory!", dumpPath.c_str());
+            return -1;
+        }
 
+        dumpSwitch |= OP_INFO_RECORD_DUMP;
+        dumpSetting_.InitDumpSwitch(dumpSwitch);
+        opInfoRecordPath_ = path.GetString();
+    }
     for (auto& item : enableCallbackFunc_) {
         item.second(dumpSwitch, dumpConfigInfo_.data(), dumpConfigInfo_.size());
     }
@@ -638,14 +640,17 @@ int32_t DumpManager::StartDumpArgs(const std::string& dumpPath)
 
 int32_t DumpManager::StopDumpArgs()
 {
-    std::lock_guard<std::mutex> lk(resourceMtx_);
-    uint64_t dumpSwitch = dumpSetting_.GetDumpSwitch();
-    if ((dumpSwitch & OP_INFO_RECORD_DUMP) != OP_INFO_RECORD_DUMP) {
-        return 0;
+    uint64_t dumpSwitch = 0;
+    {
+        std::lock_guard<std::mutex> lk(resourceMtx_);
+        dumpSwitch = dumpSetting_.GetDumpSwitch();
+        if ((dumpSwitch & OP_INFO_RECORD_DUMP) != OP_INFO_RECORD_DUMP) {
+            return 0;
+        }
+        IDE_RUN_LOGI("OpInfoRecord Stop Entry!");
+        dumpSwitch &= ~OP_INFO_RECORD_DUMP;
+        dumpSetting_.InitDumpSwitch(dumpSwitch);
     }
-    IDE_RUN_LOGI("OpInfoRecord Stop Entry!");
-    dumpSwitch &= ~OP_INFO_RECORD_DUMP;
-    dumpSetting_.InitDumpSwitch(dumpSwitch);
     for (auto& item : disableCallbackFunc_) {
         item.second(dumpSwitch, dumpConfigInfo_.data(), dumpConfigInfo_.size());
     }

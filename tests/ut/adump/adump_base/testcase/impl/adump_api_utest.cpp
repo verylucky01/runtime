@@ -35,7 +35,9 @@ using namespace Adx;
 // test dump_manager.cpp
 class AdumpApiUtest : public testing::Test {
 protected:
-    virtual void SetUp() {}
+    virtual void SetUp() {
+        MOCKER(Thread::CreateDetachTaskWithDefaultAttr).stubs().will(returnValue(EN_OK));
+    }
     virtual void TearDown()
     {
         DumpManager::Instance().Reset();
@@ -181,6 +183,7 @@ TEST_F(AdumpApiUtest, Test_AdumpDumpTensor_with_DumpStatus_off)
     dumpConf.dumpStatus = "off";
     EXPECT_EQ(AdumpSetDumpConfig(DumpType::OPERATOR, dumpConf), ADUMP_SUCCESS);
     aclrtStream stream = (aclrtStream)0x1234;
+    MOCKER(rtStreamGetCaptureInfo).stubs().will(returnValue(0));
     EXPECT_EQ(AdumpDumpTensor("Conv2D", "op_name", {}, stream), ADUMP_SUCCESS);
 }
 

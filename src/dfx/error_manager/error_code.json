@@ -540,17 +540,6 @@
     },
     {
       "errClass": "RTS Errors",
-      "errTitle": "Not_Supported",
-      "ErrCode": "WE0001",
-      "ErrMessage": "Failed to %s because %s is not supported.",
-      "Arglist": "function, type",
-      "suggestion": {
-        "Possible Cause": "N/A",
-        "Solution": "NA"
-      }
-    },
-    {
-      "errClass": "RTS Errors",
       "errTitle": "Profiling_Enable_Errors",
       "ErrCode": "EE4004",
       "ErrMessage": "Failed to enable profiling.  %s",

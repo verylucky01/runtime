@@ -26,6 +26,10 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING "Choose the build type: Release/Debug" FORCE)
 endif()
 
+if(NOT DEFINED PRODUCT_SIDE)
+    set(PRODUCT_SIDE host)
+endif()
+
 # third_party
 include(${RUNTIME_DIR}/cmake/third_party/protobuf.cmake)
 include(${RUNTIME_DIR}/cmake/third_party/json.cmake)

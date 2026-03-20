@@ -11,10 +11,6 @@
 cmake_minimum_required(VERSION 3.14)
 project (rts)
 
-if(NOT DEFINED PRODUCT_SIDE)
-    set(PRODUCT_SIDE host)
-endif()
-
 if(NOT ENABLE_COV AND NOT ENABLE_UT)
     set(RUNTIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.." CACHE PATH "Project top directory")
     include(${RUNTIME_DIR}/cmake/func.cmake)

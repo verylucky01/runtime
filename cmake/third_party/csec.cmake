@@ -22,8 +22,9 @@ if (ENABLE_OPEN_SRC)
         target_link_options(shared_c_sec PRIVATE -s)
         set(LIBC_SEC_HEADER ${ABL_CSEC}/include)
         add_library(c_sec ALIAS shared_c_sec)
-        install(TARGETS static_c_sec OPTIONAL DESTINATION runtime/lib)
-        if(PRODUCT_SIDE STREQUAL "device")
+        if(PRODUCT_SIDE STREQUAL "host")
+            install(TARGETS static_c_sec DESTINATION runtime/lib COMPONENT npu-runtime)
+        else()
             install(TARGETS shared_c_sec DESTINATION ${DEVICE_LIBRARY_PATH} COMPONENT npu-runtime)
         endif()
     else()
@@ -105,7 +106,7 @@ if (ENABLE_OPEN_SRC)
         else()
             install(FILES
                 ${CSEC_SOURCE_DIR}/lib/${SO_NEW_NAME} ${CSEC_SOURCE_DIR}/lib/${STATIC_NEW_NAME}
-                DESTINATION runtime/lib
+                DESTINATION runtime/lib COMPONENT npu-runtime
             )
         endif()    
         set(LIBC_SEC_HEADER ${CSEC_SOURCE_DIR}/include)

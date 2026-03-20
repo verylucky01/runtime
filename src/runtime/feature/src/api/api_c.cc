@@ -27,6 +27,8 @@
 #include "heterogenous.h"
 #include "runtime_keeper.h"
 #include "global_state_manager.hpp"
+#include <array>
+#include <string>
 
 using namespace cce::runtime;
 
@@ -3222,21 +3224,23 @@ RTS_API rtError_t rtSetDeviceSatMode(rtFloatOverflowMode_t floatOverflowMode)
     rtError_t error = GET_DEV_PROPERTIES(rtInstance->GetChipType(), prop);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
 
-    if ((floatOverflowMode >= RT_OVERFLOW_MODE_SATURATION) && 
-        (floatOverflowMode < RT_OVERFLOW_MODE_UNDEF)) {
+    if ((floatOverflowMode >= RT_OVERFLOW_MODE_SATURATION) && (floatOverflowMode < RT_OVERFLOW_MODE_UNDEF)) {
         const uint32_t mode = 1U << floatOverflowMode;
-        const char* errorMsg = (floatOverflowMode == RT_OVERFLOW_MODE_INFNAN) ?
-                                "the Inf/NaN mode; only the saturation mode can be set" :
-                                "the saturation mode; only the Inf/NaN mode can be set";
-        COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(
-            ((mode & prop.supportOverflowMode) == 0), 
-            RT_ERROR_FEATURE_NOT_SUPPORT, 
-            ErrorCode::EE1005, 
-            errorMsg);
-
-        if ((mode == OVERFLOW_MODE_SATURATION) && 
-            (prop.supportOverflowMode == OVERFLOW_MODE_SATURATION)) {
-            RT_LOG(RT_LOG_INFO, "Chip type(%d) supports only saturation mode.",
+        if ((mode & prop.supportOverflowMode) == 0) {
+            std::array<const char*, 2> errorMsg;
+            if (floatOverflowMode == RT_OVERFLOW_MODE_INFNAN) {
+                errorMsg = {"set the Inf/NaN mode", "only the saturation mode can be set and the Inf/NaN mode"};
+            } else {
+                errorMsg = {"set the saturation mode", "only the Inf/NaN mode can be set and the saturation mode"};
+            }
+            RT_LOG_OUTER_MSG_IMPL(ErrorCode::WE0001, errorMsg[0], errorMsg[1]);
+            const std::string& errorStr = RT_GET_ERRDESC(RT_ERROR_FEATURE_NOT_SUPPORT);
+            RT_LOG(RT_LOG_WARNING, "%s", errorStr.c_str());
+            return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_FEATURE_NOT_SUPPORT);
+        }
+        if ((mode == OVERFLOW_MODE_SATURATION) && (prop.supportOverflowMode == OVERFLOW_MODE_SATURATION)) {
+            RT_LOG(
+                RT_LOG_INFO, "Chip type(%d) supports only saturation mode.",
                 static_cast<int32_t>(rtInstance->GetChipType()));
             return ACL_RT_SUCCESS;
         }

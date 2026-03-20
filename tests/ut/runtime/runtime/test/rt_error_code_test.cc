@@ -71,6 +71,9 @@ TEST_F(RtErrorCodeTest, PrintErrMsgToLog)
  
     std::vector<std::string> values3 = {"rtMemCpy"};
     PrintErrMsgToLog(ErrorCode::EE1005, "file", 1000, "func", values3);
+
+    std::vector<std::string> values101 = {"set the saturation mode", "only the Inf/NaN mode can be set and the saturation mode"};
+    PrintErrMsgToLog(ErrorCode::WE0001, "file", 1000, "func", values101);
  
     std::vector<std::string> values4 = {"rtMemCpy", "d2d"};
     PrintErrMsgToLog(ErrorCode::EE1006, "file", 1000, "func", values4);
@@ -112,6 +115,7 @@ TEST_F(RtErrorCodeTest, RePortErrCode)
     RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1010, "rtModelExecute", "stream");
     RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1011, "rtMemCpy", "0", "size", "size is not 0");
     RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE2002, "1, 2, 2", "SetVisible", "not repeat");
+    RT_LOG_OUTER_MSG_IMPL(ErrorCode::WE0001, "set the saturation mode", "only the Inf/NaN mode can be set and the saturation mode");
  
     auto names = GetParamNames(ErrorCode::EE1001);
     EXPECT_EQ(names, (std::vector<std::string>{"extend_info"}));
@@ -139,4 +143,6 @@ TEST_F(RtErrorCodeTest, RePortErrCode)
     EXPECT_EQ(names, (std::vector<std::string>{"value", "env", "expect"}));
     names = GetParamNames(ErrorCode::EE_NO_ERROR);
     EXPECT_EQ(names, (std::vector<std::string>{}));
+    names = GetParamNames(ErrorCode::WE0001);
+    EXPECT_EQ(names, (std::vector<std::string>{"function", "type"}));
 }

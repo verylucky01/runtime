@@ -186,7 +186,7 @@ rtError_t GetIpcNotifyBaseAddrForNotifyRecordTask(TaskInfo *taskInfo, uint64_t &
         /* A+X 16P phyid correspond with chipid one by one */
         notifyRecord->uInfo.singleBitNtfyInfo.isPcie = true;
         uint32_t localPhyId = 0U;
-        error = NpuDriver::DeviceGetPhyIdByIndex(localDevId, &localPhyId);
+        error = curDrv->GetDevicePhyIdByIndex(localDevId, &localPhyId);
         ERROR_RETURN_MSG_INNER(error, "Get localDevId phyId fail, retCode=%#x, deviceId=%u", error, localDevId);
         baseAddr = static_cast<uint64_t>(RT_STARS_PCIE_BASE_ADDR) +
             (static_cast<uint64_t>(remotePhyId) << static_cast<uint64_t>(RT_PCIE_REMOTE_DEV_OFFSET)) +

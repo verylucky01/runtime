@@ -976,31 +976,6 @@ rtError_t NpuDriver::GetDeviceIndexByPhyId(const uint32_t phyId, uint32_t * cons
     return RT_ERROR_NONE;
 }
 
-rtError_t NpuDriver::DeviceGetPhyIdByIndex(const uint32_t devIndex, uint32_t * const phyId)
-{
-    const drvError_t drvRet = drvDeviceGetPhyIdByIndex(devIndex, phyId);
-    if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet,
-            "[drv api] drvDeviceGetPhyIdByIndex failed: devIndex=%u, drvRetCode=%d!",
-            devIndex, static_cast<int32_t>(drvRet));
-        return RT_GET_DRV_ERRCODE(drvRet);
-    }
-
-    return RT_ERROR_NONE;
-}
-
-rtError_t NpuDriver::DeviceGetIndexByPhyId(const uint32_t phyId, uint32_t * const devIndex)
-{
-    const drvError_t drvRet = drvDeviceGetIndexByPhyId(phyId, devIndex);
-    if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] drvDeviceGetIndexByPhyId failed: phyId=%u, drvRetCode=%d!",
-            phyId, static_cast<int32_t>(drvRet));
-        return RT_GET_DRV_ERRCODE(drvRet);
-    }
-
-    return RT_ERROR_NONE;
-}
-
 rtError_t NpuDriver::EnableP2P(const uint32_t devIdDes, const uint32_t phyIdSrc, const uint32_t flag)
 {
     const rtChipType_t type = Runtime::Instance()->GetChipType();

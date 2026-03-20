@@ -356,8 +356,6 @@ public:
 
     rtError_t GetDeviceIndexByPhyId(const uint32_t phyId, uint32_t * const devIndex) override;
 
-    static rtError_t DeviceGetPhyIdByIndex(const uint32_t devIndex, uint32_t * const phyId);
-    static rtError_t DeviceGetIndexByPhyId(const uint32_t phyId, uint32_t * const devIndex);
     static rtError_t EnableP2P(const uint32_t devIdDes, const uint32_t phyIdSrc, const uint32_t flag);
     rtError_t EnableP2PNotify(const uint32_t deviceId, const uint32_t peerPhyDeviceId, const uint32_t flag) override;
     static rtError_t DisableP2P(const uint32_t devIdDes, const uint32_t phyIdSrc);

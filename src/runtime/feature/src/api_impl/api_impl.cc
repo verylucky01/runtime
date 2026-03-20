@@ -3358,8 +3358,7 @@ rtError_t ApiImpl::GetDevicePhyIdByIndex(const uint32_t devIndex, uint32_t * con
     // the api use before setdevice, so it do not need context
     RT_LOG(RT_LOG_INFO, "get PhyId by Index=%u.", devIndex);
     TIMESTAMP_NAME(__func__);
-
-    return NpuDriver::DeviceGetPhyIdByIndex(devIndex, phyId);
+    return Runtime::Instance()->driverFactory_.GetDriver(NPU_DRIVER)->GetDevicePhyIdByIndex(devIndex, phyId);
 }
 
 rtError_t ApiImpl::GetDeviceIndexByPhyId(const uint32_t phyId, uint32_t * const devIndex)
@@ -3369,7 +3368,7 @@ rtError_t ApiImpl::GetDeviceIndexByPhyId(const uint32_t phyId, uint32_t * const 
     TIMESTAMP_NAME(__func__);
     COND_RETURN_ERROR(CheckCurCtxValid(static_cast<int32_t>(phyId)) != RT_ERROR_NONE, RT_ERROR_CONTEXT_NULL,
                       "Current Context is null, phyId[%d].", phyId);
-    rtError_t error = NpuDriver::DeviceGetIndexByPhyId(phyId, devIndex);
+    rtError_t error = Runtime::Instance()->driverFactory_.GetDriver(NPU_DRIVER)->GetDeviceIndexByPhyId(phyId, devIndex);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "get device id failed, retCode=%#x.", static_cast<uint32_t>(error));
     return error;
 }

@@ -120,6 +120,7 @@ enum DataType {
   DT_FLOAT6_E2M3 = ::C_DT_FLOAT6_E2M3,
   DT_FLOAT4_E2M1 = ::C_DT_FLOAT4_E2M1,
   DT_FLOAT4_E1M2 = ::C_DT_FLOAT4_E1M2,
+  DT_HIFLOAT4 = ::C_DT_HIFLOAT4,
   DT_MAX = ::C_DT_MAX,
 };
 
@@ -173,6 +174,7 @@ inline int GetSizeByDataType(DataType data_type) {
       kDataTypeSizeBitOffset + 6,  // DT_FLOAT6_E2M3,           float6_e2m3 type, 6bit
       kDataTypeSizeBitOffset + 4,  // DT_FLOAT4_E2M1,           float4_e2m1 type, 4bit
       kDataTypeSizeBitOffset + 4,  // DT_FLOAT4_E1M2,           float4_e1m2 type, 4bit
+      kDataTypeSizeBitOffset + 4,  // DT_HIFLOAT4,              hifloat4 type, 4bit
                                    // DT_MAX
   };
   if ((data_type < 0) || (data_type >= DT_MAX)) {

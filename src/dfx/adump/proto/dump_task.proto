@@ -52,6 +52,7 @@ enum OutputDataType {
     DT_FLOAT6_E2M3 = 38;       // float6_e2m3 type
     DT_FLOAT4_E2M1 = 39;       // float4_e2m1 type
     DT_FLOAT4_E1M2 = 40;       // float4_e1m2 type
+    DT_HIFLOAT4 = 41;
 }
 
 enum OutputFormat {

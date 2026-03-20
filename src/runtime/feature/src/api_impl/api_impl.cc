@@ -9035,7 +9035,7 @@ rtError_t ApiImpl::TaskSetParams(rtTask_t task, rtTaskParams* const params)
         case RT_TASK_EVENT_RECORD:
         case RT_TASK_EVENT_WAIT:
         case RT_TASK_EVENT_RESET:
-            RT_LOG(RT_LOG_ERROR, "cannot update the event task params yet");
+            RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1001, "cannot update the event task params yet");
             error = RT_ERROR_INVALID_VALUE;
             break;
         case RT_TASK_VALUE_WRITE:

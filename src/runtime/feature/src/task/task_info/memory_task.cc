@@ -2034,7 +2034,7 @@ static rtError_t CheckUpdatingTaskParams(TaskInfo* const taskInfo, rtTaskParams*
 {
     rtTaskType taskType;
     rtError_t error = ConvertTaskType(taskInfo, &taskType);
-    ERROR_RETURN(error, "get task type failed, retCode=%d.", error);
+    ERROR_RETURN(error, "get task type failed, retCode=%#x.", error);
     // RT_TASK_DEFAULT表示外部不识别的类型，报错并打印RTS内部具体的Task类型
     COND_RETURN_ERROR(taskType == RT_TASK_DEFAULT, RT_ERROR_INVALID_VALUE,
         "current taskType(%d) is invalid", taskInfo->type);
@@ -2058,10 +2058,10 @@ rtError_t UpdateWriteValueTaskParams(TaskInfo* const taskInfo, rtTaskParams* con
 
     Stream* stm = taskInfo->stream;
     Device* dev = stm->Device_();
-    RT_LOG(RT_LOG_INFO, "update or convert to ValueWrite task succ: device_id=%u, stream_id=%d task_id=%hu, "
-        "typeName=%s, taskType=%d, devAddr=%llu, value=%llu",
+    RT_LOG(RT_LOG_INFO, "update or convert to ValueWrite task succ: device_id=%u, stream_id=%d, task_id=%hu, "
+        "typeName=%s, taskType=%d, devAddr=%#llx, value=%llu",
         dev->Id_(), stm->Id_(), taskInfo->id,
-        taskInfo->typeName, taskInfo->type, taskInfo->u.memWaitValueTask.devAddr, taskInfo->u.memWaitValueTask.value);
+        taskInfo->typeName, taskInfo->type, taskInfo->u.memWriteValueTask.devAddr, taskInfo->u.memWriteValueTask.value);
     return RT_ERROR_NONE;
 }
 
@@ -2072,15 +2072,15 @@ rtError_t UpdateWaitValueTaskParams(TaskInfo* const taskInfo, rtTaskParams* cons
     TaskUnInitProc(taskInfo);
     rtError_t error = MemWaitValueTaskInit(taskInfo, params->valueWaitTaskParams.devAddr,
         params->valueWaitTaskParams.value, params->valueWaitTaskParams.flag);
-    ERROR_RETURN_MSG_INNER(error, "mem wait value init failed, retCode=%#x.", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "mem wait value init failed, retCode=%#x.", error);
     taskInfo->u.memWaitValueTask.awSize = RT_STARS_WRITE_VALUE_SIZE_TYPE_64BIT;
     taskInfo->type = TS_TASK_TYPE_MEM_WAIT_VALUE;
     taskInfo->typeName = "MEM_WAIT_VALUE";
 
     Stream* stm = taskInfo->stream;
     Device* dev = stm->Device_();
-    RT_LOG(RT_LOG_INFO, "update or convert to ValueWait task succ: device_id=%u, stream_id=%d task_id=%hu, "
-        "typeName=%s, taskType=%d, devAddr=%llu, value=%llu, flag=%u",
+    RT_LOG(RT_LOG_INFO, "update or convert to ValueWait task succ: device_id=%u, stream_id=%d, task_id=%hu, "
+        "typeName=%s, taskType=%d, devAddr=%#llx, value=%llu, flag=%u",
         dev->Id_(), stm->Id_(), taskInfo->id,
         taskInfo->typeName, taskInfo->type, taskInfo->u.memWaitValueTask.devAddr,
         taskInfo->u.memWaitValueTask.value, taskInfo->u.memWaitValueTask.flag);

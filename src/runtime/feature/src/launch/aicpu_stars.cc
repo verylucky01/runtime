@@ -45,6 +45,8 @@ rtError_t InternalLaunchWithKernelAndArgs(const Kernel* const kernel, const uint
     kernelTask->u.aicpuTaskInfo.headParamOffset = static_cast<uint32_t>(cpuParamHeadOffset);
     Kernel* newKernel = new(std::nothrow) Kernel(kernel->GetCpuKernelSo(), kernel->GetCpuFuncName(),
         kernel->GetCpuOpType()); NULL_PTR_GOTO_MSG_INNER(newKernel, ERROR_FREE, error, RT_ERROR_KERNEL_NEW);
+    // newKernel申请完毕需要立即绑定到kernelTask上，确保ERROR_FREE能在所有异常分支回收newKernel
+    kernelTask->u.aicpuTaskInfo.kernel = newKernel;
 
     /* 默认使用kernel注册时的devAddr */
     SetNameArgs(kernelTask, kernel->GetSoNameDevAddr(curCtx->Device_()->Id_()),
@@ -70,7 +72,6 @@ rtError_t InternalLaunchWithKernelAndArgs(const Kernel* const kernel, const uint
         kernelTask->u.aicpuTaskInfo.aicpuArgsInfo = const_cast<rtAicpuArgsEx_t*>(argsInfo);
     }
 
-    kernelTask->u.aicpuTaskInfo.kernel = newKernel;
     kernelTask->u.aicpuTaskInfo.aicpuFlags = flag;
     kernelTask->u.aicpuTaskInfo.aicpuKernelType = static_cast<uint8_t>(kernelType);
     kernelTask->u.aicpuTaskInfo.timeout = ConvertAicpuTimeout(argsInfo, &taskCfg, flag);

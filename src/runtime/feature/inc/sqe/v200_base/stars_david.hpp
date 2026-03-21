@@ -291,8 +291,8 @@ struct RtDavidStarsWriteValueSqe {
     uint32_t va : 1;
 
     /* word6-7 */
-    uint32_t res5;
-    uint32_t subType;  //use reserved filed
+    uint32_t notifyId; // ipc notify uses this reserved field for notifyId
+    uint32_t subType;  // use reserved field
 
     /* word8-15 */
     uint32_t writeValuePart[8];  // write value field

@@ -4854,16 +4854,7 @@ rtError_t ApiImpl::IpcOpenNotify(Notify ** const retNotify, const char_t * const
     rtError_t error = (*retNotify)->OpenIpcNotify(name, flag);
     ERROR_PROC_RETURN_MSG_INNER(error, DELETE_O(*retNotify);,
                                 "Ipc open notify failed, retCode=%#x", static_cast<uint32_t>(error));
-
-    if ((flag & RT_NOTIFY_IMPORT_FLAG_ENABLE_PEER_ACCESS) != 0UL) {
-        uint32_t peerPhyDeviceId = 0U;
-        error = NpuDriver::GetIpcNotifyPeerPhyDevId(name, &peerPhyDeviceId);
-        COND_RETURN_WITH_NOLOG(error != RT_ERROR_NONE, error);
-        error = dev->EnableP2PWithOtherDevice(peerPhyDeviceId);
-        COND_RETURN_WITH_NOLOG(error != RT_ERROR_NONE, error);
-    }
-
-    return RT_ERROR_NONE;
+    return error;
 }
 
 rtError_t ApiImpl::NotifyGetAddrOffset(Notify * const inNotify, uint64_t * const devAddrOffset)

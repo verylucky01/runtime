@@ -44,6 +44,19 @@
 
 namespace cce {
 namespace runtime {
+namespace {
+bool NeedReBuildSqe(const TaskInfo *const task)
+{
+    const tsTaskType_t type = task->type;
+    // mem wait类型task在sqe中会使用到当前stream的PosTail，在task更新后需要重新构造sqe
+    if ((type == TS_TASK_TYPE_MEM_WAIT_VALUE) || (type == TS_TASK_TYPE_CAPTURE_WAIT) ||
+        (type == TS_TASK_TYPE_IPC_WAIT)) {
+        return true;
+    }
+    return false;
+}
+} // namespace
+
 TIMESTAMP_EXTERN(rtStreamCreate_drvMemAllocL2buffAddr);
 TIMESTAMP_EXTERN(rtStreamCreate_taskPublicBuff);
 TIMESTAMP_EXTERN(rtStreamCreate_drvStreamIdAlloc);
@@ -3178,6 +3191,12 @@ rtError_t Stream::HandleTaskDefault(TaskInfo* workTask, CaptureModel* model, uin
     model->SetKernelTaskId(static_cast<uint32_t>(workTask->id), streamId_);
     // 获取老的sqe
     uint8_t* oldhostSqeAddr = sqeBuffer_ + sizeof(rtStarsSqe_t) * workTask->pos;
+    rtTsCommand_t cmdLocal = {};
+    if (NeedReBuildSqe(workTask)) {
+        cmdLocal.cmdType = RT_TASK_COMMAND_TYPE_STARS_SQE;
+        ToConstructSqe(workTask, cmdLocal.cmdBuf.u.starsSqe);
+        oldhostSqeAddr = RtPtrToPtr<uint8_t*, rtStarsSqe_t*>(cmdLocal.cmdBuf.u.starsSqe);
+    }
     // Update the host-side head and tail
     rtError_t error = StarsAddTaskToStreamForModelUpdate(workTask, sendSqeNum);
     ERROR_RETURN(error, "Add task failed stream_id=%d, task_id=%u.", streamId_, workTask->id);
@@ -3245,7 +3264,7 @@ rtError_t Stream::UpdateAllPersistentTask()
                 break;
             default:
                 RT_LOG(
-                    RT_LOG_ERROR, "Invalid updateFlag: upateFlag=%d, stream_id=%d, task_id=%hu", workTask->updateFlag,
+                    RT_LOG_ERROR, "Invalid updateFlag: updateFlag=%d, stream_id=%d, task_id=%hu", workTask->updateFlag,
                     streamId_, workTask->id);
                 error = RT_ERROR_INVALID_VALUE;
                 break;

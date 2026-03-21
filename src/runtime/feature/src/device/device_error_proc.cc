@@ -559,7 +559,7 @@ rtError_t DeviceErrorProc::GetQosInfoFromRingbuffer()
     memcpy_s(tsQosCfgArray, sizeof(tsQosCfgArray), hostRtQos->qos, hostRtQos->header.depth * sizeof(TsQosCfg_t));
     uint32_t index = 0;
     QosMasterConfigType_t aicoreQosCfg = {};
-    for(int i = 0; i < hostRtQos->header.depth; i++) {
+    for(size_t i = 0; i < hostRtQos->header.depth; i++) {
         if(tsQosCfgArray[i].type >= static_cast<uint8_t>(QosMasterType::MASTER_AIC_DAT) 
             && tsQosCfgArray[i].type <= static_cast<uint8_t>(QosMasterType::MASTER_AIV_INS)) {
             aicoreQosCfg.type = static_cast<QosMasterType>(tsQosCfgArray[i].type);

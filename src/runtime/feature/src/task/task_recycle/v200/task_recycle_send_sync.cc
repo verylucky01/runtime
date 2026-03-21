@@ -160,7 +160,8 @@ static rtError_t SyncTaskProcCqReport(Stream * const stm, const uint32_t taskRes
     IsSyncTaskFinish(stm, taskResPos);
     // proccess logic cq report
     isFinished = (stm->isForceRecycle_ && (error == RT_ERROR_REPORT_TIMEOUT)) ? true : isFinished;
-    (void)ProcReport(dev, streamId, taskResPos, cnt, &logicReport, isFinished);
+    bool hasCqeReportErr = false;
+    (void)ProcReport(dev, streamId, taskResPos, cnt, &logicReport, isFinished, hasCqeReportErr);
     (void)RecycleTaskBySqHead(stm);
     COND_RETURN_WARN((stm->isForceRecycle_) && (error == RT_ERROR_REPORT_TIMEOUT) && (isFinished), RT_ERROR_NONE,
         "The stream %d is forcibly reclaimed. Resources may not be completely reclaimed.", stm->Id_());

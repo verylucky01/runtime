@@ -80,7 +80,11 @@ void ProcLogicCqUntilEmpty(const Stream *const stm)
 
         times++;
         bool isFinished = false;
-        (void)ProcReport(dev, streamId, UINT32_MAX, cnt, reportInfo, isFinished);
+        bool hasCqeReportErr = false;
+        (void)ProcReport(dev, streamId, UINT32_MAX, cnt, reportInfo, isFinished, hasCqeReportErr);
+        if (hasCqeReportErr) {
+            break;
+        }
     }
 
     return;

@@ -227,6 +227,7 @@ static void ConstructDavidDvppSqe(TaskInfo * const taskInfo, rtDavidSqe_t * cons
     kernelCredit = kernelCredit < RT_STARS_MAX_KERNEL_CREDIT ? kernelCredit : RT_STARS_MAX_KERNEL_CREDIT;
     dvppSqe->kernelCredit = static_cast<uint8_t>(TransKernelCreditCreditByChip(kernelCredit));
     dvppSqe->taskPos = static_cast<uint8_t>(dvppTask.aicpuTaskPos);
+    IncMultipleTaskCqeNum(taskInfo);
 
     // the dvpp has malloced the cmdlist memory.
     uint64_t cmdListAddrLow = dvppTask.sqe.commandCustom[STARS_DVPP_SQE_CMDLIST_ADDR_LOW_IDX];
@@ -239,7 +240,6 @@ static void ConstructDavidDvppSqe(TaskInfo * const taskInfo, rtDavidSqe_t * cons
         return;
     }
     davinciMultiTaskInfo->cmdListVec->push_back(cmdList);
-    IncMultipleTaskCqeNum(taskInfo);
     PrintDavidSqe(sqeAddr, "DavinciMultipleTask-DVPP");
     RT_LOG(RT_LOG_INFO, "DavinciMultipleTask Dvpp, deviceId=%u, streamId=%d, taskId=%hu.",
         taskInfo->stream->Device_()->Id_(), stream->Id_(), taskInfo->id);

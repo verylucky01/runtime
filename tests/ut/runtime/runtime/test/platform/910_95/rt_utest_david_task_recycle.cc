@@ -760,7 +760,8 @@ TEST_F(DavidTaskRecycleTest, ProcReport)
     MOCKER(GetTaskInfo).stubs().will(returnValue(reportTask));
     rtLogicCqReport_t report = {0};
     bool isFinished = false;
-    uint32_t pos = ProcReport(device, 0U, 65535, 1, &report, isFinished);
+    bool hasCqeReportErr = false;
+    uint32_t pos = ProcReport(device, 0U, 65535, 1, &report, isFinished, hasCqeReportErr);
     EXPECT_EQ(pos, 0);
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
 }
@@ -777,11 +778,12 @@ TEST_F(DavidTaskRecycleTest, ProcReportWithTaskMultiple)
     MOCKER(StarsResumeRtsq).stubs().will(returnValue(RT_ERROR_NONE));
     rtLogicCqReport_t report = {0};
     bool isFinished = false;
-    uint32_t pos = ProcReport(device, 0U, 65535, 1, &report, isFinished);
+    bool hasCqeReportErr = false;
+    uint32_t pos = ProcReport(device, 0U, 65535, 1, &report, isFinished, hasCqeReportErr);
     EXPECT_EQ(pos, 0);
 
     reportTask.type = TS_TASK_TYPE_KERNEL_AICORE;
-    pos = ProcReport(device, 0U, 65535, 1, &report, isFinished);
+    pos = ProcReport(device, 0U, 65535, 1, &report, isFinished, hasCqeReportErr);
     EXPECT_EQ(pos, 0);
 
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
@@ -1540,4 +1542,45 @@ TEST_F(DavidTaskRecycleTest, RefreshForceRecyleFlag_ShouldSubmitRecycleTask_When
     error = rtStreamDestroy(stm);
     EXPECT_EQ(error, RT_ERROR_NONE);
     ((Runtime *)Runtime::Instance())->DeviceRelease(dev);
+}
+
+TEST_F(DavidTaskRecycleTest, ProcLogicCqWhenErr)
+{
+    rtError_t ret;
+    rtStream_t stream = nullptr;
+    rtDvppGrp_t grp = nullptr;
+
+    ret = rtDvppGroupCreate(&grp, 0);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+
+    ret = rtStreamCreateByGrp(&stream, 0, 0, grp);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+
+    TaskInfo task = {};
+    task.type = TS_TASK_TYPE_MULTIPLE_TASK;
+    task.u.davinciMultiTaskInfo.sqeNum = 2U;
+    task.u.davinciMultiTaskInfo.multipleTaskCqeNum = 2U;
+    task.u.davinciMultiTaskInfo.hasUnderstudyTask = true;
+    MOCKER(GetTaskInfo).stubs().with(mockcpp::any(), mockcpp::any(), mockcpp::any())
+        .will(returnValue(&task));
+    MOCKER_CPP(&Engine::ReportHeartBreakProcV2).stubs().will(returnValue(RT_ERROR_NONE));
+
+    g_cqReport.streamId = static_cast<Stream *>(stream)->Id_();
+    g_cqReport.taskId = 0U;
+    g_cqReport.errorType = RT_STARS_CQE_ERR_TYPE_SQE_ERROR;
+    g_cqReport.sqeType = RT_DAVID_SQE_TYPE_JPEGD;
+
+    Driver *driver;
+    driver = ((Runtime *)Runtime::Instance())->driverFactory_.GetDriver(NPU_DRIVER);
+    MOCKER_CPP_VIRTUAL((NpuDriver *)(driver), &NpuDriver::LogicCqReportV2).stubs().will(invoke(Sub_LogicCqReportV2));
+
+    ProcLogicCqUntilEmpty(static_cast<Stream *>(stream));
+
+    ret = rtStreamDestroy(stream);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+
+    ret = rtDvppGroupDestory(grp);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    g_cqReport.errorType = 0U;
+    g_cqReport.sqeType = RT_DAVID_SQE_TYPE_INVALID;
 }

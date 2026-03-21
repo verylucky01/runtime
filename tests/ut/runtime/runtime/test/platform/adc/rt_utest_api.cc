@@ -95,6 +95,20 @@ TEST_F(ApiTest, ADCProfiler_test_failed)
     EXPECT_NE(error, ACL_RT_SUCCESS);
 }
 
+TEST_F(ApiTest, ADCProfiler_malloc_failed)
+{
+    rtError_t error;
+    void *addr = nullptr;
+    uint32_t length = 256 * 1024;
+
+    MOCKER(rtMalloc)
+        .stubs()
+        .will(returnValue(RT_ERROR_INVALID_VALUE));
+
+    error = rtStartADCProfiler(&addr, length);
+    EXPECT_EQ(error, ACL_ERROR_RT_MEMORY_ALLOCATION);
+}
+
 TEST_F(ApiTest, StopADCProfiler_test_failed)
 {
     rtError_t error = rtStopADCProfiler(nullptr);

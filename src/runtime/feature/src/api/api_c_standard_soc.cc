@@ -975,8 +975,8 @@ rtError_t rtStartADCProfiler(void **addr, uint32_t length)
     error = rtMalloc(addr, static_cast<uint64_t>(length), memType, DEFAULT_MODULEID);
     if (error != RT_ERROR_NONE) {
         RT_LOG_INNER_MSG(RT_LOG_ERROR, "Malloc memory failed, error=%d, length=%u", error, length);
-        ERROR_RETURN_WITH_EXT_ERRCODE(error);
-        return ACL_RT_SUCCESS;
+        REPORT_FUNC_ERROR_REASON(RT_ERROR_MEMORY_ALLOCATION);
+        return GetRtExtErrCodeAndSetGlobalErr((RT_ERROR_MEMORY_ALLOCATION));
     }
 
     error = apiInstance->AdcProfiler(RtPtrToValue(*addr), length);

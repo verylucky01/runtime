@@ -170,7 +170,6 @@ public:
     rtError_t XpuProfilingCommandHandle(uint32_t type, void *data, uint32_t len) override;
     rtError_t GetMaxStreamAndTask(const uint32_t streamType, uint32_t * const maxStrCount,
         uint32_t * const maxTaskCount) override;
-    rtError_t GetMaxModelNum(uint32_t * const maxModelCount) override;
 
 protected:
     rtError_t GetDeviceSimtInfo(uint32_t deviceId, rtDevAttr attr, int64_t *val) override;

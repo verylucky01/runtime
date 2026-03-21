@@ -292,8 +292,9 @@ static void SaveCurrCtxForRecyleThread(Device * const dev, uint32_t streamId)
 
 // ================================================== 对外出口区 ======================================== //
 rtError_t ProcReport(Device * const dev, uint32_t streamId, const uint32_t syncPos, const uint32_t cnt,
-    rtLogicCqReport_t * const logicReport, bool &isFinished)
+    rtLogicCqReport_t * const logicReport, bool &isFinished, bool &hasCqeReportErr)
 {
+    bool isResumeRtsq = true;
     TaskInfo *reclaimTask = nullptr;
     rtLogicCqReport_t reclaimCqReport = {};
     uint32_t targetTaskSn = 0xFFFFFFFFU;     /* invalid value */
@@ -313,6 +314,9 @@ rtError_t ProcReport(Device * const dev, uint32_t streamId, const uint32_t syncP
             report.sqHead, targetTaskSn, reportTaskSn, report.errorCode, report.errorType);
 
         SaveCurrCtxForRecyleThread(dev, streamId);
+        if (static_cast<uint8_t>(report.errorType & RT_STARS_EXIST_ERROR) != 0U) {
+            hasCqeReportErr = true;
+        }
 
         /* 这里能判断pos和stream id的合法性，因此后续不需要再判断 */
         TaskInfo *reportTask = GetTaskInfo(dev, streamId, pos);
@@ -333,6 +337,9 @@ rtError_t ProcReport(Device * const dev, uint32_t streamId, const uint32_t syncP
                 reclaimCqReport = cqReport;
                 reclaimTask = reportTask;
                 isFinished = ((report.sqHead == syncPos) && (targetTaskSn == reportTaskSn)) ? true : isFinished;
+            } else if (report.sqeType == RT_DAVID_SQE_TYPE_JPEGD) {
+                DavinciMultiTaskInfo *davinciMultiTaskInfo = &(reportTask->u.davinciMultiTaskInfo);
+                isResumeRtsq = !(davinciMultiTaskInfo->hasUnderstudyTask);
             }
         } else {
             if (!ProcReportIsDvppErrorAndRetry(report, reportTask)) {
@@ -345,7 +352,7 @@ rtError_t ProcReport(Device * const dev, uint32_t streamId, const uint32_t syncP
     }
     
     // must confirm that the cq reply is order-preserving. confirmed with ts-drv
-    if (reclaimTask != nullptr) {
+    if ((reclaimTask != nullptr) && (isResumeRtsq)) {
         (void)StarsResumeRtsq(&reclaimCqReport, reclaimTask); // resume rtsq when error happens
     }
     if (dev->GetHasTaskError()) {

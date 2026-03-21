@@ -4309,47 +4309,6 @@ TEST_F(DavidApiTest, rtGetMaxStreamAndTask)
     EXPECT_EQ(error, RT_ERROR_FEATURE_NOT_SUPPORT);
 }
 
-TEST_F(DavidApiTest, rtGetMaxModelNum)
-{
-    rtError_t error;
-    uint32_t maxModelCount;
-    ApiImplDavid apiImpl;
-
-    error = apiImpl.GetMaxModelNum(&maxModelCount);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    MOCKER_CPP(&Runtime::GetIsUserSetSocVersion).stubs().will(returnValue(true));
-    error = apiImpl.GetMaxModelNum(&maxModelCount);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-}
-
-TEST_F(DavidApiTest, rtGetMaxModelNum2)
-{
-    rtError_t error;
-    uint32_t maxModelCount;
-    ApiImplDavid apiImpl;
-
-    error = apiImpl.GetMaxModelNum(&maxModelCount);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    MOCKER_CPP(&Runtime::HaveDevice).stubs().will(returnValue(false));
-    MOCKER_CPP(&Runtime::GetIsUserSetSocVersion).stubs().will(returnValue(false));
-    error = apiImpl.GetMaxModelNum(&maxModelCount);
-    EXPECT_EQ(error, RT_ERROR_FEATURE_NOT_SUPPORT);
-}
-
-TEST_F(DavidApiTest, rtGetMaxModelNum3)
-{
-    rtError_t error;
-    uint32_t maxModelCount;
-    ApiImplDavid apiImpl;
-
-    MOCKER_CPP(&Runtime::HaveDevice).stubs().will(returnValue(true));
-    MOCKER_CPP(&Runtime::GetIsUserSetSocVersion).stubs().will(returnValue(false));
-    error = apiImpl.GetMaxModelNum(&maxModelCount);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-}
-
 TEST_F(DavidTaskTest, test_sdma_mte_error)
 {
     DeviceErrorProc *errorProc = new DeviceErrorProc(dev_);

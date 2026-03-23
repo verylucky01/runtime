@@ -42,7 +42,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
 add_library(slog
-    SHARED
+    SHARED EXCLUDE_FROM_ALL
         ${libalogSrcFiles})
 
 target_include_directories(slog

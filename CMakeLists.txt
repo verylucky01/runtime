@@ -38,14 +38,6 @@ include(${RUNTIME_DIR}/cmake/third_party/csec.cmake)
 
 add_subdirectory(src)
 
-set(NPU_DEPENDENCIES platform runtime_v100 runtime runtime_common acl_rt_impl acl_rt 
-        acl_tdt_queue acl_tdt_channel stub_acl_rt stub_acl_tdt_channel
-        stub_acl_tdt_queue stub_acl_prof adump_server ascend_dump_static
-        mmpa static_mmpa error_manager stub_error_manager runtime_platform_others 
-        xpu_tprt runtime_v200 runtime_model runtime_platform_910B
-        runtime_v201 runtime_model_v200 copy_acl_headers_and_libs version_npu-runtime_info
-)
-
 if (ENABLE_COV OR ENABLE_UT)
 
     set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules 
@@ -107,7 +99,6 @@ if(ENABLE_DEVICE)
         INSTALL_COMMAND ${CMAKE_CPACK_COMMAND}
         BUILD_ALWAYS TRUE
     )
-    list(APPEND NPU_DEPENDENCIES device)
     add_dependencies(device copy_acl_headers_and_libs)
 
     install(FILES
@@ -119,8 +110,6 @@ if(ENABLE_DEVICE)
         add_dependencies(device protobuf_host_build)
     endif()
 endif()
-
-add_custom_target(npu_runtime DEPENDS ${NPU_DEPENDENCIES})
 
 if (ENABLE_OPEN_SRC AND NOT ENABLE_COV AND NOT ENABLE_UT)
     include(${RUNTIME_DIR}/cmake/makeself-fetch.cmake)

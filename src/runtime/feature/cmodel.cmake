@@ -553,7 +553,7 @@ if(NOT ${TARGET_SYSTEM_NAME} STREQUAL "Windows")
 # ---------------------------------- runtime_cmodel runtime_camodel ----------------------------------
 SET(PRODUCT_TYPE_LIST ascend310 ascend610 bs9sx1a ascend310p ascend910 hi3796cv300es hi3796cv300cs ascend910B1 ascend310B ascend610Lite ascend950pr_9599 mc62cm12a)
 
-add_library(runtime_model OBJECT
+add_library(runtime_model OBJECT EXCLUDE_FROM_ALL
     ${libruntime_cmodel_src_files}
     ${libruntime_model_dev_info_src_files}
     src/drv/npu_driver.cc
@@ -605,7 +605,7 @@ set(libruntime_cmodel_v200_dev_info_src_files
     platform/910_96/dev_info_proc_func.cc
 )
 
-add_library(runtime_model_v200 OBJECT
+add_library(runtime_model_v200 OBJECT EXCLUDE_FROM_ALL
     ${libruntime_cmodel_v200_src_files}
     ${libruntime_cmodel_v200_dev_info_src_files}
     src/drv/npu_driver.cc
@@ -656,14 +656,14 @@ foreach(product_type ${PRODUCT_TYPE_LIST})
     # ---------------------------------- runtime_cmodel ----------------------------------
     if("${product_type}" STREQUAL "ascend950pr_9599")
     add_library(runtime_cmodel_${product_type}
-        SHARED
+        SHARED EXCLUDE_FROM_ALL
         $<TARGET_OBJECTS:runtime_model_v200>
         $<TARGET_OBJECTS:runtime_platform_others>
         $<TARGET_OBJECTS:runtime_platform_910B>
         )
     else()
     add_library(runtime_cmodel_${product_type}
-        SHARED
+        SHARED EXCLUDE_FROM_ALL
         $<TARGET_OBJECTS:runtime_model>
         $<TARGET_OBJECTS:runtime_platform_others>
         $<TARGET_OBJECTS:runtime_platform_910B>
@@ -704,14 +704,14 @@ foreach(product_type ${PRODUCT_TYPE_LIST})
     # -------------------------------- runtime_camodel --------------------------------
     if("${product_type}" STREQUAL "ascend950pr_9599" OR "${product_type}" STREQUAL "mc62cm12a")
     add_library(runtime_camodel_${product_type}
-        SHARED
+        SHARED EXCLUDE_FROM_ALL
         $<TARGET_OBJECTS:runtime_model_v200>
         $<TARGET_OBJECTS:runtime_platform_others>
         $<TARGET_OBJECTS:runtime_platform_910B>
         )
     else()
     add_library(runtime_camodel_${product_type}
-        SHARED
+        SHARED EXCLUDE_FROM_ALL
         $<TARGET_OBJECTS:runtime_model>
         $<TARGET_OBJECTS:runtime_platform_others>
         $<TARGET_OBJECTS:runtime_platform_910B>

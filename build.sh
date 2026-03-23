@@ -257,9 +257,9 @@ build_rts() {
     return 1
   fi
 
-  cmake --build . --target npu_runtime -j${THREAD_NUM}
+  cmake --build . -j${THREAD_NUM}
   if [ $? -ne 0 ]; then
-    echo "execute command: cmake --build build --target=npu_runtime -j${THREAD_NUM} failed."
+    echo "execute command: cmake --build build -j${THREAD_NUM} failed."
     return 1
   fi
 

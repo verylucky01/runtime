@@ -10,20 +10,20 @@
 include_directories(${OPEN_SOURCE_DIR}/boost-1.87.0)
 include_directories(${OPEN_SOURCE_DIR}/mockcpp_src/include)
 set(runtime_raw_device_adpt_common_list
-    ${TOP_DIR}/src/runtime/feature/src/device/raw_device_adpt_comm.cc
+    ${TOP_DIR}/src/runtime/core/src/device/raw_device_adpt_comm.cc
 )
 
 add_executable(runtime_utest_dc
     ${runtime_raw_device_adpt_common_list}
-    ${TOP_DIR}/src/runtime/feature/src/drv/npu_driver.cc
-    ${TOP_DIR}/src/runtime/feature/src/drv/npu_driver_mem.cc
-    ${TOP_DIR}/src/runtime/feature/src/drv/npu_driver_queue.cc
-    ${TOP_DIR}/src/runtime/feature/src/drv/npu_driver_res.cc
-    ${TOP_DIR}/src/runtime/feature/src/drv/npu_driver_dcache_lock_opb.cpp
-    ${TOP_DIR}/src/runtime/feature/src/drv/npu_driver_standard_soc.cc
-    ${TOP_DIR}/src/runtime/feature/src/drv/v100/npu_driver.cc
-    ${TOP_DIR}/src/runtime/feature/src/kernel/v100/kernel.cc
-    ${TOP_DIR}/src/runtime/feature/src/task/v100/stub_task.cc
+    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver.cc
+    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_mem.cc
+    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_queue.cc
+    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_res.cc
+    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_dcache_lock_opb.cpp
+    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_standard_soc.cc
+    ${TOP_DIR}/src/runtime/core/src/drv/v100/npu_driver.cc
+    ${TOP_DIR}/src/runtime/core/src/kernel/v100/kernel.cc
+    ${TOP_DIR}/src/runtime/core/src/task/v100/stub_task.cc
     stub/hal_stub.cc
     main.cc
     rt_utest_model_api.cc

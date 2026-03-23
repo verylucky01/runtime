@@ -4847,7 +4847,7 @@ rtError_t ApiImpl::IpcOpenNotify(Notify ** const retNotify, const char_t * const
         }
     }
 
-    *retNotify = new (std::nothrow) Notify(0U, dev->DevGetTsId());
+    *retNotify = new (std::nothrow) Notify(dev->Id_(), dev->DevGetTsId());
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, *retNotify == nullptr, RT_ERROR_NOTIFY_NEW,
                                 "Ipc open notify failed, new notify failed.");
 

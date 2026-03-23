@@ -1089,6 +1089,9 @@ rtError_t RawDevice::Start()
     Runtime::Instance()->RtTimeoutConfigInit();
 #endif
 
+    error = AllocProfSwitchAddr();
+    ERROR_GOTO_MSG_INNER(error, ERROR_STOP, "alloc prof switch addr failed, retCode=%#x.", static_cast<uint32_t>(error));
+
     return RT_ERROR_NONE;
 
 ERROR_STOP:
@@ -1141,6 +1144,62 @@ void RawDevice::FreeSqIdMemAddr(const uint64_t sqIdAddr)
         sqIdMemAddrPool_->FreeByItem(RtValueToPtr<void *>(sqIdAddr));
     }
 
+    return;
+}
+
+rtError_t RawDevice::AllocProfSwitchAddr(void)
+{
+    if (!IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_MEM_WAIT_PROF)) {
+        return RT_ERROR_NONE;
+    }
+
+    void *addr = nullptr;
+    rtError_t error = Driver_()->DevMemAlloc(&addr, static_cast<uint64_t>(sizeof(uint64_t)), RT_MEMORY_HBM, deviceId_);
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "alloc mem failed, "
+        "device_id=%u, retCode=%#x", deviceId_, static_cast<uint32_t>(error));
+
+    profSwitchAddr_ = RtPtrToValue(addr);
+
+    /* init value */
+    uint64_t profSwitch = 0UL;
+    (void)driver_->MemCopySync(RtValueToPtr<void *>(profSwitchAddr_), sizeof(uint64_t), static_cast<const void *>(&profSwitch),
+        sizeof(uint64_t), RT_MEMCPY_HOST_TO_DEVICE);
+    return RT_ERROR_NONE;
+}
+
+void RawDevice::FreeProfSwitchAddr(void)
+{
+    if (profSwitchAddr_ != 0UL) {
+        (void)driver_->DevMemFree(RtValueToPtr<void *>(profSwitchAddr_), deviceId_);
+        profSwitchAddr_ = 0UL;
+    }
+
+    return;
+}
+
+void RawDevice::ProfSwitchDisable()
+{
+    if (!CheckFeatureSupport(TS_FEATURE_MEM_WAIT_PROF)) {
+        return;
+    }
+
+    uint64_t profSwitch = 0UL;
+    (void)driver_->MemCopySync(RtValueToPtr<void *>(profSwitchAddr_), sizeof(uint64_t), static_cast<const void *>(&profSwitch),
+                               sizeof(uint64_t), RT_MEMCPY_HOST_TO_DEVICE);
+    RT_LOG(RT_LOG_INFO, "profling disable, device_id=%u", deviceId_);
+    return;
+}
+
+void RawDevice::ProfSwitchEnable()
+{
+    if (!CheckFeatureSupport(TS_FEATURE_MEM_WAIT_PROF)) {
+        return;
+    }
+
+    uint64_t profSwitch = 1UL;
+    (void)driver_->MemCopySync(RtValueToPtr<void *>(profSwitchAddr_), sizeof(uint64_t), static_cast<const void *>(&profSwitch),
+                               sizeof(uint64_t), RT_MEMCPY_HOST_TO_DEVICE);
+    RT_LOG(RT_LOG_INFO, "profling enable, device_id=%u", deviceId_);
     return;
 }
 
@@ -1224,6 +1283,7 @@ rtError_t RawDevice::Stop()
     (void)FreeSimtStackPhyBase();
     SetPageFaultBaseCnt(0U);
     SetPageFaultBaseTime(0U);
+    FreeProfSwitchAddr();
     return engine_->Stop();
 }
 

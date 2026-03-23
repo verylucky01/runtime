@@ -305,8 +305,8 @@ enum RtMemWaitValueType : std::uint32_t {
     MEM_WAIT_VALUE_TYPE_MAX = 4U
 };
 
-/* used for none-software sq */
-struct RtStarsMemWaitValueLastInstrFc {
+/* used for none-software sq, and without prof */
+struct RtStarsMemWaitValueLastInstrFcWithoutProf {
     RtStarsCondOpImm addi0;           // init loop index, r3 = r0 + 0 = 0
     RtStarsCondOpLHWI lhwi1;          // load value2 to r5
     RtStarsCondOpLLWI llwi1;
@@ -329,8 +329,8 @@ struct RtStarsMemWaitValueLastInstrFc {
     RtStarsCondOpNop end;
 };
 
-/* used for software sq */
-struct RtStarsMemWaitValueLastInstrFcEx {
+/* used for software sq, and without prof */
+struct RtStarsMemWaitValueLastInstrFcExWithoutProf {
     RtStarsCondOpImm addi0;           // init loop index, r3 = r0 + 0 = 0
     RtStarsCondOpLHWI lhwi1;          // load value2 to r5
     RtStarsCondOpLLWI llwi1;
@@ -358,15 +358,173 @@ struct RtStarsMemWaitValueLastInstrFcEx {
     RtStarsCondOpNop end;
 };
 
+/* used for none-software sq */
+struct RtStarsMemWaitValueLastInstrFc {
+    RtStarsCondOpImm addi0;           // init loop index, r3 = r0 + 0 = 0
+    RtStarsCondOpLHWI lhwi1;          // load value2 to r5
+    RtStarsCondOpLLWI llwi1;
+    RtStarsCondOpImm addi1;           // init r4, r4 = r0 + 0 = 0
+    RtStarsCondOpLLWI llwi2;          // load max loop num to r4
+    RtStarsCondOpLoadImm loadValue;   // load value(u64) from virtual addr to r2
+    RtStarsCondOpLHWI lhwi3;          // load value1 to r1
+    RtStarsCondOpLLWI llwi3;
+    RtStarsCondOpOp        op;        // r2 = r2 op value1(r1)
+    RtStarsSetCsrJumpPc jumpPc1;
+	RtStarsCondOpBranch branch1;      // r2 == r5, goto wait success
+	RtStarsCondOpImm addi2;           // loop index++ r3 = r3 + 1
+    RtStarsSetCsrJumpPc jumpPc2;
+	RtStarsCondOpBranch bge;          // r3 >= r4, goto wait failed
+	RtStarsCondOpNop  nop1;
+	RtStarsCondOpNop  nop2;
+    RtStarsSetCsrJumpPc jumpPc3;
+	RtStarsCondOpBranch branch2;      // r2 != r5, goto loadValue
+
+    /* wait success */
+    RtStarsCondOpLoadImm loadProfDisableStatus1; // wait success, load prof disable status to r2
+    RtStarsSetCsrJumpPc jumpPc4;
+    RtStarsCondOpBranch branch4;      // r2 == r0(0), goto sqe next check
+    RtStarsCondOpLHWI lhwi4;          // load profDisableAddr to r4
+    RtStarsCondOpLLWI llwi4;
+    RtStarsCondOpStore  updateProfDisableStatus1; // write r4 to 0x0 by r0
+    RtStarsSetCsrJumpPc jumpPc5;
+    RtStarsCondOpBranch branch5;      // r2 != r0(0), goto end
+
+    /* wait failed */
+    RtStarsCondOpLoadImm loadProfDisableStatus2; // wait failed, load prof disable status to r2
+    RtStarsSetCsrJumpPc jumpPc6;
+    RtStarsCondOpBranch branch6;      // r2 != r0(0), goto sqe pre
+    RtStarsCondOpLoadImm loadProfSwitch;  // load value(u64) from profSwitchAddr to r3
+    RtStarsSetCsrJumpPc jumpPc7;
+    RtStarsCondOpBranch branch7;      // r3 == r0(0), goto sqe pre
+    RtStarsCondOpLHWI lhwi5;          // load profDisableAddr to r4
+    RtStarsCondOpLLWI llwi5;
+    RtStarsCondOpLHWI lhwi6;          // load 0x1 to r5
+    RtStarsCondOpLLWI llwi6;
+    RtStarsCondOpStore  updateProfDisableStatus2; // write r4 to 0x1 by r5
+    RtStarsSetCsrJumpPc jumpPc8;
+    RtStarsCondOpBranch branch8;      // r3 != r0(0), goto end
+
+    /* sqe pre */
+    RtStarsCondOpStreamGotoI goto_pre;  // modify sq head, sqe pre;
+    RtStarsSetCsrJumpPc jumpPc9;
+    RtStarsCondOpBranch branch9;        // goto end
+
+    /* sqe next */
+    RtStarsCondOpStreamGotoI goto_next;  // modify sq head, sqe next;
+    RtStarsSetCsrJumpPc jumpPc10;
+    RtStarsCondOpBranch branch10;        // goto end
+
+    /* sqe next check */
+    RtStarsCondOpLoadImm loadSqTail;   // sqe next check, load sq tail to r2
+    RtStarsCondOpLHWI lhwi7;           // load lastSqePos to r3
+    RtStarsCondOpLLWI llwi7;
+    RtStarsSetCsrJumpPc jumpPc11;
+    RtStarsCondOpBranch branch11;      // r3 == r2, goto loadSqTail, until sqTail != lastSqePos
+    RtStarsSetCsrJumpPc jumpPc12;
+    RtStarsCondOpBranch branch12;      // r3 != r2, goto sqe next
+    RtStarsCondOpNop end;
+};
+
+/* used for software sq */
+struct RtStarsMemWaitValueLastInstrFcEx {
+    RtStarsCondOpImm addi0;           // init loop index, r3 = r0 + 0 = 0
+    RtStarsCondOpLHWI lhwi1;          // load value2 to r5
+    RtStarsCondOpLLWI llwi1;
+    RtStarsCondOpImm addi1;           // init r4, r4 = r0 + 0 = 0
+    RtStarsCondOpLLWI llwi2;          // load max loop num to r4
+    RtStarsCondOpLoadImm loadValue;   // load value(u64) from virtual addr to r2
+    RtStarsCondOpLHWI lhwi3;          // load value1 to r1
+    RtStarsCondOpLLWI llwi3;
+    RtStarsCondOpOp        op;        // r2 = r2 op value1(r1)
+    RtStarsSetCsrJumpPc jumpPc1;
+	RtStarsCondOpBranch branch1;      // r2 == r5, goto wait success
+	RtStarsCondOpImm addi2;           // loop index++ r3 = r3 + 1
+    RtStarsSetCsrJumpPc jumpPc2;
+	RtStarsCondOpBranch bge;          // r3 >= r4, goto wait failed
+	RtStarsCondOpNop  nop1;
+	RtStarsCondOpNop  nop2;
+    RtStarsSetCsrJumpPc jumpPc3;
+	RtStarsCondOpBranch branch2;      // r2 != r5, goto loadValue
+
+    /* wait success */
+    RtStarsCondOpLoadImm loadProfDisableStatus1; // wait success, load prof disable status to r2
+    RtStarsSetCsrJumpPc jumpPc4;
+    RtStarsCondOpBranch branch4;      // r2 == r0(0), goto sqe next check
+    RtStarsCondOpLHWI lhwi4;          // load profDisableAddr to r4
+    RtStarsCondOpLLWI llwi4;
+    RtStarsCondOpStore  updateProfDisableStatus1; // write r4 to 0x0 by r0
+    RtStarsSetCsrJumpPc jumpPc5;
+    RtStarsCondOpBranch branch5;      // r2 != r0(0), goto end
+
+    /* wait failed */
+    RtStarsCondOpLoadImm loadProfDisableStatus2; // wait failed, load prof disable status to r2
+    RtStarsSetCsrJumpPc jumpPc6;
+    RtStarsCondOpBranch branch6;      // r2 != r0(0), goto sqe pre
+    RtStarsCondOpLoadImm loadProfSwitch;  // load value(u64) from profSwitchAddr to r3
+    RtStarsSetCsrJumpPc jumpPc7;
+    RtStarsCondOpBranch branch7;      // r3 == r0(0), goto sqe pre
+    RtStarsCondOpLHWI lhwi5;          // load profDisableAddr to r4
+    RtStarsCondOpLLWI llwi5;
+    RtStarsCondOpLHWI lhwi6;          // load 0x1 to r5
+    RtStarsCondOpLLWI llwi6;
+    RtStarsCondOpStore  updateProfDisableStatus2; // write r4 to 0x1 by r5
+    RtStarsSetCsrJumpPc jumpPc8;
+    RtStarsCondOpBranch branch8;      // r3 != r0(0), goto end
+
+    /* sqe pre */
+    RtStarsCondOpLoadImm loadSqId1;    // load sqid from virtual addr to r3
+	RtStarsCondOpLHWI lhwi7;          // load sq head pre to r4
+    RtStarsCondOpLLWI llwi7;
+	RtStarsCondOpImmSLLI slli1;        // r4 = r4 < 16
+	RtStarsCondOpOp        op2;       // r3 = r3 | r4, sqId=r3[10:0], head=r3[31:16]
+	RtStarsCondOpStreamGotoR goto_pre;  // modify sq head, sqe pre;
+    RtStarsSetCsrJumpPc jumpPc9;
+    RtStarsCondOpBranch branch9;        // goto end
+
+    /* sqe next */
+    RtStarsCondOpLoadImm loadSqId2;    // load sqid from virtual addr to r3
+	RtStarsCondOpLHWI lhwi8;          // load sq head next to r4
+    RtStarsCondOpLLWI llwi8;
+	RtStarsCondOpImmSLLI slli2;        // r4 = r4 < 16
+	RtStarsCondOpOp        op3;       // r3 = r3 | r4, sqId=r3[10:0], head=r3[31:16]
+	RtStarsCondOpStreamGotoR goto_next;  // modify sq head, sqe next;
+    RtStarsSetCsrJumpPc jumpPc10;
+    RtStarsCondOpBranch branch10;        // goto end
+
+    /* sqe next check */
+    RtStarsCondOpLoadImm loadSqId3;   // load sqid from virtual addr to r3
+    RtStarsCondOpLHWI lhwi9;          // load sqRegAddrArray to r4
+    RtStarsCondOpLLWI llwi9;
+    RtStarsCondOpImmSLLI slli3;       // r3 = r3 < 3 (r3=sqid << 3)
+    RtStarsCondOpOp        op4;       // r4 = r4 + r3
+    RtStarsCondOpLoad ldr1;           // LD_R: read sqRegAddr to r5,  from r4
+    RtStarsCondOpLoad ldr2;           // LD_R: read sqTail to r2,  from r5 + offset(STARS_SIMPLE_SQ_TAIL_OFFSET)
+    RtStarsCondOpLHWI lhwi10;         // load lastSqePos to r3
+    RtStarsCondOpLLWI llwi10;
+    RtStarsSetCsrJumpPc jumpPc11;
+    RtStarsCondOpBranch branch11;     // r3 == r2, goto ldr2, until sqTail != lastSqePos
+    RtStarsSetCsrJumpPc jumpPc12;
+    RtStarsCondOpBranch branch12;     // r3 != r2, goto sqe next
+    RtStarsCondOpNop end;
+};
+
 // mem wait task func call para
 struct RtStarsMemWaitValueInstrFcPara {
     uint64_t devAddr;
     uint64_t value;
     uint64_t maxLoop;
-    uint32_t sqId;
-    uint64_t sqIdMemAddr;
+    uint64_t sqTailRegAddr;   // used for non software sq, sqTail = *sqTailRegAddr
+    uint64_t sqIdMemAddr;     // used for software sq, get sq id 
+    uint64_t sqRegAddrArray;  // used for software sq, sqRegAddr = *(sqRegAddrArray + (sqId << 3))
+    uint64_t sqTailOffset;    // used for software sq, sqTail = *(sqRegAddr + sqTailOffset)
+    uint64_t profSwitchAddr;  // 记录是否开启了profling，使用全局内存，开启proling后，写入0x1，没开启写入0
+    uint64_t profSwitchValue; // 值为0x1
+    uint64_t profDisableAddr; // task力度的，初始值为0，profling关闭时，写1，profling打开时，写0
+    uint32_t sqId;            // used for non software sq
     uint32_t flag;
     uint32_t sqHeadPre;
+    uint32_t sqHeadNext;
+    uint32_t lastSqePos;      // 当lastSqePos和sqTail相同是，说明最后一个sqe还没下发下来，不能跳转到sqHeadNext
     uint16_t awSize;
 };
 

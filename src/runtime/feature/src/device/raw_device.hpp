@@ -832,6 +832,14 @@ public:
 
     uint64_t AllocSqIdMemAddr() override;
     void FreeSqIdMemAddr(const uint64_t sqIdAddr) override;
+    rtError_t AllocProfSwitchAddr(void) override;
+    void FreeProfSwitchAddr(void) override;
+    void ProfSwitchDisable() override;
+    void ProfSwitchEnable() override;
+    uint64_t GetProfSwitchAddr(void) override
+    {
+        return profSwitchAddr_;
+    }
 
     CtrlSQ& GetCtrlSQ(void) const override
     {
@@ -1007,6 +1015,7 @@ private:
     std::map<std::pair<uint32_t, uint32_t>, std::vector<rtExceptionErrRegInfo_t>> exceptionRegMap_;
     std::mutex exceptionRegMutex_;
     bool isSupportStopOnStreamError_{false};
+    uint64_t profSwitchAddr_{0UL};
     Atomic<uint64_t> c2cCtrlAddr_{0UL};
     Atomic<uint32_t> c2cCtrlAddrLen_{0U};
 

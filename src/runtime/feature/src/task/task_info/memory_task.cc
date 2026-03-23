@@ -32,6 +32,7 @@ constexpr uint8_t DSA_SQE_UPDATE_OFFSET = 16U;
 constexpr uint8_t MEM_WAIT_SQE_INDEX_0 = 0U;
 constexpr uint8_t MEM_WAIT_SQE_INDEX_1 = 1U;
 constexpr uint8_t MEM_WAIT_SQE_INDEX_2 = 2U;
+constexpr uint8_t MEM_WAIT_SQE_INDEX_3 = 3U;
 } // namespace
 
 TIMESTAMP_EXTERN(rtMemcpyAsync_drvDeviceGetTransWay);
@@ -1552,6 +1553,12 @@ void MemWaitTaskUnInit(TaskInfo *taskInfo)
         memWaitValueTask->writeValueAddr = nullptr;
     }
 
+    if (memWaitValueTask->profDisableStatusAddr != 0UL) {
+        const auto dev = taskInfo->stream->Device_();
+        (void)dev->Driver_()->DevMemFree(RtValueToPtr<void *>(memWaitValueTask->profDisableStatusAddr), dev->Id_());
+        memWaitValueTask->profDisableStatusAddr = 0UL;
+    }
+
     memWaitValueTask->funCallMemSize2 = 0UL;
 }
 
@@ -1565,9 +1572,19 @@ static rtError_t AllocFuncCallMemForMemWaitTask(TaskInfo* taskInfo)
 {
     MemWaitValueTaskInfo *memWaitValueTask = &taskInfo->u.memWaitValueTask;
     if (taskInfo->stream->IsSoftwareSqEnable()) {
-        memWaitValueTask->funCallMemSize2 = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFcEx));
+        if (taskInfo->stream->Device_()->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_MEM_WAIT_PROF)) {
+            memWaitValueTask->funCallMemSize2 = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFcEx));
+        } else {
+            memWaitValueTask->funCallMemSize2 =
+                static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFcExWithoutProf));
+        }
     } else {
-        memWaitValueTask->funCallMemSize2 = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFc));
+        if (taskInfo->stream->Device_()->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_MEM_WAIT_PROF)) {
+            memWaitValueTask->funCallMemSize2 = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFc));
+        } else {
+            memWaitValueTask->funCallMemSize2 =
+                static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFcWithoutProf));
+        }
     }
 
     void *devMem = nullptr;
@@ -1619,6 +1636,7 @@ static void InitFuncCallParaForMemWaitTask(TaskInfo* taskInfo, RtStarsMemWaitVal
     const uint32_t taskPosTail = stream->GetBindFlag() ?
         stream->GetCurSqPos() : stream->GetTaskPosTail();
     const uint32_t firstSqePos = taskPosTail;
+    const uint32_t sqDepth = stream->GetSqDepth();
 
     fcPara.devAddr = memWaitValueTask->devAddr;
     fcPara.value = memWaitValueTask->value;
@@ -1628,6 +1646,27 @@ static void InitFuncCallParaForMemWaitTask(TaskInfo* taskInfo, RtStarsMemWaitVal
     fcPara.sqIdMemAddr = stream->GetSqIdMemAddr();
     fcPara.sqHeadPre = (firstSqePos + 1U) % rtsqDepth;
     fcPara.awSize = memWaitValueTask->awSize;
+    fcPara.sqHeadNext = (firstSqePos + MEM_WAIT_SQE_NUM) % sqDepth;
+    fcPara.lastSqePos = (firstSqePos + MEM_WAIT_SQE_NUM - 1U) % sqDepth;
+    fcPara.profSwitchAddr = stream->Device_()->GetProfSwitchAddr();
+    fcPara.profSwitchValue = 0x1;
+    fcPara.sqTailOffset = stream->Device_()->GetDevProperties().sqTailOffset;
+    fcPara.sqRegAddrArray = RtPtrToValue(stream->Device_()->GetSqVirtualArrBaseAddr_());
+    if (stream->IsSoftwareSqEnable()) {
+        fcPara.sqTailRegAddr = UINT64_MAX;
+    } else {
+        fcPara.sqTailRegAddr = stream->GetSqRegVirtualAddr() + fcPara.sqTailOffset;
+    }
+
+    fcPara.profDisableAddr = memWaitValueTask->profDisableStatusAddr;
+
+    RT_LOG(RT_LOG_INFO, "device_id=%u, stream_id=%d, task_id=%u, sqHeadPre=%u, sqHeadNext=%u, "
+        "lastSqePos=%u, profDisableAddr=0x%lx, "
+        "profSwitchAddr=0x%lx, sqIdMemAddr=0x%lx, sqRegAddrArray=0x%lx.",
+        stream->Device_()->Id_(), stream->Id_(), static_cast<uint32_t>(taskInfo->id),
+        fcPara.sqHeadPre, fcPara.sqHeadNext, fcPara.lastSqePos, fcPara.profDisableAddr,
+        fcPara.profSwitchAddr, fcPara.sqIdMemAddr, fcPara.sqRegAddrArray);
+
     return;
 }
 
@@ -1646,9 +1685,21 @@ rtError_t MemWaitValueTaskInit(TaskInfo *taskInfo, const void * const devAddr,
     memWaitValueTask->writeValueAddr = nullptr;
     memWaitValueTask->funCallMemSize2 = 0ULL;
     memWaitValueTask->awSize = RT_STARS_WRITE_VALUE_SIZE_TYPE_64BIT;
-    const rtError_t ret = AllocFuncCallMemForMemWaitTask(taskInfo);
+    rtError_t ret = AllocFuncCallMemForMemWaitTask(taskInfo);
     ERROR_RETURN(ret, "Alloc func call svm failed, retCode=%#x.", ret);
 
+    Stream * const stream = taskInfo->stream;
+    const uint32_t devId = stream->Device_()->Id_();
+    void *addr = nullptr;
+    ret = stream->Device_()->Driver_()->DevMemAlloc(&addr, static_cast<uint64_t>(sizeof(uint64_t)), RT_MEMORY_HBM, devId);
+    ERROR_PROC_RETURN_MSG_INNER(ret,
+        MemWaitTaskUnInit(taskInfo),
+        "alloc mem failed, device_id=%u, retCode=%#x", devId, static_cast<uint32_t>(ret));
+
+    uint64_t initValue = 0UL;
+    (void)stream->Device_()->Driver_()->MemCopySync(addr, sizeof(uint64_t), static_cast<const void *>(&initValue),
+                                                    sizeof(uint64_t), RT_MEMCPY_HOST_TO_DEVICE);    
+    memWaitValueTask->profDisableStatusAddr = RtPtrToValue(addr);
     return RT_ERROR_NONE;
 }
 
@@ -1740,6 +1791,33 @@ static void ConstructLastSqeForMemWaitValueTask(TaskInfo* taskInfo, rtStarsSqe_t
         fcPara.devAddr, fcPara.value, fcPara.sqHeadPre, fcPara.flag);
 }
 
+void ConstructPhSqeForMemWaitValueTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command)
+{
+    MemWaitValueTaskInfo *memWaitValueTask = &taskInfo->u.memWaitValueTask;
+    Stream * const stream = taskInfo->stream;
+    const uint32_t taskPosTail = stream->GetBindFlag() ?
+        stream->GetCurSqPos() : stream->GetTaskPosTail();
+    const uint32_t firstSqePos = taskPosTail;
+    const uint32_t sqDepth = stream->GetSqDepth();
+
+    RtStarsPhSqe *const sqe = &(command->phSqe);
+    sqe->type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
+    sqe->ie = 0U;
+    sqe->pre_p = 1U;
+    sqe->post_p = 0U;
+    sqe->wr_cqe = 0U;
+    sqe->res0 = 0U;
+    sqe->task_type = TS_TASK_TYPE_MEM_WAIT_PROF;
+    sqe->rt_streamID = static_cast<uint16_t>(stream->Id_());
+    sqe->task_id = taskInfo->id;
+    sqe->kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
+    sqe->u.memWaitTask.dest_sqe_pos = (firstSqePos + 1U) % sqDepth;
+
+    PrintSqe(command, "MemWaitValueTask ph sqe");
+    RT_LOG(RT_LOG_INFO, "MemWaitValueTask ph sqe, stream_id:%d task_id:%u.",
+        stream->Id_(), static_cast<uint32_t>(taskInfo->id));
+}
+
 void ConstructSqeForMemWaitValueTask(TaskInfo* taskInfo, rtStarsSqe_t *const command)
 {
     RtStarsMemWaitValueInstrFcPara fcPara = {};
@@ -1748,6 +1826,7 @@ void ConstructSqeForMemWaitValueTask(TaskInfo* taskInfo, rtStarsSqe_t *const com
     ConstructSqeForNopTask(taskInfo, &(command[MEM_WAIT_SQE_INDEX_0]));
     ConstructSecondSqeForMemWaitValueTask(taskInfo, &(command[MEM_WAIT_SQE_INDEX_1]));
     ConstructLastSqeForMemWaitValueTask(taskInfo, &(command[MEM_WAIT_SQE_INDEX_2]), fcPara);
+    ConstructPhSqeForMemWaitValueTask(taskInfo, &(command[MEM_WAIT_SQE_INDEX_3]));
     return;
 }
 

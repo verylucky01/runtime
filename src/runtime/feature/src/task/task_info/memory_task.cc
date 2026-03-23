@@ -1793,7 +1793,6 @@ static void ConstructLastSqeForMemWaitValueTask(TaskInfo* taskInfo, rtStarsSqe_t
 
 void ConstructPhSqeForMemWaitValueTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command)
 {
-    MemWaitValueTaskInfo *memWaitValueTask = &taskInfo->u.memWaitValueTask;
     Stream * const stream = taskInfo->stream;
     const uint32_t taskPosTail = stream->GetBindFlag() ?
         stream->GetCurSqPos() : stream->GetTaskPosTail();

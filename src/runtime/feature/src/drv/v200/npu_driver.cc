@@ -79,7 +79,7 @@ rtError_t GetIpcNotifyVa(const uint32_t notifyId, Driver * const curDrv, const u
     devResInfo.res_type = RES_ADDR_TYPE_STARS_NOTIFY_RECORD;
     devResInfo.res_id = notifyId; 
     devResInfo.priv_len = sizeof(privInfo);
-    devResInfo.priv = (void *)&privInfo;
+    devResInfo.priv = static_cast<void *>(&privInfo);
     const drvError_t drvRet = halResAddrMapV2(deviceId, &devResInfo, &infoOut);
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_GET_DRV_ERRCODE(drvRet),
         "[drv api] halResAddrMapV2 does not support");

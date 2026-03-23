@@ -177,6 +177,9 @@ TEST_F(CloudV2CaptureModelUpdateTest, rtModelTaskSetParams_Success)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     EXPECT_EQ(params.type, RT_TASK_KERNEL);
 
+    char rawInfo[] = "test_op_info_data";
+    params.opInfoPtr = (void *)rawInfo;
+    params.opInfoSize = sizeof(rawInfo);
     ret = rtModelTaskSetParams(inputTasks[0], &params);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 

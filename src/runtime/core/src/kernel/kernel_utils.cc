@@ -216,6 +216,7 @@ rtError_t UpdateKernelParams(TaskInfo* const taskInfo, rtTaskParams* const param
     CaptureModel* captureModel = dynamic_cast<CaptureModel*>(mdl);
 
     if (params->opInfoPtr != nullptr && params->opInfoSize != 0) {
+        taskInfo->taskTrackTimeStamp = MsprofSysCycleTime();
         error = captureModel->SetShapeInfo(stm, taskInfo->id, params->opInfoPtr, params->opInfoSize);
         ERROR_RETURN(error, "update shape info failed, stream_id=%d, task_id=%u.", stm->Id_(), taskInfo->id);
     } else {

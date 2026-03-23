@@ -4217,12 +4217,19 @@ rtError_t Context::AddNotifyToAddedCaptureStream(Stream * const oriSingleStm, Ca
         error = CreateNotify(&notify, RT_NOTIFY_DEFAULT);
         COND_RETURN_WITH_NOLOG((error != RT_ERROR_NONE), error); // notify在模型销毁时，统一进行释放
         captureMdl->AddNotify(notify);
-        error = apiObj->NotifyRecord(notify, streamObj.second.back());
+        Stream *const lastStm = streamObj.second.back();
+ 	    error = apiObj->NotifyRecord(notify, lastStm);
         ERROR_RETURN(error,
             "Notify record failed, device_id=%u, single stream_id=%d, "
             "capture model_id=%u, stream_id=%d, notify_id=%u, retCode=%#x",
             device_->Id_(), oriSingleStm->Id_(), captureMdl->Id_(),
             streamObj.second.back()->Id_(), notify->GetNotifyId(), error);
+        TaskInfo *task = device_->GetTaskFactory()->GetTask(lastStm->Id_(), lastStm->GetLastTaskId());
+        if (task != nullptr) {
+            task->modelSeqId = captureMdl->GenerateSeqId();
+            RT_LOG(RT_LOG_INFO, "Alloc task sequence id=%u, device id=%u, stream_id=%d, task_id=%u",
+                task->modelSeqId, device_->Id_(), lastStm->Id_(), lastStm->GetLastTaskId());
+        }
         error = apiObj->NotifyWait(notify, oriSingleStm, MAX_UINT32_NUM);
         ERROR_RETURN(error,
             "Notify wit failed, device_id=%u, single stream_id=%d, "

@@ -1700,3 +1700,31 @@ TEST_F(ApiCloudV2DisableThreadTest, memcpy_batch_count_err)
         delete [] srcs[i];
     }
 }
+
+TEST_F(ApiCloudV2DisableThreadTest, overflow_test)
+{
+    rtError_t error;
+
+    const bool isDisableThread = Runtime::Instance()->GetDisableThread();
+    EXPECT_EQ(isDisableThread, true);
+
+    void *overflowAddr = nullptr;
+    // normal test
+    error = rtCtxGetOverflowAddr(&overflowAddr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_NE(overflowAddr, nullptr);
+
+    uint64_t buff_size = 64;
+    uint32_t *devMemSrc;
+    error = rtMalloc((void **)&devMemSrc, buff_size, RT_MEMORY_HBM, DEFAULT_MODULEID);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtGetDeviceSatStatus(devMemSrc, 512, nullptr);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+
+    error = rtCleanDeviceSatStatus(nullptr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtFree(devMemSrc);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+}

@@ -2770,7 +2770,6 @@ rtError_t ApiImpl::MemcpyAsync(void * const dst, const uint64_t destMax, const v
     const rtD2DAddrCfgInfo_t * const addrCfg, bool checkKind, const rtMemcpyConfig_t * const memcpyConfig)
 {
     RT_LOG(RT_LOG_DEBUG, "async memcpy, count=%" PRIu64 ", kind=%d", cnt, kind);
-    UNUSED(checkKind);
     UNUSED(memcpyConfig);
     TIMESTAMP_NAME(__func__);
     Context * const curCtx = CurrentContext();
@@ -2783,6 +2782,15 @@ rtError_t ApiImpl::MemcpyAsync(void * const dst, const uint64_t destMax, const v
     }
     COND_RETURN_ERROR_MSG_INNER(curStm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
         "Memcpy async failed, stream is not in current ctx, stream_id=%d.", curStm->Id_());
+
+ 	if (UvmCallback::IsUvmMem(src, cnt) || UvmCallback::IsUvmMem(dst, cnt)) {
+        rtMemcpyCallbackParam *params = new (std::nothrow) rtMemcpyCallbackParam;
+        NULL_PTR_RETURN_MSG(params, RT_ERROR_MEMORY_ALLOCATION);
+        UvmCallback::CreateMemcpyCallbackParam(dst, destMax, src, cnt, kind, checkKind, curStm, params);
+        rtError_t error = LaunchHostFunc(curStm, UvmCallback::MemcpyAsyncCallback, static_cast<void *>(params));
+        ERROR_PROC_RETURN_MSG_INNER(error, delete params, "CallbackLaunch fails in MemcopyAsync, err:%#x.", static_cast<uint32_t>(error));
+        return RT_ERROR_NONE;
+    }
 
     if (addrCfg != nullptr) {
         Device* device = curStm->Device_();

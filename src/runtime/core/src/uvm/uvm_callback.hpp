@@ -12,6 +12,11 @@
 
 #include "runtime.hpp"
 #include "runtime/base.h"
+#include "base.hpp"
+#include "driver/ascend_hal.h"
+#include "runtime/mem.h"
+#include "npu_driver.hpp"
+#include "api.hpp"
 
 namespace cce {
 namespace runtime {
@@ -21,6 +26,16 @@ typedef struct MemsetCallbackStruct {
     uint32_t val;
     uint64_t cnt;
 } MemsetCallbackStruct;
+
+typedef struct rtMemcpyCallbackParam {
+    void * dst;
+    uint64_t destMax;
+    const void * src;
+    uint64_t cnt;
+    rtMemcpyKind_t kind;
+    bool checkKind;
+    Stream* stm;
+} rtMemcpyCallbackParam;
 
 class UvmCallback {
 public :
@@ -34,8 +49,11 @@ public :
 
     // UVM Callback
     static void MemsetAsyncCallback(void *fnData);
+    static void MemcpyAsyncCallback(void *userData);
 
     static bool IsUvmMem(const void * const ptr, const uint64_t cnt);
+    static void CreateMemcpyCallbackParam(void * const dst, const uint64_t destMax, const void * const src, const uint64_t cnt,
+    const rtMemcpyKind_t kind, bool checkKind, Stream * const curStm, rtMemcpyCallbackParam* memcpyCallbackParam);
 };    
 }
 }

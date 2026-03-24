@@ -22,6 +22,7 @@
 #include "cmodel_driver.h"
 #include "raw_device.hpp"
 #include "thread_local_container.hpp"
+#include "uvm_callback.hpp"
 
 using namespace testing;
 using namespace cce::runtime;
@@ -123,6 +124,24 @@ TEST_F(CloudV2NpuDriverTest, DevMemAlloc1GHugePage_2)
 
     delete rawDrv;
     free(ptr);
+}
+
+TEST_F(CloudV2NpuDriverTest, MemcpyAsyncCallback)
+{
+    rtError_t ret;
+    rtStream_t stream;
+    ret = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    Stream* stm = static_cast<Stream*>(stream);
+    UvmCallback::MemcpyAsyncCallback(nullptr);
+    rtMemcpyCallbackParam *memcpyCallbackParam = new rtMemcpyCallbackParam;
+    memcpyCallbackParam->dst = (void*)0x42;
+    memcpyCallbackParam->destMax = 64;
+    memcpyCallbackParam->src = (void*)0x41;
+    memcpyCallbackParam->cnt = 64;
+    memcpyCallbackParam->kind = RT_MEMCPY_DEVICE_TO_DEVICE;
+    memcpyCallbackParam->stm = stm;
+    UvmCallback::MemcpyAsyncCallback(static_cast<void *>(memcpyCallbackParam));
 }
 
 drvError_t halGetDeviceInfoStub_Cube(uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value)

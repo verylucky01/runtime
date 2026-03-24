@@ -170,3 +170,38 @@ TEST_F(UvmApiTest, memory_managed_memset_async)
     EXPECT_EQ(error, RT_ERROR_NONE);
     delete profiler;
 }
+
+TEST_F(UvmApiTest, memcpy_async_uvm_to_uvm) 
+{
+    rtError_t error;
+    void *hostPtr;
+    void *devPtr;
+    uint64_t count = 128;
+
+    rtStream_t stream = nullptr;
+    rtError_t err = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+
+    error = rtMemAllocManaged(&hostPtr, count, 1, DEFAULT_MODULEID);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtMemAllocManaged(&devPtr, count, 1, DEFAULT_MODULEID);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    MOCKER(UvmCallback::IsUvmMem).stubs().will(returnValue(true));
+
+    ApiImpl apiImpl_;
+    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::LaunchHostFunc).stubs().will(invoke(LaunchHostFuncNormalStub));
+
+    error = rtMemcpyAsync(devPtr, count, hostPtr, count, RT_MEMCPY_HOST_TO_DEVICE, stream);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtStreamSynchronize(stream);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtFree(devPtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtFree(hostPtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+}

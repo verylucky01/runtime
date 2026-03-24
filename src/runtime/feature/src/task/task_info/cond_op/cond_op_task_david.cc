@@ -200,16 +200,16 @@ void ConstructSecondDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t
     rtError_t ret;
     uint64_t funcCallSize;
     if (taskInfo->stream->IsSoftwareSqEnable()) {
-        RtStarsMemWaitValueLastInstrFcEx fcEx = {};
-        funcCallSize = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFcEx));
-        ConstructMemWaitValueInstr2Ex(fcEx, fcPara);
+        RtStarsMemWaitValueLastInstrFcExWithoutProf fcEx = {};
+        funcCallSize = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFcExWithoutProf));
+        ConstructMemWaitValueInstr2ExWithoutProf(fcEx, fcPara);
         ret = taskInfo->stream->Device_()->Driver_()->MemCopySync(memWaitValueTask->funcCallSvmMem2,
             memWaitValueTask->funCallMemSize2, &fcEx, funcCallSize,
             RT_MEMCPY_HOST_TO_DEVICE);
     } else {
-        RtStarsMemWaitValueLastInstrFc fc = {};
-        funcCallSize = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFc));
-        ConstructMemWaitValueInstr2(fc, fcPara);
+        RtStarsMemWaitValueLastInstrFcWithoutProf fc = {};
+        funcCallSize = static_cast<uint64_t>(sizeof(RtStarsMemWaitValueLastInstrFcWithoutProf));
+        ConstructMemWaitValueInstr2WithoutProf(fc, fcPara);
         ret = taskInfo->stream->Device_()->Driver_()->MemCopySync(memWaitValueTask->funcCallSvmMem2,
             memWaitValueTask->funCallMemSize2, &fc, funcCallSize,
             RT_MEMCPY_HOST_TO_DEVICE);

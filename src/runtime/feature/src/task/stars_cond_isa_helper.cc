@@ -1609,9 +1609,9 @@ void ConvertOpToReverseOp(const rtStarsCondIsaBranchFunc3_t branchFunc,
     }
 }
 
-/* used for none-sofeware sq */
-void ConstructMemWaitValueInstr2(RtStarsMemWaitValueLastInstrFc &fc,
-                                                     const RtStarsMemWaitValueInstrFcPara &fcPara)
+/* used for none-sofeware sq, and without prof */
+void ConstructMemWaitValueInstr2WithoutProf(RtStarsMemWaitValueLastInstrFcWithoutProf &fc,
+    const RtStarsMemWaitValueInstrFcPara &fcPara)
 {
     constexpr rtStarsCondIsaRegister_t r0 = RT_STARS_COND_ISA_REGISTER_R0;
     constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
@@ -1645,13 +1645,13 @@ void ConstructMemWaitValueInstr2(RtStarsMemWaitValueLastInstrFc &fc,
     // load max loop num to r4
     ConstructLLWI(r4, static_cast<uint64_t>(fcPara.maxLoop), fc.llwi2);
 
-    uint64_t loadValueOffset = offsetof(RtStarsMemWaitValueLastInstrFc, loadValue);
+    uint64_t loadValueOffset = offsetof(RtStarsMemWaitValueLastInstrFcWithoutProf, loadValue);
     loadValueOffset = loadValueOffset / sizeof(uint32_t);
 
-    uint64_t modifySqHeadOffset = offsetof(RtStarsMemWaitValueLastInstrFc, goto_i);
+    uint64_t modifySqHeadOffset = offsetof(RtStarsMemWaitValueLastInstrFcWithoutProf, goto_i);
     modifySqHeadOffset = modifySqHeadOffset / sizeof(uint32_t);
 
-    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFc, end);
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFcWithoutProf, end);
     endOffset = endOffset / sizeof(uint32_t);
 
     // load devAddr data from hbm to r2
@@ -1690,14 +1690,14 @@ void ConstructMemWaitValueInstr2(RtStarsMemWaitValueLastInstrFc &fc,
     ConstructNop(fc.end);
 
     const uint32_t * const cmd = RtPtrToPtr<const uint32_t *>(&fc);
-    for (size_t i = 0UL; i < (sizeof(RtStarsMemWaitValueLastInstrFc) / sizeof(uint32_t)); i++) {
+    for (size_t i = 0UL; i < (sizeof(RtStarsMemWaitValueLastInstrFcWithoutProf) / sizeof(uint32_t)); i++) {
         RT_LOG(RT_LOG_DEBUG, "func call: instr[%zu]=0x%08x", i, cmd[i]);
     }
 }
 
-/* used for sofeware sq */
-void ConstructMemWaitValueInstr2Ex(RtStarsMemWaitValueLastInstrFcEx &fc,
-                                   const RtStarsMemWaitValueInstrFcPara &fcPara)
+/* used for sofeware sq, and without prof */
+void ConstructMemWaitValueInstr2ExWithoutProf(RtStarsMemWaitValueLastInstrFcExWithoutProf &fc,
+                                              const RtStarsMemWaitValueInstrFcPara &fcPara)
 {
     constexpr rtStarsCondIsaRegister_t r0 = RT_STARS_COND_ISA_REGISTER_R0;
     constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
@@ -1711,7 +1711,7 @@ void ConstructMemWaitValueInstr2Ex(RtStarsMemWaitValueLastInstrFcEx &fc,
     rtStarsCondIsaOpFunc3_t opFunc3 = RT_STARS_COND_ISA_OP_FUNC3_OR;
     RtStarsCondIsaOpFunc7 opFunc7 = RT_STARS_COND_ISA_OP_FUNC7_OR;
     rtStarsCondIsaLoadImmFunc3_t opFunc8 = (fcPara.awSize == RT_STARS_WRITE_VALUE_SIZE_TYPE_8BIT) ?
-            RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LBU : RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD;
+                RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LBU : RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD;
     uint64_t value1 = 0ULL;
     uint64_t value2 = fcPara.value;
 
@@ -1731,13 +1731,13 @@ void ConstructMemWaitValueInstr2Ex(RtStarsMemWaitValueLastInstrFcEx &fc,
     // load max loop num to r4
     ConstructLLWI(r4, static_cast<uint64_t>(fcPara.maxLoop), fc.llwi2);
 
-    uint64_t loadValueOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadValue);
+    uint64_t loadValueOffset = offsetof(RtStarsMemWaitValueLastInstrFcExWithoutProf, loadValue);
     loadValueOffset = loadValueOffset / sizeof(uint32_t);
 
-    uint64_t modifySqHeadOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadSqId);
+    uint64_t modifySqHeadOffset = offsetof(RtStarsMemWaitValueLastInstrFcExWithoutProf, loadSqId);
     modifySqHeadOffset = modifySqHeadOffset / sizeof(uint32_t);
 
-    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, end);
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFcExWithoutProf, end);
     endOffset = endOffset / sizeof(uint32_t);
 
     // load devAddr data from hbm to r2
@@ -1785,6 +1785,516 @@ void ConstructMemWaitValueInstr2Ex(RtStarsMemWaitValueLastInstrFcEx &fc,
 
     // modify sq head by goto_r
     ConstructGotoR(r3, r5, fc.goto_r);
+
+    // end
+    ConstructNop(fc.end);
+
+    const uint32_t * const cmd = RtPtrToPtr<const uint32_t *>(&fc);
+    for (size_t i = 0UL; i < (sizeof(RtStarsMemWaitValueLastInstrFcExWithoutProf) / sizeof(uint32_t)); i++) {
+        RT_LOG(RT_LOG_DEBUG, "func call: instr[%zu]=0x%08x", i, cmd[i]);
+    }
+}
+
+void MemWaitInstrWaitSuccessForNonSoftwareSq(RtStarsMemWaitValueLastInstrFc &fc,
+                                            const RtStarsMemWaitValueInstrFcPara &fcPara)
+{
+    constexpr rtStarsCondIsaRegister_t r0 = RT_STARS_COND_ISA_REGISTER_R0;
+    constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
+    constexpr rtStarsCondIsaRegister_t r2 = RT_STARS_COND_ISA_REGISTER_R2;
+    constexpr rtStarsCondIsaRegister_t r4 = RT_STARS_COND_ISA_REGISTER_R4;
+
+    uint64_t nextCheckOffset = offsetof(RtStarsMemWaitValueLastInstrFc, loadSqTail);
+    nextCheckOffset = nextCheckOffset / sizeof(uint32_t);
+
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFc, end);
+    endOffset = endOffset / sizeof(uint32_t);
+
+    /* wait success */
+    // load prof disable status to r2
+    ConstructLoadImm(r2, fcPara.profDisableAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadProfDisableStatus1);
+
+    // r2 == 0, goto sqe next check
+    ConstructSetJumpPcFc(r1, nextCheckOffset, fc.jumpPc4);
+    ConstructBranch(r2, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(nextCheckOffset), fc.branch4);
+
+    // r2 != 0, write prof disable status to 0
+    // load profDisableAddr to r4
+    ConstructLHWI(r4, fcPara.profDisableAddr, fc.lhwi4);
+    ConstructLLWI(r4, fcPara.profDisableAddr, fc.llwi4);
+
+    // write r4 to 0x0
+    ConstructStore(r4, r0, 0U, RT_STARS_COND_ISA_STORE_FUNC3_SB, fc.updateProfDisableStatus1);
+
+    // r2 != 0, goto end
+    ConstructSetJumpPcFc(r1, endOffset, fc.jumpPc5);
+    ConstructBranch(r2, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BNE, static_cast<uint8_t>(endOffset), fc.branch5);
+}
+
+void MemWaitInstrWaitFailedForNonSoftwareSq(RtStarsMemWaitValueLastInstrFc &fc,
+                                            const RtStarsMemWaitValueInstrFcPara &fcPara)
+{
+    constexpr rtStarsCondIsaRegister_t r0 = RT_STARS_COND_ISA_REGISTER_R0;
+    constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
+    constexpr rtStarsCondIsaRegister_t r2 = RT_STARS_COND_ISA_REGISTER_R2;
+    constexpr rtStarsCondIsaRegister_t r3 = RT_STARS_COND_ISA_REGISTER_R3;
+    constexpr rtStarsCondIsaRegister_t r4 = RT_STARS_COND_ISA_REGISTER_R4;
+    constexpr rtStarsCondIsaRegister_t r5 = RT_STARS_COND_ISA_REGISTER_R5;
+
+    uint64_t modifySqHeadPreOffset = offsetof(RtStarsMemWaitValueLastInstrFc, goto_pre);
+    modifySqHeadPreOffset = modifySqHeadPreOffset / sizeof(uint32_t);
+
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFc, end);
+    endOffset = endOffset / sizeof(uint32_t);
+
+    /* wait failed */
+    // load prof disable status to r2
+    ConstructLoadImm(r2, fcPara.profDisableAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadProfDisableStatus2);
+
+    // r2 != 0, goto modifySqHeadPreOffset
+    ConstructSetJumpPcFc(r1, modifySqHeadPreOffset, fc.jumpPc6);
+    ConstructBranch(r2, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BNE, static_cast<uint8_t>(modifySqHeadPreOffset), fc.branch6);
+
+    // load prof swaitch value from hbm to r3
+    ConstructLoadImm(r3, fcPara.profSwitchAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadProfSwitch);
+
+    // r3 == 0, goto modifySqHeadPreOffset
+    ConstructSetJumpPcFc(r1, modifySqHeadPreOffset, fc.jumpPc7);
+    ConstructBranch(r3, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(modifySqHeadPreOffset), fc.branch7);
+
+    // load profDisableAddr to r4
+    ConstructLHWI(r4, fcPara.profDisableAddr, fc.lhwi5);
+    ConstructLLWI(r4, fcPara.profDisableAddr, fc.llwi5);
+
+    // load 0x1 to r5
+    ConstructLHWI(r5, 0x1, fc.lhwi6);
+    ConstructLLWI(r5, 0x1, fc.llwi6);
+
+    // write r4 to 0x0
+    ConstructStore(r4, r5, 0U, RT_STARS_COND_ISA_STORE_FUNC3_SB, fc.updateProfDisableStatus2);
+
+    // r3 != 0, goto endOffset
+    ConstructSetJumpPcFc(r1, endOffset, fc.jumpPc8);
+    ConstructBranch(r3, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BNE, static_cast<uint8_t>(endOffset), fc.branch8);
+}
+
+/* used for none-sofeware sq */
+void ConstructMemWaitValueInstr2(RtStarsMemWaitValueLastInstrFc &fc,
+    const RtStarsMemWaitValueInstrFcPara &fcPara)
+{
+    constexpr rtStarsCondIsaRegister_t r0 = RT_STARS_COND_ISA_REGISTER_R0;
+    constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
+    constexpr rtStarsCondIsaRegister_t r2 = RT_STARS_COND_ISA_REGISTER_R2;
+    constexpr rtStarsCondIsaRegister_t r3 = RT_STARS_COND_ISA_REGISTER_R3;
+    constexpr rtStarsCondIsaRegister_t r4 = RT_STARS_COND_ISA_REGISTER_R4;
+    constexpr rtStarsCondIsaRegister_t r5 = RT_STARS_COND_ISA_REGISTER_R5;
+
+    rtStarsCondIsaBranchFunc3_t branchFunc = RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ;
+    rtStarsCondIsaBranchFunc3_t reverseBranchFunc = RT_STARS_COND_ISA_BRANCH_FUNC3_BNE;
+    rtStarsCondIsaOpFunc3_t opFunc3 = RT_STARS_COND_ISA_OP_FUNC3_OR;
+    RtStarsCondIsaOpFunc7 opFunc7 = RT_STARS_COND_ISA_OP_FUNC7_OR;
+    rtStarsCondIsaLoadImmFunc3_t opFunc8 = (fcPara.awSize == RT_STARS_WRITE_VALUE_SIZE_TYPE_8BIT) ?
+        RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LBU : RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD;
+    uint64_t value1 = 0ULL;
+    uint64_t value2 = fcPara.value;
+
+    ConvertConditionToOpAndBranchFunc(fcPara, branchFunc, opFunc3, opFunc7, value1, value2);
+    ConvertOpToReverseOp(branchFunc, reverseBranchFunc);
+
+    // init loop index, r3 = r0 + 0 = 0
+    ConstructOpImmAndi(r0, r3, 0U, RT_STARS_COND_ISA_OP_IMM_FUNC3_ADDI, fc.addi0);
+
+    // read value2 to r5
+    ConstructLHWI(r5, value2, fc.lhwi1);
+    ConstructLLWI(r5, value2, fc.llwi1);
+
+    // init r4, r4 = r0 + 0 = 0
+    ConstructOpImmAndi(r0, r4, 0U, RT_STARS_COND_ISA_OP_IMM_FUNC3_ADDI, fc.addi1);
+
+    // load max loop num to r4
+    ConstructLLWI(r4, static_cast<uint64_t>(fcPara.maxLoop), fc.llwi2);
+
+    uint64_t loadValueOffset = offsetof(RtStarsMemWaitValueLastInstrFc, loadValue);
+    loadValueOffset = loadValueOffset / sizeof(uint32_t);
+
+    uint64_t modifySqHeadNextOffset = offsetof(RtStarsMemWaitValueLastInstrFc, goto_next);
+    modifySqHeadNextOffset = modifySqHeadNextOffset / sizeof(uint32_t);
+
+    uint64_t waitSuccessOffset = offsetof(RtStarsMemWaitValueLastInstrFc, loadProfDisableStatus1);
+    waitSuccessOffset = waitSuccessOffset / sizeof(uint32_t);
+
+    uint64_t waitFailedOffset = offsetof(RtStarsMemWaitValueLastInstrFc, loadProfDisableStatus2);
+    waitFailedOffset = waitFailedOffset / sizeof(uint32_t);
+
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFc, end);
+    endOffset = endOffset / sizeof(uint32_t);
+
+    uint64_t loadSqTailOffset = offsetof(RtStarsMemWaitValueLastInstrFc, loadSqTail);
+    loadSqTailOffset = loadSqTailOffset / sizeof(uint32_t);
+
+    // load devAddr data from hbm to r2
+    ConstructLoadImm(r2, fcPara.devAddr, opFunc8, fc.loadValue);
+
+    // read value1 to r1
+    ConstructLHWI(r1, value1, fc.lhwi3);
+    ConstructLLWI(r1, value1, fc.llwi3);
+
+    // r2 = r2 op value1(r1)
+    ConstructOpOp(r2, r1, r2, opFunc3, opFunc7, fc.op);
+
+    // r2 == r5, goto waitSuccessOffset
+    ConstructSetJumpPcFc(r1, waitSuccessOffset, fc.jumpPc1);
+    ConstructBranch(r2, r5, branchFunc, static_cast<uint8_t>(waitSuccessOffset), fc.branch1);
+
+    // r2 != r5, loop index++ r3 = r3 + 1
+    ConstructOpImmAndi(r3, r3, 1U, RT_STARS_COND_ISA_OP_IMM_FUNC3_ADDI, fc.addi2);
+
+    // r3 >= r4, goto waitFailedOffset
+    ConstructSetJumpPcFc(r1, waitFailedOffset, fc.jumpPc2);
+    ConstructBranch(r3, r4, RT_STARS_COND_ISA_BRANCH_FUNC3_BGE, static_cast<uint8_t>(waitFailedOffset), fc.bge);
+
+    // nop
+    ConstructNop(fc.nop1);
+    ConstructNop(fc.nop2);
+
+    // r2 != r5, goto loadValueOffset, continue load devAddr data from hbm to r2
+    ConstructSetJumpPcFc(r1, loadValueOffset, fc.jumpPc3);
+    ConstructBranch(r2, r5, reverseBranchFunc, static_cast<uint8_t>(loadValueOffset), fc.branch2);
+
+    /* wait success */
+    MemWaitInstrWaitSuccessForNonSoftwareSq(fc, fcPara);
+
+    /* wait failed */
+    MemWaitInstrWaitFailedForNonSoftwareSq(fc, fcPara);
+
+    /* sqe pre */
+    ConstructGotoI(r5, static_cast<uint16_t>(fcPara.sqId), static_cast<uint16_t>(fcPara.sqHeadPre), fc.goto_pre);
+    ConstructSetJumpPcFc(r1, endOffset, fc.jumpPc9);
+    ConstructBranch(r2, r2, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(endOffset), fc.branch9);
+
+    /* sqe next */
+    ConstructGotoI(r5, static_cast<uint16_t>(fcPara.sqId), static_cast<uint16_t>(fcPara.sqHeadNext), fc.goto_next);
+    ConstructSetJumpPcFc(r1, endOffset, fc.jumpPc10);
+    ConstructBranch(r2, r2, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(endOffset), fc.branch10);
+
+    /* sqe next check */
+    // load sq tail to r2
+    ConstructLoadImm(r2, fcPara.sqTailRegAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadSqTail);
+
+    // load lastSqePos to r3
+    ConstructLHWI(r3, fcPara.lastSqePos, fc.lhwi7);
+    ConstructLLWI(r3, fcPara.lastSqePos, fc.llwi7);
+
+    // r2 == r3, goto loadSqTail, until sqTail != lastSqePos
+    ConstructSetJumpPcFc(r1, loadSqTailOffset, fc.jumpPc11);
+    ConstructBranch(r2, r3, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(loadSqTailOffset), fc.branch11);
+
+    // r2 != r3, goto sqe next
+    ConstructSetJumpPcFc(r1, modifySqHeadNextOffset, fc.jumpPc12);
+    ConstructBranch(r2, r3, RT_STARS_COND_ISA_BRANCH_FUNC3_BNE, static_cast<uint8_t>(modifySqHeadNextOffset), fc.branch12);
+
+    // end
+    ConstructNop(fc.end);
+
+    const uint32_t * const cmd = RtPtrToPtr<const uint32_t *>(&fc);
+    for (size_t i = 0UL; i < (sizeof(RtStarsMemWaitValueLastInstrFc) / sizeof(uint32_t)); i++) {
+        RT_LOG(RT_LOG_DEBUG, "func call: instr[%zu]=0x%08x", i, cmd[i]);
+    }
+}
+
+void MemWaitInstrWaitSuccessForSoftwareSq(RtStarsMemWaitValueLastInstrFcEx &fc,
+                                          const RtStarsMemWaitValueInstrFcPara &fcPara)
+{
+    constexpr rtStarsCondIsaRegister_t r0 = RT_STARS_COND_ISA_REGISTER_R0;
+    constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
+    constexpr rtStarsCondIsaRegister_t r2 = RT_STARS_COND_ISA_REGISTER_R2;
+    constexpr rtStarsCondIsaRegister_t r4 = RT_STARS_COND_ISA_REGISTER_R4;
+
+    uint64_t nextCheckOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadSqId3);
+    nextCheckOffset = nextCheckOffset / sizeof(uint32_t);
+
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, end);
+    endOffset = endOffset / sizeof(uint32_t);
+
+    /* wait success */
+    // load prof disable status to r2
+    ConstructLoadImm(r2, fcPara.profDisableAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadProfDisableStatus1);
+
+    // r2 == 0, goto sqe next check
+    ConstructSetJumpPcFc(r1, nextCheckOffset, fc.jumpPc4);
+    ConstructBranch(r2, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(nextCheckOffset), fc.branch4);
+
+    // r2 != 0, write prof disable status to 0
+    // load profDisableAddr to r4
+    ConstructLHWI(r4, fcPara.profDisableAddr, fc.lhwi4);
+    ConstructLLWI(r4, fcPara.profDisableAddr, fc.llwi4);
+
+    // write r4 to 0x0
+    ConstructStore(r4, r0, 0U, RT_STARS_COND_ISA_STORE_FUNC3_SB, fc.updateProfDisableStatus1);
+
+    // r2 != 0, goto end
+    ConstructSetJumpPcFc(r1, endOffset, fc.jumpPc5);
+    ConstructBranch(r2, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BNE, static_cast<uint8_t>(endOffset), fc.branch5);
+}
+
+void MemWaitInstrWaitFailedForSoftwareSq(RtStarsMemWaitValueLastInstrFcEx &fc,
+                                         const RtStarsMemWaitValueInstrFcPara &fcPara)
+{
+    constexpr rtStarsCondIsaRegister_t r0 = RT_STARS_COND_ISA_REGISTER_R0;
+    constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
+    constexpr rtStarsCondIsaRegister_t r2 = RT_STARS_COND_ISA_REGISTER_R2;
+    constexpr rtStarsCondIsaRegister_t r3 = RT_STARS_COND_ISA_REGISTER_R3;
+    constexpr rtStarsCondIsaRegister_t r4 = RT_STARS_COND_ISA_REGISTER_R4;
+    constexpr rtStarsCondIsaRegister_t r5 = RT_STARS_COND_ISA_REGISTER_R5;
+
+    uint64_t modifySqHeadPreOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadSqId1);
+    modifySqHeadPreOffset = modifySqHeadPreOffset / sizeof(uint32_t);
+
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, end);
+    endOffset = endOffset / sizeof(uint32_t);
+
+    /* wait failed */
+    // load prof disable status to r2
+    ConstructLoadImm(r2, fcPara.profDisableAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadProfDisableStatus2);
+
+    // r2 != 0, goto modifySqHeadPreOffset
+    ConstructSetJumpPcFc(r1, modifySqHeadPreOffset, fc.jumpPc6);
+    ConstructBranch(r2, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BNE, static_cast<uint8_t>(modifySqHeadPreOffset), fc.branch6);
+
+    // load prof swaitch value from hbm to r3
+    ConstructLoadImm(r3, fcPara.profSwitchAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadProfSwitch);
+
+    // r3 == 0, goto modifySqHeadPreOffset
+    ConstructSetJumpPcFc(r1, modifySqHeadPreOffset, fc.jumpPc7);
+    ConstructBranch(r3, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(modifySqHeadPreOffset), fc.branch7);
+
+    // load profDisableAddr to r4
+    ConstructLHWI(r4, fcPara.profDisableAddr, fc.lhwi5);
+    ConstructLLWI(r4, fcPara.profDisableAddr, fc.llwi5);
+
+    // load 0x1 to r5
+    ConstructLHWI(r5, 0x1, fc.lhwi6);
+    ConstructLLWI(r5, 0x1, fc.llwi6);
+
+    // write r4 to 0x0
+    ConstructStore(r4, r5, 0U, RT_STARS_COND_ISA_STORE_FUNC3_SB, fc.updateProfDisableStatus2);
+
+    // r3 != 0, goto endOffset
+    ConstructSetJumpPcFc(r1, endOffset, fc.jumpPc8);
+    ConstructBranch(r3, r0, RT_STARS_COND_ISA_BRANCH_FUNC3_BNE, static_cast<uint8_t>(endOffset), fc.branch8);
+}
+
+void MemWaitInstrSqePreForSoftwareSq(RtStarsMemWaitValueLastInstrFcEx &fc,
+                                     const RtStarsMemWaitValueInstrFcPara &fcPara)
+{
+    constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
+    constexpr rtStarsCondIsaRegister_t r2 = RT_STARS_COND_ISA_REGISTER_R2;
+    constexpr rtStarsCondIsaRegister_t r3 = RT_STARS_COND_ISA_REGISTER_R3;
+    constexpr rtStarsCondIsaRegister_t r4 = RT_STARS_COND_ISA_REGISTER_R4;
+    constexpr rtStarsCondIsaRegister_t r5 = RT_STARS_COND_ISA_REGISTER_R5;
+
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, end);
+    endOffset = endOffset / sizeof(uint32_t);
+
+    // modifySqHeadPreOffset
+    // load sqid from virtual addr to r3
+    ConstructLoadImm(r3, fcPara.sqIdMemAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadSqId1);
+
+    // load sqHead to r4
+    ConstructLHWI(r4, static_cast<uint64_t>(fcPara.sqHeadPre), fc.lhwi7);
+    ConstructLLWI(r4, static_cast<uint64_t>(fcPara.sqHeadPre), fc.llwi7);
+
+    // r4 = r4 < 16
+    ConstructOpImmSlli(r4, r4, 16U, RT_STARS_COND_ISA_OP_IMM_FUNC3_SLLI, RT_STARS_COND_ISA_OP_IMM_FUNC7_SLLI, fc.slli1);
+
+    // r3 = r3 | r4, sqId=[10:0], head=[31:16]
+    ConstructOpOp(r3, r4, r3, RT_STARS_COND_ISA_OP_FUNC3_OR, RT_STARS_COND_ISA_OP_FUNC7_OR, fc.op2);
+
+    // modify sq head by goto_r
+    ConstructGotoR(r3, r5, fc.goto_pre);
+
+    // goto end
+    ConstructSetJumpPcFc(r1, endOffset, fc.jumpPc9);
+    ConstructBranch(r2, r2, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(endOffset), fc.branch9);
+}
+
+void MemWaitInstrSqeNextForSoftwareSq(RtStarsMemWaitValueLastInstrFcEx &fc,
+                                      const RtStarsMemWaitValueInstrFcPara &fcPara)
+{
+    constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
+    constexpr rtStarsCondIsaRegister_t r2 = RT_STARS_COND_ISA_REGISTER_R2;
+    constexpr rtStarsCondIsaRegister_t r3 = RT_STARS_COND_ISA_REGISTER_R3;
+    constexpr rtStarsCondIsaRegister_t r4 = RT_STARS_COND_ISA_REGISTER_R4;
+    constexpr rtStarsCondIsaRegister_t r5 = RT_STARS_COND_ISA_REGISTER_R5;
+
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, end);
+    endOffset = endOffset / sizeof(uint32_t);
+
+    // load sqid from virtual addr to r3
+    ConstructLoadImm(r3, fcPara.sqIdMemAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadSqId2);
+
+    // load sqHead to r4
+    ConstructLHWI(r4, static_cast<uint64_t>(fcPara.sqHeadNext), fc.lhwi8);
+    ConstructLLWI(r4, static_cast<uint64_t>(fcPara.sqHeadNext), fc.llwi8);
+
+    // r4 = r4 < 16
+    ConstructOpImmSlli(r4, r4, 16U, RT_STARS_COND_ISA_OP_IMM_FUNC3_SLLI, RT_STARS_COND_ISA_OP_IMM_FUNC7_SLLI, fc.slli2);
+
+    // r3 = r3 | r4, sqId=[10:0], head=[31:16]
+    ConstructOpOp(r3, r4, r3, RT_STARS_COND_ISA_OP_FUNC3_OR, RT_STARS_COND_ISA_OP_FUNC7_OR, fc.op3);
+
+    // modify sq head by goto_r
+    ConstructGotoR(r3, r5, fc.goto_next);
+
+    // goto end
+    ConstructSetJumpPcFc(r1, endOffset, fc.jumpPc10);
+    ConstructBranch(r2, r2, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(endOffset), fc.branch10);
+}
+
+void MemWaitInstrSqeNextCheckForSoftwareSq(RtStarsMemWaitValueLastInstrFcEx &fc,
+                                           const RtStarsMemWaitValueInstrFcPara &fcPara)
+{
+    constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
+    constexpr rtStarsCondIsaRegister_t r2 = RT_STARS_COND_ISA_REGISTER_R2;
+    constexpr rtStarsCondIsaRegister_t r3 = RT_STARS_COND_ISA_REGISTER_R3;
+    constexpr rtStarsCondIsaRegister_t r4 = RT_STARS_COND_ISA_REGISTER_R4;
+    constexpr rtStarsCondIsaRegister_t r5 = RT_STARS_COND_ISA_REGISTER_R5;
+
+    uint64_t modifySqHeadNextOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadSqId2);
+    modifySqHeadNextOffset = modifySqHeadNextOffset / sizeof(uint32_t);
+
+    uint64_t loadSqTailOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, ldr2);
+    loadSqTailOffset = loadSqTailOffset / sizeof(uint32_t);
+
+    /* sqe next check */
+    // load sqid from virtual addr to r3
+    ConstructLoadImm(r3, fcPara.sqIdMemAddr, RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD, fc.loadSqId3);
+
+    // load sqRegAddrArray to r4
+    ConstructLHWI(r4, fcPara.sqRegAddrArray, fc.lhwi9);
+    ConstructLLWI(r4, fcPara.sqRegAddrArray, fc.llwi9);
+
+     // r3 = r3 < 3
+    ConstructOpImmSlli(r3, r3, 3U, RT_STARS_COND_ISA_OP_IMM_FUNC3_SLLI, RT_STARS_COND_ISA_OP_IMM_FUNC7_SLLI, fc.slli3);
+
+    // r4 = r4 + r3
+    ConstructOpOp(r4, r3, r4, RT_STARS_COND_ISA_OP_FUNC3_ADD, RT_STARS_COND_ISA_OP_FUNC7_ADD, fc.op4);
+
+    // LD_R: read sqRegAddr to R5,  from R4
+    ConstructLoad(r4, 0U, r5, RT_STARS_COND_ISA_LOAD_FUNC3_LDR, fc.ldr1);
+
+    // LD_R: read sq tail to R2, from R5 + offset(STARS_SIMPLE_SQ_TAIL_OFFSET)
+    ConstructLoad(r5, fcPara.sqTailOffset, r2, RT_STARS_COND_ISA_LOAD_FUNC3_LDR, fc.ldr2);
+
+    // load lastSqePos to r3
+    ConstructLHWI(r3, fcPara.lastSqePos, fc.lhwi10);
+    ConstructLLWI(r3, fcPara.lastSqePos, fc.llwi10);
+
+    // r2 == r3, goto ldr2, until sqTail != lastSqePos
+    ConstructSetJumpPcFc(r1, loadSqTailOffset, fc.jumpPc11);
+    ConstructBranch(r2, r3, RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ, static_cast<uint8_t>(loadSqTailOffset), fc.branch11);
+
+    // r2 != r3, goto sqe next
+    ConstructSetJumpPcFc(r1, modifySqHeadNextOffset, fc.jumpPc12);
+    ConstructBranch(r2, r3, RT_STARS_COND_ISA_BRANCH_FUNC3_BNE, static_cast<uint8_t>(modifySqHeadNextOffset), fc.branch12);
+}
+
+/* used for sofeware sq */
+void ConstructMemWaitValueInstr2Ex(RtStarsMemWaitValueLastInstrFcEx &fc,
+    const RtStarsMemWaitValueInstrFcPara &fcPara)
+{
+    constexpr rtStarsCondIsaRegister_t r0 = RT_STARS_COND_ISA_REGISTER_R0;
+    constexpr rtStarsCondIsaRegister_t r1 = RT_STARS_COND_ISA_REGISTER_R1;
+    constexpr rtStarsCondIsaRegister_t r2 = RT_STARS_COND_ISA_REGISTER_R2;
+    constexpr rtStarsCondIsaRegister_t r3 = RT_STARS_COND_ISA_REGISTER_R3;
+    constexpr rtStarsCondIsaRegister_t r4 = RT_STARS_COND_ISA_REGISTER_R4;
+    constexpr rtStarsCondIsaRegister_t r5 = RT_STARS_COND_ISA_REGISTER_R5;
+
+    rtStarsCondIsaBranchFunc3_t branchFunc = RT_STARS_COND_ISA_BRANCH_FUNC3_BEQ;
+    rtStarsCondIsaBranchFunc3_t reverseBranchFunc = RT_STARS_COND_ISA_BRANCH_FUNC3_BNE;
+    rtStarsCondIsaOpFunc3_t opFunc3 = RT_STARS_COND_ISA_OP_FUNC3_OR;
+    RtStarsCondIsaOpFunc7 opFunc7 = RT_STARS_COND_ISA_OP_FUNC7_OR;
+    rtStarsCondIsaLoadImmFunc3_t opFunc8 = (fcPara.awSize == RT_STARS_WRITE_VALUE_SIZE_TYPE_8BIT) ?
+        RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LBU : RT_STARS_COND_ISA_LOAD_IMM_FUNC3_LD;
+    uint64_t value1 = 0ULL;
+    uint64_t value2 = fcPara.value;
+
+    ConvertConditionToOpAndBranchFunc(fcPara, branchFunc, opFunc3, opFunc7, value1, value2);
+    ConvertOpToReverseOp(branchFunc, reverseBranchFunc);
+
+    // init loop index, r3 = r0 + 0 = 0
+    ConstructOpImmAndi(r0, r3, 0U, RT_STARS_COND_ISA_OP_IMM_FUNC3_ADDI, fc.addi0);
+
+    // read value2 to r5
+    ConstructLHWI(r5, value2, fc.lhwi1);
+    ConstructLLWI(r5, value2, fc.llwi1);
+
+    // init r4, r4 = r0 + 0 = 0
+    ConstructOpImmAndi(r0, r4, 0U, RT_STARS_COND_ISA_OP_IMM_FUNC3_ADDI, fc.addi1);
+
+    // load max loop num to r4
+    ConstructLLWI(r4, static_cast<uint64_t>(fcPara.maxLoop), fc.llwi2);
+
+    uint64_t loadValueOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadValue);
+    loadValueOffset = loadValueOffset / sizeof(uint32_t);
+
+    uint64_t modifySqHeadNextOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadSqId2);
+    modifySqHeadNextOffset = modifySqHeadNextOffset / sizeof(uint32_t);
+
+    uint64_t nextCheckOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadSqId3);
+    nextCheckOffset = nextCheckOffset / sizeof(uint32_t);
+
+    uint64_t waitSuccessOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadProfDisableStatus1);
+    waitSuccessOffset = waitSuccessOffset / sizeof(uint32_t);
+
+    uint64_t waitFailedOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, loadProfDisableStatus2);
+    waitFailedOffset = waitFailedOffset / sizeof(uint32_t);
+
+    uint64_t endOffset = offsetof(RtStarsMemWaitValueLastInstrFcEx, end);
+    endOffset = endOffset / sizeof(uint32_t);
+
+    // load devAddr data from hbm to r2
+    ConstructLoadImm(r2, fcPara.devAddr, opFunc8, fc.loadValue);
+
+    // read value1 to r1
+    ConstructLHWI(r1, value1, fc.lhwi3);
+    ConstructLLWI(r1, value1, fc.llwi3);
+
+    // r2 = r2 op value1(r1)
+    ConstructOpOp(r2, r1, r2, opFunc3, opFunc7, fc.op);
+
+    // r2 == r5, goto waitSuccessOffset
+    ConstructSetJumpPcFc(r1, waitSuccessOffset, fc.jumpPc1);
+    ConstructBranch(r2, r5, branchFunc, static_cast<uint8_t>(waitSuccessOffset), fc.branch1);
+
+    // r2 != r5, loop index++ r3 = r3 + 1
+    ConstructOpImmAndi(r3, r3, 1U, RT_STARS_COND_ISA_OP_IMM_FUNC3_ADDI, fc.addi2);
+
+    // r3 >= r4, goto waitFailedOffset
+    ConstructSetJumpPcFc(r1, waitFailedOffset, fc.jumpPc2);
+    ConstructBranch(r3, r4, RT_STARS_COND_ISA_BRANCH_FUNC3_BGE, static_cast<uint8_t>(waitFailedOffset), fc.bge);
+
+    // nop
+    ConstructNop(fc.nop1);
+    ConstructNop(fc.nop2);
+
+    // r2 != r5, goto loadValueOffset, continue load devAddr data from hbm to r2
+    ConstructSetJumpPcFc(r1, loadValueOffset, fc.jumpPc3);
+    ConstructBranch(r2, r5, reverseBranchFunc, static_cast<uint8_t>(loadValueOffset), fc.branch2);
+
+    /* wait success */
+    MemWaitInstrWaitSuccessForSoftwareSq(fc, fcPara);
+
+    /* wait failed */
+    MemWaitInstrWaitFailedForSoftwareSq(fc, fcPara);
+
+    /* sqe pre */
+    MemWaitInstrSqePreForSoftwareSq(fc, fcPara);
+
+    /* sqe next */
+    MemWaitInstrSqeNextForSoftwareSq(fc, fcPara);
+
+    /* sqe next check */
+    MemWaitInstrSqeNextCheckForSoftwareSq(fc, fcPara);
 
     // end
     ConstructNop(fc.end);

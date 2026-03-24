@@ -234,6 +234,11 @@ struct RtFlipTaskTag {
     uint8_t reserved[46];
 };
 
+struct RtMemWaitTask {
+    uint16_t dest_sqe_pos;
+    uint8_t  reserved[46];
+};
+
 struct RtUpdateAddrTaskTag {
     uint64_t dev_addr;
     uint64_t len;
@@ -278,6 +283,7 @@ struct RtStarsPhSqe {
         RtMdlTaskUpdate mdTaskUpdateInfo;
         RtCommonCmd commonCmdInfo;
         RtStarsVersion starsVersionInfo;
+        RtMemWaitTask memWaitTask;
         uint32_t resv[12];
     } u;
 };

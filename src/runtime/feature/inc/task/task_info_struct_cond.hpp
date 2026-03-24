@@ -61,6 +61,7 @@ struct MemWaitValueTaskInfo {
     uint64_t devAddr;
     uint64_t value;
     uint64_t funCallMemSize2;
+    uint64_t profDisableStatusAddr;
     uint32_t flag;
     uint16_t curIndex;
     uint16_t awSize;

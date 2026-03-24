@@ -3791,6 +3791,7 @@ rtError_t Runtime::TsProfilerStart(const uint64_t profConfig, int32_t numsDev, c
             AicMetricStart(profConfig, tmp_type, dev);
             AivMetricStart(profConfig, tmp_type, dev);
             HwtsLogStart(profConfig, tmp_type, dev);
+            dev->ProfSwitchEnable();
             if ((tmp_type == 0ULL) && (!needOpenTimeline)) {
                 continue;
             }
@@ -4292,6 +4293,7 @@ rtError_t Runtime::TsProfilerStop(const uint64_t profConfig, int32_t numsDev, co
             AicMetricStop(profConfig, tmp_type, dev);
             AivMetricStop(profConfig, tmp_type, dev);
             HwtsLogStop(profConfig, tmp_type, dev);
+            dev->ProfSwitchDisable();
 
             if ((tmp_type == 0ULL) && (!needCloseTimeline)) {
                 continue;

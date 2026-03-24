@@ -194,7 +194,6 @@ size_t ChannelReader::HashId()
 
 void ChannelReader::UploadData()
 {
-    std::lock_guard<std::mutex> lk(uploadMtx_);
     const uint64_t uploadStartTime = analysis::dvvp::common::utils::Utils::GetClockMonotonicRaw();
     if (dataSize_ == 0) {
         return;
@@ -265,7 +264,7 @@ void ChannelReader::FlushDrvBuff()
     flushBufSize_ = flushSize;
     flushFlag_.wait(guard, [this] { return !this->needWait_; });
     // 3. upload flush data
-    UploadData();
+    FlushBuffToUpload();
 }
 
 void ChannelReader::CheckIfSendFlush(const size_t curLen)

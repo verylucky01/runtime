@@ -94,6 +94,8 @@ std::vector<std::string> GetParamNames(ErrorCode code) {
             return {"func", "value", "param", "reason"};
         case ErrorCode::EE2002:
             return {"value", "env", "expect"};
+        case ErrorCode::WE0001:
+            return {"function", "type"};
         default:
             return {};
     }
@@ -178,6 +180,12 @@ void PrintErrMsgToLog(ErrorCode errCode, const char *file, const int32_t line, c
             RecordErrorLog(file, line, func,
                 "Value %s for environment variable %s is invalid. Expected value: %s. ErrorCode=EE2002." "\n",
                 values[0].c_str(), values[1].c_str(), values[2].c_str());
+            break;
+        // Not_Supported for warning msg
+        case ErrorCode::WE0001:
+            RecordLog(DLOG_WARN, file, line, func,
+                "Failed to %s because %s is not supported. ErrorCode=WE0001." "\n",
+                values[0].c_str(), values[1].c_str());
             break;
         default:
             RecordErrorLog(file, line, func,

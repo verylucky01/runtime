@@ -3222,20 +3222,18 @@ RTS_API rtError_t rtSetDeviceSatMode(rtFloatOverflowMode_t floatOverflowMode)
     rtError_t error = GET_DEV_PROPERTIES(rtInstance->GetChipType(), prop);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
 
-    if ((floatOverflowMode >= RT_OVERFLOW_MODE_SATURATION) && 
-        (floatOverflowMode < RT_OVERFLOW_MODE_UNDEF)) {
+    if ((floatOverflowMode >= RT_OVERFLOW_MODE_SATURATION) && (floatOverflowMode < RT_OVERFLOW_MODE_UNDEF)) {
         const uint32_t mode = 1U << floatOverflowMode;
-        const char* errorMsg = (floatOverflowMode == RT_OVERFLOW_MODE_INFNAN) ?
-                                "the Inf/NaN mode; only the saturation mode can be set" :
-                                "the saturation mode; only the Inf/NaN mode can be set";
-        COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(
-            ((mode & prop.supportOverflowMode) == 0), 
-            RT_ERROR_FEATURE_NOT_SUPPORT, 
-            ErrorCode::EE1005, 
-            errorMsg);
-
-        if ((mode == OVERFLOW_MODE_SATURATION) && 
-            (prop.supportOverflowMode == OVERFLOW_MODE_SATURATION)) {
+        static const char* infNanMsg[] = {"set the Inf/NaN mode", "only the saturation mode can be set and the Inf/NaN mode"};
+        static const char* saturationMsg[] = {"set the saturation mode", "only the Inf/NaN mode can be set and the saturation mode"};
+        const char** errorMsg = (floatOverflowMode == RT_OVERFLOW_MODE_INFNAN) ? infNanMsg : saturationMsg;
+        COND_RETURN_EXT_WARNCODE_AND_MSG_OUTER(
+            ((mode & prop.supportOverflowMode) == 0), 	 
+            RT_ERROR_FEATURE_NOT_SUPPORT, 	 
+            ErrorCode::WE0001, 	 
+            errorMsg[0], 
+            errorMsg[1]);
+        if ((mode == OVERFLOW_MODE_SATURATION) && (prop.supportOverflowMode == OVERFLOW_MODE_SATURATION)) {
             RT_LOG(RT_LOG_INFO, "Chip type(%d) supports only saturation mode.",
                 static_cast<int32_t>(rtInstance->GetChipType()));
             return ACL_RT_SUCCESS;

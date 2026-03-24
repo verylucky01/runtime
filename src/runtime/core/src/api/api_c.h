@@ -74,6 +74,18 @@
         } \
     } while (false)
 
+// WE0001 使用
+#define COND_RETURN_EXT_WARNCODE_AND_MSG_OUTER(COND, RTERRCODE, ERRCODE, ...) \
+    do { \
+        if (unlikely(COND)) { \
+            RT_LOG_OUTER_MSG_IMPL(ERRCODE, ##__VA_ARGS__); \
+            const std::string& errorStr = RT_GET_ERRDESC(RTERRCODE); \
+            RT_LOG(RT_LOG_WARNING, "%s", errorStr.c_str()); \
+            RT_LOG_FLUSH(); \
+            return GetRtExtErrCodeAndSetGlobalErr((RTERRCODE)); \
+        } \
+    } while (false)
+
 // EE9999 使用
 #define COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(COND, RTERRCODE, format, ...) \
     do { \

@@ -89,8 +89,10 @@ struct DavidRingBufferControl {
     uint64_t ringbufferPhyAddr;
     uint64_t pid;
     uint32_t totalLen;
-    uint8_t  ringbufferDelFlag; // 0:create 1:delete
-    uint8_t  reserved[19];
+    uint8_t ringbufferDelFlag; // 0:create 1:delete
+    uint8_t reserved1[3];
+    uint32_t elementSize; // one ringbuffer element size
+    uint8_t reserved[12];
 };
 
 struct DavidMemCpyAsyncWithoutSdma {

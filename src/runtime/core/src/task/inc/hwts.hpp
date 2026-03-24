@@ -520,7 +520,9 @@ struct TsRingBufferPassToDeviceTask {
     uint64_t pid;
     uint32_t totalLen;
     uint8_t  ringBufferDelFlag; // 0:create 1:delete
-    uint8_t  reserved[19];
+    uint8_t  reserved[3];
+    uint32_t elementSize;
+    uint8_t  reserved1[12];
 };
 
 /**

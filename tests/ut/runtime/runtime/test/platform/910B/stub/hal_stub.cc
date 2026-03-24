@@ -1967,6 +1967,11 @@ drvError_t halMemPoolSetWatermark(uint32_t deviceId, uint64_t poolId, uint64_t s
     return DRV_ERROR_NONE;
 }
 
+drvError_t halMemPoolTrim(soma_mem_pool_t pool, uint64_t *size, uint64_t poolUsedSize, uint64_t poolFreeSize)
+{
+    return DRV_ERROR_NONE;
+}
+
 #if defined(__cplusplus)
 }
 #endif

@@ -679,6 +679,7 @@ public:
     // soma
     rtError_t StreamMemPoolCreate(const uint32_t deviceId, const uint64_t poolId, const uint64_t va, const uint64_t size, bool isGraphPool) override;
     rtError_t StreamMemPoolDestroy(const uint32_t deviceId, const uint64_t poolId) override;
+    rtError_t StreamMemPoolTrim(const uint32_t deviceId, const uint64_t poolId, uint64_t *size, uint64_t poolUsedSize, uint64_t poolFreeSize) override;
 
     rtError_t GetChipIdDieId(const uint32_t devId, const uint32_t remoteDevId, const uint32_t remotePhyId,
                              int64_t &chipId, int64_t &dieId) override;

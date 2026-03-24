@@ -7175,6 +7175,18 @@ TEST_F(UTEST_ACL_Runtime, aclrtMemPoolMallocAsync)
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
+TEST_F(UTEST_ACL_Runtime, aclrtMemPoolTrimTo)
+{
+    aclrtMemPool memPool = (void*)0xff;
+    rtError_t error = aclrtMemPoolTrimTo(memPool, 0);
+    EXPECT_EQ(error, ACL_SUCCESS);
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), rtMemPoolTrimTo(_, _))
+        .WillOnce(Return((ACL_ERROR_RT_PARAM_INVALID)));
+    error = aclrtMemPoolTrimTo(memPool, 0);
+    EXPECT_NE(error, ACL_SUCCESS);
+}
+
 TEST_F(UTEST_ACL_Runtime, aclrtGetArgsFromExceptionInfo)
 {
     void *devArgs = nullptr;

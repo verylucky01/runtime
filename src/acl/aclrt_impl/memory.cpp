@@ -2160,3 +2160,17 @@ aclError aclrtMemPoolFreeAsyncImpl(void * ptr, aclrtStream stream)
     }
     return ACL_SUCCESS;
 }
+
+aclError aclrtMemPoolTrimToImpl(aclrtMemPool memPool, size_t minBytesToKeep)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclrtMemPoolTrimTo);
+    ACL_LOG_INFO("Start to execute aclrtMemPoolTrimTo.");
+    ACL_REQUIRES_NOT_NULL_WITH_INNER_REPORT(memPool);
+
+    const auto rtErr = rtMemPoolTrimTo(static_cast<rtMemPool_t>(memPool), minBytesToKeep);
+    if (rtErr != RT_ERROR_NONE) {
+        ACL_LOG_CALL_ERROR("Call rtMemPoolTrimTo failed, runtime result = %d.", rtErr);
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    return ACL_SUCCESS;
+}

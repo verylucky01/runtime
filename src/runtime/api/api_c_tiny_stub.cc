@@ -1123,6 +1123,14 @@ rtError_t rtMemPoolFreeAsync(void *ptr, rtStream_t stm)
 }
 
 VISIBILITY_DEFAULT
+rtError_t rtMemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep)
+{
+    UNUSED(memPool);
+    UNUSED(minBytesToKeep);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
 rtError_t rtModelGetStreams(rtModel_t const mdl, rtStream_t *streams, uint32_t *numStreams)
 {
     UNUSED(mdl);

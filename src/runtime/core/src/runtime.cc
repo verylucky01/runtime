@@ -1336,10 +1336,6 @@ rtError_t Runtime::Init()
     error = InitSetRuntimeVersion();
     COND_GOTO_ERROR_MSG_AND_ASSIGN_CALL(ERR_MODULE_SYSTEM, error != RT_ERROR_NONE, INIT_FAIL, error,
         error, "Failed to new ApiErrorDecorator.");
-    
-    error = PoolRegistry::Instance().Init();
-    COND_GOTO_ERROR_MSG_AND_ASSIGN_CALL(ERR_MODULE_SYSTEM, error != RT_ERROR_NONE, INIT_FAIL, error,
-        error, "Failed to Init PoolRegistry.");
 
     TsdClientInit();
     excptCallBack_ = nullptr;

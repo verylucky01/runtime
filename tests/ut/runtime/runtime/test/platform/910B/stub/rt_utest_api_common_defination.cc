@@ -347,14 +347,19 @@ rtError_t GetNotifyPhyInfoStub(cce::runtime::ApiImpl *api,
 }
 
 rtError_t LaunchHostFuncNormalStub(cce::runtime::ApiImpl* impl, Stream* const stm, const rtCallback_t callBackFunc, void* const fnData)
- {
-     if (callBackFunc == nullptr) {
-         return RT_ERROR_FEATURE_NOT_SUPPORT;
-     }
-     (void)callBackFunc(fnData);
-     return RT_ERROR_NONE;
- }
- 
+{
+    if (callBackFunc == nullptr) {
+        return RT_ERROR_FEATURE_NOT_SUPPORT;
+    }
+    (void)callBackFunc(fnData);
+    return RT_ERROR_NONE;
+}
+
+rtError_t LaunchHostFuncFailStub(cce::runtime::ApiImpl* impl, Stream* const stm, const rtCallback_t callBackFunc, void* const fnData)
+{
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
 rtError_t msprofreportcallback(uint32_t moduleId, uint32_t type, void *data, uint32_t len)
 {
     return ACL_RT_SUCCESS;

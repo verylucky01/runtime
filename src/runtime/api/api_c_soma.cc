@@ -130,6 +130,17 @@ rtError_t rtMemPoolFreeAsync(void *ptr, rtStream_t stm)
     return ACL_RT_SUCCESS;
 }
  
+VISIBILITY_DEFAULT
+rtError_t rtMemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep)
+{
+    GLOBAL_STATE_WAIT_IF_LOCKED();
+    ApiSoma * const apiInstance = ApiSoma::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    const rtError_t error = apiInstance->MemPoolTrimTo(memPool, minBytesToKeep);
+    ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    return ACL_RT_SUCCESS;
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

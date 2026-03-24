@@ -141,6 +141,7 @@ set(runtimeut_src_callback_list
     ${TOP_DIR}/src/runtime/core/src/device/device_state_callback_manager.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_fail_callback_manager.cc
     ${TOP_DIR}/src/runtime/core/src/stream/stream_state_callback_manager.cc
+    ${TOP_DIR}/src/runtime/core/src/event/event_state_callback_manager.cc
 )
 
 set(runtimeut_src_common_list
@@ -430,6 +431,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/src/platform
     ${TOP_DIR}/src/runtime/core/src/memory/
     ${TOP_DIR}/src/runtime/core/src/soma/
+    ${TOP_DIR}/src/runtime/core/src/event
     ${C_SEC_INCLUDE}
 )
 
@@ -611,6 +613,8 @@ add_executable(runtime_utest_api_910B
     rt_utest_api_others.cc
     rt_utest_api_910b.cc
     rt_utest_uvm.cc
+    rt_utest_api_soma.cc
+    rt_utest_soma.cc
 )
 
 target_compile_definitions(runtime_utest_api_910B PUBLIC

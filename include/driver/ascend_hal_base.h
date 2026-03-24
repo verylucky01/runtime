@@ -1905,6 +1905,7 @@ typedef drvError_t DVresult;
 #define DV_MEM_LOCK_HOST_AGENT  0x0040
 #define DV_MEM_USER_MALLOC      0x0080
 #define DV_MEM_UVM              0x0200
+#define DV_MEM_SOMA             0x0400
 
 #define DV_MEM_RESV 8
 struct DVattribute {
@@ -5670,6 +5671,18 @@ DLLEXPORT DV_ONLINE drvError_t halMemPoolMalloc(soma_mem_pool_t pool, uint64_t v
  * @return   0 for success, others for fail
  */
 DLLEXPORT DV_ONLINE drvError_t halMemPoolFree(soma_mem_pool_t pool, uint64_t va, int32_t policy);
+
+/**
+ * @ingroup driver
+ * @brief trigger the memory pool shrinking
+ * @attention null
+ * @param [in]  pool: pool info
+ * @param [in/out]  size: reserved memory size after shrinking
+ * @param [in]  poolUsedSize: busy memory size in memory pool
+ * @param [in]  poolFreeSize: free memory size in memory pool
+ * @return   0 for success, others for fail
+ */
+DLLEXPORT DV_ONLINE drvError_t halMemPoolTrim(soma_mem_pool_t pool, uint64_t *size, uint64_t poolUsedSize, uint64_t poolFreeSize);
 
 #ifdef __cplusplus
 }

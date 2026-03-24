@@ -311,6 +311,7 @@
     _(aclError, aclrtMemManagedGetAttr, (aclrtMemManagedRangeAttribute attribute, const void *ptr, size_t size, void *data, size_t dataSize), (attribute, ptr, size, data, dataSize)) \
     _(aclError, aclrtMemManagedGetAttrs, (aclrtMemManagedRangeAttribute *attributes, size_t numAttributes, const void *ptr, size_t size, void **data, size_t *dataSizes), (attributes, numAttributes, ptr, size, data, dataSizes)) \
     _(aclError, aclrtMemManagedAdvise, (const void *const ptr, uint64_t size, aclrtMemManagedAdviseType advise, aclrtMemManagedLocation location), (ptr, size, advise, location)) \
+    _(aclError, aclrtMemPoolTrimTo, (aclrtMemPool memPool, size_t minBytesToKeep), (memPool, minBytesToKeep)) \
 
 // aclrtAllocator interface map list
 #define ACL_RT_ALLOCATOR_FUNC_MAP(_)  \

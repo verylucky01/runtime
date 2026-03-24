@@ -280,6 +280,7 @@ namespace acl {
         {AclProfType::AclrtMemPoolGetAttr,                      "aclrtMemPoolGetAttr"},
         {AclProfType::AclrtMemPoolMallocAsync,                  "aclrtMemPoolMallocAsync"},
  	    {AclProfType::AclrtMemPoolFreeAsync,                    "aclrtMemPoolFreeAsync"},
+        {AclProfType::AclrtMemPoolTrimTo,                       "aclrtMemPoolTrimTo"},
         {AclProfType::AclmdlRITaskGetSeqId,                     "aclmdlRITaskGetSeqId"},
         {AclProfType::AclmdlRIGetStreams,                       "aclmdlRIGetStreams"},
         {AclProfType::AclmdlRIGetTasksByStream,                 "aclmdlRIGetTasksByStream"},

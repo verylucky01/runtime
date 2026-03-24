@@ -14,6 +14,11 @@
  
 namespace cce {
 namespace runtime {
+
+typedef struct MemPoolFreeAsyncCallbackData {
+    void *ptr;
+    Stream *stm;
+} MemPoolFreeAsyncCallbackData;
  
 // Runtime ApiSoma implement
 class ApiImplSoma : public ApiSoma {
@@ -25,10 +30,15 @@ public:
     rtError_t StreamMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void* value) override;
     rtError_t MemPoolMallocAsync(void** const devPtr, const uint64_t size, const rtMemPool_t memPoolId, Stream* const stm) override;
     rtError_t MemPoolFreeAsync(void* const ptr, Stream* const stm) override;
+    rtError_t MemPoolFreeSync(void* const ptr) override;
     rtError_t SomaAicpuKernelLaunch(const char *kernelName, const uint64_t size, const uint64_t va,
  	    const rtMemPool_t memPool, Stream * const stm, const int32_t opType, const int32_t subCmd);
  	rtError_t SomaAicpuLaunchValidation(const rtKernelLaunchNames_t * const launchNames, const uint32_t blockDim,
  	    const rtArgsEx_t * const argsInfo, const Stream * const stm, const uint32_t flags) const;
+    static void MemPoolFreeAsyncCallback(void *fnData);
+    rtError_t MemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep) override;
+    rtError_t MemPoolTrimImplicit(bool includeGraphPool) override;
+    bool InMemPoolRegion(void * const ptr) override;
 };
 }  // namespace runtime
 }  // namespace cce

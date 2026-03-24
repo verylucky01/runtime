@@ -968,6 +968,10 @@ rtError_t aclStub::rtMemPoolMallocAsync(void **devPtr, const uint64_t size, cons
   return RT_ERROR_NONE;
 }
 
+rtError_t aclStub::rtMemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep) {
+    return RT_ERROR_NONE;
+}
+
 rtError_t aclStub::rtMapMem(void *devPtr, size_t size, size_t offset, rtDrvMemHandle handle, uint64_t flags) {
     return RT_ERROR_NONE;
 }
@@ -3365,6 +3369,10 @@ rtError_t rtMemPoolFreeAsync(void* ptr, rtStream_t stm) {
 
 rtError_t rtMemPoolMallocAsync(void **devPtr, const uint64_t size, const rtMemPool_t memPoolId, const rtStream_t stm) {
   return MockFunctionTest::aclStubInstance().rtMemPoolMallocAsync(devPtr, size, memPoolId, stm);
+}
+
+rtError_t rtMemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep) {
+    return MockFunctionTest::aclStubInstance().rtMemPoolTrimTo(memPool, minBytesToKeep);
 }
 
 rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags) {

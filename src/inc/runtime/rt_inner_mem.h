@@ -214,6 +214,16 @@ RTS_API rtError_t rtMemManagedGetAttr(rtMemManagedRangeAttribute attribute, cons
 RTS_API rtError_t rtMemManagedGetAttrs(rtMemManagedRangeAttribute *attributes, size_t numAttributes, const void *ptr, 
                                       size_t size, void **data, size_t *dataSizes);
 
+/**
+ * @ingroup rts_mem
+ * @brief Trim the specified memory pool to retain the specified minimum free memory.
+ * @param [IN] memPool Id of the target memory pool.
+ * @param [IN] minBytesToKeep The minimum number of bytes to keep in the memory pool.
+ * @return RT_ERROR_NONE for ok
+ * @return RT_ERROR_XXX for error input
+ */
+RTS_API rtError_t rtMemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep);
+
 #if defined(__cplusplus)
 }
 #endif

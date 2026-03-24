@@ -347,5 +347,30 @@ rtError_t ApiImpl::MemManagedGetAttrs(rtMemManagedRangeAttribute *attributes, si
     UNUSED(dataSizes);
     return RT_ERROR_FEATURE_NOT_SUPPORT;
 }
+rtError_t ApiImplSoma::MemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep)
+{
+    UNUSED(memPool);
+    UNUSED(minBytesToKeep);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
+rtError_t ApiImplSoma::MemPoolTrimImplicit(bool includeGraphPool)
+{
+    UNUSED(includeGraphPool);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
+bool ApiImplSoma::InMemPoolRegion(void * const ptr)
+{
+    UNUSED(ptr);
+    return false;
+}
+
+rtError_t ApiImplSoma::MemPoolFreeSync(void* const ptr)
+{
+    UNUSED(ptr);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
 }
 }

@@ -265,6 +265,7 @@ set(runtimeut_src_callback_list
     ${TOP_DIR}/src/runtime/core/src/device/device_state_callback_manager.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_fail_callback_manager.cc
     ${TOP_DIR}/src/runtime/core/src/stream/stream_state_callback_manager.cc
+    ${TOP_DIR}/src/runtime/core/src/event/event_state_callback_manager.cc
 )
 
 set(runtimeut_src_tiny_exclude_list
@@ -1161,6 +1162,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/src/runtime/core/src/memory/
     ${TOP_DIR}/src/runtime/core/src/soma/
     ${TOP_DIR}/src/runtime/core/src/uvm
+    ${TOP_DIR}/src/runtime/core/src/event
     ${TOP_DIR}/src
     ${TOP_DIR}/src/runtime/raw_driver
     ${TOP_DIR}/src/cmodel_driver

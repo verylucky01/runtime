@@ -608,6 +608,8 @@ public:
     // soma
     virtual rtError_t StreamMemPoolCreate(const uint32_t deviceId, const uint64_t poolId, const uint64_t va, const uint64_t size, bool isGraphPool) = 0;
     virtual rtError_t StreamMemPoolDestroy(const uint32_t deviceId, const uint64_t poolId) = 0;
+    virtual rtError_t StreamMemPoolTrim(const uint32_t deviceId, const uint64_t poolId, uint64_t *size, uint64_t poolUsedSize, uint64_t poolFreeSize) = 0;
+
 protected:
     // CallBack
     rtKernelReportCallback callBack_;

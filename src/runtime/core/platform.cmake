@@ -55,6 +55,7 @@ set(RUNTIME_INC_DIR_COMMON_PLATFORM
     ${CMAKE_CURRENT_SOURCE_DIR}/src/memory
     ${CMAKE_CURRENT_SOURCE_DIR}/src/soma
     ${CMAKE_CURRENT_SOURCE_DIR}/src/uvm
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/event
     ${RUNTIME_DIR}/src/runtime/inc/cond_isa/v100
     ## not open
     ${RUNTIME_DIR}/src/runtime/inc/dqs

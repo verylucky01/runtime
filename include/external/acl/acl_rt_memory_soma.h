@@ -115,6 +115,18 @@ ACL_FUNC_VISIBILITY aclError aclrtMemPoolMallocAsync(void **ptr, size_t size, ac
 */
 ACL_FUNC_VISIBILITY aclError aclrtMemPoolFreeAsync(void *ptr, aclrtStream stream);
 
+/**
+ * @ingroup AscendCL
+ * @brief Trim the specified memory pool to retain the specified minimum free memory
+ *
+ * @param memPool [IN] virtual mem pool handle
+ * @param minBytesToKeep [IN] The minimum number of bytes to keep in the memory pool
+ *
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval OtherValues Failure
+ */
+ACL_FUNC_VISIBILITY aclError aclrtMemPoolTrimTo(aclrtMemPool memPool, size_t minBytesToKeep);
+
 #ifdef __cplusplus
 }
 #endif

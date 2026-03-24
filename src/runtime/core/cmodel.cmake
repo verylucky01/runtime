@@ -195,6 +195,7 @@ set(libruntime_cmodel_callback_files
     src/device/device_state_callback_manager.cc
     src/task/task_fail_callback_manager.cc
     src/stream/stream_state_callback_manager.cc
+    src/event/event_state_callback_manager.cc
 )
 
 #------------------------- exclude these files in tiny(ascend031) ---------------------
@@ -518,6 +519,7 @@ set(RUNTIME_CMODEL_INC_DIR_COMMON
     ${CMAKE_CURRENT_SOURCE_DIR}/src/memory
     ${CMAKE_CURRENT_SOURCE_DIR}/src/soma
     ${CMAKE_CURRENT_SOURCE_DIR}/src/uvm
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/event
     ${RUNTIME_DIR}/src/inc
     ${RUNTIME_DIR}/pkg_inc/tsd/
     ${RUNTIME_DIR}/pkg_inc/aicpu_sched/

@@ -171,6 +171,7 @@ public:
     rtError_t DevMalloc(void ** const devPtr, const uint64_t size, const rtMemType_t type,
         const uint16_t moduleId = MODULEID_RUNTIME) override;
     rtError_t DevFree(void * const devPtr) override;
+    static rtError_t DevFreeStatic(void * const devPtr, Context * const curCtx);
     rtError_t DevDvppMalloc(void ** const devPtr, const uint64_t size, const uint32_t flag,
         const uint16_t moduleId = MODULEID_RUNTIME) override;
     rtError_t DevDvppFree(void * const devPtr) override;

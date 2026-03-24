@@ -573,5 +573,21 @@ rtError_t NpuDriver::StreamMemPoolDestroy(const uint32_t deviceId, const uint64_
     }
     return RT_GET_DRV_ERRCODE(drvRet);
 }
+
+rtError_t NpuDriver::StreamMemPoolTrim(const uint32_t deviceId, const uint64_t poolId, uint64_t *size, uint64_t poolUsedSize, uint64_t poolFreeSize)
+{
+    COND_RETURN_WARN(&halMemPoolTrim == nullptr, RT_ERROR_FEATURE_NOT_SUPPORT, "[drv api] halMemPoolTrim does not exist");
+
+    soma_mem_pool_t pool = {
+        .poolId = poolId,
+        .devId = deviceId
+    };
+    drvError_t drvRet = halMemPoolTrim(pool, size, poolUsedSize, poolFreeSize);
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemPoolTrim failed: drvRetCode=%d.", static_cast<int32_t>(drvRet));
+    }
+    return RT_GET_DRV_ERRCODE(drvRet);
+}
+
 }
 }

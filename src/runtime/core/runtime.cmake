@@ -127,6 +127,7 @@ set(libruntime_callback_files
     src/device/device_state_callback_manager.cc
     src/task/task_fail_callback_manager.cc
     src/stream/stream_state_callback_manager.cc
+    src/event/event_state_callback_manager.cc
 )
 
 set(libruntime_src_files_optional
@@ -277,6 +278,7 @@ set(libruntime_v100_src_files
     ${libruntime_arg_loader_files}
     src/device/device_state_callback_manager.cc
     src/stream/stream_state_callback_manager.cc
+    src/event/event_state_callback_manager.cc
     src/plugin_manage/v100/plugin_old_arch.cc
     ${libruntime_src_files_optional}
     ${xpu_tprt_api_file}
@@ -327,6 +329,7 @@ set(RUNTIME_INC_DIR_OPEN
     ${CMAKE_CURRENT_SOURCE_DIR}/src/memory
     ${CMAKE_CURRENT_SOURCE_DIR}/src/soma
     ${CMAKE_CURRENT_SOURCE_DIR}/src/uvm
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/event
     ${RUNTIME_DIR}/src/runtime/inc/cond_isa/v100
     ## not open
     ${RUNTIME_DIR}/src/runtime/inc/dqs

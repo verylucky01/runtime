@@ -6,3 +6,4 @@
 -   **[aclrtMemPoolGetAttr](aclrtMemPoolGetAttr.md)**
 -   **[aclrtMemPoolMallocAsync](aclrtMemPoolMallocAsync.md)**
 -   **[aclrtMemPoolFreeAsync](aclrtMemPoolFreeAsync.md)**
+-   **[aclrtMemPoolTrimTo](aclrtMemPoolTrimTo.md)**

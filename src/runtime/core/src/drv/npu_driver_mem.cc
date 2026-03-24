@@ -1992,6 +1992,9 @@ rtError_t NpuDriver::PointerGetAttributes(rtPointerAttributes_t * const attribut
     } else if ((dvAttributes.memType & DV_MEM_LOCK_DEV_DVPP) != 0U) {
         attributes->memoryType = RT_MEMORY_TYPE_DVPP;
         attributes->locationType = RT_MEMORY_LOC_DEVICE;
+    } else if ((dvAttributes.memType & DV_MEM_SOMA) != 0U) {
+        attributes->memoryType = RT_MEMORY_TYPE_DEVICE;
+        attributes->locationType = RT_MEMORY_LOC_DEVICE;
     } else if ((dvAttributes.memType & DV_MEM_SVM) != 0U) {
         attributes->memoryType = RT_MEMORY_TYPE_SVM;
         attributes->locationType = RT_MEMORY_LOC_MANAGED;
@@ -2069,6 +2072,8 @@ rtError_t NpuDriver::PtrGetAttributes(const void * const ptr, rtPtrAttributes_t 
         attributes->location.type = RT_MEMORY_LOC_HOST;
     } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_LOCK_DEV_DVPP)) != 0U) {
         attributes->location.type = RT_MEMORY_LOC_DEVICE;
+    } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_SOMA)) != 0U) {
+        attributes->location.type = RT_MEMORY_LOC_DEVICE;
     } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_SVM_DEVICE)) != 0U) {
         attributes->location.type = RT_MEMORY_LOC_MANAGED;
     } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_SVM_HOST)) != 0U) {
@@ -2111,6 +2116,9 @@ rtError_t NpuDriver::PtrGetRealLocation(const void * const ptr, rtMemLocationTyp
         location = RT_MEMORY_LOC_HOST;
         realLocation = RT_MEMORY_LOC_HOST;
     } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_LOCK_DEV_DVPP)) != 0U) {
+        location = RT_MEMORY_LOC_DEVICE;
+        realLocation = RT_MEMORY_LOC_DEVICE;
+    } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_SOMA)) != 0U) {
         location = RT_MEMORY_LOC_DEVICE;
         realLocation = RT_MEMORY_LOC_DEVICE;
     } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_SVM_DEVICE)) != 0U) {

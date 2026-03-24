@@ -94,6 +94,7 @@ TIMESTAMP_DEFINE(rtMemPoolSetAttr);
 TIMESTAMP_DEFINE(rtMemPoolGetAttr);
 TIMESTAMP_DEFINE(rtMemPoolMallocAsync);
 TIMESTAMP_DEFINE(rtMemPoolFreeAsync);
+TIMESTAMP_DEFINE(rtMemPoolTrimTo);
 TIMESTAMP_DEFINE(rtFftsPlusTaskLaunch);
 TIMESTAMP_DEFINE(rtFftsPlusTaskLaunchWithFlag);
 TIMESTAMP_DEFINE(rtMemcpy2D);

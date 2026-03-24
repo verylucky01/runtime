@@ -268,6 +268,7 @@ public:
     virtual rtError_t rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value);
     virtual rtError_t rtMemPoolMallocAsync(void **devPtr, const uint64_t size, const rtMemPool_t memPoolId, const rtStream_t stm);
     virtual rtError_t rtMemPoolFreeAsync(void* ptr, rtStream_t stm);
+    virtual rtError_t rtMemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep);
     virtual rtError_t rtReleaseMemAddress(void *devPtr);
     virtual rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags);
     virtual rtError_t rtFreePhysical(rtDrvMemHandle handle);
@@ -737,6 +738,7 @@ public:
     MOCK_METHOD5(rtReserveMemAddress, rtError_t(void **devPtr, size_t size, size_t alignment, void *devAddr, uint64_t flags));
     MOCK_METHOD3(rtMemGetAddressRange, rtError_t(void *ptr, void **pbase, size_t *psize));
     MOCK_METHOD3(rtMemPrefetchToDevice, rtError_t(void *devPtr, uint64_t len, int32_t devId));
+    MOCK_METHOD2(rtMemPoolTrimTo, rtError_t(rtMemPool_t memPool, uint64_t minBytesToKeep));
     MOCK_METHOD1(rtReleaseMemAddress, rtError_t(void *devPtr));
     MOCK_METHOD4(rtMallocPhysical, rtError_t(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags));
     MOCK_METHOD1(rtFreePhysical, rtError_t(rtDrvMemHandle handle));

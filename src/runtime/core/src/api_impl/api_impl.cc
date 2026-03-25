@@ -9118,7 +9118,7 @@ rtError_t ApiImpl::TaskSetParams(rtTask_t task, rtTaskParams* const params)
             error = UpdateWaitValueTaskParams(taskInfo, params);
             break;
         default:
-            RT_LOG_OUTER_MSG_INVALID_PARAM(params->type, "[0, " + std::to_string(RT_TASK_VALUE_WAIT) + "]");
+            RT_LOG_OUTER_MSG_INVALID_PARAM(params->type, "[1, " + std::to_string(RT_TASK_VALUE_WAIT) + "]");
             error = RT_ERROR_INVALID_VALUE;
             break;
     }

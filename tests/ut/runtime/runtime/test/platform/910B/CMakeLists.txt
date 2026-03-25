@@ -225,8 +225,8 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/core/src/device/sq_addr_memory_pool.cc
     ${TOP_DIR}/src/runtime/core/src/device/ctrl_sq.cc
     ${TOP_DIR}/src/runtime/core/src/device/ctrl_msg.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/driver.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_dcache_lock_common.cpp
+    ${TOP_DIR}/src/runtime/driver/driver.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_dcache_lock_common.cpp
     ${TOP_DIR}/src/runtime/core/src/model/model.cc
     ${TOP_DIR}/src/runtime/core/src/model/model_rebuild.cc
     ${TOP_DIR}/src/runtime/core/src/model/capture_model.cc
@@ -286,7 +286,7 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/core/src/stream/dvpp_grp.cc
     ${TOP_DIR}/src/runtime/api/inner.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_to_sqe.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_tiny.cpp
+    ${TOP_DIR}/src/runtime/driver/npu_driver_tiny.cpp
     ${TOP_DIR}/src/runtime/core/src/engine/engine.cc
     ${TOP_DIR}/src/runtime/core/src/engine/hwts/package_rebuilder.cc
     ${TOP_DIR}/src/runtime/core/src/engine/stars/stars_engine.cc
@@ -393,7 +393,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/src/runtime/core/src/pool
     ${TOP_DIR}/src/runtime/core/src/ttlv
     ${TOP_DIR}/src/runtime/core/src/device
-    ${TOP_DIR}/src/runtime/core/src/drv
+    ${TOP_DIR}/src/runtime/driver
     ${TOP_DIR}/src/runtime/core/src/common
     ${TOP_DIR}/src/runtime/core/src/plugin_manage
     ${TOP_DIR}/src/runtime/core/src/kernel
@@ -514,13 +514,13 @@ target_link_libraries(intf_910b_llt_pub INTERFACE
 ###################################################################################################
 add_executable(runtime_utest_task_910B
     ${runtime_raw_device_adpt_common_list}
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_mem.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_queue.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_res.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_dcache_lock_opb.cpp
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_standard_soc.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/v100/npu_driver.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_mem.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_queue.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_res.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_dcache_lock_opb.cpp
+    ${TOP_DIR}/src/runtime/driver/npu_driver_standard_soc.cc
+    ${TOP_DIR}/src/runtime/driver/v100/npu_driver.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/v100/kernel.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/stub_task.cc
     stub/hal_stub.cc
@@ -562,13 +562,13 @@ target_link_libraries(runtime_utest_task_910B PRIVATE
 ###################################################################################################
 add_executable(runtime_utest_api_910B
     ${runtime_raw_device_adpt_common_list}
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_mem.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_queue.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_res.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_dcache_lock_opb.cpp
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_standard_soc.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/v100/npu_driver.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_mem.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_queue.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_res.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_dcache_lock_opb.cpp
+    ${TOP_DIR}/src/runtime/driver/npu_driver_standard_soc.cc
+    ${TOP_DIR}/src/runtime/driver/v100/npu_driver.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/v100/kernel.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/stub_task.cc
     stub/hal_stub.cc

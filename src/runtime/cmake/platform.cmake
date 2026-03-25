@@ -36,26 +36,26 @@ set(RUNTIME_INC_DIR_COMMON_PLATFORM
     ${RUNTIME_DIR}/src/runtime/inc/task
     ${RUNTIME_DIR}/src/runtime/inc/utils
     ${RUNTIME_DIR}/src/runtime/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/api_impl
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/engine
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/engine/hwts
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/engine/stars
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/stream
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/task/inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/profiler
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/pool
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ttlv
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/device
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/drv
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/common
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin_manage
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/arg_loader
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/args
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/memory
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/soma
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/uvm
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/event
+    ${RUNTIME_CORE_DIR}/src/api_impl
+    ${RUNTIME_CORE_DIR}/src/engine
+    ${RUNTIME_CORE_DIR}/src/engine/hwts
+    ${RUNTIME_CORE_DIR}/src/engine/stars
+    ${RUNTIME_CORE_DIR}/src/stream
+    ${RUNTIME_CORE_DIR}/src/task/inc
+    ${RUNTIME_CORE_DIR}/src/profiler
+    ${RUNTIME_CORE_DIR}/src/pool
+    ${RUNTIME_CORE_DIR}/src/ttlv
+    ${RUNTIME_CORE_DIR}/src/device
+    ${RUNTIME_DIR}/src/runtime/driver
+    ${RUNTIME_CORE_DIR}/src/common
+    ${RUNTIME_CORE_DIR}/src/plugin_manage
+    ${RUNTIME_CORE_DIR}/src/kernel
+    ${RUNTIME_CORE_DIR}/src/kernel/arg_loader
+    ${RUNTIME_CORE_DIR}/src/kernel/args
+    ${RUNTIME_CORE_DIR}/src/memory
+    ${RUNTIME_CORE_DIR}/src/soma
+    ${RUNTIME_CORE_DIR}/src/uvm
+    ${RUNTIME_CORE_DIR}/src/event
     ${RUNTIME_DIR}/src/runtime/inc/cond_isa/v100
     ## not open
     ${RUNTIME_DIR}/src/runtime/inc/dqs

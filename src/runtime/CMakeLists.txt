@@ -7,4 +7,22 @@
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
-add_subdirectory(core)
+set(RUNTIME_CORE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core)
+set(RUNTIME_CMAKE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+include(${RUNTIME_DIR}/pkg_inc/runtime/runtime/runtime_headers.cmake)
+include(${RUNTIME_DIR}/src/inc/runtime/runtime_inner_headers.cmake)
+include(${RUNTIME_CMAKE_DIR}/platform.cmake)
+
+if ("${PRODUCT}" STREQUAL "ascend031")
+    runtime_platform_tiny_obj(runtime_platform_tiny)
+    include(${RUNTIME_CMAKE_DIR}/tiny.cmake)
+else()
+    runtime_platform_others_obj(runtime_platform_others)
+    runtime_platform_tiny_obj(runtime_platform_tiny)
+    runtime_platform_910B_obj(runtime_platform_910B)
+    runtime_platform_kirin_obj(runtime_platform_kirin)
+    include(${RUNTIME_CMAKE_DIR}/v200.cmake)
+    include(${RUNTIME_CMAKE_DIR}/runtime.cmake)
+    include(${RUNTIME_CMAKE_DIR}/cmodel.cmake)
+endif()

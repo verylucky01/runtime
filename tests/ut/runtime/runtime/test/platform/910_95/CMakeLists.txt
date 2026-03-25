@@ -12,8 +12,8 @@ include_directories(${OPEN_SOURCE_DIR}/mockcpp_src/include)
 ##################################################################################################
 add_executable(runtime_utest_api_david
     ${runtimeut_david_src_list}
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_standard_soc.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_standard_soc.cc
     stub/hal_stub.cc
     main.cc
     rt_utest_david.cc
@@ -41,8 +41,8 @@ target_link_libraries(runtime_utest_api_david PRIVATE
 
 ###################################################################################################
 add_executable(runtime_utest_task_david
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_standard_soc.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_standard_soc.cc
     stub/hal_stub.cc
     main.cc
     rt_utest_david_task_recycle.cc
@@ -75,8 +75,8 @@ target_link_libraries(runtime_utest_task_david PRIVATE
 
 ###################################################################################################
 add_executable(runtime_utest_xpu
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver.cc
-    ${TOP_DIR}/src/runtime/core/src/drv/npu_driver_standard_soc.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver.cc
+    ${TOP_DIR}/src/runtime/driver/npu_driver_standard_soc.cc
     stub/hal_stub.cc
     stub/xpu_stub.cc
     main.cc

@@ -11,40 +11,40 @@ include_guard(GLOBAL)
 include(${RUNTIME_DIR}/pkg_inc/runtime/runtime/runtime_headers.cmake)
 
 set(libruntime_v100_task_src_files
-    src/task/task.cc
-    src/task/task_submit/v100/task_submit.cc
-    src/task/task_res_manage/task_res.cc
-    src/task/task_info/task_manager.cc
-    src/task/task_info/task_info.cc
-    src/task/task_info/model/model_execute_task_info.cc
-    src/task/task_info/davinci_kernel_task.cc
-    src/task/task_info/event_task.cc
-    src/task/task_info/memory_task.cc
-    src/task/task_info/reduce_task.cc
-    src/task/task_info/cond_op/cond_op_label_task.cc
-    src/task/task_info/cond_op/cond_op_stream_task.cc
-    src/task/task_info/profiling_task.cc
-    src/task/task_info/dump_task.cc
-    src/task/task_info/stream/stream_task.cc
-    src/task/task_execute_time.cc
-    src/task/task_info/davinci_multiple_task.cc
-    src/task/task_info/stars_common_task.cc
-    src/task/task_info/random_num_task.cc
-    src/task/task_info/barrier_task.cc
-    src/task/task_info/cmo_task.cc
-    src/task/task_info/model/model_maintaince_task.cc
-    src/task/task_info/notify_record_task.cc
-    src/task/task_info/timeout_set_task.cc
-    src/task/task_info/ringbuffer_maintain_task.cc
-    src/task/task_info/model/model_update_task.cc
-    src/task/task_info/end_graph_task.cc
-    src/task/task_info/model/model_to_aicpu_task.cc
-    src/task/task_info/maintenance_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_submit/v100/task_submit.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_res_manage/task_res.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/task_manager.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/task_info.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/model/model_execute_task_info.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/davinci_kernel_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/event_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/memory_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/reduce_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_stream_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/profiling_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/dump_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/stream/stream_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_execute_time.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/davinci_multiple_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/stars_common_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/random_num_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/barrier_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cmo_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/model/model_maintaince_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/notify_record_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/timeout_set_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/ringbuffer_maintain_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/model/model_update_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/end_graph_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/model/model_to_aicpu_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/maintenance_task.cc
 
-    src/task/v100/davinci_task.cc
-    src/task/v100/task_proc_func_register.cc
-    src/task/v100/task_checker.cc
-    src/task/v100/memory_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/v100/davinci_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/v100/task_proc_func_register.cc
+    ${RUNTIME_CORE_DIR}/src/task/v100/task_checker.cc
+    ${RUNTIME_CORE_DIR}/src/task/v100/memory_task.cc
 )
 
 set(libruntime_api_src_files
@@ -63,85 +63,85 @@ set(libruntime_api_src_files
 )
 
 set(common_src_files
-    src/common/error_code.cc
-    src/common/thread_local_container.cc
-    src/common/utils.cc
-    src/common/heterogenous.cc
-    src/common/soc_info.cc
-    src/common/context_data_manage.cc
-    src/common/profiling_agent.cc
-    src/common/errcode_manage.cc
-    src/common/error_message_manage.cc
-    src/common/task_fail_callback_data_manager.cc
-    src/common/xpu_task_fail_callback_data_manager.cc
-    src/common/performance_record.cc
-    src/common/prof_ctrl_callback_manager.cc
-    src/common/rt_log.cc
-    src/common/dev_info_manage.cc
-    src/common/global_state_manager.cc
-    src/common/register_memory.cc
+    ${RUNTIME_CORE_DIR}/src/common/error_code.cc
+    ${RUNTIME_CORE_DIR}/src/common/thread_local_container.cc
+    ${RUNTIME_CORE_DIR}/src/common/utils.cc
+    ${RUNTIME_CORE_DIR}/src/common/heterogenous.cc
+    ${RUNTIME_CORE_DIR}/src/common/soc_info.cc
+    ${RUNTIME_CORE_DIR}/src/common/context_data_manage.cc
+    ${RUNTIME_CORE_DIR}/src/common/profiling_agent.cc
+    ${RUNTIME_CORE_DIR}/src/common/errcode_manage.cc
+    ${RUNTIME_CORE_DIR}/src/common/error_message_manage.cc
+    ${RUNTIME_CORE_DIR}/src/common/task_fail_callback_data_manager.cc
+    ${RUNTIME_CORE_DIR}/src/common/xpu_task_fail_callback_data_manager.cc
+    ${RUNTIME_CORE_DIR}/src/common/performance_record.cc
+    ${RUNTIME_CORE_DIR}/src/common/prof_ctrl_callback_manager.cc
+    ${RUNTIME_CORE_DIR}/src/common/rt_log.cc
+    ${RUNTIME_CORE_DIR}/src/common/dev_info_manage.cc
+    ${RUNTIME_CORE_DIR}/src/common/global_state_manager.cc
+    ${RUNTIME_CORE_DIR}/src/common/register_memory.cc
 )
 
 set(libruntime_context_src_files
-    src/context/context.cc
-    src/context/context_manage.cc
-    src/context/context_protect.cc
+    ${RUNTIME_CORE_DIR}/src/context/context.cc
+    ${RUNTIME_CORE_DIR}/src/context/context_manage.cc
+    ${RUNTIME_CORE_DIR}/src/context/context_protect.cc
 )
 
 set(libruntime_stream_common_src_files
-    src/stream/stream_sqcq_manage.cc
-    src/stream/engine_stream_observer.cc
-    src/stream/stream.cc
-    src/stream/ctrl_stream.cc
-    src/stream/coprocessor_stream.cc
-    src/stream/tsch_stream.cc
-    src/stream/stream_factory.cc
+    ${RUNTIME_CORE_DIR}/src/stream/stream_sqcq_manage.cc
+    ${RUNTIME_CORE_DIR}/src/stream/engine_stream_observer.cc
+    ${RUNTIME_CORE_DIR}/src/stream/stream.cc
+    ${RUNTIME_CORE_DIR}/src/stream/ctrl_stream.cc
+    ${RUNTIME_CORE_DIR}/src/stream/coprocessor_stream.cc
+    ${RUNTIME_CORE_DIR}/src/stream/tsch_stream.cc
+    ${RUNTIME_CORE_DIR}/src/stream/stream_factory.cc
 )
 
 # v100
 set(libruntime_stream_src_files
     ${libruntime_stream_common_src_files}
 
-    src/stream/v100/stream_creator_c.cc
+    ${RUNTIME_CORE_DIR}/src/stream/v100/stream_creator_c.cc
 )
 
 set(libruntime_profile_src_files
-    src/profiler/profiler.cc
-    src/profiler/api_profile_decorator.cc
-    src/profiler/api_profile_log_decorator.cc
-    src/profiler/prof_map_ge_model_device.cc
-    src/profiler/profile_log_record.cc
-    src/profiler/npu_driver_record.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/profiler.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/api_profile_decorator.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/api_profile_log_decorator.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/prof_map_ge_model_device.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/profile_log_record.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/npu_driver_record.cc
 )
 set(libruntime_arg_loader_files
-    src/kernel/arg_loader/uma_arg_loader.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/arg_loader/uma_arg_loader.cc
 )
 
 set(libruntime_callback_files
-    src/device/device_state_callback_manager.cc
-    src/task/task_fail_callback_manager.cc
-    src/stream/stream_state_callback_manager.cc
-    src/event/event_state_callback_manager.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_state_callback_manager.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_fail_callback_manager.cc
+    ${RUNTIME_CORE_DIR}/src/stream/stream_state_callback_manager.cc
+    ${RUNTIME_CORE_DIR}/src/event/event_state_callback_manager.cc
 )
 
 set(libruntime_src_files_include_for_tiny
-    src/api_impl/api_error_tiny_stub.cc
-    src/api_impl/api_impl_tiny_stub.cc
-    src/api_impl/v100/api_impl_v100.cc
-    src/context/context_tiny_stub.cc
-    src/dfx/printf_tiny_stub.cc
-    src/event/ipc_event_tiny_stub.cc
-    src/pool/event_pool_tiny_stub.cc
-    src/pool/event_expanding_tiny_stub.cc
-    src/drv/npu_driver_tiny_stub.cc
-    src/engine/engine_factory_tiny_stub.cc
-    src/kernel/binary_loader.cc
-    src/kernel/json_parse.cc
-    src/task/tiny/rdma_task_tiny_stub.cc
-    src/task/tiny/ffts_task_tiny_stub.cc
-    src/task/tiny/task_tiny_stub.cc
-    src/profiler/api_profile_decorator_tiny_stub.cc
-    src/profiler/api_profile_log_decoratoc_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_error_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/v100/api_impl_v100.cc
+    ${RUNTIME_CORE_DIR}/src/context/context_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/dfx/printf_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/event/ipc_event_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/pool/event_pool_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/pool/event_expanding_tiny_stub.cc
+    ${RUNTIME_DIR}/src/runtime/driver/npu_driver_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/engine/engine_factory_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/binary_loader.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/json_parse.cc
+    ${RUNTIME_CORE_DIR}/src/task/tiny/rdma_task_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/task/tiny/ffts_task_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/task/tiny/task_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/api_profile_decorator_tiny_stub.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/api_profile_log_decoratoc_tiny_stub.cc
 )
 
 set(libruntime_api_src_files_exclude_for_tiny
@@ -159,93 +159,93 @@ set(libruntime_api_src_files_include_for_tiny
 )
 
 set(libruntime_common_src_files
-    src/common/inner_thread_local.cpp
+    ${RUNTIME_CORE_DIR}/src/common/inner_thread_local.cpp
     ${RUNTIME_DIR}/src/runtime/api/api.cc
-    src/api_impl/api_decorator.cc
-    src/api_impl/api_error.cc
-    src/api_impl/api_impl.cc
-    src/api_impl/api_impl_mbuf.cc
-    src/launch/cond_stars.cc
-    src/launch/label_common.cc
-    src/launch/label_stars.cc
-    src/launch/cmo_barrier_common.cc
-    src/launch/cmo_barrier_stars.cc
-    src/uvm/uvm_callback.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_decorator.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_error.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_impl.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_mbuf.cc
+    ${RUNTIME_CORE_DIR}/src/launch/cond_stars.cc
+    ${RUNTIME_CORE_DIR}/src/launch/label_common.cc
+    ${RUNTIME_CORE_DIR}/src/launch/label_stars.cc
+    ${RUNTIME_CORE_DIR}/src/launch/cmo_barrier_common.cc
+    ${RUNTIME_CORE_DIR}/src/launch/cmo_barrier_stars.cc
+    ${RUNTIME_CORE_DIR}/src/uvm/uvm_callback.cc
 
     # for V100
-    src/api_impl/api_impl_creator.cc
-    src/api_impl/v100/api_impl_creator_c.cc
-    src/device/ctrl_msg.cc
-    src/device/ctrl_sq.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_creator.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/v100/api_impl_creator_c.cc
+    ${RUNTIME_CORE_DIR}/src/device/ctrl_msg.cc
+    ${RUNTIME_CORE_DIR}/src/device/ctrl_sq.cc
 
-    src/config.cc
-    src/device/device.cc
-    src/device/raw_device.cc
-    src/device/raw_device_res.cc
-    src/device/device_snapshot.cc
-    src/device/raw_device_adpt_comm.cc
-    src/drv/driver.cc
-    src/drv/v100/npu_driver.cc
-    src/pool/bitmap.cc
-    src/pool/buffer_allocator.cc
-    src/pool/task_allocator.cc
-    src/pool/spm_pool.cc
-    src/pool/h2d_copy_mgr.cc
-    src/pool/memory_list.cc
-    src/pool/memory_pool.cc
-    src/pool/memory_pool_manager.cc
-    src/model/model.cc
-    src/model/model_rebuild.cc
-    src/model/capture_model.cc
-    src/model/capture_model_utils.cc
-    src/model/v100/capture_adapt.cc
-    src/model/v100/capture_model_adapt.cc
-    src/kernel/args/args_handle_allocator.cc
-    src/kernel/args/para_convertor.cc
-    src/kernel/v100/kernel.cc
-    src/kernel/elf.cc
-    src/kernel/kernel.cc
-    src/kernel/module.cc
-    src/kernel/program.cc
-    src/kernel/program_common.cc
-    src/kernel/kernel_utils.cc
-    src/kernel/v100/program_plat.cc
-    src/launch/label.cc
-    src/event/event.cc
-    src/notify/notify.cc
-    src/engine/logger.cc
-    src/runtime.cc
-    src/runtime_v100/runtime_adapt.cc
-    src/plugin_manage/runtime_keeper.cc
-    src/utils/capability.cc
-    src/utils/osal.cc
-    src/engine/hwts/scheduler.cc
-    src/dfx/atrace_log.cc
-    src/dfx/pctrace.cc
-    src/utils/subscribe.cc
-    src/profiler/onlineprof.cc
-    src/ttlv/ttlv_decoder_utils.cc
-    src/ttlv/ttlv.cc
-    src/ttlv/ttlv_word_decoder.cc
-    src/ttlv/ttlv_sentence_decoder.cc
-    src/ttlv/ttlv_paragraph_decoder.cc
-    src/device/device_error_core_proc.cc
-    src/device/device_error_proc.cc
-    src/device/v100/device_error_proc.cc
-    src/device/device_sq_cq_pool.cc
-    src/device/sq_addr_memory_pool.cc
-    src/utils/aicpu_scheduler_agent.cc
-    src/device/device_msg_handler.cc
-    src/device/aicpu_err_msg.cc
-    src/stream/dvpp_grp.cc
-    src/engine/engine.cc
-    src/engine/hwts/package_rebuilder.cc
-    src/engine/stars/stars_engine.cc
-    src/task/ctrl_res_pool.cpp
-    src/task/host_task.cc
-    src/task/stars_cond_isa_helper.cc
-    src/task/v100/stub_task.cc
-    src/memory/mem_type.cc
+    ${RUNTIME_CORE_DIR}/src/config.cc
+    ${RUNTIME_CORE_DIR}/src/device/device.cc
+    ${RUNTIME_CORE_DIR}/src/device/raw_device.cc
+    ${RUNTIME_CORE_DIR}/src/device/raw_device_res.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_snapshot.cc
+    ${RUNTIME_CORE_DIR}/src/device/raw_device_adpt_comm.cc
+    ${RUNTIME_DIR}/src/runtime/driver/driver.cc
+    ${RUNTIME_DIR}/src/runtime/driver/v100/npu_driver.cc
+    ${RUNTIME_CORE_DIR}/src/pool/bitmap.cc
+    ${RUNTIME_CORE_DIR}/src/pool/buffer_allocator.cc
+    ${RUNTIME_CORE_DIR}/src/pool/task_allocator.cc
+    ${RUNTIME_CORE_DIR}/src/pool/spm_pool.cc
+    ${RUNTIME_CORE_DIR}/src/pool/h2d_copy_mgr.cc
+    ${RUNTIME_CORE_DIR}/src/pool/memory_list.cc
+    ${RUNTIME_CORE_DIR}/src/pool/memory_pool.cc
+    ${RUNTIME_CORE_DIR}/src/pool/memory_pool_manager.cc
+    ${RUNTIME_CORE_DIR}/src/model/model.cc
+    ${RUNTIME_CORE_DIR}/src/model/model_rebuild.cc
+    ${RUNTIME_CORE_DIR}/src/model/capture_model.cc
+    ${RUNTIME_CORE_DIR}/src/model/capture_model_utils.cc
+    ${RUNTIME_CORE_DIR}/src/model/v100/capture_adapt.cc
+    ${RUNTIME_CORE_DIR}/src/model/v100/capture_model_adapt.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/args/args_handle_allocator.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/args/para_convertor.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/v100/kernel.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/elf.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/kernel.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/module.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/program.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/program_common.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/kernel_utils.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/v100/program_plat.cc
+    ${RUNTIME_CORE_DIR}/src/launch/label.cc
+    ${RUNTIME_CORE_DIR}/src/event/event.cc
+    ${RUNTIME_CORE_DIR}/src/notify/notify.cc
+    ${RUNTIME_CORE_DIR}/src/engine/logger.cc
+    ${RUNTIME_CORE_DIR}/src/runtime.cc
+    ${RUNTIME_CORE_DIR}/src/runtime_v100/runtime_adapt.cc
+    ${RUNTIME_CORE_DIR}/src/plugin_manage/runtime_keeper.cc
+    ${RUNTIME_CORE_DIR}/src/utils/capability.cc
+    ${RUNTIME_CORE_DIR}/src/utils/osal.cc
+    ${RUNTIME_CORE_DIR}/src/engine/hwts/scheduler.cc
+    ${RUNTIME_CORE_DIR}/src/dfx/atrace_log.cc
+    ${RUNTIME_CORE_DIR}/src/dfx/pctrace.cc
+    ${RUNTIME_CORE_DIR}/src/utils/subscribe.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/onlineprof.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv_decoder_utils.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv_word_decoder.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv_sentence_decoder.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv_paragraph_decoder.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_error_core_proc.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_error_proc.cc
+    ${RUNTIME_CORE_DIR}/src/device/v100/device_error_proc.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_sq_cq_pool.cc
+    ${RUNTIME_CORE_DIR}/src/device/sq_addr_memory_pool.cc
+    ${RUNTIME_CORE_DIR}/src/utils/aicpu_scheduler_agent.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_msg_handler.cc
+    ${RUNTIME_CORE_DIR}/src/device/aicpu_err_msg.cc
+    ${RUNTIME_CORE_DIR}/src/stream/dvpp_grp.cc
+    ${RUNTIME_CORE_DIR}/src/engine/engine.cc
+    ${RUNTIME_CORE_DIR}/src/engine/hwts/package_rebuilder.cc
+    ${RUNTIME_CORE_DIR}/src/engine/stars/stars_engine.cc
+    ${RUNTIME_CORE_DIR}/src/task/ctrl_res_pool.cpp
+    ${RUNTIME_CORE_DIR}/src/task/host_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/stars_cond_isa_helper.cc
+    ${RUNTIME_CORE_DIR}/src/task/v100/stub_task.cc
+    ${RUNTIME_CORE_DIR}/src/memory/mem_type.cc
     ${libruntime_v100_task_src_files}
     ${libruntime_api_src_files}
     ${libruntime_context_src_files}
@@ -264,111 +264,111 @@ set(libruntime_dev_info_src_files
 
 #------------------------- runtime v100 -------------------------
 set(libruntime_v100_src_files
-    src/common/inner_thread_local.cpp
-    src/api_impl/api_decorator.cc
-    src/api_impl/api_impl.cc
-    src/api_impl/api_error.cc
-    src/api_impl/api_impl_creator.cc
-    src/api_impl/api_impl_mbuf.cc
-    src/dfx/kernel_dfx_info.cc
-    src/uvm/uvm_callback.cc
+    ${RUNTIME_CORE_DIR}/src/common/inner_thread_local.cpp
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_decorator.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_impl.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_error.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_creator.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_mbuf.cc
+    ${RUNTIME_CORE_DIR}/src/dfx/kernel_dfx_info.cc
+    ${RUNTIME_CORE_DIR}/src/uvm/uvm_callback.cc
 
     # for V100
-    src/api_impl/v100/api_impl_creator_c.cc
+    ${RUNTIME_CORE_DIR}/src/api_impl/v100/api_impl_creator_c.cc
 
-    src/config.cc
-    src/device/device.cc
-    src/device/raw_device.cc
-    src/device/raw_device_res.cc
-    src/device/device_snapshot.cc
-    src/device/raw_device_adpt_comm.cc
-    src/device/ctrl_msg.cc
-    src/device/ctrl_sq.cc
-    src/drv/driver.cc
-    src/drv/v100/npu_driver.cc
-    src/pool/bitmap.cc
-    src/pool/buffer_allocator.cc
-    src/pool/task_allocator.cc
-    src/pool/spm_pool.cc
-    src/pool/h2d_copy_mgr.cc
-    src/pool/memory_list.cc
-    src/pool/memory_pool.cc
-    src/pool/memory_pool_manager.cc
-    src/model/model.cc
-    src/model/model_rebuild.cc
-    src/model/v100/capture_adapt.cc
-    src/model/v100/capture_model_adapt.cc
-    src/model/capture_model.cc
-    src/model/capture_model_utils.cc
-    src/kernel/args/args_handle_allocator.cc
-    src/kernel/args/para_convertor.cc
-    src/kernel/v100/kernel.cc
-    src/kernel/elf.cc
-    src/kernel/kernel.cc
-    src/kernel/module.cc
-    src/kernel/program.cc
-    src/kernel/program_common.cc
-    src/kernel/kernel_utils.cc
-    src/launch/memcpy_stars.cc
-    src/kernel/v100/program_plat.cc
-    src/launch/cmo_barrier_common.cc
-    src/launch/cmo_barrier_stars.cc
-    src/launch/memcpy_stars.cc
-    src/launch/label.cc
-    src/launch/cond_stars.cc
-    src/launch/label_common.cc
-    src/launch/label_stars.cc
-    src/launch/aicpu_stars.cc
-    src/launch/dvpp_stars.cc
-    src/event/event.cc
-    src/notify/notify.cc
-    src/engine/logger.cc
-    src/runtime.cc
-    src/runtime_v100/runtime_adapt.cc
-    src/utils/capability.cc
-    src/utils/osal.cc
-    src/engine/hwts/scheduler.cc
-    src/dfx/atrace_log.cc
-    src/dfx/pctrace.cc
-    src/utils/subscribe.cc
-    src/profiler/onlineprof.cc
-    src/ttlv/ttlv_decoder_utils.cc
-    src/ttlv/ttlv.cc
-    src/ttlv/ttlv_word_decoder.cc
-    src/ttlv/ttlv_sentence_decoder.cc
-    src/ttlv/ttlv_paragraph_decoder.cc
-    src/device/device_error_core_proc.cc
-    src/device/device_error_proc.cc
-    src/device/v100/device_error_proc.cc
-    src/device/device_sq_cq_pool.cc
-    src/device/sq_addr_memory_pool.cc
-    src/utils/aicpu_scheduler_agent.cc
-    src/device/device_msg_handler.cc
-    src/device/aicpu_err_msg.cc
-    src/stream/dvpp_grp.cc
-    src/engine/engine.cc
-    src/engine/hwts/package_rebuilder.cc
-    src/engine/stars/stars_engine.cc
-    src/task/ctrl_res_pool.cpp
-    src/task/host_task.cc
-    src/task/stars_cond_isa_helper.cc
-    src/task/task_fail_callback_manager.cc
-    src/task/v100/stub_task.cc
-    src/memory/mem_type.cc
-    src/soma/stream_mem_pool.cc
+    ${RUNTIME_CORE_DIR}/src/config.cc
+    ${RUNTIME_CORE_DIR}/src/device/device.cc
+    ${RUNTIME_CORE_DIR}/src/device/raw_device.cc
+    ${RUNTIME_CORE_DIR}/src/device/raw_device_res.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_snapshot.cc
+    ${RUNTIME_CORE_DIR}/src/device/raw_device_adpt_comm.cc
+    ${RUNTIME_CORE_DIR}/src/device/ctrl_msg.cc
+    ${RUNTIME_CORE_DIR}/src/device/ctrl_sq.cc
+    ${RUNTIME_DIR}/src/runtime/driver/driver.cc
+    ${RUNTIME_DIR}/src/runtime/driver/v100/npu_driver.cc
+    ${RUNTIME_CORE_DIR}/src/pool/bitmap.cc
+    ${RUNTIME_CORE_DIR}/src/pool/buffer_allocator.cc
+    ${RUNTIME_CORE_DIR}/src/pool/task_allocator.cc
+    ${RUNTIME_CORE_DIR}/src/pool/spm_pool.cc
+    ${RUNTIME_CORE_DIR}/src/pool/h2d_copy_mgr.cc
+    ${RUNTIME_CORE_DIR}/src/pool/memory_list.cc
+    ${RUNTIME_CORE_DIR}/src/pool/memory_pool.cc
+    ${RUNTIME_CORE_DIR}/src/pool/memory_pool_manager.cc
+    ${RUNTIME_CORE_DIR}/src/model/model.cc
+    ${RUNTIME_CORE_DIR}/src/model/model_rebuild.cc
+    ${RUNTIME_CORE_DIR}/src/model/v100/capture_adapt.cc
+    ${RUNTIME_CORE_DIR}/src/model/v100/capture_model_adapt.cc
+    ${RUNTIME_CORE_DIR}/src/model/capture_model.cc
+    ${RUNTIME_CORE_DIR}/src/model/capture_model_utils.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/args/args_handle_allocator.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/args/para_convertor.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/v100/kernel.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/elf.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/kernel.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/module.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/program.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/program_common.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/kernel_utils.cc
+    ${RUNTIME_CORE_DIR}/src/launch/memcpy_stars.cc
+    ${RUNTIME_CORE_DIR}/src/kernel/v100/program_plat.cc
+    ${RUNTIME_CORE_DIR}/src/launch/cmo_barrier_common.cc
+    ${RUNTIME_CORE_DIR}/src/launch/cmo_barrier_stars.cc
+    ${RUNTIME_CORE_DIR}/src/launch/memcpy_stars.cc
+    ${RUNTIME_CORE_DIR}/src/launch/label.cc
+    ${RUNTIME_CORE_DIR}/src/launch/cond_stars.cc
+    ${RUNTIME_CORE_DIR}/src/launch/label_common.cc
+    ${RUNTIME_CORE_DIR}/src/launch/label_stars.cc
+    ${RUNTIME_CORE_DIR}/src/launch/aicpu_stars.cc
+    ${RUNTIME_CORE_DIR}/src/launch/dvpp_stars.cc
+    ${RUNTIME_CORE_DIR}/src/event/event.cc
+    ${RUNTIME_CORE_DIR}/src/notify/notify.cc
+    ${RUNTIME_CORE_DIR}/src/engine/logger.cc
+    ${RUNTIME_CORE_DIR}/src/runtime.cc
+    ${RUNTIME_CORE_DIR}/src/runtime_v100/runtime_adapt.cc
+    ${RUNTIME_CORE_DIR}/src/utils/capability.cc
+    ${RUNTIME_CORE_DIR}/src/utils/osal.cc
+    ${RUNTIME_CORE_DIR}/src/engine/hwts/scheduler.cc
+    ${RUNTIME_CORE_DIR}/src/dfx/atrace_log.cc
+    ${RUNTIME_CORE_DIR}/src/dfx/pctrace.cc
+    ${RUNTIME_CORE_DIR}/src/utils/subscribe.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/onlineprof.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv_decoder_utils.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv_word_decoder.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv_sentence_decoder.cc
+    ${RUNTIME_CORE_DIR}/src/ttlv/ttlv_paragraph_decoder.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_error_core_proc.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_error_proc.cc
+    ${RUNTIME_CORE_DIR}/src/device/v100/device_error_proc.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_sq_cq_pool.cc
+    ${RUNTIME_CORE_DIR}/src/device/sq_addr_memory_pool.cc
+    ${RUNTIME_CORE_DIR}/src/utils/aicpu_scheduler_agent.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_msg_handler.cc
+    ${RUNTIME_CORE_DIR}/src/device/aicpu_err_msg.cc
+    ${RUNTIME_CORE_DIR}/src/stream/dvpp_grp.cc
+    ${RUNTIME_CORE_DIR}/src/engine/engine.cc
+    ${RUNTIME_CORE_DIR}/src/engine/hwts/package_rebuilder.cc
+    ${RUNTIME_CORE_DIR}/src/engine/stars/stars_engine.cc
+    ${RUNTIME_CORE_DIR}/src/task/ctrl_res_pool.cpp
+    ${RUNTIME_CORE_DIR}/src/task/host_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/stars_cond_isa_helper.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_fail_callback_manager.cc
+    ${RUNTIME_CORE_DIR}/src/task/v100/stub_task.cc
+    ${RUNTIME_CORE_DIR}/src/memory/mem_type.cc
+    ${RUNTIME_CORE_DIR}/src/soma/stream_mem_pool.cc
     ${libruntime_v100_task_src_files}
     ${libruntime_context_src_files}
     ${libruntime_stream_src_files}
-    src/profiler/profiler.cc
-    src/profiler/api_profile_decorator.cc
-    src/profiler/api_profile_log_decorator.cc
-    src/profiler/profile_log_record.cc
-    src/profiler/npu_driver_record.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/profiler.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/api_profile_decorator.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/api_profile_log_decorator.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/profile_log_record.cc
+    ${RUNTIME_CORE_DIR}/src/profiler/npu_driver_record.cc
     ${libruntime_arg_loader_files}
-    src/device/device_state_callback_manager.cc
-    src/stream/stream_state_callback_manager.cc
-    src/event/event_state_callback_manager.cc
-    src/plugin_manage/v100/plugin_old_arch.cc
+    ${RUNTIME_CORE_DIR}/src/device/device_state_callback_manager.cc
+    ${RUNTIME_CORE_DIR}/src/stream/stream_state_callback_manager.cc
+     ${RUNTIME_CORE_DIR}/src/event/event_state_callback_manager.cc
+    ${RUNTIME_CORE_DIR}/src/plugin_manage/v100/plugin_old_arch.cc
     ${libruntime_dev_info_src_files}
     ${libruntime_src_files_include_for_tiny}
 )
@@ -398,27 +398,27 @@ set(RUNTIME_INC_DIR_TINY
     ${RUNTIME_DIR}/src/runtime/inc/task
     ${RUNTIME_DIR}/src/runtime/inc/utils
     ${RUNTIME_DIR}/src/runtime/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/api_impl
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/engine
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/engine/hwts
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/engine/stars
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/stream
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/task/inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/profiler
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/pool
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ttlv
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/device
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/drv
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/common
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin_manage
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/arg_loader
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/args
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc_c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/memory
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/soma
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/uvm
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/event
+    ${RUNTIME_CORE_DIR}/src/api_impl
+    ${RUNTIME_CORE_DIR}/src/engine
+    ${RUNTIME_CORE_DIR}/src/engine/hwts
+    ${RUNTIME_CORE_DIR}/src/engine/stars
+    ${RUNTIME_CORE_DIR}/src/stream
+    ${RUNTIME_CORE_DIR}/src/task/inc
+    ${RUNTIME_CORE_DIR}/src/profiler
+    ${RUNTIME_CORE_DIR}/src/pool
+    ${RUNTIME_CORE_DIR}/src/ttlv
+    ${RUNTIME_CORE_DIR}/src/device
+    ${RUNTIME_DIR}/src/runtime/driver
+    ${RUNTIME_CORE_DIR}/src/common
+    ${RUNTIME_CORE_DIR}/src/plugin_manage
+    ${RUNTIME_CORE_DIR}/src/kernel
+    ${RUNTIME_CORE_DIR}/src/kernel/arg_loader
+    ${RUNTIME_CORE_DIR}/src/kernel/args
+    ${RUNTIME_CORE_DIR}/inc_c
+    ${RUNTIME_CORE_DIR}/src/memory
+    ${RUNTIME_CORE_DIR}/src/soma
+    ${RUNTIME_CORE_DIR}/src/uvm
+    ${RUNTIME_CORE_DIR}/src/event
     ${RUNTIME_DIR}/src/runtime/inc/cond_isa/v100
     ## not open
     ${RUNTIME_DIR}/src/runtime/inc/dqs
@@ -526,8 +526,8 @@ macro(add_runtime_api_library target_name)
             $<$<NOT:$<STREQUAL:${PRODUCT},ascend031>>:${libruntime_api_src_files_exclude_for_tiny}>
             $<$<STREQUAL:${PRODUCT},ascend031>:${libruntime_api_src_files_include_for_tiny}>
             ${RUNTIME_DIR}/src/runtime/api/api.cc
-            src/profiler/prof_map_ge_model_device.cc
-            src/plugin_manage/runtime_keeper.cc
+            ${RUNTIME_CORE_DIR}/src/profiler/prof_map_ge_model_device.cc
+            ${RUNTIME_CORE_DIR}/src/plugin_manage/runtime_keeper.cc
             $<TARGET_OBJECTS:profapi_stub>
             $<$<STREQUAL:${PRODUCT},ascend031>:$<TARGET_OBJECTS:runtime_platform_tiny>>
         )
@@ -537,8 +537,8 @@ macro(add_runtime_api_library target_name)
             $<$<NOT:$<STREQUAL:${PRODUCT},ascend031>>:${libruntime_api_src_files_exclude_for_tiny}>
             $<$<STREQUAL:${PRODUCT},ascend031>:${libruntime_api_src_files_include_for_tiny}>
             ${RUNTIME_DIR}/src/runtime/api/api.cc
-            src/profiler/prof_map_ge_model_device.cc
-            src/plugin_manage/runtime_keeper.cc
+            ${RUNTIME_CORE_DIR}/src/profiler/prof_map_ge_model_device.cc
+            ${RUNTIME_CORE_DIR}/src/plugin_manage/runtime_keeper.cc
             $<$<STREQUAL:${PRODUCT},ascend031>:$<TARGET_OBJECTS:runtime_platform_tiny>>
         )
     endif()
@@ -630,13 +630,13 @@ endmacro()
 macro(add_runtime_v100_library target_name)
     add_library(${target_name} SHARED
         ${libruntime_v100_src_files}
-        src/drv/npu_driver.cc
-        src/drv/npu_driver_mem.cc
-        src/drv/npu_driver_queue.cc
-        src/drv/npu_driver_res.cc
-        src/drv/npu_driver_tiny.cpp
-        src/drv/npu_driver_dcache_lock_common.cpp
-        src/drv/npu_driver_dcache_lock_opb.cpp
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_mem.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_queue.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_res.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_tiny.cpp
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_dcache_lock_common.cpp
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_dcache_lock_opb.cpp
     )
 
     target_compile_definitions(${target_name} PRIVATE
@@ -720,24 +720,24 @@ add_dependencies(runtime runtime_v100)
 if(${TARGET_SYSTEM_NAME} STREQUAL "Windows")
     add_library(static_runtime STATIC
         ${libruntime_common_src_files}
-        src/drv/npu_driver.cc
-        src/drv/npu_driver_win.cc
-        src/drv/npu_driver_tiny.cpp
-        src/drv/npu_driver_dcache_lock_common.cpp
-        src/drv/npu_driver_dcache_lock_opb.cpp
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_win.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_tiny.cpp
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_dcache_lock_common.cpp
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_dcache_lock_opb.cpp
         $<TARGET_OBJECTS:profapi_stub>
         $<$<STREQUAL:${PRODUCT},ascend031>:$<TARGET_OBJECTS:runtime_platform_tiny>>
     )
 else()
     add_library(static_runtime STATIC
         ${libruntime_common_src_files}
-        src/drv/npu_driver.cc
-        src/drv/npu_driver_mem.cc
-        src/drv/npu_driver_queue.cc
-        src/drv/npu_driver_res.cc
-        src/drv/npu_driver_tiny.cpp
-        src/drv/npu_driver_dcache_lock_common.cpp
-        src/drv/npu_driver_dcache_lock_opb.cpp
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_mem.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_queue.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_res.cc
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_tiny.cpp
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_dcache_lock_common.cpp
+        ${RUNTIME_DIR}/src/runtime/driver/npu_driver_dcache_lock_opb.cpp
         $<$<STREQUAL:${PRODUCT},ascend031>:$<TARGET_OBJECTS:runtime_platform_tiny>>
     )
 endif()

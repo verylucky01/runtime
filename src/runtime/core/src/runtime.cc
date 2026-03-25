@@ -81,7 +81,8 @@ enum AiCpuProfilingConfig : uint32_t {
     PROFILING_FEATURE_MODEL_MODE = 2U,   // bit2 means profiling mode of model
     PROFILING_FEATURE_TIME = 3U,         // bit3 means l0
     PROFILING_FEATURE_TIME_L1 = 4U,      // bit4 means l1
-    PROFILING_FEATURE_TIME_L2 = 5U       // bit5 means l2
+    PROFILING_FEATURE_TIME_L2 = 5U,      // bit5 means l2
+    PROFILING_FEATURE_TIME_L3 = 6U,      // bit6 means l3
 };
 }
 
@@ -2923,7 +2924,9 @@ rtError_t Runtime::HandleAiCpuProfiling(
     if ((profConfig & PROF_TASK_TIME_L2_MASK) != 0UL) {
         profSwitch |= (1U << static_cast<uint32_t>(PROFILING_FEATURE_TIME_L2));
     }
-
+    if ((profConfig & PROF_TASK_TIME_L3_MASK) != 0UL) {
+        profSwitch |= (1U << static_cast<uint32_t>(PROFILING_FEATURE_TIME_L3));
+    }
     profSwitch |= ((profSwitchHi >> 32ULL) & 0xFFFF0000ULL);  // 32是因为profSwitch是uint32，且只需要profSwitchHi的高16位
 
     RT_LOG(RT_LOG_INFO, "Handle aicpu profiling, profSwitch=%#" PRIx64, profSwitch);

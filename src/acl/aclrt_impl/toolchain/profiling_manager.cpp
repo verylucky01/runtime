@@ -294,6 +294,8 @@ namespace acl {
         {AclProfType::AclrtMemManagedAdvise,                    "aclrtMemManagedAdvise"},
         {AclProfType::AclrtMemManagedGetAttr,                   "aclrtMemManagedGetAttr"},
         {AclProfType::AclrtMemManagedGetAttrs,                  "aclrtMemManagedGetAttrs"},
+        {AclProfType::AclrtMemManagedPrefetchAsync,             "aclrtMemManagedPrefetchAsync"},
+        {AclProfType::AclrtMemManagedPrefetchBatchAsync,        "aclrtMemManagedPrefetchBatchAsync"},
 };
 
 aclError RegisterType(const uint32_t index) {

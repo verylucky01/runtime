@@ -14,12 +14,18 @@
 #include "runtime/base.h"
 #include "base.hpp"
 #include "driver/ascend_hal.h"
+#include "runtime.hpp"
+#include "runtime/base.h"
 #include "runtime/mem.h"
+#include "runtime/rt_inner_mem.h"
 #include "npu_driver.hpp"
 #include "api.hpp"
 
 namespace cce {
 namespace runtime {
+
+constexpr int32_t RT_INVALID_NUMA_NODE_ID = -1;
+
 typedef struct MemsetCallbackStruct {
     void *ptr;
     uint64_t destMax;
@@ -36,6 +42,13 @@ typedef struct rtMemcpyCallbackParam {
     bool checkKind;
     Stream* stm;
 } rtMemcpyCallbackParam;
+
+typedef struct PrefetchParams {
+    DVdeviceptr ptr;
+    struct drv_uvm_location location;
+    size_t size;
+    uint32_t flags;
+} PrefetchParams;
 
 class UvmCallback {
 public :
@@ -54,8 +67,31 @@ public :
     static bool IsUvmMem(const void * const ptr, const uint64_t cnt);
     static void CreateMemcpyCallbackParam(void * const dst, const uint64_t destMax, const void * const src, const uint64_t cnt,
     const rtMemcpyKind_t kind, bool checkKind, Stream * const curStm, rtMemcpyCallbackParam* memcpyCallbackParam);
-};    
-}
-}
+
+    // UVM Prefetch
+    static void PrefetchCallbackWrapper(void *userData);
+    static void PrefetchBatchCallbackWrapper(void *userData);
+    static int32_t ConvertUvmLocIdForHostNumaType(drv_uvm_location_type drvUvmLocType, int32_t oriDrvUvmLocId);
+    static rtError_t GetCurrentThreadNumaNode(int32_t &currentNumaNode);
+    static drv_uvm_location_type ConvertUvmLocTypeToDrvUvmLocType(rtMemManagedLocationType const uvmLocType);
+    static rtError_t ConvertUvmLocationStruct(drv_uvm_location& drvUvmLoc, rtMemManagedLocation& memManagedLoc);
+
+    template <typename T>
+    static rtError_t FillIntParaIntoMemBuffer(const T intPara, uint8_t *const memBuffer, size_t memBufferSize, size_t& offset)
+    {
+        NULL_PTR_RETURN_NOLOG(memBuffer, RT_ERROR_INVALID_VALUE);
+        COND_RETURN_WITH_NOLOG((memBufferSize == 0), RT_ERROR_INVALID_VALUE);
+        COND_RETURN_WITH_NOLOG(((offset >= memBufferSize) || (offset + sizeof(T) >= memBufferSize)),
+            RT_ERROR_INVALID_VALUE);
+        T* tmpPtr = RtPtrToPtr<T*>(memBuffer + offset);
+        *tmpPtr = intPara;
+        offset += sizeof(T);
+        return RT_ERROR_NONE;
+    }
+
+};
+
+}  // namespace runtime
+}  // namespace cce
 
 #endif  // CCE_RUNTIME_UVM_CALLBACK_HPP

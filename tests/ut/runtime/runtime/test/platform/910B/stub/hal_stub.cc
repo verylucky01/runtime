@@ -1972,6 +1972,23 @@ drvError_t halMemPoolTrim(soma_mem_pool_t pool, uint64_t *size, uint64_t poolUse
     return DRV_ERROR_NONE;
 }
 
+DVresult halMemManagedPrefetch(DVdeviceptr devPtr, size_t size, struct drv_uvm_location location,
+    unsigned int flags)
+{
+    return DRV_ERROR_NONE;
+}
+
+DVresult halMemManagedPrefetchBatch(DVdeviceptr* devPtrs, size_t* sizes, size_t count,
+    struct drv_uvm_location* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, unsigned long long flags)
+{
+    return DRV_ERROR_NONE;
+}
+
+int halGetCurrentThreadNumaNode(void)
+{
+    return 1;
+}
+
 #if defined(__cplusplus)
 }
 #endif

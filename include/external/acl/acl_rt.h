@@ -5205,6 +5205,47 @@ ACL_FUNC_VISIBILITY aclError aclrtMemGetAddressRange(void *ptr, void **pbase, si
  * @retval OtherValues Failure
  */
 ACL_FUNC_VISIBILITY aclError aclrtMemP2PMap(void *devPtr, size_t size, int32_t dstDevId, uint64_t flags);
+
+/**
+ * @ingroup AscendCL
+ * @brief Asynchronous prefetch memory to the specified destination device.
+ * @param [in] ptr      UVM(unified virtual memory) address which will be prefetched.
+ * @param [in] size     size of memory in bytes.
+ * @param [in] location destination physics memory location to prefetch to.
+ * @param [in] flags    reserved, must be 0.
+ * @param [in] stream   stream to enqueue prefetch operation.
+ *
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval ACL_ERROR_INVALID_PARAM for error input.
+ * @retval ACL_ERROR_RT_FEATURE_NOT_SUPPORT for not support feature.
+ * @retval OtherValues for other failure situation.
+ */
+ACL_FUNC_VISIBILITY aclError aclrtMemManagedPrefetchAsync(const void* ptr, size_t size, aclrtMemManagedLocation location,
+    uint32_t flags, aclrtStream stream);
+
+/**
+ * @ingroup AscendCL
+ * @brief Performs a batch of memory prefetches asynchronously.
+ * @param [in] ptrs            array of UVM(unified virtual memory) address which will be prefetched.
+ * @param [in] sizes           array of each prefetched memory size (in byte).
+ * @param [in] count           size of dptrs and sizes arrays.
+ * @param [in] prefetchLocs    array of destination physics memory location to prefetch to.
+ * @param [in] prefetchLocIdxs index array mapping prefetchLocs elements to a range of prefetch operations:
+                               prefetchLocs[k] applies to operations from prefetchLocIdxs[k] to prefetchLocIdxs[k+1]-1;
+                               prefetchLocs[numPrefetchLocs - 1] applies from prefetchLocIdxs[numPrefetchLocs-1] to count-1.
+ * @param [in] numPrefetchLocs size of prefetchLocs and prefetchLocIdxs arrays.
+ * @param [in] flags           reserved, must be 0.
+ * @param [in] stream          stream to enqueue prefetch operation.
+ *
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval ACL_ERROR_INVALID_PARAM for error input.
+ * @retval ACL_ERROR_RT_FEATURE_NOT_SUPPORT for not support feature.
+ * @retval OtherValues for other failure situation.
+ */
+ACL_FUNC_VISIBILITY aclError aclrtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    aclrtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    aclrtStream stream);
+
 #ifdef __cplusplus
 }
 #endif

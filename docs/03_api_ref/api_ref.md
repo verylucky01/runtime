@@ -186,6 +186,8 @@
     -   [aclrtMemManagedAdvise](aclrtMemManagedAdvise.md)
     -   [aclrtMemManagedGetAttr](aclrtMemManagedGetAttr.md)
     -   [aclrtMemManagedGetAttrs](aclrtMemManagedGetAttrs.md)
+    -   [aclrtMemManagedPrefetchAsync](aclrtMemManagedPrefetchAsync.md)
+    -   [aclrtMemManagedPrefetchBatchAsync](aclrtMemManagedPrefetchBatchAsync.md)
     -   [aclrtMemP2PMap](aclrtMemP2PMap.md)
     -   [aclrtCmoAsync](aclrtCmoAsync.md)
     -   [aclrtCmoAsyncWithBarrier](aclrtCmoAsyncWithBarrier.md)

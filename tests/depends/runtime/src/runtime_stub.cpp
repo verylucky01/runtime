@@ -980,6 +980,32 @@ rtError_t aclStub::rtUnmapMem(void *devPtr) {
     return RT_ERROR_NONE;
 }
 
+rtError_t aclStub::rtMemManagedPrefetchAsync(const void* ptr, size_t size, rtMemManagedLocation location,
+    uint32_t flags, rtStream_t stream)
+{
+    (void)ptr;
+    (void)size;
+    (void)location;
+    (void)flags;
+    (void)stream;
+    return RT_ERROR_NONE;
+}
+
+rtError_t aclStub::rtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    rtStream_t stream)
+{
+    (void)ptrs;
+    (void)sizes;
+    (void)count;
+    (void)prefetchLocs;
+    (void)prefetchLocIdxs;
+    (void)numPrefetchLocs;
+    (void)flags;
+    (void)stream;
+    return RT_ERROR_NONE;
+}
+
 rtError_t aclStub::rtBinaryLoadWithoutTilingKey(const void *data, const uint64_t length, rtBinHandle *binHandle)
 {
   (void)data;
@@ -4369,4 +4395,17 @@ rtError_t rtModelTaskDisable(rtTask_t task)
 rtError_t rtModelUpdate(rtModel_t mdl)
 {
     return MockFunctionTest::aclStubInstance().rtModelUpdate(mdl);
+}
+
+rtError_t rtMemManagedPrefetchAsync(const void* ptr, size_t size, rtMemManagedLocation location, uint32_t flags, rtStream_t stream)
+{
+    return MockFunctionTest::aclStubInstance().rtMemManagedPrefetchAsync(ptr, size, location, flags, stream);
+}
+
+rtError_t rtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    rtStream_t stream)
+{
+    return MockFunctionTest::aclStubInstance().rtMemManagedPrefetchBatchAsync(ptrs, sizes, count, prefetchLocs, prefetchLocIdxs,
+        numPrefetchLocs, flags, stream);
 }

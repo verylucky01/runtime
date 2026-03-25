@@ -360,6 +360,23 @@ rtError_t LaunchHostFuncFailStub(cce::runtime::ApiImpl* impl, Stream* const stm,
     return RT_ERROR_FEATURE_NOT_SUPPORT;
 }
 
+drvError_t halMemManagedPrefetchFailed(DVdeviceptr devPtr, size_t size, struct drv_uvm_location location,
+    unsigned int flags)
+{
+    return DRV_ERROR_NOT_SUPPORT;
+}
+
+drvError_t halMemManagedPrefetchBatchFailed(DVdeviceptr* devPtrs, size_t* sizes, size_t count,
+    struct drv_uvm_location* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, unsigned long long flags)
+{
+    return DRV_ERROR_NOT_SUPPORT;
+}
+
+int halGetCurrentThreadNumaNodeFailed(void)
+{
+    return -1;
+}
+
 rtError_t msprofreportcallback(uint32_t moduleId, uint32_t type, void *data, uint32_t len)
 {
     return ACL_RT_SUCCESS;

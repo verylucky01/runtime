@@ -301,6 +301,12 @@ public:
         const void *shareableHandle, rtMemSharedHandleType handleType, int pid[], uint32_t pidNum);
     virtual rtError_t rtMemGetAllocationGranularity(rtDrvMemProp_t *prop,
                                                     rtDrvMemGranularityOptions option, size_t *granularity);
+    virtual rtError_t rtMemManagedPrefetchAsync(const void *ptr, size_t size, rtMemManagedLocation location,
+        uint32_t flags, rtStream_t stream);
+    virtual rtError_t rtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+        rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+        rtStream_t stream);
+
     virtual rtError_t rtDeviceGetBareTgid(uint32_t *pid);
     virtual rtError_t rtGetL2CacheOffset(uint32_t deivceId, uint64_t *offset);
     virtual rtError_t rtRegKernelLaunchFillFunc(const char *symbol, rtKernelLaunchFillFunc func);
@@ -744,6 +750,12 @@ public:
     MOCK_METHOD1(rtFreePhysical, rtError_t(rtDrvMemHandle handle));
     MOCK_METHOD5(rtMapMem, rtError_t(void *devPtr, size_t size, size_t offset, rtDrvMemHandle handle, uint64_t flags));
     MOCK_METHOD1(rtUnmapMem, rtError_t(void *devPtr));
+
+    MOCK_METHOD5(rtMemManagedPrefetchAsync, rtError_t(const void *ptr, size_t size, rtMemManagedLocation location,
+        uint32_t flags, rtStream_t stream));
+    MOCK_METHOD8(rtMemManagedPrefetchBatchAsync, rtError_t(const void** ptrs, size_t* sizes, size_t count,
+        rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+        rtStream_t stream));
 
     MOCK_METHOD3(rtBinaryLoadWithoutTilingKey, rtError_t(const void *data, const uint64_t length, rtBinHandle *binHandle));
     MOCK_METHOD1(rtBinaryUnLoad, rtError_t(rtBinHandle binHandle));

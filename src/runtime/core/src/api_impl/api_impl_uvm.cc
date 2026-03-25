@@ -12,6 +12,7 @@
 #include "osal.hpp"
 #include "profiler.hpp"
 #include "npu_driver.hpp"
+#include "uvm_callback.hpp"
 
 namespace cce {
 namespace runtime {
@@ -58,5 +59,90 @@ rtError_t ApiImpl::MemManagedGetAttrs(rtMemManagedRangeAttribute *attributes, si
     NULL_PTR_RETURN_MSG(curDrv, RT_ERROR_DRV_NULL);
     return curDrv->MemManagedGetAttrs(attributes, numAttributes, ptr, size, data, dataSizes);
 }
+
+rtError_t ApiImpl::MemManagedPrefetchAsync(const void* ptr, size_t size, rtMemManagedLocation location,
+    uint32_t flags, Stream* const stream)
+{
+    COND_RETURN_WARN((&halMemManagedPrefetch == nullptr), RT_ERROR_DRV_NOT_SUPPORT,
+        "[drv api] halMemManagedPrefetch does not exist.");
+    PrefetchParams *params = new (std::nothrow) PrefetchParams;
+    COND_RETURN_ERROR((params == nullptr), RT_ERROR_MEMORY_ALLOCATION,
+        "New memory for params failed, mem size=%u", sizeof(PrefetchParams));
+
+    rtError_t ret = UvmCallback::ConvertUvmLocationStruct(params->location, location);
+    COND_PROC((ret == RT_ERROR_DRV_NOT_SUPPORT), DELETE_O(params));
+    COND_RETURN_WITH_NOLOG((ret == RT_ERROR_DRV_NOT_SUPPORT), ret);
+    COND_PROC_RETURN_ERROR_MSG_INNER((ret != RT_ERROR_NONE), ret, DELETE_O(params),
+        "ConvertUvmLocationStruct failed, retCode=%#x", static_cast<uint32_t>(ret));
+
+    params->ptr = reinterpret_cast<DVdeviceptr>(ptr);
+    params->size = size;
+    params->flags = flags;
+
+    ret = LaunchHostFunc(stream, UvmCallback::PrefetchCallbackWrapper, static_cast<void *>(params));
+    ERROR_PROC_RETURN_MSG_INNER(ret, DELETE_O(params), "LaunchHostFunc fails with error code %#x",
+        static_cast<uint32_t>(ret));
+    return ret;
 }
+
+rtError_t ApiImpl::MemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    Stream* const stream)
+{
+    COND_RETURN_WARN(&halMemManagedPrefetchBatch == nullptr, RT_ERROR_DRV_NOT_SUPPORT,
+        "[drv api] halMemManagedPrefetchBatch does not exist.");
+
+    size_t bufferSize = sizeof(count) + sizeof(numPrefetchLocs) + sizeof(flags) + count * sizeof(DVdeviceptr) +
+        count * sizeof(size_t) + numPrefetchLocs * sizeof(drv_uvm_location) + numPrefetchLocs * + sizeof(size_t);
+    uint8_t *memBuffer = new (std::nothrow) uint8_t[bufferSize];
+    COND_RETURN_ERROR((memBuffer == nullptr), RT_ERROR_MEMORY_ALLOCATION,
+        "New memory for memBuffer failed, mem size=%u", bufferSize);
+
+    size_t tmpOffset = 0;
+    // Copy int data
+    rtError_t ret = UvmCallback::FillIntParaIntoMemBuffer(count, memBuffer, bufferSize, tmpOffset);
+    COND_PROC_RETURN_ERROR_MSG_INNER((ret != RT_ERROR_NONE), ret, DELETE_A(memBuffer), "Fill para count failed");
+    ret = UvmCallback::FillIntParaIntoMemBuffer(numPrefetchLocs, memBuffer, bufferSize, tmpOffset);
+    COND_PROC_RETURN_ERROR_MSG_INNER((ret != RT_ERROR_NONE), ret, DELETE_A(memBuffer), "Fill para numPrefetchLocs failed");
+    ret = UvmCallback::FillIntParaIntoMemBuffer(flags, memBuffer, bufferSize, tmpOffset);
+    COND_PROC_RETURN_ERROR_MSG_INNER((ret != RT_ERROR_NONE), ret, DELETE_A(memBuffer), "Fill para flags failed");
+
+    // Copy array ptrs
+    DVdeviceptr* devPtrArr = RtPtrToPtr<DVdeviceptr *>(memBuffer + tmpOffset);
+    for (size_t index = 0; index < count; index++) {
+        devPtrArr[index] = RtPtrToPtr<DVdeviceptr>(ptrs[index]);
+    }
+    tmpOffset += count * sizeof(DVdeviceptr);
+
+    // Copy array sizes
+    size_t arrSize = count * sizeof(size_t);
+    errno_t err = memcpy_s(memBuffer + tmpOffset, arrSize, sizes, arrSize);
+    COND_PROC_RETURN_ERROR_MSG_INNER((err != EOK), RT_ERROR_SEC_HANDLE, DELETE_A(memBuffer),
+        "memcpy_s arr failed, retCode=%#x", static_cast<uint32_t>(err));
+    tmpOffset += arrSize;
+
+    // copy array prefetchLocs
+    drv_uvm_location* drvUvmLocArr = reinterpret_cast<drv_uvm_location *>(memBuffer + tmpOffset);
+    for (size_t index = 0; index < numPrefetchLocs; index++) {
+        ret = UvmCallback::ConvertUvmLocationStruct(drvUvmLocArr[index], prefetchLocs[index]);
+        COND_PROC((ret == RT_ERROR_DRV_NOT_SUPPORT), DELETE_A(memBuffer));
+        COND_RETURN_WITH_NOLOG((ret == RT_ERROR_DRV_NOT_SUPPORT), ret);
+        COND_PROC_RETURN_ERROR_MSG_INNER((ret != RT_ERROR_NONE), ret, DELETE_A(memBuffer),
+            "ConvertUvmLocationStruct failed, retCode=%#x", static_cast<uint32_t>(ret));
+    }
+    tmpOffset += numPrefetchLocs * sizeof(drv_uvm_location);
+
+    // copy array prefetchLocIdxs
+    arrSize = numPrefetchLocs * sizeof(size_t);
+    err = memcpy_s(memBuffer + tmpOffset, arrSize, prefetchLocIdxs, arrSize);
+    COND_PROC_RETURN_ERROR_MSG_INNER((err != EOK), RT_ERROR_SEC_HANDLE, DELETE_A(memBuffer),
+        "memcpy_s arr failed, retCode=%#x", static_cast<uint32_t>(err));
+
+    ret = LaunchHostFunc(stream, UvmCallback::PrefetchBatchCallbackWrapper, static_cast<void*>(memBuffer));
+    ERROR_PROC_RETURN_MSG_INNER(ret, DELETE_A(memBuffer), "LaunchHostFunc fails with error code %#x",
+        static_cast<uint32_t>(ret));
+    return ret;
 }
+
+}  // namespace runtime
+}  // namespace cce

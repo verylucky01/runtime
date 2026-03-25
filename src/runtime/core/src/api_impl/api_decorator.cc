@@ -2468,6 +2468,20 @@ rtError_t ApiDecorator::MemcpyBatchAsync(void** const dsts, const size_t* const 
     return impl_->MemcpyBatchAsync(dsts, destMaxs, srcs, sizes, count, attrs, attrsIdxs, numAttrs, failIdx, stm);
 }
 
+rtError_t ApiDecorator::MemManagedPrefetchAsync(const void* ptr, size_t size, rtMemManagedLocation location,
+    uint32_t flags, Stream* const stream)
+{
+    return impl_->MemManagedPrefetchAsync(ptr, size, location, flags, stream);
+}
+
+rtError_t ApiDecorator::MemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    Stream* const stream)
+{
+    return impl_->MemManagedPrefetchBatchAsync(ptrs, sizes, count, prefetchLocs, prefetchLocIdxs, numPrefetchLocs, flags,
+        stream);
+}
+
 rtError_t ApiDecorator::GetCmoDescSize(size_t *size)
 {
     return impl_->GetCmoDescSize(size);

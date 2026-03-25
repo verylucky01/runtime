@@ -7,7 +7,7 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-#include "../../rt_utest_api.hpp"
+#include "test/rt_utest_api.hpp"
 #include "uvm_callback.hpp"
 
 using namespace testing;
@@ -204,4 +204,275 @@ TEST_F(UvmApiTest, memcpy_async_uvm_to_uvm)
 
     error = rtFree(hostPtr);
     EXPECT_EQ(error, RT_ERROR_NONE);
+}
+
+TEST_F(UvmApiTest, rtMemManagedPrefetchAsync_abnormal_para)
+{
+    Api *api_= const_cast<Api *>(Runtime::runtime_->api_);
+    Profiler profiler(nullptr);
+    ApiDecorator *apiDecorator_ = new ApiDecorator(api_);
+    ApiProfileDecorator *apiProfDecorator_ = new ApiProfileDecorator(api_, &profiler);
+    ApiProfileLogDecorator *apiProfLogDecorator_ = new ApiProfileLogDecorator(api_, &profiler);
+
+    constexpr size_t uvmSize = 32UL;
+    uint8_t* devPtr = new uint8_t[uvmSize];
+    rtMemManagedLocation location = { rtMemLocationTypeInvalid, 0 };
+    uint8_t flags = 0;
+    rtStream_t stream = nullptr;
+    rtError_t err = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+
+    err = rtMemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+
+    Stream* stm = static_cast<Stream*>(stream);
+    err = apiDecorator_->MemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_INVALID_VALUE);
+
+    err = apiProfDecorator_->MemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_INVALID_VALUE);
+
+    err = apiProfLogDecorator_->MemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_INVALID_VALUE);
+
+    err = rtMemManagedPrefetchAsync(devPtr, uvmSize, location, 1U, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+
+    err = rtMemManagedPrefetchAsync(nullptr, uvmSize, location, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+
+    err = rtMemManagedPrefetchAsync(devPtr, 0UL, location, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+
+    ApiImpl apiImpl_;
+    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::LaunchHostFunc).stubs().will(invoke(LaunchHostFuncNormalStub));
+    flags = 0;
+    location.type = rtMemLocationTypeHost;
+    err = rtMemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stream);
+    EXPECT_EQ(err, ACL_RT_SUCCESS);
+    delete[] devPtr;
+    delete apiDecorator_;
+    delete apiProfDecorator_;
+    delete apiProfLogDecorator_;
+}
+
+TEST_F(UvmApiTest, ApiImpl_MemManagedPrefetchAsync)
+{
+    ApiImpl apiImpl_;
+    constexpr size_t uvmSize = 32UL;
+    uint8_t* devPtr = new uint8_t[uvmSize];
+    rtMemManagedLocation location = { rtMemLocationTypeInvalid, 0 };
+    uint32_t flags = 1U;
+    rtStream_t stream = nullptr;
+    rtError_t err = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+    Stream* stm = static_cast<Stream*>(stream);
+
+    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::LaunchHostFunc).stubs().will(invoke(LaunchHostFuncNormalStub));
+    err = apiImpl_.MemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_INVALID_VALUE);
+
+    flags = 0U;
+    err = apiImpl_.MemManagedPrefetchAsync(nullptr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_INVALID_VALUE);
+
+    location.type = rtMemLocationTypeHostNumaCurrent;
+    err = apiImpl_.MemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+
+    location.type = rtMemLocationTypeHost;
+    err = apiImpl_.MemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+
+    MOCKER(halMemManagedPrefetch).stubs().will(invoke(halMemManagedPrefetchFailed));
+    err = apiImpl_.MemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+
+    location.type = rtMemLocationTypeHostNumaCurrent;
+    MOCKER(halGetCurrentThreadNumaNode).stubs().will(invoke(halGetCurrentThreadNumaNodeFailed));
+    err = apiImpl_.MemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_DRV_ERR);
+
+    delete[] devPtr;
+}
+
+TEST_F(UvmApiTest, ApiImpl_MemManagedPrefetchAsync_HostLaunchFail)
+{
+    ApiImpl apiImpl_;
+    constexpr size_t uvmSize = 32UL;
+    uint8_t* devPtr = new uint8_t[uvmSize];
+    rtMemManagedLocation location = { rtMemLocationTypeHost, 0 };
+    uint32_t flags = 0U;
+    rtStream_t stream = nullptr;
+    rtError_t err = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+    Stream* stm = static_cast<Stream*>(stream);
+    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::LaunchHostFunc).stubs().will(invoke(LaunchHostFuncFailStub));
+    err = apiImpl_.MemManagedPrefetchAsync(devPtr, uvmSize, location, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_FEATURE_NOT_SUPPORT);
+    delete[] devPtr;
+}
+
+TEST_F(UvmApiTest, rtMemManagedPrefetchBatchAsync_Decorator)
+{
+    Api *api_= const_cast<Api *>(Runtime::runtime_->api_);
+    Profiler profiler(nullptr);
+    ApiDecorator *apiDecorator_ = new ApiDecorator(api_);
+    ApiProfileDecorator *apiProfDecorator_ = new ApiProfileDecorator(api_, &profiler);
+    ApiProfileLogDecorator *apiProfLogDecorator_ = new ApiProfileLogDecorator(api_, &profiler);
+
+    constexpr size_t numUvmPtrs = 3UL;
+    constexpr size_t numPrefetchLocs = 2UL;
+    rtMemManagedLocation prefetchLocsArr[numPrefetchLocs];
+    size_t prefetchLocIdxsArr[numPrefetchLocs];
+    void* devPtrsArr[numUvmPtrs] = { nullptr };
+    size_t sizesArr[numUvmPtrs] = { 0UL };
+    for (uint32_t index = 0; index < numPrefetchLocs; index++) {
+        prefetchLocsArr[index].id = 0;
+        prefetchLocsArr[index].type = rtMemLocationTypeInvalid;
+    }
+    uint64_t flags = 0UL;
+    rtStream_t stream = nullptr;
+    rtError_t err = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+
+    flags = 1UL;
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+
+    Stream* stm = static_cast<Stream*>(stream);
+    err = apiDecorator_->MemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_INVALID_VALUE);
+
+    err = apiProfDecorator_->MemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_INVALID_VALUE);
+
+    err = apiProfLogDecorator_->MemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_INVALID_VALUE);
+
+    delete apiDecorator_;
+    delete apiProfDecorator_;
+    delete apiProfLogDecorator_;
+}
+
+TEST_F(UvmApiTest, rtMemManagedPrefetchBatchAsync_abnormal_para)
+{
+    constexpr size_t numUvmPtrs = 3UL;
+    void* devPtrsArr[numUvmPtrs] = { (void*)0x10, (void*)0x20, (void*)0x30 };
+    size_t sizesArr[numUvmPtrs] = { 0UL };
+
+    rtStream_t stream = nullptr;
+    rtError_t err = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+
+    ApiImpl apiImpl_;
+    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::LaunchHostFunc).stubs().will(invoke(LaunchHostFuncNormalStub));
+    constexpr size_t numPrefetchLocs = 2;
+    rtMemManagedLocation prefetchLocsArr[numPrefetchLocs];
+    size_t prefetchLocIdxsArr[numPrefetchLocs] = { 0UL, 2UL }; // prefetch uvm 0-1 to phy loc 1, uvm 2 to phy loc 2
+    uint64_t flags = 0;
+    for (uint32_t index = 0; index < numPrefetchLocs; index++) {
+        prefetchLocsArr[index].id = 0;
+        prefetchLocsArr[index].type = rtMemLocationTypeHost;
+    }
+
+    err = rtMemManagedPrefetchBatchAsync(nullptr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, nullptr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, nullptr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        nullptr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, 0UL, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, 0UL, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, 1, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, 1, flags, stream);
+    EXPECT_EQ(err, ACL_RT_SUCCESS);
+    devPtrsArr[0] = nullptr;
+    err = rtMemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stream);
+    EXPECT_EQ(err, ACL_ERROR_RT_PARAM_INVALID);
+}
+
+TEST_F(UvmApiTest, ApiImpl_MemManagedPrefetchBatchAsync)
+{
+    ApiImpl apiImpl_;
+    constexpr size_t numUvmPtrs = 3UL;
+    void* devPtrsArr[numUvmPtrs] = { nullptr };
+    size_t sizesArr[numUvmPtrs] = { 0UL };
+    constexpr size_t numPrefetchLocs = 2UL;
+    size_t prefetchLocIdxsArr[numPrefetchLocs] = { 0UL, 2UL }; // prefetch uvm 0-1 to phy loc 1, uvm 2 to phy loc 2
+    rtMemManagedLocation prefetchLocsArr[numPrefetchLocs];
+
+    for (uint32_t index = 0; index < numPrefetchLocs; index++) {
+        prefetchLocsArr[index].id = 0;
+        prefetchLocsArr[index].type = rtMemLocationTypeInvalid;
+    }
+    rtStream_t stream = nullptr;
+    rtError_t err = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+    Stream* stm = static_cast<Stream*>(stream);
+    uint64_t flags = 1;
+    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::LaunchHostFunc).stubs().will(invoke(LaunchHostFuncNormalStub));
+    err = apiImpl_.MemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_INVALID_VALUE);
+
+    flags = 0;
+    for (uint32_t index = 0; index < numPrefetchLocs; index++) {
+        prefetchLocsArr[index].id = 0;
+        prefetchLocsArr[index].type = rtMemLocationTypeHost;
+    }
+    err = apiImpl_.MemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+
+    MOCKER(halMemManagedPrefetchBatch).stubs().will(invoke(halMemManagedPrefetchBatchFailed));
+    err = apiImpl_.MemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+}
+
+
+TEST_F(UvmApiTest, ApiImpl_MemManagedPrefetchBatchAsync_HostLaunchFail)
+{
+    rtStream_t stream = nullptr;
+    constexpr size_t numPrefetchLocs = 2UL;
+    constexpr size_t numUvmPtrs = 3UL;
+    void* devPtrsArr[numUvmPtrs] = { nullptr };
+    size_t sizesArr[numUvmPtrs] = { 0 };
+    rtMemManagedLocation prefetchLocsArr[numPrefetchLocs];
+    size_t prefetchLocIdxsArr[numPrefetchLocs];
+    for (uint32_t index = 0; index < numPrefetchLocs; index++) {
+        prefetchLocsArr[index].id = 0;
+        prefetchLocsArr[index].type = rtMemLocationTypeHost;
+    }
+    rtError_t err = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(err, RT_ERROR_NONE);
+    Stream* stm = static_cast<Stream*>(stream);
+    ApiImpl apiImpl_;
+    MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::LaunchHostFunc).stubs().will(invoke(LaunchHostFuncFailStub));
+    uint64_t flags = 0;
+    err = apiImpl_.MemManagedPrefetchBatchAsync((const void**)devPtrsArr, sizesArr, numUvmPtrs, prefetchLocsArr,
+        prefetchLocIdxsArr, numPrefetchLocs, flags, stm);
+    EXPECT_EQ(err, RT_ERROR_FEATURE_NOT_SUPPORT);
 }

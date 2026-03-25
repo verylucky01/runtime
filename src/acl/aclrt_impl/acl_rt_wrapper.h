@@ -312,6 +312,8 @@
     _(aclError, aclrtMemManagedGetAttrs, (aclrtMemManagedRangeAttribute *attributes, size_t numAttributes, const void *ptr, size_t size, void **data, size_t *dataSizes), (attributes, numAttributes, ptr, size, data, dataSizes)) \
     _(aclError, aclrtMemManagedAdvise, (const void *const ptr, uint64_t size, aclrtMemManagedAdviseType advise, aclrtMemManagedLocation location), (ptr, size, advise, location)) \
     _(aclError, aclrtMemPoolTrimTo, (aclrtMemPool memPool, size_t minBytesToKeep), (memPool, minBytesToKeep)) \
+    _(aclError, aclrtMemManagedPrefetchAsync, (const void* ptr, size_t size, aclrtMemManagedLocation location, uint32_t flags, aclrtStream stream), (ptr, size, location, flags, stream)) \
+    _(aclError, aclrtMemManagedPrefetchBatchAsync, (const void** ptrs, size_t* sizes, size_t count, aclrtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags, aclrtStream stream), (ptrs, sizes, count, prefetchLocs, prefetchLocIdxs, numPrefetchLocs, flags, stream)) \
 
 // aclrtAllocator interface map list
 #define ACL_RT_ALLOCATOR_FUNC_MAP(_)  \

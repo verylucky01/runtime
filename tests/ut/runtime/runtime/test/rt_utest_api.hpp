@@ -149,6 +149,15 @@ int32_t stubRtsDeviceTaskAbortCallback(uint32_t devId, rtDeviceTaskAbortStage st
 rtError_t GetNotifyPhyInfoStub(cce::runtime::ApiImpl *api, Notify *const inNotify,
                                         rtNotifyPhyInfo *notifyInfo);
 rtError_t GetNotifyPhyInfoStub(cce::runtime::ApiImpl *api, Notify *const inNotify, rtNotifyPhyInfo *notifyInfo);
+
+rtError_t LaunchHostFuncNormalStub(cce::runtime::ApiImpl* impl, Stream* const stm, const rtCallback_t callBackFunc, void* const fnData);
+rtError_t LaunchHostFuncFailStub(cce::runtime::ApiImpl* impl, Stream* const stm, const rtCallback_t callBackFunc, void* const fnData);
+
+DVresult halMemManagedPrefetchFailed(DVdeviceptr devPtr, size_t size, struct drv_uvm_location location, unsigned int flags);
+DVresult halMemManagedPrefetchBatchFailed(DVdeviceptr* devPtrs, size_t* sizes, size_t count,
+    struct drv_uvm_location* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, unsigned long long flags);
+int halGetCurrentThreadNumaNodeFailed(void);
+
 rtError_t msprofreportcallback(uint32_t moduleId, uint32_t type, void *data, uint32_t len);
 drvError_t stubHalGetDeviceInfo(uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value);
 void initData(uint32_t *hostPtr, uint32_t count, uint32_t data);

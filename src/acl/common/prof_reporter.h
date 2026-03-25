@@ -298,6 +298,8 @@ namespace acl {
         AclrtMemManagedGetAttr,
         AclrtMemManagedGetAttrs,
         AclrtMemManagedAdvise,
+        AclrtMemManagedPrefetchAsync,
+        AclrtMemManagedPrefetchBatchAsync,
         // this is the end, can not add after AclRtProfTypeEnd
         AclRtProfTypeEnd
     };

@@ -7298,3 +7298,88 @@ TEST_F(UTEST_ACL_Runtime, aclmdlRIDestroyRegisterCallback)
     ret = aclmdlRIDestroyUnregisterCallback(&modelRI, nullptr);
     EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
 }
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemManagedPrefetchAsyncTest)
+{
+    void *ptr = nullptr;
+    size_t size = 1;
+    aclrtMemManagedLocation location = { ACL_MEM_LOCATIONTYPE_HOST, 1 };
+    uint32_t flags = 0;
+    aclrtStream stream = nullptr;
+
+    aclError ret = aclrtMemManagedPrefetchAsync(ptr, size, location, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ptr = (void *)0x01;
+    size = 0;
+    ret = aclrtMemManagedPrefetchAsync(ptr, size, location, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    size = 1;
+    flags = 1;
+    ret = aclrtMemManagedPrefetchAsync(ptr, size, location, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    size = 1;
+    flags = 0;
+    ret = aclrtMemManagedPrefetchAsync(ptr, size, location, flags, stream);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemManagedPrefetchBatchAsyncTest)
+{
+    constexpr size_t numUvmPtrs = 6UL;
+    constexpr size_t numPrefetchLocsArr = 4UL;
+    void *ptrs[numUvmPtrs] = { (void *)0x01, (void *)0x10, (void *)0x20, (void *)0x30, (void *)0x40, (void *)0x50 };
+    size_t sizes[numUvmPtrs] = { 3, 6, 9, 6, 5, 8 };
+    size_t count = numUvmPtrs;
+    aclrtMemManagedLocation prefetchLocs[numPrefetchLocsArr] = {
+        { ACL_MEM_LOCATIONTYPE_HOST, 1 }, { ACL_MEM_LOCATIONTYPE_DEVICE, 2 },
+        { ACL_MEM_LOCATIONTYPE_HOST_NUMA, 3 }, { ACL_MEM_LOCATIONTYPE_HOST_NUMA_CURRENT, 0 },
+     };
+    size_t prefetchLocIdxs[numPrefetchLocsArr] = { 0, 2, 3, 5 };
+    size_t numPrefetchLocs = numPrefetchLocsArr;
+    uint64_t flags = 1;
+    aclrtStream stream = nullptr;
+
+    aclError ret = aclrtMemManagedPrefetchBatchAsync((const void**)ptrs, sizes, count, prefetchLocs, prefetchLocIdxs,
+        numPrefetchLocs, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    flags = 0;
+    ret = aclrtMemManagedPrefetchBatchAsync(nullptr, sizes, count, prefetchLocs, prefetchLocIdxs,
+        numPrefetchLocs, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemManagedPrefetchBatchAsync((const void**)ptrs, nullptr, count, prefetchLocs, prefetchLocIdxs,
+        numPrefetchLocs, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemManagedPrefetchBatchAsync((const void**)ptrs, sizes, count, nullptr, prefetchLocIdxs,
+        numPrefetchLocs, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemManagedPrefetchBatchAsync((const void**)ptrs, sizes, 0UL, prefetchLocs, prefetchLocIdxs,
+        numPrefetchLocs, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemManagedPrefetchBatchAsync((const void**)ptrs, sizes, count, prefetchLocs, prefetchLocIdxs,
+        0UL, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    numPrefetchLocs = numUvmPtrs + 1; // test incorrect numPrefetchLocs which is bigger than count
+    ret = aclrtMemManagedPrefetchBatchAsync((const void**)ptrs, sizes, count, prefetchLocs, prefetchLocIdxs,
+        numPrefetchLocs, flags, stream);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    numPrefetchLocs = numPrefetchLocsArr;
+    count = numPrefetchLocsArr; // test cases when count is equal to numPrefetchLocs
+    ret = aclrtMemManagedPrefetchBatchAsync((const void**)ptrs, sizes, count, prefetchLocs, prefetchLocIdxs,
+        numPrefetchLocs, flags, stream);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+
+    count = numUvmPtrs;
+    ret = aclrtMemManagedPrefetchBatchAsync((const void**)ptrs, sizes, count, prefetchLocs, prefetchLocIdxs,
+        numPrefetchLocs, flags, stream);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+}

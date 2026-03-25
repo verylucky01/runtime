@@ -2174,3 +2174,66 @@ aclError aclrtMemPoolTrimToImpl(aclrtMemPool memPool, size_t minBytesToKeep)
     }
     return ACL_SUCCESS;
 }
+
+static rtMemManagedLocationType ConvertMemManagedLocationType(aclrtMemManagedLocationType const locationType)
+{
+    switch (locationType) {
+        case ACL_MEM_LOCATIONTYPE_DEVICE:
+            return rtMemLocationTypeDevice;
+        case ACL_MEM_LOCATIONTYPE_HOST:
+            return rtMemLocationTypeHost;
+        case ACL_MEM_LOCATIONTYPE_HOST_NUMA:
+            return rtMemLocationTypeHostNuma;
+        case ACL_MEM_LOCATIONTYPE_HOST_NUMA_CURRENT:
+            return rtMemLocationTypeHostNumaCurrent;
+        default:
+            return rtMemLocationTypeInvalid;
+    }
+}
+
+aclError aclrtMemManagedPrefetchAsyncImpl(const void* ptr, size_t size, aclrtMemManagedLocation location, uint32_t flags,
+    aclrtStream stream)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclrtMemManagedPrefetchAsync);
+    ACL_LOG_DEBUG("start to execute aclrtMemManagedPrefetchAsync");
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(ptr);
+    ACL_REQUIRES_TRUE(size > 0UL, ACL_ERROR_INVALID_PARAM,
+        "size in aclrtMemManagedPrefetchAsync must be large than 0 !");
+    ACL_REQUIRES_TRUE(flags == 0UL, ACL_ERROR_INVALID_PARAM, "flags in aclrtMemManagedPrefetchAsync must be 0 !");
+    rtMemManagedLocation uvmLocation = { ConvertMemManagedLocationType(location.type), location.id };
+    ACL_REQUIRES_CALL_RTS_OK(rtMemManagedPrefetchAsync(ptr, size, uvmLocation, flags, static_cast<rtStream_t>(stream)),
+        rtMemManagedPrefetchAsync);
+    return ACL_SUCCESS;
+}
+
+aclError aclrtMemManagedPrefetchBatchAsyncImpl(const void** ptrs, size_t* sizes, size_t count,
+    aclrtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    aclrtStream stream)
+{
+    ACL_PROFILING_REG(acl::AclProfType::AclrtMemManagedPrefetchBatchAsync);
+    ACL_LOG_DEBUG("start to execute aclrtMemManagedPrefetchBatchAsync");
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(ptrs);
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(sizes);
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(prefetchLocs);
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(prefetchLocIdxs);
+    ACL_REQUIRES_TRUE(count > 0UL, ACL_ERROR_INVALID_PARAM,
+        "count in aclrtMemManagedPrefetchBatchAsync must be large than 0 !");
+    ACL_REQUIRES_TRUE(numPrefetchLocs > 0UL, ACL_ERROR_INVALID_PARAM,
+        "numPrefetchLocs in aclrtMemManagedPrefetchBatchAsync must be large than 0 !");
+    ACL_REQUIRES_TRUE(flags == 0UL, ACL_ERROR_INVALID_PARAM, "flags in aclrtMemManagedPrefetchBatchAsync must be 0 !");
+    ACL_REQUIRES_TRUE(count >= numPrefetchLocs, ACL_ERROR_INVALID_PARAM,
+            "count must be greater than or equal to numPrefetchLocs");
+
+    rtMemManagedLocation* uvmPrefetchLocs = new rtMemManagedLocation[numPrefetchLocs];
+    ACL_CHECK_MALLOC_RESULT(uvmPrefetchLocs);
+
+    for (size_t numPrefetchIdx = 0; numPrefetchIdx < numPrefetchLocs; numPrefetchIdx++) {
+        uvmPrefetchLocs[numPrefetchIdx].id = prefetchLocs[numPrefetchIdx].id;
+        uvmPrefetchLocs[numPrefetchIdx].type = ConvertMemManagedLocationType(prefetchLocs[numPrefetchIdx].type);
+    }
+
+    const rtError_t rtErr = rtMemManagedPrefetchBatchAsync(ptrs, sizes, count, uvmPrefetchLocs, prefetchLocIdxs, numPrefetchLocs, flags, static_cast<rtStream_t>(stream));
+    ACL_DELETE_ARRAY_AND_SET_NULL(uvmPrefetchLocs);
+    ACL_REQUIRES_CALL_RTS_OK(rtErr, rtMemManagedPrefetchBatchAsync);
+    return ACL_SUCCESS;
+}

@@ -269,6 +269,11 @@ public:
     rtError_t MemcpyBatchAsync(void** const dsts, const size_t* const destMaxs, void** const srcs, const size_t* const sizes,
         const size_t count, const rtMemcpyBatchAttr* const attrs, const size_t* const attrsIdxs, const size_t numAttrs, size_t* const failIdx,
         Stream* const stm) override;
+    rtError_t MemManagedPrefetchAsync(const void *ptr, size_t size, rtMemManagedLocation location,
+        uint32_t flags, Stream* const stream) override;
+    rtError_t MemManagedPrefetchBatchAsync(const void **ptrs, size_t* sizes, size_t count,
+        rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+        Stream* const stream) override;
 
     // device API
     rtError_t GetDeviceStatus(const int32_t devId, rtDevStatus_t * const status) override;

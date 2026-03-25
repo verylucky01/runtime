@@ -524,6 +524,7 @@ add_executable(runtime_utest_task_910B
     ${TOP_DIR}/src/runtime/core/src/kernel/v100/kernel.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/stub_task.cc
     stub/hal_stub.cc
+    stub/rt_utest_api_common_defination.cc
     main.cc
     rt_utest_api_device_limit.cc
     rt_utest_api_stream_limit.cc
@@ -615,6 +616,10 @@ add_executable(runtime_utest_api_910B
     rt_utest_uvm.cc
     rt_utest_api_soma.cc
     rt_utest_soma.cc
+)
+
+target_include_directories(runtime_utest_api_910B PRIVATE
+    ${TOP_DIR}/tests/ut/runtime/runtime
 )
 
 target_compile_definitions(runtime_utest_api_910B PUBLIC

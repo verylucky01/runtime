@@ -224,6 +224,40 @@ RTS_API rtError_t rtMemManagedGetAttrs(rtMemManagedRangeAttribute *attributes, s
  */
 RTS_API rtError_t rtMemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep);
 
+/**
+* @ingroup rt_mem
+ * @brief Asynchronous prefetch memory to the specified destination device.
+ * @param [in] ptr      UVM(unified virtual memory) address which will be prefetched.
+ * @param [in] size     size of memory in bytes.
+ * @param [in] location destination physics memory location to prefetch to.
+ * @param [in] flags    reserved, must be 0.
+ * @param [in] stream   stream to enqueue prefetch operation.
+ * @return RT_ERROR_NONE for ok, errno for failed
+ * @return RT_ERROR_INVALID_VALUE for error input
+ */
+RTS_API rtError_t rtMemManagedPrefetchAsync(const void* ptr, size_t size, rtMemManagedLocation location,
+    uint32_t flags, rtStream_t stream);
+
+/**
+ * @ingroup rt_mem
+ * @brief Performs a batch of memory prefetches asynchronously.
+ * @param [in] ptrs            array of UVM(unified virtual memory) address which will be prefetched.
+ * @param [in] sizes           array of each prefetched memory size (in byte).
+ * @param [in] count           size of dptrs and sizes arrays.
+ * @param [in] prefetchLocs    array of destination physics memory location to prefetch to.
+ * @param [in] prefetchLocIdxs index array mapping prefetchLocs elements to a range of prefetch operations:
+                               prefetchLocs[k] applies to operations from prefetchLocIdxs[k] to prefetchLocIdxs[k+1]-1;
+                               prefetchLocs[numPrefetchLocs - 1] applies from prefetchLocIdxs[numPrefetchLocs-1] to count-1.
+ * @param [in] numPrefetchLocs size of prefetchLocs and prefetchLocIdxs arrays.
+ * @param [in] flags           reserved, must be 0.
+ * @param [in] stream          stream to enqueue prefetch operation.
+ * @return RT_ERROR_NONE for ok, errno for failed
+ * @return RT_ERROR_INVALID_VALUE for error input
+ */
+RTS_API rtError_t rtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    rtStream_t stream);
+
 #if defined(__cplusplus)
 }
 #endif

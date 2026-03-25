@@ -372,5 +372,31 @@ rtError_t ApiImplSoma::MemPoolFreeSync(void* const ptr)
     return RT_ERROR_FEATURE_NOT_SUPPORT;
 }
 
+rtError_t ApiImpl::MemManagedPrefetchAsync(const void* ptr, size_t size, rtMemManagedLocation location,
+    uint32_t flags, Stream* const stream)
+{
+    UNUSED(ptr);
+    UNUSED(size);
+    UNUSED(location);
+    UNUSED(flags);
+    UNUSED(stream);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
+rtError_t ApiImpl::MemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    Stream* const stream)
+{
+    UNUSED(ptrs);
+    UNUSED(sizes);
+    UNUSED(count);
+    UNUSED(prefetchLocs);
+    UNUSED(prefetchLocIdxs);
+    UNUSED(numPrefetchLocs);
+    UNUSED(flags);
+    UNUSED(stream);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
 }
 }

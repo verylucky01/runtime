@@ -144,6 +144,35 @@ TEST_F(CloudV2NpuDriverTest, MemcpyAsyncCallback)
     UvmCallback::MemcpyAsyncCallback(static_cast<void *>(memcpyCallbackParam));
 }
 
+TEST_F(CloudV2NpuDriverTest, PrefetchCallbackWrapper)
+{
+    UvmCallback::PrefetchCallbackWrapper(nullptr);
+    struct drv_uvm_location drvLoc1 = { DRV_UVM_LOCATION_TYPE_INVALID, 0 };
+    PrefetchParams *param1 = new PrefetchParams;
+    param1->ptr = 0;
+    param1->size = 0;
+    param1->location = drvLoc1;
+    param1->flags = 0;
+    UvmCallback::PrefetchCallbackWrapper(static_cast<void *>(param1));
+    struct drv_uvm_location drvLoc2 = { DRV_UVM_LOCATION_TYPE_DEVICE, 0 };
+    PrefetchParams *param2 = new PrefetchParams;
+    param2->ptr = 0;
+    param2->size = 0;
+    param2->location = drvLoc1;
+    param2->flags = 0;
+    UvmCallback::PrefetchCallbackWrapper(static_cast<void *>(param2));
+    UvmCallback::PrefetchBatchCallbackWrapper(nullptr);
+}
+
+TEST_F(CloudV2NpuDriverTest, ConvertUvmLocTypeToDrvUvmLocType)
+{
+    EXPECT_EQ(UvmCallback::ConvertUvmLocTypeToDrvUvmLocType(rtMemLocationTypeHost), DRV_UVM_LOCATION_TYPE_HOST);
+    EXPECT_EQ(UvmCallback::ConvertUvmLocTypeToDrvUvmLocType(rtMemLocationTypeDevice), DRV_UVM_LOCATION_TYPE_DEVICE);
+    EXPECT_EQ(UvmCallback::ConvertUvmLocTypeToDrvUvmLocType(rtMemLocationTypeHostNuma), DRV_UVM_LOCATION_TYPE_HOST_NUMA);
+    EXPECT_EQ(UvmCallback::ConvertUvmLocTypeToDrvUvmLocType(rtMemLocationTypeHostNumaCurrent), DRV_UVM_LOCATION_TYPE_HOST_NUMA);
+    EXPECT_EQ(UvmCallback::ConvertUvmLocTypeToDrvUvmLocType(rtMemLocationTypeInvalid), DRV_UVM_LOCATION_TYPE_INVALID);
+}
+
 drvError_t halGetDeviceInfoStub_Cube(uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value)
 {
     *value = RT_AICORE_NUM_25;

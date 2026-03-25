@@ -1185,6 +1185,34 @@ rtError_t rtBinaryGetMetaInfo(const rtBinHandle binHandle, const rtBinaryMetaTyp
     return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
 }
 
+VISIBILITY_DEFAULT
+rtError_t rtMemManagedPrefetchAsync(const void* ptr, size_t size, rtMemManagedLocation location,
+    uint32_t flags, rtStream_t stream)
+{
+    UNUSED(ptr);
+    UNUSED(size);
+    UNUSED(location);
+    UNUSED(flags);
+    UNUSED(stream);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    rtStream_t stream)
+{
+    UNUSED(ptrs);
+    UNUSED(sizes);
+    UNUSED(count);
+    UNUSED(prefetchLocs);
+    UNUSED(prefetchLocIdxs);
+    UNUSED(numPrefetchLocs);
+    UNUSED(flags);
+    UNUSED(stream);
+    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

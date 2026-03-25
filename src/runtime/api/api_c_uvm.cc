@@ -64,6 +64,36 @@ rtError_t rtMemManagedGetAttrs(rtMemManagedRangeAttribute *attributes, size_t nu
     return ACL_RT_SUCCESS;
 }
 
+VISIBILITY_DEFAULT
+rtError_t rtMemManagedPrefetchAsync(const void* ptr, size_t size, rtMemManagedLocation location,
+    uint32_t flags, rtStream_t stream)
+{
+    Api* const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    Stream* const streamPtr = static_cast<Stream*>(stream);
+    const rtError_t error = apiInstance->MemManagedPrefetchAsync(ptr, size, location, flags, streamPtr);
+    COND_RETURN_WITH_NOLOG(((error == RT_ERROR_FEATURE_NOT_SUPPORT) || (error == RT_ERROR_DRV_NOT_SUPPORT)),
+        ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    return ACL_RT_SUCCESS;
+}
+
+VISIBILITY_DEFAULT
+rtError_t rtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    rtStream_t stream)
+{
+    Api* const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    Stream* const streamPtr = static_cast<Stream*>(stream);
+    const rtError_t error = apiInstance->MemManagedPrefetchBatchAsync(ptrs, sizes, count, prefetchLocs, prefetchLocIdxs,
+        numPrefetchLocs, flags, streamPtr);
+    COND_RETURN_WITH_NOLOG(((error == RT_ERROR_FEATURE_NOT_SUPPORT) || (error == RT_ERROR_DRV_NOT_SUPPORT)),
+        ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    return ACL_RT_SUCCESS;
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

@@ -145,6 +145,11 @@ drvError_t __attribute__((weak)) drvHdcSessionClose(HDC_SESSION session);
 drvError_t __attribute__((weak)) halReadFaultEvent(
     int32_t devId, int timeout, struct halEventFilter* filter, struct halFaultEventInfo* eventInfo);
 drvError_t __attribute__((weak)) halMemcpyBatch(uint64_t dst[], uint64_t src[], size_t size[], size_t count);
+DVresult __attribute__((weak)) halMemManagedPrefetch(DVdeviceptr devPtr, size_t size,
+    struct drv_uvm_location location, unsigned int flags);
+DVresult __attribute__((weak)) halMemManagedPrefetchBatch(DVdeviceptr* devPtrs, size_t* sizes, size_t count,
+    struct drv_uvm_location* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, unsigned long long flags);
+int __attribute__((weak)) halGetCurrentThreadNumaNode(void);
 drvError_t __attribute__((weak)) halDeviceOpen(uint32_t devid, halDevOpenIn *in, halDevOpenOut *out);
 drvError_t __attribute__((weak)) halDeviceClose(uint32_t devid, halDevCloseIn *in);
 drvError_t __attribute__((weak)) halQueueGetDqsQueInfo(uint32_t devId, uint32_t qid, DqsQueueInfo *info);

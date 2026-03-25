@@ -315,5 +315,31 @@ rtError_t ApiErrorDecorator::MemManagedGetAttrs(rtMemManagedRangeAttribute *attr
     return RT_ERROR_FEATURE_NOT_SUPPORT;
 }
 
+rtError_t ApiErrorDecorator::MemManagedPrefetchAsync(const void* ptr, size_t size, rtMemManagedLocation location,
+    uint32_t flags, Stream* const stream)
+{
+    UNUSED(location);
+    UNUSED(flags);
+    UNUSED(ptr);
+    UNUSED(size);
+    UNUSED(stream);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
+rtError_t ApiErrorDecorator::MemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_t count,
+    rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
+    Stream* const stream)
+{
+    UNUSED(sizes);
+    UNUSED(ptrs);
+    UNUSED(count);
+    UNUSED(prefetchLocIdxs);
+    UNUSED(numPrefetchLocs);
+    UNUSED(prefetchLocs);
+    UNUSED(stream);
+    UNUSED(flags);
+    return RT_ERROR_FEATURE_NOT_SUPPORT;
+}
+
 }
 }

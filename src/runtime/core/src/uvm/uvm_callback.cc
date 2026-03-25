@@ -91,5 +91,123 @@ void UvmCallback::CreateMemcpyCallbackParam(void * const dst, const uint64_t des
     memcpyCallbackParam->checkKind = checkKind;
     memcpyCallbackParam->stm = curStm;
 }
+
+drv_uvm_location_type UvmCallback::ConvertUvmLocTypeToDrvUvmLocType(rtMemManagedLocationType const uvmLocType)
+{
+    switch (uvmLocType) {
+        case rtMemLocationTypeHost:
+            return DRV_UVM_LOCATION_TYPE_HOST;
+        case rtMemLocationTypeDevice:
+            return DRV_UVM_LOCATION_TYPE_DEVICE;
+        case rtMemLocationTypeHostNuma:
+            return DRV_UVM_LOCATION_TYPE_HOST_NUMA;
+        case rtMemLocationTypeHostNumaCurrent:
+            return DRV_UVM_LOCATION_TYPE_HOST_NUMA;
+        default:
+            return DRV_UVM_LOCATION_TYPE_INVALID;
+    }
 }
+
+int32_t UvmCallback::ConvertUvmLocIdForHostNumaType(drv_uvm_location_type drvUvmLocType, int32_t oriDrvUvmLocId)
+{
+    // When location type is DRV_UVM_LOCATION_TYPE_HOST_NUM, runtime should pass (id + 1) to drv
+    if (drvUvmLocType == DRV_UVM_LOCATION_TYPE_HOST_NUMA) {
+        return oriDrvUvmLocId + 1;
+    }
+    return oriDrvUvmLocId;
 }
+
+rtError_t UvmCallback::ConvertUvmLocationStruct(drv_uvm_location& drvUvmLoc, rtMemManagedLocation& memManagedLoc)
+{
+    drv_uvm_location_type tmpDrvUvmLocType = ConvertUvmLocTypeToDrvUvmLocType(memManagedLoc.type);
+    if (tmpDrvUvmLocType == DRV_UVM_LOCATION_TYPE_INVALID) {
+        return RT_ERROR_INVALID_VALUE;
+    }
+
+    rtMemManagedLocationType memManagedLocType = memManagedLoc.type;
+    int32_t drvUvmLocId = memManagedLoc.id;
+    // For hostNumaCurrent type, runtime need to get numa node id related to current thread
+    if (memManagedLocType == rtMemLocationTypeHostNumaCurrent) {
+        COND_RETURN_WARN(&halGetCurrentThreadNumaNode == nullptr, RT_ERROR_DRV_NOT_SUPPORT,
+            "[drv api] halGetCurrentThreadNumaNode does not exist.");
+        int32_t currentNumaNode = static_cast<int32_t>(halGetCurrentThreadNumaNode());
+        if (currentNumaNode == RT_INVALID_NUMA_NODE_ID) {
+            RT_LOG(RT_LOG_ERROR, "[drv api] halGetCurrentThreadNumaNode get invalid numa node id: -1");
+            return RT_ERROR_DRV_ERR;
+        }
+        drvUvmLocId = currentNumaNode;
+    }
+
+    drvUvmLoc.type = tmpDrvUvmLocType;
+    drvUvmLoc.id = ConvertUvmLocIdForHostNumaType(tmpDrvUvmLocType, drvUvmLocId);
+    return RT_ERROR_NONE;
+}
+
+void UvmCallback::PrefetchCallbackWrapper(void *userData)
+{
+    RT_LOG(RT_LOG_DEBUG, "enter PrefetchCallbackWrapper");
+    NULL_PTR_RETURN_DIRECTLY(userData);
+
+    PrefetchParams* params = static_cast<PrefetchParams*>(userData);
+
+    if (params->ptr == 0) {
+        RT_LOG(RT_LOG_ERROR, "Device pointer cannot be 0");
+        DELETE_O(params);
+        return;
+    }
+
+    if (params->location.type > DRV_UVM_LOCATION_TYPE_HOST_NUMA) {
+        RT_LOG(RT_LOG_ERROR, "Invalid memory side");
+        DELETE_O(params);
+        return;
+    }
+
+    // halMemManagedPrefetch existance has been checked before sending hostFunc task.
+    drvError_t drvRet = halMemManagedPrefetch(params->ptr, params->size, params->location, params->flags);
+    if (drvRet != RT_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemManagedPrefetch failed: size=%zu, loc_type=%u, loc_id=%d, flags=%u, "
+            "drvRetCode=%d!", params->size, static_cast<uint32_t>(params->location.type), params->location.id,
+            params->flags, static_cast<int32_t>(drvRet));
+    }
+    DELETE_O(params);
+    return;
+}
+
+void UvmCallback::PrefetchBatchCallbackWrapper(void *userData)
+{
+    RT_LOG(RT_LOG_DEBUG, "enter PrefetchBatchCallbackWrapper");
+    NULL_PTR_RETURN_DIRECTLY(userData);
+    uint8_t* memBuffer = static_cast<uint8_t*>(userData);
+    size_t tmpOffset = 0;
+    size_t count = *(RtPtrToPtr<size_t*>(userData));
+    tmpOffset += sizeof(count);
+    size_t numPrefetchLocs = *(RtPtrToPtr<size_t*>(memBuffer + tmpOffset));
+    tmpOffset += sizeof(numPrefetchLocs);
+    uint64_t flags = *(RtPtrToPtr<uint64_t*>(memBuffer + tmpOffset));
+    tmpOffset += sizeof(flags);
+    // Extract devPtrs
+    DVdeviceptr* devPtrs = RtPtrToPtr<DVdeviceptr*>(memBuffer + tmpOffset);
+    tmpOffset += count * sizeof(DVdeviceptr);
+    // Extract size
+    size_t* size = RtPtrToPtr<size_t*>(memBuffer + tmpOffset);
+    tmpOffset += count * sizeof(size_t*);
+    // Extract prefetchLocs
+    drv_uvm_location* prefetchLocs = RtPtrToPtr<drv_uvm_location*>(memBuffer + tmpOffset);
+    tmpOffset += numPrefetchLocs * sizeof(drv_uvm_location*);
+    // Extract prefetchLocIdxs
+    size_t* prefetchLocIdxs = RtPtrToPtr<size_t*>(memBuffer + tmpOffset);
+
+    // halMemManagedPrefetchBatch existance has been checked before sending hostFunc task.
+    drvError_t drvRet = halMemManagedPrefetchBatch(devPtrs, size, count, prefetchLocs, prefetchLocIdxs, numPrefetchLocs,
+        flags);
+    if (drvRet != RT_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemManagedPrefetchBatch failed: count=%zu, numPrefetchLocs=%zu, "
+            "flags=%lu, drvRetCode=%d!", count, numPrefetchLocs, flags, static_cast<int32_t>(drvRet));
+    }
+    DELETE_A(memBuffer);
+    return;
+}
+
+} // namespace runtime
+} // namespace cce
+

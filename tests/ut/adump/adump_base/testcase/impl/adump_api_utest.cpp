@@ -471,8 +471,10 @@ static int32_t AdumpCallbackTest(uint64_t dumpSwitch, const char *dumpConfig, in
 {
     if ((dumpSwitch & OP_INFO_RECORD_DUMP) == 0) {
         std::string testData("test op info record");
-        AdumpSaveToFile(testData.c_str(), testData.size(), "12323/test_op_info.json", SaveType::OVERWRITE);
-        AdumpSaveToFile(testData.c_str(), testData.size(), "12323/test_op_info.json", SaveType::APPEND);
+        AdumpSaveToFile(testData.c_str(), testData.size(),
+            "UTest_EmptyJsonSuccess/test_op_info.json", SaveType::OVERWRITE);
+        AdumpSaveToFile(testData.c_str(), testData.size(),
+            "UTest_EmptyJsonSuccess/test_op_info.json", SaveType::APPEND);
     }
     return 0;
 }
@@ -491,13 +493,16 @@ TEST_F(AdumpApiUtest, Test_OP_Dump_Save)
     std::string path("./UTest_EmptyJsonSuccess");
     EXPECT_EQ(ACL_SUCCESS, aclopStartDumpArgs(ACL_OP_DUMP_OP_AICORE_ARGS, path.c_str()));
     EXPECT_EQ(ACL_SUCCESS, aclopStopDumpArgs(ACL_OP_DUMP_OP_AICORE_ARGS));
-    std::string jsonPath = path + "/12323/test_op_info.json";
+    std::string jsonPath = path + "/UTest_EmptyJsonSuccess/test_op_info.json";
     std::ifstream jsonFile(jsonPath);
     EXPECT_EQ(true, jsonFile.is_open());
     std::string data;
     std::getline(jsonFile, data);
     EXPECT_STREQ("test op info recordtest op info record", data.c_str());
-    system("rm -r ./UTest_EmptyJsonSuccess");
+    DumpManager::Instance().opInfoRecordPath_.clear();
+    DumpManager::Instance().enableCallbackFunc_.clear();
+    DumpManager::Instance().disableCallbackFunc_.clear();
+    system("rm -rf ./UTest_EmptyJsonSuccess");
 }
 
 TEST_F(AdumpApiUtest, Test_OP_Dump_Save_Error)
@@ -511,13 +516,16 @@ TEST_F(AdumpApiUtest, Test_OP_Dump_Save_Error)
     EXPECT_EQ(ACL_SUCCESS, aclopStopDumpArgs(ACL_OP_DUMP_OP_AICORE_ARGS));
     MOCKER(&Path::CreateDirectory).stubs().will(returnValue(false));
     EXPECT_EQ(ACL_SUCCESS, aclopStopDumpArgs(ACL_OP_DUMP_OP_AICORE_ARGS));
-    std::string jsonPath = path + "/12323/test_op_info.json";
+    std::string jsonPath = path + "/UTest_EmptyJsonSuccess/test_op_info.json";
     std::ifstream jsonFile(jsonPath);
     EXPECT_EQ(true, jsonFile.is_open());
     std::string data;
     std::getline(jsonFile, data);
     EXPECT_STREQ("", data.c_str());
-    system("rm -r ./UTest_EmptyJsonSuccess");
+    DumpManager::Instance().opInfoRecordPath_.clear();
+    DumpManager::Instance().enableCallbackFunc_.clear();
+    DumpManager::Instance().disableCallbackFunc_.clear();
+    system("rm -rf ./UTest_EmptyJsonSuccess");
 }
 
 TEST_F(AdumpApiUtest, Test_OP_Dump_Api_Error)
@@ -529,12 +537,16 @@ TEST_F(AdumpApiUtest, Test_OP_Dump_Api_Error)
     EXPECT_EQ(ACL_ERROR_FAILURE, aclopStopDumpArgs(ACL_OP_DUMP_OP_AICORE_ARGS));
 
     std::string path("./UTest_EmptyJsonSuccess");
+    system("mkdir ./UTest_EmptyJsonSuccess");
     EXPECT_EQ(ACL_ERROR_FAILURE, aclopStartDumpArgs(ACL_OP_DUMP_OP_AICORE_ARGS, ""));
     MOCKER_CPP(&Path::IsDirectory).stubs().will(returnValue(false)).then(returnValue(true));
     EXPECT_EQ(ACL_ERROR_FAILURE, aclopStartDumpArgs(ACL_OP_DUMP_OP_AICORE_ARGS, path.c_str()));
     EXPECT_EQ(ACL_SUCCESS, aclopStartDumpArgs(ACL_OP_DUMP_OP_AICORE_ARGS, path.c_str()));
     EXPECT_EQ(ACL_ERROR_FAILURE, aclopStartDumpArgs(ACL_OP_DUMP_OP_AICORE_ARGS, path.c_str()));
-    system("rm -r ./UTest_EmptyJsonSuccess");
+    DumpManager::Instance().opInfoRecordPath_.clear();
+    DumpManager::Instance().enableCallbackFunc_.clear();
+    DumpManager::Instance().disableCallbackFunc_.clear();
+    system("rm -rf ./UTest_EmptyJsonSuccess");
 }
 
 TEST_F(AdumpApiUtest, Test_Callback_AdumpSetDump_AdumpUnSetDump)

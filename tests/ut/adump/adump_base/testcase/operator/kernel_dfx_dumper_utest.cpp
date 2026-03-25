@@ -9,6 +9,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <unistd.h>
 #include <iostream>
 #include <thread>
 #include "mockcpp/mockcpp.hpp"
@@ -49,9 +50,12 @@ TEST_F(KernelDfxDumperUtest, Test_DfxDumper_EnableWithEnv)
     // 环境变量ASCEND_DUMP_PATH无效路径/ASCEND_WORK_PATH无效路径，不使能KernelDataDump
     (void)setenv("ASCEND_DUMP_PATH", "./Test_DfxDumper_EnableWithEnv/NoPermission/ascendDumpPath", 1);
     (void)setenv("ASCEND_WORK_PATH", "./Test_DfxDumper_EnableWithEnv/NoPermission/ascendWorkPath", 1);
+    // root用户执行用例有权限
+    bool bRet = getuid() == 0 ? true : false;
     KernelDfxDumper::Instance().EnableDfxDumper();
-    EXPECT_EQ(KernelDfxDumper::Instance().IsEnabled(), false);
+    EXPECT_EQ(KernelDfxDumper::Instance().IsEnabled(), bRet);
 
+    KernelDfxDumper::Instance().UnInit();
     // 环境变量ASCEND_DUMP_PATH有效路径/ASCEND_WORK_PATH有效路径，使能KernelDataDump(ASCEND_DUMP_PATH)
     (void)setenv("ASCEND_DUMP_PATH", "./Test_DfxDumper_EnableWithEnv/ascendDumpPath", 1);
     (void)setenv("ASCEND_WORK_PATH", "./Test_DfxDumper_EnableWithEnv/ascendWorkPath", 1);
@@ -63,7 +67,7 @@ TEST_F(KernelDfxDumperUtest, Test_DfxDumper_EnableWithEnv)
 
     KernelDfxDumper::Instance().UnInit();
     // 环境变量ASCEND_DUMP_PATH无效路径/ASCEND_WORK_PATH有效路径，使能KernelDataDump(ASCEND_WORK_PATH)
-    (void)setenv("ASCEND_DUMP_PATH", "./Test_DfxDumper_EnableWithEnv/NoPermission/ascendDumpPath", 1);
+    (void)setenv("ASCEND_DUMP_PATH", "./Test_DfxDumper_EnableWithEnv/NoPermission/ascendWorkPath", 1);
     (void)setenv("ASCEND_WORK_PATH", "./Test_DfxDumper_EnableWithEnv/ascendWorkPath", 1);
     KernelDfxDumper::Instance().EnableDfxDumper();
     EXPECT_EQ(KernelDfxDumper::Instance().IsEnabled(rtKernelDfxInfoType::RT_KERNEL_DFX_INFO_DEFAULT), true);
@@ -203,9 +207,7 @@ TEST_F(KernelDfxDumperUtest, Test_DfxDumper_DumpDfxCallback_Failed)
         rtKernelDfxInfoType::RT_KERNEL_DFX_INFO_DEFAULT, 0, 0, buffer, length);
     EXPECT_EQ(ret, ADUMP_FAILED);
 
-
-
-    (void)system("rm -rf ./Test_DfxDumper_DumpDfxCallback_Invalid");
+    (void)system("rm -rf ./Test_DfxDumper_DumpDfxCallback_Failed");
 }
 
 INT32 mmGetDiskFreeSpaceStub(const char* path, mmDiskSize *diskSize)

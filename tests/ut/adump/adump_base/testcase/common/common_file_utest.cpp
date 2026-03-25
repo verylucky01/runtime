@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include <gtest/gtest.h>
+#include <unistd.h>
 #include "mockcpp/mockcpp.hpp"
 #include "case_workspace.h"
 #include "adump_pub.h"
@@ -42,14 +43,17 @@ TEST_F(CommonFileUtest, Test_Open_File)
     std::string notExistPathFile = ws.Root() + "/NotExistPath/" + "not_exist.txt";
     EXPECT_EQ(File(notExistPathFile, M_RDWR | M_CREAT).IsFileOpen(), ADUMP_FAILED);
 
+    // root用户执行用例有权限
+    int32_t ret = getuid() == 0 ? ADUMP_SUCCESS : ADUMP_FAILED;
+
     std::string writeOnlyFile = ws.Touch("write_only.txt");
     ws.Chmod("write_only.txt", "222");
-    EXPECT_EQ(File(writeOnlyFile, M_RDONLY).IsFileOpen(), ADUMP_FAILED);
+    EXPECT_EQ(File(writeOnlyFile, M_RDONLY).IsFileOpen(), ret);
     EXPECT_EQ(File(writeOnlyFile, M_WRONLY).IsFileOpen(), ADUMP_SUCCESS);
 
     std::string readOnlyFile = ws.Touch("read_only.txt");
     ws.Chmod("read_only.txt", "444");
-    EXPECT_EQ(File(readOnlyFile, M_WRONLY).IsFileOpen(), ADUMP_FAILED);
+    EXPECT_EQ(File(readOnlyFile, M_WRONLY).IsFileOpen(), ret);
     EXPECT_EQ(File(readOnlyFile, M_RDONLY).IsFileOpen(), ADUMP_SUCCESS);
 }
 
@@ -167,14 +171,17 @@ TEST_F(CommonFileUtest, Test_Copy_With_Exception)
     std::string dstFileName = "dst_file.txt";
     std::string dstPath = ws.Touch(dstFileName);
 
+    // root用户执行用例有权限
+    int32_t ret = getuid() == 0 ? ADUMP_SUCCESS : ADUMP_FAILED;
+
     // src file cann't read
     ws.Chmod(srcFileName, "222");
-    EXPECT_EQ(File::Copy(srcPath, dstPath), ADUMP_FAILED);
+    EXPECT_EQ(File::Copy(srcPath, dstPath), ret);
 
     // dst file can't write
     ws.Chmod(srcFileName, "444");
     ws.Chmod(dstFileName, "444");
-    EXPECT_EQ(File::Copy(srcPath, dstPath), ADUMP_FAILED);
+    EXPECT_EQ(File::Copy(srcPath, dstPath), ret);
 
 
     ws.Chmod(srcFileName, "644");

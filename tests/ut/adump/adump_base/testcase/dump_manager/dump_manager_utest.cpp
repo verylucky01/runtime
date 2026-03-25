@@ -219,7 +219,6 @@ TEST_F(DumpManagerUtest, Test_DumpOperatorV2_WithCapture_MultipleTensors)
         tensors.push_back(tensor);
     }
 
-    
     rtStream_t stream = reinterpret_cast<rtStream_t>(0x1);
     ret = DumpManager::Instance().DumpOperatorV2("Mul", "mul_op", tensors, stream);
     EXPECT_EQ(ret, ADUMP_SUCCESS);
@@ -287,7 +286,7 @@ TEST_F(DumpManagerUtest, Test_StartDumpArgs_CallbackNoDeadlock)
     ret = DumpManager::Instance().StopDumpArgs();
     EXPECT_EQ(ret, ADUMP_SUCCESS);
 
-    system("rm -rf ./llt_test_dump_args");
-
     DumpManager::Instance().StopDataDumpServer();
+    DumpManager::Instance().opInfoRecordPath_.clear();
+    system("rm -rf ./llt_test_dump_args");
 }

@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include <gtest/gtest.h>
+#include <unistd.h>
 #include "mockcpp/mockcpp.hpp"
 #include <vector>
 #include "dump_config_converter.h"
@@ -385,14 +386,17 @@ TEST_F(DumpConfigConverterUtest, TestNpuCollectPathEnableExceptionDump)
     (void)system("chmod 400 ./TestNpuCollectPathEnableExceptionDump/NoPermission");
     (void)setenv("NPU_COLLECT_PATH", "./TestNpuCollectPathEnableExceptionDump/NoPermission/npuCollectPath", 1);
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
-    EXPECT_EQ(ret, false);
+    // root用户执行用例有权限
+    bool bRet = getuid() == 0 ? true : false;
+    EXPECT_EQ(ret, bRet);
 
     // 环境变量NPU_COLLECT_PATH，无效路径，无权限，不使能L1 exception dump
     (void)system("mkdir -p ./TestNpuCollectPathEnableExceptionDump/npuCollectPathNoPermission");
     (void)system("chmod 400 ./TestNpuCollectPathEnableExceptionDump/npuCollectPathNoPermission");
     (void)setenv("NPU_COLLECT_PATH", "./TestNpuCollectPathEnableExceptionDump/npuCollectPathNoPermission", 1);
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
-    EXPECT_EQ(ret, false);
+    // root用户执行用例有权限
+    EXPECT_EQ(ret, bRet);
 
     // 环境变量NPU_COLLECT_PATH，无效路径，非目录，不使能L1 exception dump
     (void)system("touch ./TestNpuCollectPathEnableExceptionDump/npuCollectPathIsFile");
@@ -406,19 +410,16 @@ TEST_F(DumpConfigConverterUtest, TestNpuCollectPathEnableExceptionDump)
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::EXCEPTION);
     EXPECT_EQ(config.dumpPath, "./TestNpuCollectPathEnableExceptionDump/npuCollectPath");
-
+    (void)system("rm -rf ./TestNpuCollectPathEnableExceptionDump");
     (void)unsetenv("ASCEND_WORK_PATH");
     (void)unsetenv("NPU_COLLECT_PATH");
     (void)unsetenv("ASCEND_DUMP_SCENE");
 }
 
-
 TEST_F(DumpConfigConverterUtest, TestAscendDumpSceneEnableExceptionDump)
 {
     DumpConfig config;
     DumpType dumpType;
-    bool ret = false;
-
     (void)system("rm -rf ./TestAscendDumpSceneEnableExceptionDump");
     (void)system("mkdir ./TestAscendDumpSceneEnableExceptionDump");
     (void)system("mkdir ./TestAscendDumpSceneEnableExceptionDump/NoPermission");
@@ -426,14 +427,9 @@ TEST_F(DumpConfigConverterUtest, TestAscendDumpSceneEnableExceptionDump)
 
     // 环境变量NPU_COLLECT_PATH，有效路径，使能L1 exception dump
     (void)setenv("NPU_COLLECT_PATH", "./TestAscendDumpSceneEnableExceptionDump/npuCollectPath", 1);
-    ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
-    EXPECT_EQ(ret, true);
-    EXPECT_EQ(dumpType, DumpType::EXCEPTION);
-    EXPECT_EQ(config.dumpPath, "./TestAscendDumpSceneEnableExceptionDump/npuCollectPath");
-
     // 环境变量ASCEND_DUMP_SCENE，无效值，使能L1 exception dump
     (void)setenv("ASCEND_DUMP_SCENE", "!aic_err_brief_dump", 1);
-    ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
+    bool ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::EXCEPTION);
     EXPECT_EQ(config.dumpPath, "./TestAscendDumpSceneEnableExceptionDump/npuCollectPath");
@@ -451,7 +447,10 @@ TEST_F(DumpConfigConverterUtest, TestAscendDumpSceneEnableExceptionDump)
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::ARGS_EXCEPTION);
-    EXPECT_EQ(config.dumpPath, "./");
+    // root用户执行用例有权限
+    std::string dumpPath = getuid() == 0 ? "./TestAscendDumpSceneEnableExceptionDump/NoPermission/ascendWorkPath"
+        : "./";
+    EXPECT_EQ(config.dumpPath, dumpPath);
 
     // 路径优先级2.2：生效ASCEND_WORK_PATH，有效路径
     (void)setenv("ASCEND_WORK_PATH", "./TestAscendDumpSceneEnableExceptionDump/ascendWorkPath", 1);
@@ -465,10 +464,12 @@ TEST_F(DumpConfigConverterUtest, TestAscendDumpSceneEnableExceptionDump)
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::ARGS_EXCEPTION);
-    EXPECT_EQ(config.dumpPath, "./TestAscendDumpSceneEnableExceptionDump/ascendWorkPath");
-
+    // root用户执行用例有权限
+    dumpPath = getuid() == 0 ? "./TestAscendDumpSceneEnableExceptionDump/NoPermission/ascendDumpPath"
+        : "./TestAscendDumpSceneEnableExceptionDump/ascendWorkPath";
+    EXPECT_EQ(config.dumpPath, dumpPath);
     // 路径优先级1.2：生效ASCEND_DUMP_PATH，有效路径
-    (void)setenv("ASCEND_WORK_PATH", "./TestAscendDumpSceneEnableExceptionDump/ascendDumpPath", 1);
+    (void)setenv("ASCEND_DUMP_PATH", "./TestAscendDumpSceneEnableExceptionDump/ascendDumpPath", 1);
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::ARGS_EXCEPTION);

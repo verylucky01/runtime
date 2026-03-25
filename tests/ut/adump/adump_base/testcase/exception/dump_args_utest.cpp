@@ -2420,7 +2420,7 @@ TEST_F(DumpArgsUtest, Test_Dump_Args_For_L2_Shape)
     MOCKER(dlclose).stubs().will(returnValue(0));
     MOCKER(dlerror).stubs().will(invoke(mmDlerror));
 
-    Tools::CaseWorkspace ws("Test_Dump_Args_For_L2_Shape", false);
+    Tools::CaseWorkspace ws("Test_Dump_Args_For_L2_Shape");
 
     DumpConfig dumpConf;
     dumpConf.dumpPath = ws.Root();

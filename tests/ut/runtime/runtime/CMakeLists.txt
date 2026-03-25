@@ -89,6 +89,7 @@ set(runtimeut_david_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/v200/memcpy_task_to_sqe.cc
     ${TOP_DIR}/src/runtime/core/src/task/v200/aicpu_task_to_sqe.cc
     ${TOP_DIR}/src/runtime/core/src/task/v200/task_checker.cc
+    ${TOP_DIR}/src/runtime/core/src/task/v200/notify_task_to_sqe.cc
 )
 
 set(runtimeut_src_api_list
@@ -312,6 +313,7 @@ set(runtimeut_src_tiny_exclude_list
     ${TOP_DIR}/src/runtime/core/src/event/ipc_event.cc
     ${TOP_DIR}/src/runtime/core/src/pool/event_pool.cc
     ${TOP_DIR}/src/runtime/core/src/pool/event_expanding.cc
+    ${TOP_DIR}/src/runtime/core/src/task/v200/notify_task_to_sqe.cc
 )
 
 set(runtimeut_src_tiny_include_list
@@ -1289,6 +1291,7 @@ set(runtimeut_v201_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/v201/dqs_task.cc
     ${TOP_DIR}/src/runtime/core/src/launch/v201/dqs_c.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/v201/api_impl_v200_adapt.cc
+    ${TOP_DIR}/src/runtime/core/src/task/v201/notify_task_to_sqe.cc
 )
 
 set(runtimeut_v201_src_list

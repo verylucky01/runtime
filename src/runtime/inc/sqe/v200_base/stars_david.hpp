@@ -547,6 +547,7 @@ void ConstructDavidSqeForModelUpdateTask(TaskInfo * const taskInfo, rtDavidSqe_t
 void ConstructDavidSqeForNopTask(TaskInfo * const taskInfo, rtDavidSqe_t * const command, uint64_t sqBaseAddr);
 void ConstructDavidSqeForNotifyWaitTask(TaskInfo *taskInfo, rtDavidSqe_t *const command, uint64_t sqBaseAddr);
 void ConstructDavidSqeForNotifyRecordTask(TaskInfo *taskInfo, rtDavidSqe_t *const command, uint64_t sqBaseAddr);
+void ConstructSqeForIpcNotifyRecordTask(TaskInfo* taskInfo, rtDavidSqe_t * const command);
 void ConstructDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t *const davidSqe, uint64_t sqBaseAddr);
 void ConstructFirstDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t *const davidSqe);
 void ConstructSecondDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t *const davidSqe,

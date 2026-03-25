@@ -107,6 +107,7 @@ set(libruntime_cmodel_v200_task_src_files
     ${RUNTIME_CORE_DIR}/src/task/v200/memcpy_task_to_sqe.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/task_checker.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/aicpu_task_to_sqe.cc
+    ${RUNTIME_CORE_DIR}/src/task/v200/notify_task_to_sqe.cc
 )
 
 set(libruntime_cmodel_api_src_files_cmodel

@@ -1575,3 +1575,32 @@ TEST_F(TaskTestV201, Test_Construct_Simt_Sqe)
     free(sqe);
     sqe = nullptr;
 }
+
+TEST_F(TaskTestV201, Test_IpcRecordTask)
+{
+    rtStream_t stream;
+    rtNotify_t notify;
+    TaskInfo task1 = {};
+    NotifyRecordTaskInfo notifyRecord = {};
+    task1.u.notifyrecordTask = notifyRecord;
+    TaskInfo *tmpTask = &task1;
+    rtDavidSqe_t *sqe = (rtDavidSqe_t *)malloc(sizeof(rtDavidSqe_t));
+    rtError_t ret = rtStreamCreate(&stream, 0);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    ret = rtNotifyCreate(0, &notify);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    MOCKER(CheckTaskCanSend).stubs().will(returnValue(RT_ERROR_NONE));
+    uint32_t pos = 0;
+    MOCKER(AllocTaskInfoForCapture).stubs().with(outBoundP(&tmpTask), mockcpp::any(), outBound(pos), mockcpp::any()).will(returnValue(RT_ERROR_NONE));
+    MOCKER(halSqTaskSend).stubs().will(returnValue(DRV_ERROR_INVALID_VALUE));
+    ((Stream *)stream)->SetSqBaseAddr(reinterpret_cast<uint64_t>(sqe));
+    ((Notify *)notify)->isIpcNotify_ = true;
+    ret = NtyRecord((Notify *)notify, (Stream *)stream);
+    EXPECT_NE(ret, RT_ERROR_DRV_INPUT);
+
+    ret = rtNotifyDestroy(notify);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    ret = rtStreamDestroy(stream);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    free(sqe);
+}

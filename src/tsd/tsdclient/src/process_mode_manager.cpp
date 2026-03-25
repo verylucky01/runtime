@@ -2239,6 +2239,7 @@ TSD_StatusT ProcessModeManager::CompareAndSendCommonSinkPkg(const std::string &p
         if (this->IsCommonSinkHostAndDevicePkgSame(pkgPureName)) {
             TSD_INFO("checksum of driver package[%s] is same as device[%u], idle[%d], skip send",
                 this->GetHostCommonSinkPackHashValue(pkgPureName).c_str(),
+                this->logicDeviceId_,
                 this->deviceIdle_);
             return true;
         }

@@ -14,6 +14,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <dlfcn.h>
 #include <nlohmann/json.hpp>
 #include "mmpa/mmpa_api.h"
 #include "base/err_msg.h"
@@ -126,6 +127,14 @@ REG_FORMAT_ERROR_MSG(g_msg3.c_str(), g_msg3.size());
 
 const char kStringArgFormat[] = "%s";
 const char kErrMsgFormat[] = "errmsg:%s";
+
+template <typename FuncPtr>
+void ExpectCInterfaceSymbolName(FuncPtr func_ptr, const char *expected_symbol_name) {
+  Dl_info info {};
+  ASSERT_NE(dladdr(reinterpret_cast<const void *>(func_ptr), &info), 0);
+  ASSERT_NE(info.dli_sname, nullptr);
+  EXPECT_STREQ(info.dli_sname, expected_symbol_name);
+}
 }
 
   class UtestErrorManager : public testing::Test {
@@ -1059,6 +1068,12 @@ TEST_F(UtestErrorManager, RegisterFormatErrorMessageForC_Failed) {
 
 TEST_F(UtestErrorManager, RegisterFormatErrorMessageForC_Failed_NullErrorMessage) {
   EXPECT_EQ(RegisterFormatErrorMessageForC(nullptr, 1U), -1);
+}
+
+TEST_F(UtestErrorManager, CCallbackWrapperInterfaceNamesRemainStable) {
+  ExpectCInterfaceSymbolName(&RegisterFormatErrorMessageForC, "RegisterFormatErrorMessageForC");
+  ExpectCInterfaceSymbolName(&ReportPredefinedErrMsgForC, "ReportPredefinedErrMsgForC");
+  ExpectCInterfaceSymbolName(&ReportInnerErrMsgForC, "ReportInnerErrMsgForC");
 }
 
 TEST_F(UtestErrorManager, ReportPredefinedErrMsgForC_Success) {

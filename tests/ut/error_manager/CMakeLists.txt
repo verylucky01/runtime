@@ -41,6 +41,7 @@ target_compile_definitions(ut_error_manager PRIVATE
 )
 
 target_link_options(ut_error_manager PRIVATE
+        -Wl,--export-dynamic
         -Wl,--disable-new-dtags
         -Wl,-rpath,${CMAKE_CURRENT_LIST_DIR}
         )

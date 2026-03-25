@@ -3612,7 +3612,7 @@ RTS_API rtError_t rtGetDeviceSatStatus(void * const outputAddrPtr, const uint64_
     const rtChipType_t chipType = rtInstance->GetChipType();
     DevProperties props;
     GET_DEV_PROPERTIES(chipType, props);
-    if (props.deviceSatStatusImpl > 0) {
+    if (props.deviceSatStatusImpl > DeviceSatStatusImpl::NOT_SUPPORT) {
         ret = apiInstance->GetDeviceSatStatus(outputAddrPtr, outputSize, streamPtr);
     } else {
         REPORT_FUNC_ERROR_REASON(RT_ERROR_FEATURE_NOT_SUPPORT);
@@ -3637,9 +3637,9 @@ RTS_API rtError_t rtCleanDeviceSatStatus(rtStream_t stm)
     const rtChipType_t chipType = rtInstance->GetChipType();
     DevProperties props;
     GET_DEV_PROPERTIES(chipType, props);
-    if (props.deviceSatStatusImpl == 1) {
+    if (props.deviceSatStatusImpl == DeviceSatStatusImpl::DEVICE_SAT_STATUS_CONTEXT_LEVEL) {
         ret = apiInstance->CleanDeviceSatStatus(streamPtr);
-    } else if (props.deviceSatStatusImpl == 2 || props.deviceSatStatusImpl == 3) {
+    } else if (props.deviceSatStatusImpl == DeviceSatStatusImpl::DEVICE_SAT_STATUS_STREAM_LEVEL) {
         ret = apiInstance->NpuClearFloatStatus(0U, streamPtr);
     } else {
         REPORT_FUNC_ERROR_REASON(RT_ERROR_FEATURE_NOT_SUPPORT);

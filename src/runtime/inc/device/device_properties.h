@@ -205,6 +205,12 @@ enum class SupportCreateTaskRes : uint8_t {
     CREATE_TASK_RES_SUPPORT
 };
 
+enum class DeviceSatStatusImpl : uint8_t {
+    NOT_SUPPORT, // 不支持饱和模式的状态获取和清理
+    DEVICE_SAT_STATUS_CONTEXT_LEVEL, // 饱和模式的状态是存储在一个ContextOverflowAddr中
+    DEVICE_SAT_STATUS_STREAM_LEVEL // 饱和模式的状态是存储在stream上的
+};
+
 struct DevProperties final {
     std::string engineType;
     bool isStars;
@@ -291,7 +297,7 @@ struct DevProperties final {
     uint64_t cmoDDRStructInfoSize;
     StreamWaitEventTimeout streamWaitEventTimeout;
     int32_t timelineEventId;
-    uint16_t deviceSatStatusImpl;
+    DeviceSatStatusImpl deviceSatStatusImpl;
     AllocManagedFlag allocManagedFlag;
     SdmaCopyMethod sdmaCopyMethod;
     uint8_t eventPoolSize;

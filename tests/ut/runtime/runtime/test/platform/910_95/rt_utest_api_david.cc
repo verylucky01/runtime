@@ -7488,6 +7488,10 @@ TEST_F(ApiDavidTest, rtsRepairError)
     errorInfo.errorType = RT_ERROR_L2;
     error = rtsRepairError(0, &errorInfo);
     EXPECT_NE(error, RT_ERROR_NONE);
+
+    errorInfo.errorType = RT_ERROR_LINK;
+    error = rtsRepairError(0, &errorInfo);
+    EXPECT_NE(error, RT_ERROR_NONE);
     
     errorInfo.errorType = RT_ERROR_OTHERS;
     error = rtsRepairError(0,  &errorInfo);
@@ -7615,6 +7619,36 @@ TEST_F(ApiDavidTest, rtsGetErrorVerboseForLinkError)
     EXPECT_EQ(errorInfo.hasDetail, 0U);
     EXPECT_EQ(errorInfo.tryRepair, 1U);
     device->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
+}
+
+TEST_F(ApiDavidTest, rtsRepairErrorForLinkError)
+{
+    rtError_t error;
+    rtErrorInfo errorInfo = {};
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    rtChipType_t type = rtInstance->chipType_;
+
+    rtInstance->SetChipType(CHIP_MINI);
+    GlobalContainer::SetRtChipType(CHIP_MINI);
+    error = rtsGetErrorVerbose(0, &errorInfo);
+    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    error = rtsRepairError(0, &errorInfo);
+    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+
+    rtInstance->SetChipType(CHIP_DAVID);
+    GlobalContainer::SetRtChipType(CHIP_DAVID);
+    Device *device = rtInstance->DeviceRetain(0, 0);
+    device->SetDeviceFaultType(DeviceFaultType::LINK_ERROR);
+    error = rtsGetErrorVerbose(0, &errorInfo);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(errorInfo.errorType, RT_ERROR_LINK);
+    EXPECT_EQ(errorInfo.tryRepair, 1);
+
+    error = rtsRepairError(0, &errorInfo);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    rtInstance->chipType_ = type;
+    GlobalContainer::SetRtChipType(type);
 }
 
 TEST_F(ApiDavidTest, rtsRepairErrorForAicError)

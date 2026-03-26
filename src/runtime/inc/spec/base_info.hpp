@@ -168,6 +168,7 @@ constexpr int32_t RT_STREAM_LEAST_PRIORITY = 7;
 constexpr uint64_t MAX_MEMCPY_SIZE_OF_D2D = 4ULL * 1024ULL * 1024ULL * 1024ULL; // 4G
 constexpr uint32_t MEMCPY_ASYNC_UNIT_SIZE = 64U * 1024U * 1024U;
 constexpr uint64_t MEM_CTRL_TWO_M_GRANULARITY = 2U * 1024U * 1024U;
+constexpr unsigned char UBMEM_RESUME_ALL_NODE_ID = 0xff;
 
 constexpr uint32_t RT_MILAN_TASK_ID_MAX = 65535U;
 constexpr uint32_t RT_MILAN_MAX_QUERY_CQE_NUM = 32U;

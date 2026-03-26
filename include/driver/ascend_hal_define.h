@@ -1425,4 +1425,11 @@ typedef enum {
 	PSM_STATUS_NO_WORK = 1,
     PSM_STATUS_MAX,
 } PSM_STATUS;
+
+struct hal_fault_event_resume {
+    unsigned int event_id;
+    unsigned short node_type;
+    unsigned char node_id;
+    unsigned char resv[9];  /* Confirmed with the driver, this field needs to be reserved due to alignment requirements. */
+};
 #endif

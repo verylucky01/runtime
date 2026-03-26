@@ -863,6 +863,16 @@ public:
         return aicoreQosCfgs_;
     }
 
+    void SetDeviceFaultInfo(const DeviceFaultInfo& info) override
+    {
+        devFaultInfo_ = info;
+    }
+
+    DeviceFaultInfo GetDeviceFaultInfo() const override
+    {
+        return devFaultInfo_;
+    }
+
     rtError_t RestoreSqCqPool() override;
 
 private:
@@ -1033,6 +1043,7 @@ private:
     std::mutex programMtx_;
     std::unordered_set<Program *> programSet_;
     qos_master_config_t aicoreQosCfgs_;
+    DeviceFaultInfo devFaultInfo_ = {};
 };
 }
 }

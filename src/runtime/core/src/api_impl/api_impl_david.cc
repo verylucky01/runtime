@@ -1987,6 +1987,24 @@ static rtError_t L2BufferErrorResume(Device * const dev, const uint32_t deviceId
     return error;
 }
 
+static rtError_t UBMemErrorResume(Device * const dev)
+{
+    hal_fault_event_resume buf_context = {};
+    const DeviceFaultInfo faultInfo = dev->GetDeviceFaultInfo();
+    buf_context.event_id = faultInfo.eventId;
+    buf_context.node_type = faultInfo.nodeType;
+    buf_context.node_id = UBMEM_RESUME_ALL_NODE_ID;
+    const rtError_t error = NpuDriver::SetDeviceInfoByBuff(dev->Id_(), MODULE_TYPE_SYSTEM, INFO_TYPE_EVENT_RESUME,
+        static_cast<void *>(&buf_context), sizeof(buf_context));
+    COND_RETURN_WARN(error == RT_ERROR_FEATURE_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT, 
+        "Not support UBMem resume.");
+    COND_PROC((error != RT_ERROR_NONE),
+        RT_LOG(RT_LOG_ERROR, "UBMem err repair failed, deviceId=%u, retCode=%#x.",
+            dev->Id_(), static_cast<uint32_t>(error)));
+    dev->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
+    return error;
+}
+
 rtError_t ApiImplDavid::RepairError(const uint32_t deviceId, const rtErrorInfo * const errorInfo)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -2004,6 +2022,9 @@ rtError_t ApiImplDavid::RepairError(const uint32_t deviceId, const rtErrorInfo *
             break;
         case RT_ERROR_MEMORY:
             error = MemUceErrorResume(dev, deviceId, errorInfo);
+            break;
+        case RT_ERROR_LINK:
+            error = UBMemErrorResume(dev);
             break;
         default:
             error = RT_ERROR_INVALID_VALUE;

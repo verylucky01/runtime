@@ -415,6 +415,10 @@ static void AixLinkErrProc(const Device * const dev, const StarsDeviceErrorInfo 
                     info->u.coreErrorInfo.comm.streamId, info->u.coreErrorInfo.comm.taskId,
                     static_cast<uint32_t>(RT_ERROR_DEVICE_LINK_ERROR));
                 (RtPtrToUnConstPtr<Device *>(dev))->SetDeviceFaultType(DeviceFaultType::LINK_ERROR);
+                DeviceFaultInfo faultInfo = {};
+                faultInfo.eventId = faultEventInfo[faultIndex].eventId;
+                faultInfo.nodeType = faultEventInfo[faultIndex].nodeType;
+                (RtPtrToUnConstPtr<Device *>(dev))->SetDeviceFaultInfo(faultInfo);
                 return;
             }
         }

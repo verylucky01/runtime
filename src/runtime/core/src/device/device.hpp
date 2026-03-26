@@ -129,6 +129,11 @@ enum class TaskAbortCallbackType : uint8_t {
     TASK_ABORT_TYPE_MAX
 };
 
+struct DeviceFaultInfo {
+    uint32_t eventId;
+    uint16_t nodeType;
+};
+
 class TaskFactory;
 class Task;
 class ArgLoader;
@@ -478,6 +483,8 @@ public:
     virtual bool ProgramSetMutexTryLock() = 0;
     virtual void ProgramSetMutexUnLock() = 0;
     virtual rtError_t RestoreSqCqPool() = 0;
+    virtual void SetDeviceFaultInfo(const DeviceFaultInfo& info) = 0;
+    virtual DeviceFaultInfo GetDeviceFaultInfo() const = 0;
 
     inline std::mutex& GetHcclStreamIndexMutex(void)
     {

@@ -48,7 +48,10 @@ usage() {
   echo "    -u, --ut [specific_ut]"
   echo "                   Build and execute ut, if specific_ut is provided, run only the specified unit test"
   echo "    -c, --cov      Build ut with coverage tag"
-  echo "    --asan         Enable AddressSanitizer"
+  echo "    --asan         Enable AddressSanitizer (requires libasan.so, libubsan.so, libtsan.so)"
+  echo "                   Asan libraries are usually integrated with gcc. If not found, install them:"
+  echo "                   Ubuntu/Debian: sudo apt install libasan6 libubsan1 libtsan2"
+  echo "                   Ensure the version matches your gcc (e.g., gcc 9.5.0 -> libasan6)"
   echo "    -t, --target   Build only the selected target and run"
   echo "    --cann_3rd_lib_path=<PATH>"
   echo "                   Set ascend third_party package install path, default ./output/third_party"
@@ -201,6 +204,44 @@ mk_dir() {
   echo "created ${create_dir}"
 }
 
+# validate sanitizer libraries
+validate_sanitizer_libs() {
+  if [[ "X$ENABLE_ASAN" = "Xon" ]]; then
+    echo "Validating sanitizer libraries..."
+    
+    local libs=("libasan.so" "libubsan.so" "libtsan.so")
+    local preload_libs=""
+    local missing_libs=()
+    
+    for lib in "${libs[@]}"; do
+      local lib_path=$(gcc -print-file-name=$lib)
+      if [ -f "$lib_path" ]; then
+        preload_libs="$preload_libs:$lib_path"
+        echo "  ✓ $lib found at: $lib_path"
+      else
+        echo "  ✗ $lib not found"
+        missing_libs+=("$lib")
+      fi
+    done
+    
+    if [ ${#missing_libs[@]} -ne 0 ]; then
+      echo ""
+      echo "ERROR: Missing sanitizer libraries: ${missing_libs[*]}"
+      echo ""
+      echo "Please install the missing sanitizer libraries:"
+      echo "  Ubuntu/Debian: sudo apt install libasan6 libubsan1 libtsan2"
+      echo "  CentOS/EulerOS: sudo yum install libasan libubsan libtsan"
+      echo ""
+      echo "Note: Ensure the library version matches your gcc version."
+      echo "  For example: gcc 9.5.0 requires libasan6"
+      echo "  Check your gcc version with: gcc --version"
+      exit 1
+    fi
+
+    export LD_PRELOAD="$ORIGINAL_LD_PRELOAD:$preload_libs"
+  fi
+}
+
 # create build path
 build_rts() {
   echo "create build directory and build";
@@ -252,15 +293,8 @@ run_ut() {
     fi
 
     ORIGINAL_LD_PRELOAD="$LD_PRELOAD"
-    if [[ "X$ENABLE_ASAN" = "Xon" ]]; then
-      LIBASAN_PATH=$(gcc -print-file-name=libasan.so)
-      if [ -f "$LIBASAN_PATH" ]; then
-        export LD_PRELOAD="$ORIGINAL_LD_PRELOAD:$LIBASAN_PATH"
-        echo "preload libasan from $LIBASAN_PATH"
-      else
-        echo "libasan not found for the current gcc version."
-      fi
-    fi
+    # validate sanitizer libraries if ASAN is enabled
+    validate_sanitizer_libs
 
     local report_dir="${OUTPUT_PATH}/report/ut" && mk_dir "${report_dir}"
     echo "${UT_TARGET}"

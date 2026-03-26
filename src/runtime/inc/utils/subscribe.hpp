@@ -37,7 +37,7 @@ typedef struct tagCbSubscribeInfo {
         Event *event;
         Notify *notify;
     } u;
-}cbSubscribeInfo;
+} cbSubscribeInfo;
 
 using ThreadIdMap = std::map<uint64_t, std::map<uint32_t, std::map<int32_t, cbSubscribeInfo> > >;
 using DevIdTsIdMap = std::map<uint32_t, std::map<int32_t, cbSubscribeInfo> >;

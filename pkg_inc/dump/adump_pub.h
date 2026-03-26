@@ -114,30 +114,30 @@ enum TensorPlacement : int32_t {
     kFollowing,    ///< Tensor位于Host，且数据紧跟在结构体后面
     kOnDeviceP2p,  ///< Tensor位于Device上的P2p内存
     kTensorPlacementEnd
-}; 
+};
 
 struct TensorInfo {
     TensorType type;       // tensor类型
-    size_t tensorSize;     // tensor内存大小  
-    int32_t format;      
-    int32_t dataType;     
+    size_t tensorSize;     // tensor内存大小
+    int32_t format;
+    int32_t dataType;
     int64_t *tensorAddr;   // tensor数据地址
     AddressType addrType;  // 地址的类型
     int32_t placement;
-    uint32_t argsOffSet;   // tensor数据地址在args里的偏移 
+    uint32_t argsOffSet;   // tensor数据地址在args里的偏移
     std::vector<int64_t> shape;  //shape
     std::vector<int64_t> originShape; //originShape
 };
 
 struct TensorInfoV2 {
     TensorType type;       // tensor类型
-    size_t tensorSize;     // tensor内存大小  
-    int32_t format;      
-    int32_t dataType;     
+    size_t tensorSize;     // tensor内存大小
+    int32_t format;
+    int32_t dataType;
     int64_t *tensorAddr;   // tensor数据地址
     AddressType addrType;  // 地址的类型
     int32_t placement;
-    uint32_t argsOffSet;   // tensor数据地址在args里的偏移 
+    uint32_t argsOffSet;   // tensor数据地址在args里的偏移
     std::vector<int64_t> shape;  //shape
     std::vector<int64_t> originShape; //originShape
 };
@@ -175,6 +175,58 @@ ADX_API int32_t AdumpDumpTensor(const std::string &opType, const std::string &op
  */
 ADX_API int32_t AdumpDumpTensorV2(const std::string &opType, const std::string &opName,
     const std::vector<TensorInfoV2> &tensors, aclrtStream stream);
+
+typedef enum {
+    DUMP_ATTR_MODEL_NAME = 1,
+    DUMP_ATTR_MODEL_NAMESIZE,
+    DUMP_ATTR_MODEL_ID,
+    DUMP_ATTR_STEP_ID_ADDR,
+    DUMP_ATTR_ITER_PER_LOOP_ADDR,
+    DUMP_ATTR_LOOP_COND_ADDR,
+    DUMP_ATTR_DUMP_STEP,
+    DUMP_ATTR_DUMP_STEPSIZE,
+    DUMP_ATTR_STREAM_MODEL,
+} DumpAttrId;
+
+typedef union {
+    char* modelName;
+    uint64_t modelNameSize;
+    uint32_t modelId;
+    uint64_t stepIdAddr;
+    uint64_t iterPerLoopAddr;
+    uint64_t loopCondAddr;
+    char* dumpStep;
+    uint64_t dumpStepSize;
+    uint32_t streamModel;
+} DumpAttrVal;
+
+typedef struct {
+    DumpAttrId id;
+    DumpAttrVal value;
+} DumpAttr;
+
+typedef struct {
+    DumpAttr* attrs;
+    size_t numAttrs;
+} DumpCfg;
+
+/**
+ * @ingroup dump
+ * @par 描述: dump tensor
+ *
+ * @attention  无
+ * @param[in]  opType  算子类型
+ * @param[in]  opName  算子名称
+ * @param[in]  tensors  算子tensor信息
+ * @param[in]  stream  算子处理流句柄
+ * @param[in]  dumpCfg dump配置
+ * @retval     #0 dump tensor成功
+ * @retval     #!0 dump tensor失败
+ * @see        无
+ * @since
+ */
+ADX_API int32_t AdumpDumpTensorWithCfg(const std::string &opType, const std::string &opName,
+    const std::vector<TensorInfo> &tensors, aclrtStream stream, const DumpCfg &dumpCfg);
 
 constexpr char DUMP_ADDITIONAL_BLOCK_DIM[] = "block_dim";
 constexpr char DUMP_ADDITIONAL_TILING_KEY[] = "tiling_key";

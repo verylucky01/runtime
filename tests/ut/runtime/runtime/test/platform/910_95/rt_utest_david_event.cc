@@ -1150,7 +1150,7 @@ TEST_F(EventTestDavid, TestEventSynchronizeWithEventInModel)
     EXPECT_EQ(error, ACL_RT_SUCCESS);
 
     error = rtEventSynchronize(event);
-    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
 
     error = rtModelUnbindStream(model, stm);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
@@ -1165,6 +1165,7 @@ TEST_F(EventTestDavid, TestEventSynchronizeWithEventInModel)
 
     error = rtEventDestroy(event);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
+    GlobalMockObject::verify();
 
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, ACL_RT_SUCCESS);

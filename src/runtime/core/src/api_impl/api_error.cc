@@ -1305,8 +1305,8 @@ rtError_t ApiErrorDecorator::EventSynchronize(Event * const evt, const int32_t t
     COND_RETURN_WARN(evt->GetEventFlag() == RT_EVENT_EXTERNAL, RT_ERROR_FEATURE_NOT_SUPPORT,
         "The external event does not support synchronization.");
     COND_RETURN_ERROR_MSG_INNER(evt->IsCapturing(), RT_ERROR_EVENT_CAPTURED, "Not allow to synchronize captured-event.");
-    COND_RETURN_WARN(evt->IsEventInModel(), RT_ERROR_FEATURE_NOT_SUPPORT,
-        "Event synchronize is not supported for event in model.");
+    COND_RETURN_AND_MSG_OUTER(evt->IsEventInModel(), RT_ERROR_INVALID_VALUE, ErrorCode::EE1006, __func__,
+        "the event (ID: " + std::to_string(evt->EventId_()) + ") in the stream bound to the model");
     return impl_->EventSynchronize(evt, timeout);
 }
 

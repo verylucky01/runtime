@@ -523,7 +523,7 @@ TEST_F(EventTest910B, TestEventSynchronizeWithEventInModel)
     EXPECT_EQ(error, ACL_RT_SUCCESS);
 
     error = rtEventSynchronize(event);
-    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
 
     error = rtModelUnbindStream(model, stream);
     EXPECT_EQ(error, ACL_RT_SUCCESS);

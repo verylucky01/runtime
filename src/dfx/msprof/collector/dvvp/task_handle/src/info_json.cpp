@@ -49,9 +49,8 @@ InfoJson::InfoJson(const std::string &jobInfo, const std::string &devices, int32
 std::string InfoJson::EncodeInfoMainJson(SHARED_PTR_ALIA<InfoMain> infoMain) const
 {
     using namespace NanoJson;
-    std::string out = "";
     if (infoMain == nullptr) {
-        return out;
+        return "";
     }
     size_t deviceInfoSize = infoMain->deviceInfos.size();
     size_t netCardInfoSize = infoMain->netCardInfos.size();
@@ -77,7 +76,7 @@ std::string InfoJson::EncodeInfoMainJson(SHARED_PTR_ALIA<InfoMain> infoMain) con
         infoMainJson["DeviceInfo"][i]["ctrl_cpu_id"] = infoMain->deviceInfos[i].ctrlCpuId;
         infoMainJson["DeviceInfo"][i]["ctrl_cpu"] = infoMain->deviceInfos[i].ctrlCpu;
         infoMainJson["DeviceInfo"][i]["ai_cpu"] = infoMain->deviceInfos[i].aiCpu;
-        infoMainJson["DeviceInfo"][i]["hwts_frequency"] = GetHwtsFreq(infoMain->deviceInfos[i].hwtsFrequency);        
+        infoMainJson["DeviceInfo"][i]["hwts_frequency"] = GetHwtsFreq(infoMain->deviceInfos[i].hwtsFrequency);
         infoMainJson["DeviceInfo"][i]["aic_frequency"] = infoMain->deviceInfos[i].aicFrequency;
         infoMainJson["DeviceInfo"][i]["aiv_frequency"] = infoMain->deviceInfos[i].aivFrequency;
     }
@@ -104,6 +103,7 @@ std::string InfoJson::EncodeInfoMainJson(SHARED_PTR_ALIA<InfoMain> infoMain) con
     infoMainJson["platform"] = infoMain->platform;
     infoMainJson["platform_version"] = infoMain->platformVersion;
     infoMainJson["pid"] = infoMain->pid;
+    infoMainJson["pid_name"] = infoMain->pidName;
     infoMainJson["upTime"] = infoMain->upTime;
     infoMainJson["memoryTotal"] = infoMain->memoryTotal;
     infoMainJson["cpuNums"] = infoMain->cpuNums;
@@ -539,18 +539,6 @@ int32_t InfoJson::AddOtherInfo(SHARED_PTR_ALIA<InfoMain> infoMain)
     return PROFILING_SUCCESS;
 }
 
-void InfoJson::SetPidInfo(SHARED_PTR_ALIA<InfoMain> infoMain, int32_t pid) const
-{
-    std::string pidtmp;
-    if (pid == HOST_PID_DEFAULT) {
-        pidtmp = "NA";
-    } else {
-        pidtmp = std::to_string(pid);
-    }
-    infoMain->pid = pidtmp;
-    return;
-}
-
 void InfoJson::SetPlatFormVersion(SHARED_PTR_ALIA<InfoMain> infoMain) const
 {
     std::string chipId = Analysis::Dvvp::Common::Config::ConfigManager::instance()->GetChipIdStr();
@@ -565,6 +553,44 @@ void InfoJson::SetVersionInfo(SHARED_PTR_ALIA<InfoMain> infoMain) const
 void InfoJson::SetDrvVersion(SHARED_PTR_ALIA<InfoMain> infoMain) const
 {
     infoMain->drvVersion = Platform::instance()->DrvGetApiVersion();
+}
+
+void InfoJson::SetPidInfo(SHARED_PTR_ALIA<InfoMain> infoMain, int32_t pid) const
+{
+    std::string pidTmp;
+    std::string pidName = "NA";
+    std::string processInfoPath;
+    if (pid == HOST_PID_DEFAULT) {
+        pidTmp = "NA";
+    } else {
+        pidTmp = std::to_string(pid);
+#if (defined(linux) || defined(__linux__))
+        processInfoPath = "/proc/" + pidTmp + "/status";
+        long long len = Utils::GetFileSize(processInfoPath);
+        if (len < 0 || len > MSVP_LARGE_FILE_MAX_LEN) {
+            MSPROF_LOGW("[SetPidInfo] Proc file(%s) size(%lld)", processInfoPath.c_str(), len);
+        } else {
+            std::ifstream processInfo(processInfoPath);
+            if (processInfo.is_open()) {
+                std::getline(processInfo, pidName);
+            } else {
+                MSPROF_LOGE("Set pid_name failed(failed to open the file for pid_name info), pid=%d", pid);
+            }
+            processInfo.close();
+            // The length of searching tag "Name:\t" is 6. This constant is used to locate the position of pid_name.
+            constexpr size_t searchTagLength = 6;
+            size_t pidNamePos = pidName.find("Name:\t") + searchTagLength;
+            if ((pidNamePos - searchTagLength) != std::string::npos) {
+                pidName = pidName.substr(pidNamePos, pidName.size() - pidNamePos);
+            } else {
+                MSPROF_LOGE("Set pid_name failed, pid=%d", pid);
+            }
+        }
+#endif
+    }
+    infoMain->pid = pidTmp;
+    infoMain->pidName = pidName;
+    return;
 }
 
 InfoJson::~InfoJson()

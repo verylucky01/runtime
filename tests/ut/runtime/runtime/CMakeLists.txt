@@ -404,8 +404,8 @@ set(runtimeut_src_list
     ${TOP_DIR}/src/runtime/core/src/kernel/v100/program_plat.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/program.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/kernel_utils.cc
-    ${TOP_DIR}/src/runtime/core/src/soma/soma.cc
-    ${TOP_DIR}/src/runtime/core/src/soma/stream_mem_pool.cc
+    ${TOP_DIR}/src/runtime/feature/soma/soma.cc
+    ${TOP_DIR}/src/runtime/feature/soma/stream_mem_pool.cc
     ${TOP_DIR}/src/runtime/core/src/launch/cmo_barrier_common.cc
     ${TOP_DIR}/src/runtime/core/src/launch/cmo_barrier_stars.cc
     ${TOP_DIR}/src/runtime/core/src/launch/label.cc
@@ -555,8 +555,8 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/core/src/kernel/kernel.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/module.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/program.cc
-    ${TOP_DIR}/src/runtime/core/src/soma/soma.cc
-    ${TOP_DIR}/src/runtime/core/src/soma/stream_mem_pool.cc
+    ${TOP_DIR}/src/runtime/feature/soma/soma.cc
+    ${TOP_DIR}/src/runtime/feature/soma/stream_mem_pool.cc
     ${TOP_DIR}/src/runtime/core/src/launch/label.cc
     ${TOP_DIR}/src/runtime/core/src/device/aicpu_err_msg.cc
     ${TOP_DIR}/src/runtime/core/src/notify/notify.cc
@@ -1162,7 +1162,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/src/runtime/core/src/kernel/args
     ${TOP_DIR}/src/runtime/core/src/task/
     ${TOP_DIR}/src/runtime/core/src/memory/
-    ${TOP_DIR}/src/runtime/core/src/soma/
+    ${TOP_DIR}/src/runtime/feature/soma/
     ${TOP_DIR}/src/runtime/core/src/uvm
     ${TOP_DIR}/src/runtime/core/src/event
     ${TOP_DIR}/src
@@ -1359,8 +1359,8 @@ set(runtimeut_v201_src_list
     ${TOP_DIR}/src/runtime/core/src/kernel/program.cc
     ${TOP_DIR}/src/runtime/core/src/runtime_v200/runtime_adapt.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/xpu/program_plat.cc
-    ${TOP_DIR}/src/runtime/core/src/soma/soma.cc
-    ${TOP_DIR}/src/runtime/core/src/soma/stream_mem_pool.cc
+    ${TOP_DIR}/src/runtime/feature/soma/soma.cc
+    ${TOP_DIR}/src/runtime/feature/soma/stream_mem_pool.cc
     ${TOP_DIR}/src/runtime/core/src/launch/label.cc
     ${TOP_DIR}/src/runtime/core/src/device/aicpu_err_msg.cc
     ${TOP_DIR}/src/runtime/core/src/notify/notify.cc

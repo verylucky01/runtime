@@ -240,8 +240,8 @@ set(libruntime_v200_v201_common_src_files
     ${RUNTIME_CORE_DIR}/src/kernel/program.cc
     ${RUNTIME_CORE_DIR}/src/kernel/program_common.cc
     ${RUNTIME_CORE_DIR}/src/kernel/kernel_utils.cc
-    ${RUNTIME_CORE_DIR}/src/soma/soma.cc
-    ${RUNTIME_CORE_DIR}/src/soma/stream_mem_pool.cc
+    ${RUNTIME_FEATURE_DIR}/soma/soma.cc
+    ${RUNTIME_FEATURE_DIR}/soma/stream_mem_pool.cc
     ${RUNTIME_CORE_DIR}/src/launch/label.cc
     ${RUNTIME_CORE_DIR}/src/event/event.cc
     ${RUNTIME_CORE_DIR}/src/event/event_david.cc
@@ -397,7 +397,7 @@ set(RUNTIME_INC_DIR_COMMON_V200
     ${RUNTIME_CORE_DIR}/src/kernel/arg_loader
     ${RUNTIME_CORE_DIR}/src/kernel/args
     ${RUNTIME_CORE_DIR}/src/memory
-    ${RUNTIME_CORE_DIR}/src/soma
+    ${RUNTIME_FEATURE_DIR}/soma
     ${RUNTIME_CORE_DIR}/src/uvm
     ${RUNTIME_CORE_DIR}/src/event
     ${RUNTIME_DIR}/src/inc

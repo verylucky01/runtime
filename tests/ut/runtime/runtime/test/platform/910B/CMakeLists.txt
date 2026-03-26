@@ -241,8 +241,8 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/core/src/kernel/module.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/v100/program_plat.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/program.cc
-    ${TOP_DIR}/src/runtime/core/src/soma/soma.cc
-    ${TOP_DIR}/src/runtime/core/src/soma/stream_mem_pool.cc
+    ${TOP_DIR}/src/runtime/feature/soma/soma.cc
+    ${TOP_DIR}/src/runtime/feature/soma/stream_mem_pool.cc
     ${TOP_DIR}/src/runtime/core/src/launch/cmo_barrier_common.cc
     ${TOP_DIR}/src/runtime/core/src/launch/cmo_barrier_stars.cc
     ${TOP_DIR}/src/runtime/core/src/launch/label.cc
@@ -430,7 +430,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/pkg_inc/platform
     ${TOP_DIR}/src/platform
     ${TOP_DIR}/src/runtime/core/src/memory/
-    ${TOP_DIR}/src/runtime/core/src/soma/
+    ${TOP_DIR}/src/runtime/feature/soma/
     ${TOP_DIR}/src/runtime/core/src/event
     ${C_SEC_INCLUDE}
 )

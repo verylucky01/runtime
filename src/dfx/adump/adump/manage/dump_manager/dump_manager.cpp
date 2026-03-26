@@ -395,7 +395,8 @@ int32_t DumpManager::DumpOperatorV2(const std::string &opType, const std::string
     std::vector<DumpTensor> outputTensors;
     for (const auto &tensorInfo : tensors) {
         if (tensorInfo.tensorAddr == nullptr || tensorInfo.tensorSize == 0) {
-            IDE_LOGE("Tensor is nullptr.");
+            IDE_LOGW("Tensor of op=%s[%s] is empty, addr=%p, size=%zu, skip it.",
+                opName.c_str(), opType.c_str(), tensorInfo.tensorAddr, tensorInfo.tensorSize);
             return ADUMP_FAILED;
         }
 

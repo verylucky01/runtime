@@ -35,6 +35,7 @@ static void MacroInitSolomon(rtSocType_t socType, RtMacroValue &value)
     value.rtsqDepth = rtsqDepth;
     value.rtcqDepth = rtsqDepth;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID;
+    value.maxPhysicalStreamNum = value.maxAllocStreamNum;
 }
 
 static DevDynInfoProcFunc CHIP_CLOUD_V5_PROC_FUNC = {

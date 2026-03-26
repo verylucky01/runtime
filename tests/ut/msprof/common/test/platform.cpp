@@ -436,7 +436,7 @@ TEST_F(COMMON_PLATFORM_TEST, MiniPlatformTest) {
 
     EXPECT_EQ(PROFILING_SUCCESS, platform.GetAiPmuMetrics("ResourceConflictRatio", aicEvent));
     EXPECT_EQ("0x64,0x65,0x66", aicEvent);
-
+    EXPECT_EQ(PROFILING_SUCCESS, platform.GetAiPmuMetrics("Custom:0x500,0x502,0x504,0x506,0x508,0x50a,0xc,0xd", aicEvent));
     EXPECT_EQ(PROFILING_FAILED, platform.GetAiPmuMetrics("PipeUtilizationExct", aicEvent));
     EXPECT_EQ(PROFILING_FAILED, platform.GetAiPmuMetrics("PipelineExecuteUtilization", aicEvent));
     EXPECT_EQ(PROFILING_FAILED, platform.GetAiPmuMetrics("PipeStallCycle", aicEvent));

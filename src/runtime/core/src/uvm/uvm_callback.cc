@@ -66,8 +66,9 @@ bool UvmCallback::IsUvmMem(const void * const ptr, const uint64_t cnt)
 
     rtMemLocationType locationEnd;
     rtMemLocationType realLocationEnd;
+    // 驱动申请内存地址范围为左闭右开，所以在进行UVM内存尾地址判断时需要ptr + cnt - 1
     ret = Runtime::Instance()->driverFactory_.GetDriver(NPU_DRIVER)->PtrGetRealLocation(
-        static_cast<const void *>((static_cast<const char_t*>(ptr)) + cnt), locationEnd, realLocationEnd);
+        static_cast<const void *>((static_cast<const char_t*>(ptr)) + cnt - 1), locationEnd, realLocationEnd);
     if (ret != RT_ERROR_NONE) {
         RT_LOG(RT_LOG_ERROR, "Failed to get mem end location, ret = %u.", static_cast<uint32_t>(ret));
         return false;

@@ -46,6 +46,7 @@ rtError_t rtMemPoolCreate(rtMemPool_t *memPool, const rtMemPoolProps *poolProps)
     TIMESTAMP_BEGIN(rtMemPoolCreate);
     const rtError_t error = apiInstance->StreamMemPoolCreate(memPool, poolProps);
     TIMESTAMP_END(rtMemPoolCreate);
+    COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -59,6 +60,7 @@ rtError_t rtMemPoolDestroy(const rtMemPool_t memPool)
     TIMESTAMP_BEGIN(rtMemPoolDestroy);
     const rtError_t error = apiInstance->StreamMemPoolDestroy(memPool);
     TIMESTAMP_END(rtMemPoolDestroy);
+    COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -106,6 +108,7 @@ rtError_t rtMemPoolMallocAsync(void **devPtr, const uint64_t size, const rtMemPo
     const rtError_t error = apiInstance->MemPoolMallocAsync(devPtr, size, memPoolId, exeStream);
     (void)AwdStopThreadWatchdog(watchDogHandle);
     TIMESTAMP_END(rtMemPoolMallocAsync);
+    COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
  
     return ACL_RT_SUCCESS;
@@ -126,6 +129,7 @@ rtError_t rtMemPoolFreeAsync(void *ptr, rtStream_t stm)
     (void)AwdStopThreadWatchdog(watchDogHandle);
     TIMESTAMP_END(rtMemPoolFreeAsync);
  
+    COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -137,6 +141,7 @@ rtError_t rtMemPoolTrimTo(rtMemPool_t memPool, uint64_t minBytesToKeep)
     ApiSoma * const apiInstance = ApiSoma::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     const rtError_t error = apiInstance->MemPoolTrimTo(memPool, minBytesToKeep);
+    COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }

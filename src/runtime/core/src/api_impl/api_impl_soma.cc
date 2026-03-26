@@ -69,16 +69,16 @@ rtError_t ApiImplSoma::MemPoolMallocAsync(void ** const devPtr, const uint64_t s
     ReuseFlag flag = ReuseFlag::REUSE_FLAG_NONE;
     rtError_t error = SomaApi::AllocFromMemPool(devPtr, aligned_size, memPoolId, streamId, flag);
     COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "AllocFromMemPool failed.");
-    RT_LOG(RT_LOG_INFO, "Memory allocated success! Start ptr=0x%llx, end ptr=0x%llx", size, RtPtrToValue<void *>(memPoolId),
-           RtPtrToValue(*devPtr), (RtPtrToValue(*devPtr) + size));
+    RT_LOG(RT_LOG_INFO, "Memory allocated success! Start ptr=0x%llx, end ptr=0x%llx",
+        RtPtrToValue(*devPtr), (RtPtrToValue(*devPtr) + size));
     uint64_t va = RtPtrToValue(*devPtr);
     
     AicpuOpType opType = AicpuOpType::MALLOC;
     error = SomaAicpuKernelLaunch("SomaMemMng", aligned_size, va, memPoolId, stm, static_cast<int32_t>(opType), static_cast<int32_t>(flag));
     if (error != RT_ERROR_NONE) {
         (void)SomaApi::FreeToMemPool(RtValueToPtr<void*>(va));
-        COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
-        RT_LOG(RT_LOG_ERROR, "Soma malloc aicpu kernel launch failed, size=%" PRIu64 ", memPoolId=%" PRIx64, size,
+        COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT);
+        RT_LOG(RT_LOG_ERROR, "Soma malloc aicpu kernel launch failed, size=%" PRIu64 ", memPoolId=%#" PRIx64, size,
             RtPtrToValue<void*>(memPoolId));
     }
     return error;
@@ -91,7 +91,7 @@ rtError_t ApiImplSoma::MemPoolFreeAsync(void * const ptr, Stream * const stm)
     COND_RETURN_ERROR_MSG_INNER(stm->Context_() != Runtime::Instance()->CurrentContext(), RT_ERROR_STREAM_CONTEXT,
        "Memory free failed, stream is not in current ctx, stream_id=%d.", stm->Id_());
  
-    RT_LOG(RT_LOG_DEBUG, "Free memory ptr=%" PRIx64 ", stream_id=%d.", RtPtrToValue(ptr), stm->Id_());
+    RT_LOG(RT_LOG_DEBUG, "Free memory ptr=%#" PRIx64 ", stream_id=%d.", RtPtrToValue(ptr), stm->Id_());
 
     if (SomaApi::InMemPoolRegion(ptr)) {
         rtMemPool_t memPool = RtPtrToPtr<rtMemPool_t>(SomaApi::FindMemPoolByPtr(ptr));
@@ -99,29 +99,29 @@ rtError_t ApiImplSoma::MemPoolFreeAsync(void * const ptr, Stream * const stm)
         uint64_t va = RtPtrToValue(ptr);
         rtError_t error = SomaApi::FreeToMemPool(ptr);
         COND_RETURN_ERROR(
-            error != RT_ERROR_NONE, error, "Failed to release va to the memory pool, ptr=%" PRIx64 ", stream_id=%d.",
+            error != RT_ERROR_NONE, error, "Failed to release va to the memory pool, ptr=%#" PRIx64 ", stream_id=%d.",
             RtPtrToValue(ptr), stm->Id_());
         RT_LOG(
-            RT_LOG_INFO, "The va is successfully released to the memory pool, ptr=%" PRIx64 ", stream_id=%d.",
+            RT_LOG_INFO, "The va is successfully released to the memory pool, ptr=%#" PRIx64 ", stream_id=%d.",
             RtPtrToValue(ptr), stm->Id_());
 
         AicpuOpType opType = AicpuOpType::FREE;
         SomaAicpuSubCmd subCmd = SomaAicpuSubCmd::FREE;
         error = SomaAicpuKernelLaunch("SomaMemMng", 0ULL, va, memPool, stm, static_cast<int32_t>(opType), static_cast<int32_t>(subCmd));
-        COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+        COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT);
         COND_RETURN_ERROR(
-            error != RT_ERROR_NONE, error, "Soma free aicpu kernel launch failed, va=%" PRIu64 ", memPoolId=%" PRIx64, va, RtPtrToValue<void*>(memPool));
+            error != RT_ERROR_NONE, error, "Soma free aicpu kernel launch failed, va=%" PRIu64 ", memPoolId=%#" PRIx64, va, RtPtrToValue<void*>(memPool));
         return error;
     } 
 
-    RT_LOG(RT_LOG_INFO, "Pointer %" PRIx64 " is not in SOMA memory pool range, assuming it's allocated by sync api.",
+    RT_LOG(RT_LOG_INFO, "Pointer %#" PRIx64 " is not in SOMA memory pool range, assuming it's allocated by sync api.",
         RtPtrToValue(ptr));
     uint8_t *memBuffer = new (std::nothrow) uint8_t[sizeof(MemPoolFreeAsyncCallbackData)];
     NULL_PTR_RETURN_MSG(memBuffer, RT_ERROR_MEMORY_ALLOCATION);
     MemPoolFreeAsyncCallbackData *params = RtPtrToPtr<MemPoolFreeAsyncCallbackData *>(memBuffer);
     params->ptr = ptr;
     params->stm = stm;
-    RT_LOG(RT_LOG_DEBUG, "Register MemPoolFreeAsync callback with data ptr=%" PRIx64 ", stream_id=%d.",
+    RT_LOG(RT_LOG_DEBUG, "Register MemPoolFreeAsync callback with data ptr=%#" PRIx64 ", stream_id=%d.",
         RtPtrToValue(ptr), stm->Id_());
     rtError_t error = Runtime::Instance()->ApiImpl_()->LaunchHostFunc(stm, ApiImplSoma::MemPoolFreeAsyncCallback, RtPtrToPtr<void *>(memBuffer));
     if (error != RT_ERROR_NONE) {
@@ -141,12 +141,12 @@ void ApiImplSoma::MemPoolFreeAsyncCallback(void *fnData)
     Stream *stm = params->stm;
     uint8_t *memBuffer = RtPtrToPtr<uint8_t *>(params);
     DELETE_A(memBuffer);
-    RT_LOG(RT_LOG_INFO, "MemPoolFreeAsync callback with data ptr=%" PRIx64 ", stream_id=%d.",
+    RT_LOG(RT_LOG_INFO, "MemPoolFreeAsync callback with data ptr=%#" PRIx64 ", stream_id=%d.",
         RtPtrToValue(ptr), stm->Id_());
 
     Context *const ctx = stm->Context_();
     rtError_t error = ApiImpl::DevFreeStatic(ptr, ctx);
-    COND_LOG_ERROR(params == nullptr, "Failed to free physical memory, retCode=%#x ptr=% " PRIx64 ".",
+    COND_LOG_ERROR(error != RT_ERROR_NONE, "Failed to free physical memory, retCode=%#x ptr=%#" PRIx64 ".",
         static_cast<uint32_t>(error), RtPtrToValue(ptr));
 }
 
@@ -195,8 +195,8 @@ rtError_t ApiImplSoma::SomaAicpuKernelLaunch(const char *kernelName, const uint6
     args.memAsyncOpType = opType;
     args.memAsyncSubCMD = subCmd;
     RT_LOG(RT_LOG_DEBUG,
-        "AICPU arguments: Kernel Name: %s, Size: %" PRIu64 ", VA: %" PRIx64 ", "
-        "MemPool: %" PRIx64 ", DeviceID: %u, MemAsyncOpType: %d, MemAsyncSubCMD: %d",
+        "AICPU arguments: Kernel Name: %s, Size: %" PRIu64 ", VA: %#" PRIx64 ", "
+        "MemPool: %#" PRIx64 ", DeviceID: %u, MemAsyncOpType: %d, MemAsyncSubCMD: %d",
         launchNames.kernelName, args.size, args.va, args.mempoolId, args.deviceId, args.memAsyncOpType, args.memAsyncSubCMD);
  
     rtArgsEx_t rtArgs;
@@ -205,7 +205,7 @@ rtError_t ApiImplSoma::SomaAicpuKernelLaunch(const char *kernelName, const uint6
     rtArgs.argsSize = sizeof(args);
     rtError_t error;
     error = SomaAicpuLaunchValidation(&launchNames, 1U, &rtArgs, stm, 0U);
-    COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT);
     COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "Soma aicpu launch param validation failed, error code=[%d]", error);
     
     error = StreamLaunchCpuKernel(&launchNames, 1U, &rtArgs, stm, 0U);

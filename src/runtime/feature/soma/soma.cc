@@ -42,7 +42,7 @@ rtError_t SomaApi::StreamMemPoolCreate(rtMemPool_t *memPool, const rtMemPoolProp
     }
 
     *memPool = RtPtrToPtr<rtMemPool_t>(retMemPool);
-    RT_LOG(RT_LOG_DEBUG, "stream mem pool create success, memPool=%p.", memPool);
+    RT_LOG(RT_LOG_DEBUG, "stream mem pool create success, memPool=%p.", *memPool);
     return RT_ERROR_NONE;
 }
 
@@ -123,7 +123,7 @@ rtError_t SomaApi::AllocFromMemPool(void **ptr, uint64_t size, rtMemPool_t memPo
     Segment *seg = nullptr;
     rtError_t error = curMemPool->SegmentAlloc(seg, size, streamId, flag);
     COND_RETURN_ERROR((error != RT_ERROR_NONE || seg == nullptr), RT_ERROR_MEM_POOL_ALLOC,
-        "Failed to allocate segment from memory pool, size=%" PRIx64 ", memPoolId=%" PRIx64 ", streamId=%d.",
+        "Failed to allocate segment from memory pool, size=%#" PRIx64 ", memPoolId=%#" PRIx64 ", streamId=%d.",
         size, curMemPool->MemPoolId(), streamId);
  
     *ptr = RtValueToPtr<void *>(seg->basePtr);
@@ -136,10 +136,10 @@ rtError_t SomaApi::FreeToMemPool(void *ptr, bool forceFree)
     uint64_t p = RtPtrToValue(ptr);
     SegmentManager *curMemPool = PoolRegistry::Instance().FindMemPoolByPtr(p);
     COND_RETURN_ERROR(curMemPool == nullptr, RT_ERROR_POOL_PTR_NOTFOUND,
-        "Unable to locate which memory pool the pointer is in, ptr=%" PRIx64 ".", p);
+        "Unable to locate which memory pool the pointer is in, ptr=%#" PRIx64 ".", p);
  
     rtError_t error = curMemPool->SegmentFree(p, forceFree);
-    ERROR_RETURN(error, "Unable to free ptr=%" PRIx64 ".", p);
+    ERROR_RETURN(error, "Unable to free ptr=%#" PRIx64 ".", p);
  
     return RT_ERROR_NONE;
 }

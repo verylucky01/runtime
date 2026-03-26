@@ -67,7 +67,7 @@ SegmentManager::SegmentManager(Segment *seg, uint32_t deviceId, bool canDelete) 
 {
     if (seg == nullptr) {
         RT_LOG(RT_LOG_WARNING,
-            "The mempool is being initialized using an empty segment, memPoolID=%" PRIx64, MemPoolId());
+            "The mempool is being initialized using an empty segment, memPoolID=%#" PRIx64, MemPoolId());
     } else {
         base_ = seg->basePtr;
         size_ = seg->size;
@@ -102,7 +102,7 @@ SegmentManager::~SegmentManager()
     }
     Segment *it = tail_->prev;
     while (tail_->basePtr != base_) {
-        RT_LOG(RT_LOG_DEBUG, "tail=%" PRIx64 ".", tail_->basePtr);
+        RT_LOG(RT_LOG_DEBUG, "tail=%#" PRIx64 ".", tail_->basePtr);
         tail_->prev = it->prev;
         tail_->basePtr = it->basePtr;
         delete it;
@@ -138,9 +138,9 @@ Segment* SegmentManager::TryToReuse(size_t size, const int32_t streamId, PoolDep
 
 rtError_t SegmentManager::SegmentAlloc(Segment* &ret, uint64_t size, int streamId, ReuseFlag &flag)
 {
-    RT_LOG(RT_LOG_DEBUG, "Allocating segment, size=%" PRIx64 " streamId=%d.", size, streamId);
+    RT_LOG(RT_LOG_DEBUG, "Allocating segment, size=%#" PRIx64 " streamId=%d.", size, streamId);
     COND_RETURN_ERROR(tail_ == nullptr, RT_ERROR_MEM_POOL_ALLOC,
-        "Segment not properly initialized, memPoolID=%" PRIx64 ".", MemPoolId());
+        "Segment not properly initialized, memPoolID=%#" PRIx64 ".", MemPoolId());
 
     COND_RETURN_ERROR(isIPCPool_, RT_ERROR_POOL_UNSUPPORTED,
         "Memory allocation from a IPC pool denied. The IPC pool is read-only.");
@@ -150,7 +150,7 @@ rtError_t SegmentManager::SegmentAlloc(Segment* &ret, uint64_t size, int streamI
     if (reuseSegment == nullptr) {
         ret = AllocFromFreeSegs(size);
         COND_RETURN_ERROR(ret == nullptr, RT_ERROR_MEM_POOL_ALLOC,
-            "Unable to alloc segments(size=%" PRIx64 ") from free segments.", size);
+            "Unable to alloc segments(size=%#" PRIx64 ") from free segments.", size);
 
         ret->state = SegmentState::BUSY;
         ret->streamId = streamId;
@@ -159,14 +159,14 @@ rtError_t SegmentManager::SegmentAlloc(Segment* &ret, uint64_t size, int streamI
         maxReservedSize_ = max(maxReservedSize_, reserveSize_);
     } else {
         RT_LOG(RT_LOG_DEBUG,
-            "Allocating new segment from cached segments, size=%" PRIx64 ", cached block size=%" PRIx64 ".",
+            "Allocating new segment from cached segments, size=%#" PRIx64 ", cached block size=%#" PRIx64 ".",
             size, reuseSegment->size);
         reuseSegment->streamId = streamId;
         RT_LOG(RT_LOG_DEBUG, "Update reuseSegment streamId to %d.", streamId);
         (void)cachedSegs_.erase(reuseSegment);
         ret = reuseSegment->SplitLeft(size);
         COND_RETURN_ERROR(ret == nullptr, RT_ERROR_MEM_POOL_ALLOC,
-            "Unable to alloc segments(size=%" PRIx64 ") from segment(size=%" PRIx64 ").", size, reuseSegment->size);
+            "Unable to alloc segments(size=%#" PRIx64 ") from segment(size=%#" PRIx64 ").", size, reuseSegment->size);
 
         ret->state = SegmentState::BUSY;
         (void)allocedMap_.insert(std::make_pair(ret->basePtr, ret));
@@ -184,10 +184,10 @@ rtError_t SegmentManager::SegmentFree(uint64_t ptr, bool forceFree)
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = allocedMap_.find(ptr);
     COND_RETURN_ERROR(it == allocedMap_.end(), RT_ERROR_POOL_PTR_NOTFOUND,
-        "Unable to free ptr=%" PRIx64 " from memPoolId=%" PRIx64, ptr, MemPoolId());
+        "Unable to free ptr=%#" PRIx64 " from memPoolId=%#" PRIx64, ptr, MemPoolId());
     
     Segment *seg = it->second;
-    RT_LOG(RT_LOG_DEBUG, "Free segment ptr=%" PRIx64 " size=%" PRIx64 ".", seg->basePtr, seg->size);
+    RT_LOG(RT_LOG_DEBUG, "Free segment ptr=%#" PRIx64 " size=%#" PRIx64 ".", seg->basePtr, seg->size);
     (void)allocedMap_.erase(it);
     busySize_ -= seg->size;
     if (forceFree) {
@@ -203,7 +203,7 @@ rtError_t SegmentManager::SegmentFree(uint64_t ptr, bool forceFree)
 
 void SegmentManager::MergeIntoCachedSegs(Segment* &seg)
 {
-    RT_LOG(RT_LOG_DEBUG, "Merging segment into cachedSegs ptr=%" PRIx64 " size=%" PRIx64 ".", seg->basePtr, seg->size);
+    RT_LOG(RT_LOG_DEBUG, "Merging segment into cachedSegs ptr=%#" PRIx64 " size=%#" PRIx64 ".", seg->basePtr, seg->size);
     while ((seg->basePtr != base_) && (seg->prev != nullptr) && (seg->prev->state == SegmentState::CACHED) && CheckMergeRules(seg->prev, seg)) {
         (void)cachedSegs_.erase(seg->prev);
         seg->MergeLeft();
@@ -214,7 +214,7 @@ void SegmentManager::MergeIntoCachedSegs(Segment* &seg)
         seg = seg->next;
         seg->MergeLeft();
     }
-    RT_LOG(RT_LOG_DEBUG, "After merging segment seg, ptr=%" PRIx64 " size=%lu.", seg->basePtr, seg->size);
+    RT_LOG(RT_LOG_DEBUG, "After merging segment seg, ptr=%#" PRIx64 " size=%lu.", seg->basePtr, seg->size);
     (void)cachedSegs_.insert(seg);
 }
 
@@ -238,7 +238,7 @@ Segment* SegmentManager::SingleStreamReuse(size_t size, const int32_t streamId, 
 
     if (curStmSeg != nullptr) {
         flag = ReuseFlag::REUSE_FLAG_STANDARD;
-        RT_LOG(RT_LOG_DEBUG, "Single stream reuse successfully, flag=%d, segPtr=%" PRIx64 ".",
+        RT_LOG(RT_LOG_DEBUG, "Single stream reuse successfully, flag=%d, segPtr=%#" PRIx64 ".",
         static_cast<int32_t>(flag), curStmSeg->basePtr);
         return curStmSeg;
     }
@@ -271,7 +271,7 @@ Segment* SegmentManager::StreamEventReuse(size_t size, const int32_t streamId, R
 
     if (eventStmSeg != nullptr) {
         flag = ReuseFlag::REUSE_FLAG_STANDARD;
-        RT_LOG(RT_LOG_DEBUG, "Stream event reuse successfully, flag=%d, segPtr=%" PRIx64 ".",
+        RT_LOG(RT_LOG_DEBUG, "Stream event reuse successfully, flag=%d, segPtr=%#" PRIx64 ".",
             static_cast<int32_t>(flag), eventStmSeg->basePtr);
         return eventStmSeg;
     }
@@ -298,7 +298,7 @@ Segment* SegmentManager::StreamInternalReuse(size_t size, const int32_t streamId
 
     if (otherStmSeg != nullptr) {
         flag = reuseType ? ReuseFlag::REUSE_FLAG_STANDARD : ReuseFlag::REUSE_FLAG_INTERNAL;
-        RT_LOG(RT_LOG_DEBUG, "Stream internal reuse successfully, flag=%d, segPtr=%" PRIx64 ".",
+        RT_LOG(RT_LOG_DEBUG, "Stream internal reuse successfully, flag=%d, segPtr=%#" PRIx64 ".",
             static_cast<int32_t>(flag), otherStmSeg->basePtr);
         return otherStmSeg;
     }
@@ -322,11 +322,11 @@ bool SegmentManager::CheckMergeRules(const Segment *segLeft, const Segment *segR
 
 Segment *SegmentManager::AllocFromFreeSegs(uint64_t size)
 {
-    RT_LOG(RT_LOG_DEBUG, "Allocating new segment from free segments, size=%" PRIx64 ".", size);
+    RT_LOG(RT_LOG_DEBUG, "Allocating new segment from free segments, size=%#" PRIx64 ".", size);
     Segment reqSegs = Segment(0, size);
     auto fit = freeSegs_.lower_bound(&reqSegs);
     if(fit == freeSegs_.end()) {
-        RT_LOG(RT_LOG_DEBUG, "Unable to alloc segments(size=%" PRIx64 ") from free segments.", size);
+        RT_LOG(RT_LOG_DEBUG, "Unable to alloc segments(size=%#" PRIx64 ") from free segments.", size);
         return nullptr;
     }
 
@@ -341,7 +341,7 @@ Segment *SegmentManager::AllocFromFreeSegs(uint64_t size)
 
 void SegmentManager::MergeIntoFreeSegs(Segment* &seg)
 {
-    RT_LOG(RT_LOG_DEBUG, "Merging free segment basePtr=%" PRIx64 " size=%lu.", seg->basePtr, seg->size);
+    RT_LOG(RT_LOG_DEBUG, "Merging free segment basePtr=%#" PRIx64 " size=%lu.", seg->basePtr, seg->size);
 
     while ((seg->basePtr != base_) && (seg->prev != nullptr) && (seg->prev->state == SegmentState::FREE)) {
         (void)freeSegs_.erase(seg->prev);
@@ -352,7 +352,7 @@ void SegmentManager::MergeIntoFreeSegs(Segment* &seg)
         seg = seg->next;
         seg->MergeLeft();
     }
-    RT_LOG(RT_LOG_DEBUG, "After merging segment seg, ptr=%" PRIx64 " size=%lu.", seg->basePtr, seg->size);
+    RT_LOG(RT_LOG_DEBUG, "After merging segment seg, ptr=%#" PRIx64 " size=%lu.", seg->basePtr, seg->size);
     seg->state = SegmentState::FREE;
     freeSegs_.insert(seg);
 }
@@ -363,7 +363,7 @@ void SegmentManager::TrimCachedSegs(const uint64_t minBytesToKeep)
     auto it = cachedSegs_.begin();
     while ((it != cachedSegs_.end()) && (reserveSize_ > minBytesToKeep)) {
         Segment* seg = *it;
-        RT_LOG(RT_LOG_DEBUG, "Trim cached segment basePtr=%" PRIx64 " size=%lu.",
+        RT_LOG(RT_LOG_DEBUG, "Trim cached segment basePtr=%#" PRIx64 " size=%lu.",
                 seg->basePtr, seg->size);
         if (seg->size > reserveSize_ - minBytesToKeep) {
             RT_LOG(RT_LOG_DEBUG, "Split last segment with size=%lu for exact trimming, reserved size=%lu, size=%lu.",
@@ -457,9 +457,9 @@ rtError_t SegmentManager::SetAttribute(rtMemPoolAttr attr, const void *value)
         case rtMemPoolAttrReleaseThreshold:
             reset = *static_cast<const uint64_t*>(value);
             COND_RETURN_ERROR(reset > size_, RT_ERROR_POOL_PROP_INVALID,
-                "Value is out of range, reset value=%" PRIx64", should less than maxsize=%" PRIx64 ".", reset, size_);
+                "Value is out of range, reset value=%#" PRIx64", should less than maxsize=%#" PRIx64 ".", reset, size_);
                 state_.waterMark = reset;
-            RT_LOG(RT_LOG_DEBUG, "Set attribute releaseThreshold, value=%" PRIx64 ".",
+            RT_LOG(RT_LOG_DEBUG, "Set attribute releaseThreshold, value=%#" PRIx64 ".",
                 *static_cast<const uint64_t*>(value));
             break;
         case rtMemPoolAttrReservedMemHigh:
@@ -502,7 +502,7 @@ rtError_t PoolRegistry::Init()
         SegmentManager::DeleteSegment(globalSegment_);
         return RT_ERROR_MEMORY_ALLOCATION;
     }
-    RT_LOG(RT_LOG_DEBUG, "Init mem address success, devptr=%" PRIx64 ".", globalSegment_->basePtr);
+    RT_LOG(RT_LOG_DEBUG, "Init mem address success, devptr=%#" PRIx64 ".", globalSegment_->basePtr);
     rtError_t error = RegisterSomaCallBack();
     if (error != RT_ERROR_NONE) {
         RT_LOG(RT_LOG_ERROR, "Soma Callback register failed, reCode=%#x.", error);
@@ -561,9 +561,9 @@ rtError_t PoolRegistry::CheckRemoveMemPool(SegmentManager *memPool)
 
     auto it = entries_.find(memPool);
     COND_RETURN_ERROR(it == entries_.end(), RT_ERROR_POOL_PTR_NOTFOUND,
-        "Failed to remove memPool, memPoolId=%" PRIx64 ".", memPool->MemPoolId());
+        "Failed to remove memPool, memPoolId=%#" PRIx64 ".", memPool->MemPoolId());
     COND_RETURN_ERROR(!(*it)->CanDelete(), RT_ERROR_POOL_OP_INVALID,
-        "Failed to destroy not deletable memPool(Id=%" PRIx64 ").", memPool->MemPoolId());
+        "Failed to destroy not deletable memPool(Id=%#" PRIx64 ").", memPool->MemPoolId());
     return RT_ERROR_NONE;
 }
 
@@ -607,7 +607,7 @@ SegmentManager *PoolRegistry::FindMemPoolByPtr(uint64_t ptr)
             return memPool->PoolSegAddr() + memPool->PoolSize() <= p;
         });
     COND_RETURN_DEBUG((it == entries_.end() || ptr < (*it)->PoolSegAddr()), nullptr,
-        "Pointer %" PRIx64 " not found in any memory pool range.", ptr);
+        "Pointer %#" PRIx64 " not found in any memory pool range.", ptr);
  
     return *it;
 }

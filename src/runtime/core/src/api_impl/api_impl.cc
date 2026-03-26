@@ -2263,7 +2263,7 @@ rtError_t ApiImpl::EventSynchronize(Event * const evt, const int32_t timeout)
         error = evt->Synchronize(timeout);
     }
     ERROR_RETURN(error, "Synchronize event failed.");
-    RT_LOG(RT_LOG_INFO, "Event synchronize ok, trigger implicit mempool trim (exclude graph pool).");
+    RT_LOG(RT_LOG_INFO, "Event synchronize success, trigger implicit mempool trim (exclude graph pool).");
     rtError_t trimRet = Runtime::Instance()->ApiSoma_()->MemPoolTrimImplicit(false);
     if (trimRet != RT_ERROR_NONE) {
         RT_LOG(RT_LOG_WARNING, "Implicit mempool trim with errors, ret=%d.", trimRet);
@@ -2372,7 +2372,7 @@ rtError_t ApiImpl::DevFree(void * const devPtr)
     rtError_t error = DevFreeStatic(devPtr, curCtx);
 
     if ((error == RT_ERROR_NONE) && Runtime::Instance()->ApiSoma_()->InMemPoolRegion(devPtr)) {
-        RT_LOG(RT_LOG_INFO, "Pointer %" PRIx64 " is in SOMA memory pool range, assuming it's allocated by async api.",
+        RT_LOG(RT_LOG_INFO, "Pointer %#" PRIx64 " is in SOMA memory pool range, assuming it's allocated by async api.",
             RtPtrToValue(devPtr));
         return Runtime::Instance()->ApiSoma_()->MemPoolFreeSync(devPtr);
     }

@@ -436,6 +436,7 @@
     -   [aclrtMemPoolGetAttr](aclrtMemPoolGetAttr.md)
     -   [aclrtMemPoolMallocAsync](aclrtMemPoolMallocAsync.md)
     -   [aclrtMemPoolFreeAsync](aclrtMemPoolFreeAsync.md)
+    -   [aclrtMemPoolTrimTo](aclrtMemPoolTrimTo.md)
 -   [其他接口](其他接口.md)
     -   [aclAppLog](aclAppLog.md)
     -   [aclDataTypeSize](aclDataTypeSize.md)

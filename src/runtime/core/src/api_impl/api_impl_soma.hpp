@@ -15,10 +15,10 @@
 namespace cce {
 namespace runtime {
 
-typedef struct MemPoolFreeAsyncCallbackData {
+struct MemPoolFreeAsyncCallbackData {
     void *ptr;
     Stream *stm;
-} MemPoolFreeAsyncCallbackData;
+};
  
 // Runtime ApiSoma implement
 class ApiImplSoma : public ApiSoma {

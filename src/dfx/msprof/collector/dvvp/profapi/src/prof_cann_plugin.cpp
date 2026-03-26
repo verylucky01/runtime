@@ -477,7 +477,13 @@ int32_t ProfCannPlugin::ProfReportAdditionalInfo(uint32_t agingFlag, const VOID_
         if (info->level == MSPROF_REPORT_AICPU_LEVEL) {
             return batchAdditionalBuffer_.BatchPush(info, length);
         } else {
-            return additionalBuffer_.TryPush(agingFlag, *info);
+            MsprofAdditionalInfo tempInfo = {};
+            errno_t err = memcpy_s(&tempInfo, length, data, length);
+            if (err != EOK) {
+                MSPROF_LOGE("Memcpy failed in ProfReportAdditionalInfo, err=%d.", err);
+                return PROFILING_FAILED;
+            }
+            return additionalBuffer_.TryPush(agingFlag, tempInfo);
         }
     }
 }

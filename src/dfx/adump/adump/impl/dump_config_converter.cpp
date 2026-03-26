@@ -599,7 +599,10 @@ bool DumpConfigConverter::CheckDumpStats() const
     }
     std::vector<std::string> dumpStats = dumpJs_.at(ADUMP_DUMP_STATS).get<std::vector<std::string>>();
     if (dumpStats.empty()) {
-        IDE_LOGE("dump_stats exists but is empty.");
+        IDE_LOGE("the content of configuration item %s in configuration file %s is empty.", ADUMP_DUMP_STATS.c_str(), configPath_);
+        std::string errReason = "The configuration item value is empty";
+        ADUMP_INPUT_ERROR("EP0001", std::vector<std::string>({"item", "path", "reason"}),
+            std::vector<std::string>({ADUMP_DUMP_STATS, configPath_, errReason}));
         return false;
     }
     if ((!JsonParser::ContainKey(dumpJs_, ADUMP_DUMP_DATA)) ||
@@ -620,6 +623,14 @@ bool DumpConfigConverter::CheckValueValidIfContain(const std::string key) const
 
 bool DumpConfigConverter::IsValueValid(const std::string key, const std::string value) const
 {
+    if (value.empty()) {
+        IDE_LOGE("the content of configuration item %s in configuration file %s is empty.", key.c_str(), configPath_);
+        std::string errReason = "The configuration item value is empty";
+        ADUMP_INPUT_ERROR("EP0001", std::vector<std::string>({"item", "path", "reason"}),
+            std::vector<std::string>({key, configPath_, errReason}));
+        return false;
+    }
+
     if (dumpValidOptions.at(key).find(value) != dumpValidOptions.at(key).end()) {
         return true;
     }

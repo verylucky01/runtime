@@ -32,15 +32,25 @@ using namespace Analysis::Dvvp::Common::Config;
 using namespace analysis::dvvp::host;
 using namespace Dvvp::Collect::Platform;
 
+const int TEST_HOST_PID = 1;
+
 class INFO_JSON_TEST: public testing::Test {
+public:
+ 	std::string jobInfo;
+ 	std::string devices;
+ 	int hostpid;
 protected:
     virtual void SetUp() {
+        GlobalMockObject::verify();
+ 	    jobInfo = "";
+ 	    devices = "0";
+ 	    hostpid = TEST_HOST_PID;
     }
     virtual void TearDown() {
     }
 };
 
-TEST(INFO_JSON_TEST, GetHwtsFreq) {
+TEST_F(INFO_JSON_TEST, GetHwtsFreq) {
     GlobalMockObject::verify();
     MOCKER_CPP(&Analysis::Dvvp::Common::Config::ConfigManager::GetPlatformType)
         .stubs()
@@ -50,4 +60,37 @@ TEST(INFO_JSON_TEST, GetHwtsFreq) {
     EXPECT_EQ("1000", infoJson.GetHwtsFreq(freq));
     freq = "1000.1";
     EXPECT_EQ("1000.1", infoJson.GetHwtsFreq(freq));
+}
+
+TEST_F(INFO_JSON_TEST, SetPidInfo) {
+    GlobalMockObject::verify();
+
+    SHARED_PTR_ALIA<InfoMain> infoMain = nullptr;
+    MSVP_MAKE_SHARED0(infoMain, InfoMain, return);
+
+    InfoJson infoJson(jobInfo, devices, hostpid);
+
+    int32_t invalidPid = -1;
+    int32_t validPid = 1; // system pid
+
+    infoJson.SetPidInfo(infoMain, invalidPid);
+    EXPECT_EQ("NA", infoMain->pidName);
+    EXPECT_EQ("NA", infoMain->pid);
+
+    MOCKER_CPP(&analysis::dvvp::common::utils::Utils::GetFileSize)
+        .stubs()
+        .will(returnValue(static_cast<long>(MSVP_LARGE_FILE_MAX_LEN + 1)))
+        .then(returnValue(static_cast<long>(MSVP_LARGE_FILE_MAX_LEN)));
+
+    infoJson.SetPidInfo(infoMain, validPid);
+    EXPECT_EQ("NA", infoMain->pidName);
+    EXPECT_EQ("1", infoMain->pid);
+
+    MOCKER_CPP(&analysis::dvvp::common::utils::Utils::GetFileSize)
+        .stubs()
+        .will(returnValue(static_cast<long>(100)));
+
+    infoJson.SetPidInfo(infoMain, validPid);
+    EXPECT_NE("NA", infoMain->pidName);
+    EXPECT_EQ("1", infoMain->pid);
 }

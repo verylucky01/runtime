@@ -73,6 +73,7 @@ struct InfoMain {
     std::string platform;
     std::string platformVersion;
     std::string pid;
+    std::string pidName;
     std::string upTime;
     uint64_t memoryTotal;
     uint32_t cpuNums;

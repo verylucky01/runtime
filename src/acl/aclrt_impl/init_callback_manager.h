@@ -39,7 +39,7 @@ class ACL_FUNC_VISIBILITY InitCallbackManager {
  private:
   std::multimap<aclRegisterCallbackType, std::pair<aclInitCallbackFunc, void*>> initCallbackMap_;
   std::multimap<aclRegisterCallbackType, std::pair<aclFinalizeCallbackFunc, void*>> finalizeCallbackMap_;
-  std::recursive_mutex &mutex_;
+  std::recursive_mutex mutex_;
 };
 }
 

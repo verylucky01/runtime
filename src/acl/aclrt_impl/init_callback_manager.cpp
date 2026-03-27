@@ -21,7 +21,7 @@ InitCallbackManager &InitCallbackManager::GetInstance()
     return *instance;
 }
 
-InitCallbackManager::InitCallbackManager() : mutex_(GetAclInitMutex()) {}
+InitCallbackManager::InitCallbackManager(){}
 
 aclError InitCallbackManager::RegInitCallback(aclRegisterCallbackType type, aclInitCallbackFunc cbFunc, void *userData)
 {

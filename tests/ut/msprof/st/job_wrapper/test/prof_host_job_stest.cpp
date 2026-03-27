@@ -540,19 +540,19 @@ TEST_F(JOB_WRAPPER_PROF_HOST_PTHREAD_JOB_TEST, Init) {
         .stubs()
         .will(returnValue(true))
         .then(returnValue(false));
-    auto profHostSysCallsJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostPthreadJob>();
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Init(nullptr));
+    auto profHostPthreadJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostPthreadJob>();
+    EXPECT_EQ(PROFILING_FAILED, profHostPthreadJob->Init(nullptr));
 
     collectionJobCfg_->comParams->devIdOnHost = DEFAULT_HOST_ID + 1;
-    EXPECT_EQ(PROFILING_NOTSUPPORT, profHostSysCallsJob->Init(collectionJobCfg_));
+    EXPECT_EQ(PROFILING_NOTSUPPORT, profHostPthreadJob->Init(collectionJobCfg_));
 
     collectionJobCfg_->comParams->params->hostProfiling = true;
-    EXPECT_EQ(PROFILING_NOTSUPPORT, profHostSysCallsJob->Init(collectionJobCfg_));
+    EXPECT_EQ(PROFILING_NOTSUPPORT, profHostPthreadJob->Init(collectionJobCfg_));
 
     collectionJobCfg_->comParams->params->host_osrt_profiling = "off";
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Init(collectionJobCfg_));
+    EXPECT_EQ(PROFILING_FAILED, profHostPthreadJob->Init(collectionJobCfg_));
     collectionJobCfg_->comParams->params->host_osrt_profiling = "on";
-    EXPECT_EQ(PROFILING_SUCCESS, profHostSysCallsJob->Init(collectionJobCfg_));
+    EXPECT_EQ(PROFILING_SUCCESS, profHostPthreadJob->Init(collectionJobCfg_));
 }
 
 TEST_F(JOB_WRAPPER_PROF_HOST_PTHREAD_JOB_TEST, Process) {
@@ -575,13 +575,13 @@ TEST_F(JOB_WRAPPER_PROF_HOST_PTHREAD_JOB_TEST, Process) {
 
     collectionJobCfg_->comParams->params->hostProfiling = true;
     collectionJobCfg_->comParams->params->host_osrt_profiling = "on";
-    auto profHostSysCallsJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostPthreadJob>();
-    profHostSysCallsJob->Init(collectionJobCfg_);
+    auto profHostPthreadJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostPthreadJob>();
+    profHostPthreadJob->Init(collectionJobCfg_);
 
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Process());
+    EXPECT_EQ(PROFILING_FAILED, profHostPthreadJob->Process());
 
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Process());
-    EXPECT_EQ(PROFILING_SUCCESS, profHostSysCallsJob->Process());
+    EXPECT_EQ(PROFILING_FAILED, profHostPthreadJob->Process());
+    EXPECT_EQ(PROFILING_SUCCESS, profHostPthreadJob->Process());
 }
 
 TEST_F(JOB_WRAPPER_PROF_HOST_PTHREAD_JOB_TEST, Uninit) {
@@ -607,13 +607,13 @@ TEST_F(JOB_WRAPPER_PROF_HOST_PTHREAD_JOB_TEST, Uninit) {
         .stubs()
         .will(returnValue(false));
 
-    auto profHostSysCallsJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostPthreadJob>();
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Uninit());
+    auto profHostPthreadJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostPthreadJob>();
+    EXPECT_EQ(PROFILING_FAILED, profHostPthreadJob->Uninit());
     collectionJobCfg_->comParams->params->hostProfiling = true;
-    profHostSysCallsJob->Init(collectionJobCfg_);
-    profHostSysCallsJob->Process();
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Uninit());
-    EXPECT_EQ(PROFILING_SUCCESS, profHostSysCallsJob->Uninit());
+    profHostPthreadJob->Init(collectionJobCfg_);
+    profHostPthreadJob->Process();
+    EXPECT_EQ(PROFILING_FAILED, profHostPthreadJob->Uninit());
+    EXPECT_EQ(PROFILING_SUCCESS, profHostPthreadJob->Uninit());
 }
 
 TEST_F(JOB_WRAPPER_PROF_HOST_PTHREAD_JOB_TEST, UninitFailed) {
@@ -626,8 +626,8 @@ TEST_F(JOB_WRAPPER_PROF_HOST_PTHREAD_JOB_TEST, UninitFailed) {
         .will(returnValue(PROFILING_FAILED))
         .then(returnValue(PROFILING_SUCCESS));
 
-    auto profHostSysCallsJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostPthreadJob>();
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Uninit());
+    auto profHostPthreadJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostPthreadJob>();
+    EXPECT_EQ(PROFILING_FAILED, profHostPthreadJob->Uninit());
 }
 
 class JOB_WRAPPER_PROF_HOST_DISK_JOB_TEST: public testing::Test {
@@ -657,19 +657,19 @@ TEST_F(JOB_WRAPPER_PROF_HOST_DISK_JOB_TEST, Init) {
         .stubs()
         .will(returnValue(true))
         .then(returnValue(false));
-    auto profHostSysCallsJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostDiskJob>();
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Init(nullptr));
+    auto profHostDiskJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostDiskJob>();
+    EXPECT_EQ(PROFILING_FAILED, profHostDiskJob->Init(nullptr));
 
     collectionJobCfg_->comParams->devIdOnHost = DEFAULT_HOST_ID + 1;
-    EXPECT_EQ(PROFILING_NOTSUPPORT, profHostSysCallsJob->Init(collectionJobCfg_));
+    EXPECT_EQ(PROFILING_NOTSUPPORT, profHostDiskJob->Init(collectionJobCfg_));
 
     collectionJobCfg_->comParams->params->hostProfiling = true;
-    EXPECT_EQ(PROFILING_NOTSUPPORT, profHostSysCallsJob->Init(collectionJobCfg_));
+    EXPECT_EQ(PROFILING_NOTSUPPORT, profHostDiskJob->Init(collectionJobCfg_));
 
     collectionJobCfg_->comParams->params->host_disk_profiling = "off";
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Init(collectionJobCfg_));
+    EXPECT_EQ(PROFILING_FAILED, profHostDiskJob->Init(collectionJobCfg_));
     collectionJobCfg_->comParams->params->host_disk_profiling = "on";
-    EXPECT_EQ(PROFILING_SUCCESS, profHostSysCallsJob->Init(collectionJobCfg_));
+    EXPECT_EQ(PROFILING_SUCCESS, profHostDiskJob->Init(collectionJobCfg_));
 }
 
 TEST_F(JOB_WRAPPER_PROF_HOST_DISK_JOB_TEST, Process) {
@@ -692,13 +692,13 @@ TEST_F(JOB_WRAPPER_PROF_HOST_DISK_JOB_TEST, Process) {
 
     collectionJobCfg_->comParams->params->hostProfiling = true;
     collectionJobCfg_->comParams->params->host_disk_profiling = "on";
-    auto profHostSysCallsJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostDiskJob>();
-    profHostSysCallsJob->Init(collectionJobCfg_);
+    auto profHostDiskJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostDiskJob>();
+    profHostDiskJob->Init(collectionJobCfg_);
 
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Process());
+    EXPECT_EQ(PROFILING_FAILED, profHostDiskJob->Process());
 
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Process());
-    EXPECT_EQ(PROFILING_SUCCESS, profHostSysCallsJob->Process());
+    EXPECT_EQ(PROFILING_FAILED, profHostDiskJob->Process());
+    EXPECT_EQ(PROFILING_SUCCESS, profHostDiskJob->Process());
 }
 
 TEST_F(JOB_WRAPPER_PROF_HOST_DISK_JOB_TEST, Uninit) {
@@ -724,13 +724,13 @@ TEST_F(JOB_WRAPPER_PROF_HOST_DISK_JOB_TEST, Uninit) {
         .stubs()
         .will(returnValue(false));
 
-    auto profHostSysCallsJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostDiskJob>();
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Uninit());
+    auto profHostDiskJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostDiskJob>();
+    EXPECT_EQ(PROFILING_FAILED, profHostDiskJob->Uninit());
     collectionJobCfg_->comParams->params->hostProfiling = true;
-    profHostSysCallsJob->Init(collectionJobCfg_);
-    profHostSysCallsJob->Process();
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Uninit());
-    EXPECT_EQ(PROFILING_SUCCESS, profHostSysCallsJob->Uninit());
+    profHostDiskJob->Init(collectionJobCfg_);
+    profHostDiskJob->Process();
+    EXPECT_EQ(PROFILING_FAILED, profHostDiskJob->Uninit());
+    EXPECT_EQ(PROFILING_SUCCESS, profHostDiskJob->Uninit());
 }
 
 TEST_F(JOB_WRAPPER_PROF_HOST_DISK_JOB_TEST, UninitFailed) {
@@ -743,8 +743,8 @@ TEST_F(JOB_WRAPPER_PROF_HOST_DISK_JOB_TEST, UninitFailed) {
         .will(returnValue(PROFILING_FAILED))
         .then(returnValue(PROFILING_SUCCESS));
 
-    auto profHostSysCallsJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostDiskJob>();
-    EXPECT_EQ(PROFILING_FAILED, profHostSysCallsJob->Uninit());
+    auto profHostDiskJob = std::make_shared<Analysis::Dvvp::JobWrapper::ProfHostDiskJob>();
+    EXPECT_EQ(PROFILING_FAILED, profHostDiskJob->Uninit());
 }
 
 class JOB_WRAPPER_PROF_HOST_SERVER_TEST: public testing::Test {

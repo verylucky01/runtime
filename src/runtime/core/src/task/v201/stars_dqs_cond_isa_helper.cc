@@ -139,8 +139,6 @@ void ConstructMbufFreeInstrFc(RtStarsDqsMbufFreeFc &fc, const RtDqsMbufFreeFcPar
     constexpr rtStarsCondIsaRegister_t r6 = RT_STARS_COND_ISA_REGISTER_R6;
     constexpr rtStarsCondIsaRegister_t r7 = RT_STARS_COND_ISA_REGISTER_R7;
     constexpr rtStarsCondIsaRegister_t r8 = RT_STARS_COND_ISA_REGISTER_R8;
-    constexpr rtStarsCondIsaRegister_t r9 = RT_STARS_COND_ISA_REGISTER_R9;
-    constexpr rtStarsCondIsaRegister_t r10 = RT_STARS_COND_ISA_REGISTER_R10;
     constexpr uint64_t axiUserVaCfgMask = 0x900000009ULL;
 
     // r8 = read immd reg va cfg mask

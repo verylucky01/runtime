@@ -1173,7 +1173,7 @@ rtError_t ApiErrorDecorator::StreamSetMode(Stream * const stm, const uint64_t st
 
 rtError_t ApiErrorDecorator::StreamGetMode(const Stream * const stm, uint64_t * const stmMode)
 {
-    Stream *curStm = Runtime::Instance()->GetCurStream(const_cast<Stream* const>(stm));
+    Stream *curStm = Runtime::Instance()->GetCurStream(const_cast<Stream *>(stm));
     NULL_PTR_RETURN_MSG_OUTER(curStm, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(stmMode, RT_ERROR_INVALID_VALUE);
     return impl_->StreamGetMode(curStm, stmMode);
@@ -5737,7 +5737,7 @@ rtError_t ApiErrorDecorator::StreamGetCaptureInfo(const Stream * const stm, rtSt
 
 rtError_t ApiErrorDecorator::SetStreamCacheOpInfoSwitch(const Stream * const stm, uint32_t cacheOpInfoSwitch)
 {
-    Stream *curStm = Runtime::Instance()->GetCurStream(const_cast<Stream* const>(stm));
+    Stream *curStm = Runtime::Instance()->GetCurStream(const_cast<Stream *>(stm));
     NULL_PTR_RETURN_MSG_OUTER(curStm, RT_ERROR_INVALID_VALUE);
     if (cacheOpInfoSwitch != 0U && cacheOpInfoSwitch != 1U) {
         return RT_ERROR_INVALID_VALUE;
@@ -5748,7 +5748,7 @@ rtError_t ApiErrorDecorator::SetStreamCacheOpInfoSwitch(const Stream * const stm
 
 rtError_t ApiErrorDecorator::GetStreamCacheOpInfoSwitch(const Stream * const stm, uint32_t * const cacheOpInfoSwitch)
 {
-    Stream *curStm = Runtime::Instance()->GetCurStream(const_cast<Stream* const>(stm));
+    Stream *curStm = Runtime::Instance()->GetCurStream(const_cast<Stream *>(stm));
     NULL_PTR_RETURN_MSG_OUTER(curStm, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(cacheOpInfoSwitch, RT_ERROR_INVALID_VALUE);
  

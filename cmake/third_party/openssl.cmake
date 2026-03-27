@@ -76,6 +76,7 @@ if (ENABLE_OPEN_SRC)
             message("openssl:not use cache")
             ExternalProject_Add(openssl_project
                 URL ${OPENSSL_TARBALL}                        # 从本地 tar.gz 获取源码
+                DOWNLOAD_EXTRACT_TIMESTAMP TRUE
                 #URL_HASH SHA256=SKIP                          # 可加校验哈希，也可用 SKIP
                 DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/downloads
                 SOURCE_DIR ${OPENSSL_SRC_DIR}                 # 解压后的源码目录

@@ -1151,7 +1151,7 @@ RtKernel *GetKernels(rtElfData * const elfData)
 
         Elf_Internal_Sym *psym = symTab.get();
         for (si = 0U; si < numSyms; si++) {
-            if (!(CheckKernelAttr(psym) && (stringTab != nullptr) && ((stringTab + psym->st_name) != nullptr))) {
+            if (!(CheckKernelAttr(psym) && (stringTab != nullptr))) {
                 psym++;
                 continue;
             }

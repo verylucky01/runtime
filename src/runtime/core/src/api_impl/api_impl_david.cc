@@ -139,7 +139,7 @@ rtError_t ApiImplDavid::CpuKernelLaunchExAll(const Kernel * const kernel, const 
     }
 
     const rtError_t error = StreamLaunchCpuKernelExWithArgs(coreDim,
-        static_cast<const rtAicpuArgsEx_t* const>(&argsInfo->baseArgs), taskCfg, stm,
+        static_cast<const rtAicpuArgsEx_t *>(&argsInfo->baseArgs), taskCfg, stm,
         flag, kernelType, kernel, argsInfo->cpuParamHeadOffset);
 
     ERROR_RETURN_MSG_INNER(error, "Cpu kernel launch ex with args failed, check and start tsd open aicpu sd error=%#x.", error);

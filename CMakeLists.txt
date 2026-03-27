@@ -11,6 +11,10 @@
 cmake_minimum_required(VERSION 3.14)
 project (rts)
 
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
 set(RUNTIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Project top directory")
 include(cmake/func.cmake)
 set_common_params("${RUNTIME_DIR}")

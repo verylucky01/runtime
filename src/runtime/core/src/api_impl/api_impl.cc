@@ -8954,7 +8954,7 @@ rtError_t ApiImpl::GetFuncHandleFromExceptionInfo(const rtExceptionInfo_t *info,
 
 rtError_t ApiImpl::TaskGetParams(rtTask_t task, rtTaskParams* const params)
 {
-    const TaskInfo* const taskInfo = static_cast<const TaskInfo * const>(task);
+    const TaskInfo* const taskInfo = static_cast<const TaskInfo *>(task);
     const Stream* stm = taskInfo->stream;
     NULL_PTR_RETURN(stm, RT_ERROR_STREAM_NULL);
     rtError_t error = CheckCaptureModelSupportSoftwareSq(stm->Device_());
@@ -9006,7 +9006,7 @@ rtError_t ApiImpl::TaskGetParams(rtTask_t task, rtTaskParams* const params)
 
 rtError_t ApiImpl::TaskSetParams(rtTask_t task, rtTaskParams* const params)
 {
-    TaskInfo* const taskInfo = static_cast<TaskInfo * const>(task);
+    TaskInfo* const taskInfo = static_cast<TaskInfo *>(task);
     rtError_t error = CheckCaptureModelForUpdate(taskInfo->stream);
     ERROR_RETURN(error, "check capture model failed");
 
@@ -9105,13 +9105,13 @@ rtError_t ApiImpl::StreamGetTasks(Stream * const stm, void **tasks, uint32_t *nu
 
 rtError_t ApiImpl::TaskGetType(rtTask_t task, rtTaskType *type)
 {
-    const TaskInfo* const taskInfo = static_cast<const TaskInfo * const>(task);
+    const TaskInfo* const taskInfo = static_cast<const TaskInfo *>(task);
     return ConvertTaskType(taskInfo, type);
 }
 
 rtError_t ApiImpl::ModelTaskDisable(rtTask_t task)
 {
-    TaskInfo* const taskInfo = static_cast<TaskInfo * const>(task);
+    TaskInfo* const taskInfo = static_cast<TaskInfo *>(task);
  	rtError_t error = CheckCaptureModelForUpdate(taskInfo->stream);
     ERROR_RETURN(error, "check capture model failed");
 
@@ -9128,7 +9128,7 @@ rtError_t ApiImpl::ModelTaskDisable(rtTask_t task)
 
 rtError_t ApiImpl::TaskGetSeqId(rtTask_t task, uint32_t *id)
 {
-    const TaskInfo* const taskInfo = static_cast<const TaskInfo * const>(task);
+    const TaskInfo* const taskInfo = static_cast<const TaskInfo *>(task);
     const Stream* stm = taskInfo->stream;
     NULL_PTR_RETURN(stm, RT_ERROR_STREAM_NULL);
     const Model* mdl = stm->Model_();

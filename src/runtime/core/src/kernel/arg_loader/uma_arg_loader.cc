@@ -305,8 +305,6 @@ rtError_t UmaArgLoader::LoadForMix(const uint32_t kernelType, const rtArgsEx_t *
         ERROR_GOTO_MSG_INNER(error, RECYCLE, "load args(size=%u) failed, retCode=%#x.", size, static_cast<uint32_t>(error));
     }
 
-    ERROR_GOTO(error, RECYCLE, "load L2 description failed, retCode=%#x.", static_cast<uint32_t>(error));
-
     argHandle->kerArgs = umaArgAllocator->GetDevAddr(kerArgs);
     argHandle->freeArgs = true;
     argHandle->argsAlloc = umaArgAllocator;
@@ -318,7 +316,6 @@ rtError_t UmaArgLoader::LoadForMix(const uint32_t kernelType, const rtArgsEx_t *
     return RT_ERROR_NONE;
 
 RECYCLE:
-
     umaArgAllocator->FreeDevMem(kerArgs);
     handleAllocator_->FreeByItem(argHandle);
     return error;

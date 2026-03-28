@@ -1245,6 +1245,9 @@ void Engine::DestroyPrintfThread(void)
     const std::lock_guard<std::mutex> lk(printMtx_);
     if (printfThread_ != nullptr) {
         printThreadRunFlag_ = false;
+        Device * const dev = GetDevice();
+        NULL_PTR_RETURN_DIRECTLY(dev);
+        dev->WakeUpPrintf();
         printfThread_->Join();
         RT_LOG(RT_LOG_EVENT, "Join printf thread OK.");
         printfThread_.reset(nullptr);
@@ -1286,7 +1289,6 @@ void Engine::PrintfRun()
     Context *ctx = Runtime::Instance()->GetPriCtxByDeviceId(dev->Id_(), 0U);
     InnerThreadLocalContainer::SetCurCtx(ctx);
     while (printThreadRunFlag_ && !Runtime::Instance()->IsExiting()) {
-        (void)mmSleep(200U);
         (void)dev->ParsePrintInfo();
     }
 }

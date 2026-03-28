@@ -46,7 +46,7 @@ namespace cce {
 namespace runtime {
 constexpr uint32_t FREE_EVENT_QUEUE_SIZE = 64U * 1024U;
 constexpr uint32_t SQ_ID_MEM_POOL_INIT_COUNT = 1024U;
-constexpr uint32_t WAIT_PRINTF_THREAD_TIME_MAX = 10U;
+constexpr uint32_t WAIT_PRINTF_THREAD_TIME_MAX = 1000U;
 
 RawDevice::RawDevice(const uint32_t devId)
     : GroupDevice(),
@@ -2200,7 +2200,6 @@ rtError_t RawDevice::InitSimtPrintInfo()
 
 rtError_t RawDevice::ParseSimtPrintInfo()
 {
-    std::unique_lock<std::mutex> l(printfMtx_);
     if (!simtEnable_) {
         return RT_ERROR_NONE;
     }
@@ -2218,7 +2217,6 @@ rtError_t RawDevice::ParseSimtPrintInfo()
 
 rtError_t RawDevice::ParseSimdPrintInfo()
 {
-    std::unique_lock<std::mutex> l(printfMtx_);
     if (!simdEnable_) {
         return RT_ERROR_NONE;
     }
@@ -2236,13 +2234,21 @@ rtError_t RawDevice::ParseSimdPrintInfo()
 
 rtError_t RawDevice::ParsePrintInfo()
 {
+    std::unique_lock<std::mutex> l(printfMtx_);
+    // 最多等待200ms，或被WakeUpPrintf唤醒
+    (void)printfCv_.wait_for(l, std::chrono::milliseconds(200));
     ParseSimdPrintInfo();
     ParseSimtPrintInfo();
     ++parseCounter_;
     return RT_ERROR_NONE;
 }
 
-void RawDevice::WaitForParsePrintf() const
+void RawDevice::WakeUpPrintf()
+{
+    printfCv_.notify_one();
+}
+
+void RawDevice::WaitForParsePrintf()
 {
     if (!engine_->isEnablePrintfThread()) {
         RT_LOG(RT_LOG_DEBUG, "The print thread is not enabled.");
@@ -2251,16 +2257,17 @@ void RawDevice::WaitForParsePrintf() const
     uint64_t curParseCounter = parseCounter_;
     uint32_t i = 0;
 
-    RT_LOG(RT_LOG_DEBUG, "Wait for the last print thread!");
+    RT_LOG(RT_LOG_DEBUG, "Wait for the last print thread, print count=%llu!", curParseCounter);
+    WakeUpPrintf();
     while (curParseCounter == parseCounter_) {
         if (i == WAIT_PRINTF_THREAD_TIME_MAX) {
             break;
         }
         i++;
-        (void)mmSleep(100U);
+        (void)mmSleep(1U);
     }
     curParseCounter = parseCounter_;
-    RT_LOG(RT_LOG_DEBUG, "Wait for the last print thread, suss!");
+    RT_LOG(RT_LOG_DEBUG, "Wait for the last print thread, suss, print count=%llu!", curParseCounter);
 }
 
 

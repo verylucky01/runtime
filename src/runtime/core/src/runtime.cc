@@ -3290,7 +3290,7 @@ rtError_t Runtime::PrimaryContextRelease(const uint32_t devId, const bool isForc
         "[0, " + std::to_string(RT_MAX_DEV_NUM) + ")");
     COND_RETURN_ERROR_MSG_INNER((tsNum_ == 0U) || (tsNum_ > RT_MAX_TS_NUM), RT_ERROR_CONTEXT_DEL,
         "release failed, tsNum=%u, valid range is [1,%u]", devId, RT_MAX_TS_NUM);
-    const Device * const dev = GetDevice(devId, 0U);
+    Device * const dev = GetDevice(devId, 0U);
     if (dev != nullptr) {
         dev->WaitForParsePrintf();
     }

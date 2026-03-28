@@ -778,7 +778,8 @@ public:
     rtError_t ParsePrintInfo() override;
     rtError_t ParseSimtPrintInfo() override;
     rtError_t ParseSimdPrintInfo() override;
-    void WaitForParsePrintf() const override;
+    void WaitForParsePrintf() override;
+    void WakeUpPrintf() override;
     rtError_t GetPrintFifoAddress(uint64_t * const addr, const uint32_t model) override;
 
     rtError_t StoreEndGraphNotifyInfo(const uint32_t streamId, Model* captureModel, uint32_t endGraphNotifyPos) override;
@@ -1032,6 +1033,7 @@ private:
     Atomic<uint32_t> c2cCtrlAddrLen_{0U};
 
     std::mutex printfMtx_;
+    std::condition_variable printfCv_;
     void *printfAddr_ = nullptr;
     void *simtPrintfAddr_ = nullptr;
     uint32_t printblockLen_{SIMD_FIFO_PER_CORE_SIZE_32K}; // device 备份

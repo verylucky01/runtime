@@ -466,7 +466,8 @@ public:
     virtual rtError_t ParsePrintInfo() = 0;
     virtual rtError_t ParseSimtPrintInfo() = 0;
     virtual rtError_t ParseSimdPrintInfo() = 0;
-    virtual void WaitForParsePrintf() const = 0;
+    virtual void WaitForParsePrintf() = 0;
+    virtual void WakeUpPrintf() = 0;
     virtual rtError_t GetPrintFifoAddress(uint64_t * const addr, const uint32_t model) = 0;
     virtual rtError_t StoreEndGraphNotifyInfo(const uint32_t streamId, Model* captureModel, uint32_t endGraphNotifyPos) = 0;
     virtual rtError_t DeleteEndGraphNotifyInfo(const uint32_t streamId, Model* captureModel, uint32_t endGraphNotifyPos) = 0;

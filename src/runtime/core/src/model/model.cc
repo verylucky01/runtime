@@ -184,15 +184,14 @@ rtError_t Model::AicpuModelDestroy()
 {
     Stream * const defaultStream = context_->DefaultStream_();
     Device * const dev = defaultStream->Device_();
-    if (dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_ALLOC_FROM_STREAM_POOL)) {
-        return AicpuMdlDestroy(this);
-    }
     if (dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
         RtAicpuModelParam param = 
             { Id_(), static_cast<uint32_t>(TS_AICPU_MODEL_DESTROY), executorFlag_, RtPtrToValue(aicpuModelInfo_) };
         return dev->GetCtrlSQ().SendAicpuModelMsg(RtCtrlMsgType::RT_CTRL_MSG_AICPU_MODEL_DESTROY, param);
     }
-
+    if (dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_ALLOC_FROM_STREAM_POOL)) {
+        return AicpuMdlDestroy(this);
+    }
     TaskFactory * const devTaskFactory = dev->GetTaskFactory();
     TaskInfo taskSubmit = {};
     rtError_t errorReason;
@@ -740,14 +739,9 @@ rtError_t Model::LoadCompleteByStreamPrep(Stream * &stream)
         error = context_->StreamCreate(static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U, &stream);
         ERROR_RETURN_MSG_INNER(error, "Fail to create model load stream, retCode=%#x!", static_cast<uint32_t>(error));
         RT_LOG(RT_LOG_DEBUG, "create a aicpu stream for model load, model_id=%u, stream_id=%d.", Id_(), stream->Id_());
-    } else if (dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
-        COND_RETURN_ERROR_MSG_INNER(streams_.empty(), RT_ERROR_MODEL_STREAM, "There is no stream of the model");
-        CtrlSQ& ctrlSQ = dev->GetCtrlSQ();
-        stream = ctrlSQ.GetStream();
-        RT_LOG(RT_LOG_DEBUG, "use ctrl stream for model load");
     } else {
         COND_RETURN_ERROR_MSG_INNER(streams_.empty(), RT_ERROR_MODEL_STREAM, "There is no stream of the model");
-        stream = context_->DefaultStream_();
+        stream = context_->GetCtrlSQStream();
         RT_LOG(RT_LOG_DEBUG, "create not a aicpu stream for model load");
     }
 

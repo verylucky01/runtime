@@ -1166,7 +1166,6 @@ TEST_F(EventTestDavid, TestEventSynchronizeWithEventInModel)
     error = rtEventDestroy(event);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
     GlobalMockObject::verify();
-
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
 }

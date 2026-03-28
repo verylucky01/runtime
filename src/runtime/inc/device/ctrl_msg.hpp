@@ -28,6 +28,7 @@ enum class RtCtrlMsgType : std::uint32_t {
     RT_CTRL_MSG_DEBUG_UNREGISTER,
     RT_CTRL_MSG_SET_OVERFLOW_SWITCH,
     RT_CTRL_MSG_AICPU_MODEL_DESTROY,
+    RT_CTRL_MSG_SET_STREAM_TAG,
     RT_CTRL_MSG_MAX,
 };
 
@@ -85,6 +86,11 @@ struct RtOverflowSwitchSetParam {
     uint32_t switchFlag;
 };
 
+struct RtSetStreamTagParam {
+    Stream *targetStm;
+    uint32_t geOpTag;
+};
+
 struct RtCtrlMsgSendParam {
     rtTaskGenCallback callback = nullptr;
     int32_t timeout = -1;
@@ -103,6 +109,7 @@ struct RtCtrlMsgParam {
         RtDebugRegisterParam debugRegisterParam;
         RtDebugUnRegisterParam debugUnRegisterParam;
         RtOverflowSwitchSetParam overflowSwitchSetParam;
+        RtSetStreamTagParam setStreamTagParam;
     };
 };
 
@@ -133,6 +140,7 @@ rtError_t CtrlMsgDebugUnRegisteInit(TaskInfo *taskInfo, const RtCtrlMsgParam &pa
 
 rtError_t CtrlMsgOverflowSwitchSetInit(TaskInfo *taskInfo, const RtCtrlMsgParam &param);
 
+rtError_t CtrlMsgSetStreamTagInit(TaskInfo *const taskInfo, const RtCtrlMsgParam &param);
 }  // namespace runtime
 }  // namespace cce
 #endif

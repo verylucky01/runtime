@@ -416,6 +416,8 @@ public:
     }
     
     Stream* GetCtrlStream(Stream* const stream) const override;
+    
+    bool IsCtrlSQStream(Stream * const stream) const override;
 
     void CtrlTaskReclaimByPos(CtrlStream* const stm, const uint32_t sqPos) override
     {
@@ -1039,7 +1041,7 @@ private:
     std::atomic<uint64_t> parseCounter_{0};
     mutable Atomic<uint64_t> simtPrintTlvCnt_{0U};
     BufferAllocator* sqIdMemAddrPool_{nullptr};
-    std::unique_ptr<CtrlSQ> ctrlSQ_ = nullptr;
+    std::unique_ptr<CtrlSQ> ctrlSQ_;
     std::mutex programMtx_;
     std::unordered_set<Program *> programSet_;
     qos_master_config_t aicoreQosCfgs_;

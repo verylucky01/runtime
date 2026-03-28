@@ -17,6 +17,7 @@
 #include "inner_thread_local.hpp"
 #include "stream_david.hpp"
 #include "stream_c.hpp"
+#include "ctrl_sq.hpp"
 
 namespace cce {
 namespace runtime {
@@ -24,12 +25,21 @@ namespace runtime {
 rtError_t ModelDebugRegister(Model * const mdl, const uint32_t flag, const void * const addr,
     uint32_t * const streamId, uint32_t * const taskId, Stream * const dftStm)
 {
-    rtError_t error = RT_ERROR_NONE;
     NULL_PTR_RETURN_MSG(dftStm, RT_ERROR_STREAM_NULL);
-    *streamId = static_cast<uint32_t>(dftStm->Id_());
-
     COND_RETURN_WARN(mdl->IsDebugRegister(),
         RT_ERROR_DEBUG_REGISTER_FAILED, "model repeat debug register!");
+
+    rtError_t error = RT_ERROR_NONE;
+    Device *device = dftStm->Device_();
+    if (device->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
+        RtDebugRegisterParam param = {addr, mdl->Id_(), flag};
+        error = device->GetCtrlSQ().SendDebugRegisterMsg(RtCtrlMsgType::RT_CTRL_MSG_DEBUG_REGISTER, param, nullptr, taskId);
+        *streamId = device->GetCtrlSQ().GetStream()->Id_();
+        ERROR_RETURN_MSG_INNER(error, "Failed to SendDebugRegisterMsg, retCode=%#x.", error);
+        mdl->SetDebugRegister(true);
+        return error;
+    }
+    *streamId = static_cast<uint32_t>(dftStm->Id_());
 
     TaskInfo *rtDbgRegTask = nullptr;
     error = CheckTaskCanSend(dftStm);
@@ -60,11 +70,18 @@ rtError_t ModelDebugRegister(Model * const mdl, const uint32_t flag, const void 
 
 rtError_t ModelDebugUnRegister(Model * const mdl, Stream * const dftStm)
 {
-    rtError_t error = RT_ERROR_NONE;
     NULL_PTR_RETURN_MSG(dftStm, RT_ERROR_STREAM_NULL);
-
     COND_RETURN_WARN(!mdl->IsDebugRegister(),
         RT_ERROR_DEBUG_UNREGISTER_FAILED, "model is not debug register!");
+    rtError_t error = RT_ERROR_NONE;
+    Device *device = dftStm->Device_();
+    if (device->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
+        RtDebugUnRegisterParam param = {mdl->Id_()};
+        error = device->GetCtrlSQ().SendDebugUnRegisterMsg(RtCtrlMsgType::RT_CTRL_MSG_DEBUG_UNREGISTER, param, nullptr);
+        ERROR_RETURN_MSG_INNER(error, "Failed to SendDebugUnRegisterMsg, retCode=%#x.", error);
+        mdl->SetDebugRegister(false);
+        return error;
+    }
 
     TaskInfo *rtDbgUnregTask = nullptr;
     error = CheckTaskCanSend(dftStm);
@@ -143,8 +160,7 @@ rtError_t MdlAbort(Model * const mdl)
     TaskInfo *executeTask = nullptr;
     if (mdl->ModelExecuteType() != EXECUTOR_AICPU) {
         RT_LOG(RT_LOG_DEBUG, "Submit abort task to ts");
-        streamObj = context->DefaultStream_();
-        error = streamObj->ModelAbortById(mdl->Id_());
+        error = context->ModelAbortById(mdl->Id_());
         COND_RETURN_ERROR((error == RT_ERROR_TSFW_TASK_ABORT_STOP), error,
             "Model abort stop before post process, model_id=%u.", mdl->Id_());
 
@@ -564,6 +580,9 @@ rtError_t MdlUnBindTaskSubmit(Model * const mdl, Stream * const streamIn,
     }
 
     Context * const context = mdl->Context_();
+    if (context->Device_()->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
+        return context->Device_()->GetCtrlSQ().SendModelUnbindMsg(mdl, streamIn, force);
+    }
     Stream * const defaultStream = context->DefaultStream_();
     error = CheckTaskCanSend(defaultStream);
     ERROR_PROC_RETURN_MSG_INNER(error, mdl->ModelPushFrontStream(streamIn);,

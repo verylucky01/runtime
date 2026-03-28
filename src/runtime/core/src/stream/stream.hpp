@@ -1223,7 +1223,6 @@ public:
     rtError_t StreamAbort();
     rtError_t StreamStop();
     virtual rtError_t StreamRecoverAbort(void) { return RT_ERROR_NONE; }
-    virtual rtError_t ModelAbortById(uint32_t modelId);
     rtError_t UpdateTask(TaskInfo** updateTask);
     TaskInfo* AllocTask(TaskInfo* pTask, tsTaskType_t taskType, rtError_t& errorReason,
         uint32_t sqeNum = 1U, UpdateTaskFlag flag = UpdateTaskFlag::NOT_SUPPORT);

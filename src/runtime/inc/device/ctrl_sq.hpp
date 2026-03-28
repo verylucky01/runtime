@@ -68,11 +68,14 @@ public:
     rtError_t SendOverflowSwitchSetMsg(RtCtrlMsgType msgType, const RtOverflowSwitchSetParam &overflowSwitchSetParam,
         rtTaskGenCallback callback, uint32_t *const flipTaskId);
 
+    rtError_t SendSetStreamTagMsg(RtCtrlMsgType msgType, const RtSetStreamTagParam &setStreamTagParam, rtTaskGenCallback callback, uint32_t *const flipTaskId);
+
     Stream *GetStream() const
     {
         return stream_;
     }
 private:
+    rtError_t CreateDavidCtrlMsg(RtCtrlMsgType msgType, const RtCtrlMsgParam &param, uint32_t * const msgId = nullptr);
     void RegCtrlMsgInitFunc(void) const;
     Device* device_;
     Stream* stream_; // 内部下任务对应的stream

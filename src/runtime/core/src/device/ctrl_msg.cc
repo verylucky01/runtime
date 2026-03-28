@@ -96,5 +96,11 @@ rtError_t CtrlMsgOverflowSwitchSetInit(TaskInfo *taskInfo, const RtCtrlMsgParam 
     RtOverflowSwitchSetParam taskParam = param.overflowSwitchSetParam;
     return OverflowSwitchSetTaskInit(taskInfo, taskParam.targetStm, taskParam.switchFlag);
 }
+
+rtError_t CtrlMsgSetStreamTagInit(TaskInfo *const taskInfo, const RtCtrlMsgParam &param)
+{
+    RtSetStreamTagParam taskParam = param.setStreamTagParam;
+    return StreamTagSetTaskInit(taskInfo, taskParam.targetStm, taskParam.geOpTag);
+}
 }
 }

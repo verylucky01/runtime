@@ -209,5 +209,43 @@ void ConstructStarsSqeForNotifyRecordTask(TaskInfo *taskInfo, uint8_t *const com
     ConstructSqeForNotifyRecordTask(taskInfo, RtPtrToPtr<rtStarsSqe_t *>(command));
 }
 
+rtError_t CheckTaskCanSend(Stream * const stm)
+{
+    UNUSED(stm);
+    return RT_ERROR_NONE;
+}
+
+rtError_t AllocTaskInfo(TaskInfo **taskInfo, Stream * const stm, uint32_t &pos, uint32_t sqeNum)
+{
+    UNUSED(taskInfo);
+    UNUSED(stm);
+    UNUSED(pos);
+    UNUSED(sqeNum);
+    return RT_ERROR_NONE;
+}
+
+rtError_t DavidSendTask(TaskInfo *taskInfo, Stream * const stm)
+{
+    UNUSED(stm);
+    UNUSED(taskInfo);
+    return RT_ERROR_NONE;
+}
+
+void SaveTaskCommonInfo(TaskInfo *taskInfo, Stream * const stm, uint32_t pos, uint32_t sqeNum)
+{
+    UNUSED(taskInfo);
+    UNUSED(stm);
+    UNUSED(pos);
+    UNUSED(sqeNum);
+    return;
+}
+
+void TaskRollBack(Stream * const stm, uint32_t pos)
+{
+    UNUSED(stm);
+    UNUSED(pos);
+    return;
+}
+
 }  // namespace runtime
 }  // namespace cce

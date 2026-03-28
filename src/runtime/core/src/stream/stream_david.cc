@@ -487,7 +487,7 @@ rtError_t DavidStream::TearDown(const bool terminal, bool flag)
     (dynamic_cast<TaskResManageDavid *>(taskResMang_))->GetHeadTail(head, tail);
     bool isForceRecycle = (GetForceRecycleFlag(flag) || (GetStreamStatus() != StreamStatus::NORMAL));
     if (isForceRecycle) {
-        exeStream = dev->PrimaryStream_();
+        exeStream = dev->GetCtrlStream(dev->PrimaryStream_());
         if (this == exeStream) {
             isForceRecycle = false;
         }
@@ -1091,54 +1091,6 @@ void DavidStream::ModelTaskClean()
 {
     RecycleModelBindStreamAllTask(this, true);
     isModelComplete = false;
-}
-
-rtError_t DavidStream::ModelAbortById(uint32_t modelId)
-{
-    rtError_t error;
-    const mmTimespec beginTime = mmGetTickCount();
-    uint32_t result = static_cast<uint32_t>(RT_ERROR_NONE);
-    uint64_t count;
-    do {
-        error = TaskAbortByType(result, OP_ABORT_MODEL, modelId);
-        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Failed to abort model, model_id=%d, retCode=%#x.",
-            modelId, static_cast<uint32_t>(error));
-        if (result == TS_SUCCESS) {
-            break;
-        }
-
-        COND_RETURN_WARN((result == TS_ERROR_ILLEGAL_PARAM) || (result == TS_APP_EXIT_UNFINISHED) ||
-            (result == TS_ERROR_ABORT_UNFINISHED), RT_ERROR_TSFW_ILLEGAL_PARAM,
-            "Ts param invalid or abort exit unfinished, model_id=%d, result=%u.", modelId, result);
-
-        count = GetTimeInterval(beginTime);
-        COND_RETURN_ERROR((count >= static_cast<uint64_t>(RT_ABORT_STREAM_TIMEOUT)), RT_ERROR_WAIT_TIMEOUT,
-            "Abort query timeout, device_id=%u, model_id=%d, time=%lums", device_->Id_(), modelId, count);
-        (void)mmSleep(1U);
-    } while (result == TS_ERROR_APP_QUEUE_FULL);
-
-    // RT_ABORT_STREAM_TIMEOUT
-    uint32_t status;
-    while (true) {
-        error = QueryAbortStatusByType(status, APP_ABORT_STS_QUERY_BY_MODELID, modelId);
-        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "abort query fail, retCode=%#x.",
-            static_cast<uint32_t>(error));
-        if ((status == DAVID_ABORT_TERMINATE_SUCC) || (status == DAVID_ABORT_STOP_FINISH)) {
-            break;
-        }
-        COND_RETURN_WARN((status == DAVID_ABORT_TERMINATE_FAIL), RT_ERROR_TSFW_ILLEGAL_PARAM,
-            "Device desc status invalid, device_id=%u, model_id=%d, status=%u.", device_->Id_(), modelId, status);
-
-        count = GetTimeInterval(beginTime);
-        COND_RETURN_WARN((count >= static_cast<uint64_t>(RT_ABORT_MODEL_TIMEOUT)), RT_ERROR_WAIT_TIMEOUT,
-            "Abort query timeout, device_id=%u, model_id=%d, time=%lums", device_->Id_(), modelId, count);
-        (void)mmSleep(5U);
-    }
-
-    COND_RETURN_ERROR((status == DAVID_ABORT_STOP_FINISH), RT_ERROR_TSFW_TASK_ABORT_STOP,
-        "Model abort stop before post process, model_id=%d.", modelId);
-
-    return error;
 }
 
 rtError_t DavidStream::StreamRecoverAbort()

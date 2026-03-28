@@ -25,14 +25,9 @@ rtError_t ProfTraceEx(const uint64_t id, const uint64_t modelId, const uint16_t 
 
     // MAX_INT32_NUM means that stream is type of RT_STREAM_FORBIDDEN_DEFAULT
     if (stm->Id_() == MAX_INT32_NUM) {
-        if (ctx->OnlineStream_() != nullptr) {
-            stm = ctx->OnlineStream_();
-            RT_LOG(RT_LOG_DEBUG, "use online stream for model execute, model_id=%" PRIu64, modelId);
-        } else {
-            stm = ctx->DefaultStream_();
-            NULL_PTR_RETURN_MSG(stm, RT_ERROR_STREAM_NULL);
-            RT_LOG(RT_LOG_DEBUG, "use default stream for model execute, model_id=%" PRIu64, modelId);
-        }
+        stm = ctx->GetCtrlSQStream();
+        NULL_PTR_RETURN_MSG(stm, RT_ERROR_STREAM_NULL);
+        RT_LOG(RT_LOG_DEBUG, "use ctrl sq stream for model execute, model_id=%" PRIu64, modelId);
     }
 
     TaskInfo *rtProfTraceExTask = nullptr;
@@ -76,7 +71,7 @@ void ProfStart(Profiler * const profiler, const uint64_t profConfig, const uint3
         || (profCfg->isHwtsLogEn != 0U)) {
         uint32_t pid;
         (void)dev->Driver_()->DeviceGetBareTgid(&pid);
-        Stream *stream = dev->PrimaryStream_();
+        Stream *stream = dev->GetCtrlStream(dev->PrimaryStream_());
         if (likely(stream != nullptr)) {
             TaskInfo *tsk = nullptr;
             rtError_t  error = CheckTaskCanSend(stream);
@@ -123,7 +118,7 @@ void ProfStop(Profiler * const profiler, const uint64_t profConfig, const uint32
     if ((profCfg->isRtsProfEn != 0U) ||(profCfg->isTaskBasedProfEn != 0U) || (profCfg->isProfLogEn != 0U)
         || (profCfg->isHwtsLogEn != 0U)) {
         TaskInfo *tsk = nullptr;
-        Stream *stream = dev->PrimaryStream_();
+        Stream *stream = dev->GetCtrlStream(dev->PrimaryStream_());
         uint32_t pid;
         (void)dev->Driver_()->DeviceGetBareTgid(&pid);
         if (likely(stream != nullptr)) {

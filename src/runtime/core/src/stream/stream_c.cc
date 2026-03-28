@@ -18,6 +18,7 @@
 #include "profiler_c.hpp"
 #include "api.hpp"
 #include "notify_c.hpp"
+#include "ctrl_sq.hpp"
 
 namespace cce {
 namespace runtime {
@@ -230,6 +231,13 @@ rtError_t CmoAddrTaskLaunchForDavid(rtDavidCmoAddrInfo * const cmoAddrInfo, cons
 
 rtError_t StreamDatadumpInfoLoad(const void * const dumpInfo, const uint32_t length, Stream * const dftStm)
 {
+    NULL_PTR_RETURN_MSG(dftStm, RT_ERROR_STREAM_NULL);
+    Device *device = dftStm->Device_();
+    if (device->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
+        RtDataDumpLoadInfoParam param = {dumpInfo, length, 0U};
+        return device->GetCtrlSQ().SendDataDumpLoadInfoMsg(RtCtrlMsgType::RT_CTRL_MSG_DATADUMP_INFOLOAD, param, nullptr);
+    }
+
     rtError_t error = RT_ERROR_NONE;
     NULL_PTR_RETURN_MSG(dftStm, RT_ERROR_STREAM_NULL);
     const int32_t streamId = dftStm->Id_();
@@ -500,9 +508,20 @@ rtError_t SetOverflowSwitchOnStream(Stream * const stm, const uint32_t flags)
 
 rtError_t SetTagOnStream(Stream * const stm, const uint32_t geOpTag)
 {
-    TaskInfo *tsk = nullptr;
     rtError_t error = CheckTaskCanSend(stm);
     ERROR_RETURN_MSG_INNER(error, "stream check failed, stream_id=%d, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
+    Device *device = stm->Device_();
+    if (device->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
+        uint32_t taskSn = 0;
+        RtSetStreamTagParam param = {stm, geOpTag};
+        // SubmitTaskPostProc 改成stm Synchronize
+        error = device->GetCtrlSQ().SendSetStreamTagMsg(RtCtrlMsgType::RT_CTRL_MSG_SET_STREAM_TAG, param, nullptr, &taskSn);
+        ERROR_RETURN_MSG_INNER(error, "Failed to SendSetStreamTagMsg, retCode=%#x.", error);
+        stm->SetStreamTag(geOpTag);
+        SET_THREAD_TASKID_AND_STREAMID(stm->Context_()->GetCtrlSQStream()->Id_(), taskSn);
+        return error;
+    }
+    TaskInfo *tsk = nullptr;
     uint32_t pos = 0xFFFFU;
     Stream *defaultStm = stm->Context_()->DefaultStream_();
     defaultStm->StreamLock();
@@ -625,6 +644,11 @@ rtError_t StreamAicpuInfoLoad(Stream * const dftStm, const void * const aicpuInf
     const uint32_t length)
 {
     NULL_PTR_RETURN_MSG(dftStm, RT_ERROR_STREAM_NULL);
+    Device *device = dftStm->Device_();
+    if (device->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
+        RtAicpuInfoLoadParam param = {aicpuInfo, length};
+        return device->GetCtrlSQ().SendAicpuInfoLoadMsg(RtCtrlMsgType::RT_CTRL_MSG_AICPU_INFOLOAD, param, nullptr);
+    }
 
     TaskInfo *rtAicpuLoadInfoTask = nullptr;
     const int32_t streamId = dftStm->Id_();

@@ -599,18 +599,25 @@ TEST_F(DavidStreamTest, DavidrtStreamRecover_01)
 
 TEST_F(DavidStreamTest, DavidrtModelAbortByid)
 {
-    RawDevice *device = new RawDevice(0);
+    int32_t devId;
+    rtError_t error;
+    Context *ctx;
 
-    device->Init();
-    DavidStream *stream = new DavidStream(device, 0, 0, nullptr);
+    error = rtGetDevice(&devId);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    RefObject<Context *> *refObject = NULL;
+    refObject = (RefObject<Context *> *)((Runtime *)Runtime::Instance())->PrimaryContextRetain(devId);
+    ctx = refObject->GetVal();
+
     NpuDriver drv;
     MOCKER_CPP_VIRTUAL(drv, &NpuDriver::TaskAbortByType).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(drv, &NpuDriver::QueryAbortStatusByType).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER(ProcStreamRecordTask).stubs().will(returnValue(0));
-    rtError_t error = stream->ModelAbortById(1);
+    error = ctx->ModelAbortById(1);
     EXPECT_EQ(error, RT_ERROR_WAIT_TIMEOUT);
-    delete stream;
-    delete device;
+
+    (void)((Runtime *)Runtime::Instance())->PrimaryContextRelease(devId);
 }
 
 TEST_F(DavidStreamTest, record_task_fail_0)

@@ -230,6 +230,8 @@ public:
 
     rtError_t ModelAbort(Model * const mdl) const;
 
+    rtError_t ModelAbortById(uint32_t modelId);
+
     rtError_t ModelExit(Model * const mdl, Stream * const stm);
 
     rtError_t ModelBindQueue(Model * const mdl, const uint32_t queueId, const rtModelQueueFlag_t flag) const;

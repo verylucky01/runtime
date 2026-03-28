@@ -55,7 +55,6 @@ public:
     void ModelTaskClean() ;
     rtError_t StreamRecoverAbort() override;
     rtError_t StreamTaskClean() override;
-    rtError_t ModelAbortById(uint32_t modelId) override;
     bool IsWaitFinish(const uint32_t finishedTaskId, const uint32_t submittedTaskId) override;
     rtError_t GetAbortStatus() const override;
     rtError_t SubmitMaintenanceTask(const MtType type, bool isForceRecycle, int32_t targetStmId,

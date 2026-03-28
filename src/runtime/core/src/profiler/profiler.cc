@@ -561,7 +561,8 @@ void Profiler::TsProfilerStop(const uint64_t profConfig, const uint32_t devId, D
         (profCfg_.isHwtsLogEn != 0U)) {
         TaskInfo submitTask = {};
         rtError_t errorReason;
-        TaskInfo *tsk = dev->PrimaryStream_()->AllocTask(&submitTask, TS_TASK_TYPE_PROFILING_DISABLE, errorReason);
+        TaskInfo *tsk = dev->GetCtrlStream(dev->PrimaryStream_())->AllocTask(
+            &submitTask, TS_TASK_TYPE_PROFILING_DISABLE, errorReason);
         COND_RETURN_VOID(tsk == nullptr, "tsk is NULL, errorReason=%d.", errorReason);
 
         uint32_t pid;
@@ -600,7 +601,8 @@ void Profiler::TsProfilerStop(
     if ((profCfg_.isRtsProfEn != 0U) || (profCfg_.isTaskBasedProfEn != 0U) || (profCfg_.isProfLogEn != 0U)) {
         TaskInfo submitTask = {};
         rtError_t errorReason;
-        TaskInfo *tsk = dev->PrimaryStream_()->AllocTask(&submitTask, TS_TASK_TYPE_PROFILING_DISABLE, errorReason);
+        TaskInfo *tsk = dev->GetCtrlStream(dev->PrimaryStream_())->AllocTask(
+            &submitTask, TS_TASK_TYPE_PROFILING_DISABLE, errorReason);
         COND_RETURN_VOID(tsk == nullptr, "tsk is NULL, errorReason=%d.", errorReason);
 
         uint32_t pid;

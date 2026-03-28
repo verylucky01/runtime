@@ -1661,15 +1661,28 @@ void RawDevice::CreateFreeEventQueue()
 
 Stream* RawDevice::GetCtrlStream(Stream * const stream) const
 {
+    // dc,cloud继续用ctrl stm,stars形态用ctrl sq
     if ((Runtime::Instance()->GetDisableThread())   /* virtual situation, not enough sq for ctrlsq */
         && (IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_STREAM_CTRL))
         && (GetTschVersion() >= static_cast<uint32_t>(TS_VERSION_CTRL_SQ))
         && (CtrlStream_() != nullptr)) {
         return CtrlStream_();
+    } else if (IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ) && (ctrlSQ_.get() != nullptr)) {
+        return GetCtrlSQ().GetStream();
     } else {
         return stream;
     }
 }
+
+bool RawDevice::IsCtrlSQStream(Stream * const stream) const
+{
+    if (IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ) && (ctrlSQ_.get() != nullptr)) {
+        return (stream == GetCtrlSQ().GetStream());
+    } else {
+        return false;
+    }
+}
+
 bool RawDevice::AllocHcclIndex(uint16_t &hcclIndex, uint16_t stmid)
 {
     if (hcclStreamSize_ >= MAX_HCCL_STREAM_NUM) {

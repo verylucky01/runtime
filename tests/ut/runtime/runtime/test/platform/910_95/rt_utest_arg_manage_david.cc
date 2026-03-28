@@ -146,7 +146,7 @@ TEST_F(ArgManageUbTest, ub_arg_loader_alloc)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     EXPECT_NE(stm->ArgManagePtr(), nullptr);
     EXPECT_EQ(stm->isHasArgPool_, false);
-    EXPECT_EQ(device_->argStreamNum_, 0);
+    EXPECT_EQ(device_->argStreamNum_, 1);
     ret = stm->ArgManagePtr()->H2DArgCopy(&result, result1.hostAddr, argsSize);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     stm->ReleaseStreamArgRes();
@@ -249,7 +249,7 @@ TEST_F(ArgManageUbTest, stream_arg_res_create)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     EXPECT_NE(stm->ArgManagePtr(), nullptr);
     EXPECT_EQ(stm->isHasArgPool_, false);
-    EXPECT_EQ(device_->argStreamNum_, 0);
+    EXPECT_EQ(device_->argStreamNum_, 1);
     stm->ReleaseStreamArgRes();
 
     // Gen Mode, not alloc DavidArgManage, 校验在上层
@@ -260,7 +260,7 @@ TEST_F(ArgManageUbTest, stream_arg_res_create)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     EXPECT_NE(stm->ArgManagePtr(), nullptr);
     EXPECT_EQ(stm->isHasArgPool_, true);
-    EXPECT_EQ(device_->argStreamNum_, 1);
+    EXPECT_EQ(device_->argStreamNum_, 2);
     stm->ReleaseStreamArgRes();
 
     delete stm;

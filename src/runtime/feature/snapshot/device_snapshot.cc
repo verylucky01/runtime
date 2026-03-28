@@ -228,7 +228,7 @@ rtError_t DeviceSnapshot::OpMemoryRestore(void)
     size_t offset = 0U;
     Context *curCtx = Runtime::Instance()->CurrentContext();
     CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    Stream* stm = curCtx->DefaultStream_();
+    Stream* stm = curCtx->GetCtrlSQStream();
     for (auto it = vaAddrInfos.begin(); it != vaAddrInfos.end(); ++it) {
         void* addr = it->first;
         const size_t size = it->second;

@@ -4254,12 +4254,6 @@ void Stream::Destructor() {
     }
 }
 
-rtError_t Stream::ModelAbortById(uint32_t modelId)
-{
-    UNUSED(modelId);
-    return RT_ERROR_NONE;
-}
-
 uint8_t Stream::GetGroupId() const
 {
     uint8_t groupId = UNINIT_GROUP_ID;
@@ -4976,9 +4970,9 @@ rtError_t Stream::UpdateSnapShotSqe()
         }
     }
 
-    Stream * const defaultStream = context_->DefaultStream_();
+    Stream * const stm = context_->GetCtrlSQStream();
     constexpr uint32_t waitTimeout = 1000u * 60u * 10u; // 超时等待十分钟
-    const rtError_t error = defaultStream->Synchronize(false, waitTimeout);
+    const rtError_t error = stm->Synchronize(false, waitTimeout);
     ERROR_RETURN(error, "Synchronize failed, streamId=%u, retCode=%#x.", Id_(), error);
     return RT_ERROR_NONE;
 }
@@ -5002,10 +4996,10 @@ rtError_t Stream::SubmitMemCpyAsyncTask(TaskInfo * const updateTask)
             "DevMemAlloc failed, retCode=%#x.", error);
     updateTask->stream->RecordDevMemAddr(sqeDeviceAddr);
 
-    error = UpdateTaskH2DSubmit(updateTask, context_->DefaultStream_(), sqeDeviceAddr);
+    error = UpdateTaskH2DSubmit(updateTask, context_->GetCtrlSQStream(), sqeDeviceAddr);
     COND_RETURN_ERROR(error != RT_ERROR_NONE, RT_ERROR_NONE, "h2d task submit failed, ret=%d", error);
  
-    error = UpdateTaskD2HSubmit(updateTask, sqeDeviceAddr, context_->DefaultStream_());
+    error = UpdateTaskD2HSubmit(updateTask, sqeDeviceAddr, context_->GetCtrlSQStream());
     COND_RETURN_ERROR(error != RT_ERROR_NONE, RT_ERROR_NONE, "d2h task submit failed, ret=%d", error);
     return RT_ERROR_NONE;
 }

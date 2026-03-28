@@ -1649,13 +1649,12 @@ ERROR_RECYCLE:
 
 rtError_t Context::AicpuInfoLoad(const void * const aicpuInfo, const uint32_t length)
 {
-    Stream * const dftStm = DefaultStream_();
-    NULL_PTR_RETURN_MSG(dftStm, RT_ERROR_STREAM_NULL);
-
     if (device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
         RtAicpuInfoLoadParam param = {aicpuInfo, length};
         return device_->GetCtrlSQ().SendAicpuInfoLoadMsg(RtCtrlMsgType::RT_CTRL_MSG_AICPU_INFOLOAD, param, taskGenCallback_);
     }
+    Stream * const dftStm = DefaultStream_();
+    NULL_PTR_RETURN_MSG(dftStm, RT_ERROR_STREAM_NULL);
 
     TaskInfo submitTask = {};
     rtError_t errorReason;
@@ -2761,6 +2760,56 @@ rtError_t Context::ModelAbort(Model * const mdl) const
     return error;
 }
 
+rtError_t Context::ModelAbortById(uint32_t modelId)
+{
+    rtError_t error;
+    const mmTimespec beginTime = mmGetTickCount();
+    uint32_t result = static_cast<uint32_t>(RT_ERROR_NONE);
+    uint64_t count;
+    Driver * const curDrv = device_->Driver_();
+    NULL_PTR_RETURN_MSG(curDrv, RT_ERROR_CONTEXT_NULL);
+    do {
+        error = curDrv->TaskAbortByType(device_->Id_(), device_->DevGetTsId(), OP_ABORT_MODEL, modelId, result);
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Failed to abort model, model_id=%d, retCode=%#x.",
+            modelId, static_cast<uint32_t>(error));
+        if (result == TS_SUCCESS) {
+            break;
+        }
+
+        COND_RETURN_ERROR((result == TS_ERROR_ILLEGAL_PARAM) || (result == TS_APP_EXIT_UNFINISHED) ||
+            (result == TS_ERROR_ABORT_UNFINISHED), RT_ERROR_TSFW_ILLEGAL_PARAM,
+            "Ts param invalid or abort exit unfinished, model_id=%d, result=%u.", modelId, result);
+
+        count = GetTimeInterval(beginTime);
+        COND_RETURN_ERROR((count >= static_cast<uint64_t>(RT_ABORT_STREAM_TIMEOUT)), RT_ERROR_WAIT_TIMEOUT,
+            "Abort query timeout, device_id=%u, model_id=%d, time=%lums", device_->Id_(), modelId, count);
+        (void)mmSleep(1U);
+    } while (result == TS_ERROR_APP_QUEUE_FULL);
+
+    // RT_ABORT_STREAM_TIMEOUT
+    uint32_t status;
+    while (true) {
+        error = curDrv->QueryAbortStatusByType(device_->Id_(), device_->DevGetTsId(), APP_ABORT_STS_QUERY_BY_MODELID, modelId, status);
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "abort query fail, retCode=%#x.",
+            static_cast<uint32_t>(error));
+        if ((status == DAVID_ABORT_TERMINATE_SUCC) || (status == DAVID_ABORT_STOP_FINISH)) {
+            break;
+        }
+        COND_RETURN_ERROR((status == DAVID_ABORT_TERMINATE_FAIL), RT_ERROR_TSFW_ILLEGAL_PARAM,
+            "Device desc status invalid, device_id=%u, model_id=%d, status=%u.", device_->Id_(), modelId, status);
+
+        count = GetTimeInterval(beginTime);
+        COND_RETURN_ERROR((count >= static_cast<uint64_t>(RT_ABORT_MODEL_TIMEOUT)), RT_ERROR_WAIT_TIMEOUT,
+            "Abort query timeout, device_id=%u, model_id=%d, time=%lums", device_->Id_(), modelId, count);
+        (void)mmSleep(5U);
+    }
+
+    COND_RETURN_ERROR((status == DAVID_ABORT_STOP_FINISH), RT_ERROR_TSFW_TASK_ABORT_STOP,
+        "Model abort stop before post process, model_id=%d.", modelId);
+
+    return error;
+}
+
 rtError_t Context::ModelExit(Model * const mdl, Stream * const stm)
 {
     rtError_t error;
@@ -3370,7 +3419,7 @@ rtError_t Context::SendAndRecvDebugTask(RtDebugSendInfo *const sendInfo, rtDebug
 {
     Driver * const devDrv = device_->Driver_();
     auto ret = devDrv->DebugSqTaskSend(device_->GetDebugSqId(), RtPtrToPtr<uint8_t *, RtDebugSendInfo *>(sendInfo), device_->Id_(),
-                                       device_->DevGetTsId());
+                                    device_->DevGetTsId());
     ERROR_RETURN(ret, "DebugSqTaskSend fail, retCode=%#x.", ret);
 
     uint32_t realReportCnt = 0U;
@@ -3382,12 +3431,7 @@ rtError_t Context::SendAndRecvDebugTask(RtDebugSendInfo *const sendInfo, rtDebug
 
 Stream *Context::GetCtrlSQStream() const
 {
-    if (!device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
-        return DefaultStream_();
-    }
-
-    CtrlSQ& ctrlSQ = device_->GetCtrlSQ();
-    return ctrlSQ.GetStream();
+    return device_->GetCtrlStream(DefaultStream_());
 }
 
 rtError_t Context::CheckStatus(const Stream * const stm, const bool isBlockDefault)
@@ -3781,15 +3825,14 @@ rtError_t Context::SetStreamOverflowSwitch(Stream * const stm, const uint32_t fl
 {
     rtError_t error = RT_ERROR_NONE;
     TaskInfo *tsk = nullptr;
-    
-    NULL_PTR_RETURN_MSG(DefaultStream_(), RT_ERROR_STREAM_NULL);
     if (device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
         uint32_t flipTaskId = 0;
         RtOverflowSwitchSetParam param = {stm, flags};
         error = device_->GetCtrlSQ().SendOverflowSwitchSetMsg(RtCtrlMsgType::RT_CTRL_MSG_SET_OVERFLOW_SWITCH, param, taskGenCallback_, &flipTaskId);
         ERROR_RETURN_MSG_INNER(error, "Failed to SendOverflowSwitchSetMsg, retCode=%#x.", error);
-        SET_THREAD_TASKID_AND_STREAMID(DefaultStream_()->Id_(), flipTaskId);
+        SET_THREAD_TASKID_AND_STREAMID(GetCtrlSQStream()->Id_(), flipTaskId);
     } else {
+        NULL_PTR_RETURN_MSG(DefaultStream_(), RT_ERROR_STREAM_NULL);
         TaskInfo submitTask = {};
         rtError_t errorReason = RT_ERROR_TASK_NEW;
         tsk = DefaultStream_()->AllocTask(&submitTask, TS_TASK_TYPE_SET_OVERFLOW_SWITCH, errorReason);
@@ -3811,24 +3854,31 @@ ERROR_RECYCLE:
 
 rtError_t Context::SetStreamTag(Stream * const stm, const uint32_t geOpTag) const
 {
-    TaskInfo submitTask = {};
-    rtError_t errorReason;
     rtError_t error = RT_ERROR_NONE;
-    NULL_PTR_RETURN_MSG(DefaultStream_(), RT_ERROR_STREAM_NULL);
+    TaskInfo *tsk = nullptr;
+    if (device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
+        uint32_t flipTaskId = 0;
+        RtSetStreamTagParam param = {stm, geOpTag};
+        error = device_->GetCtrlSQ().SendSetStreamTagMsg(RtCtrlMsgType::RT_CTRL_MSG_SET_STREAM_TAG, param, taskGenCallback_, &flipTaskId);
+        ERROR_RETURN_MSG_INNER(error, "Failed to SendSetStreamTagMsg, retCode=%#x.", error);
+        stm->SetStreamTag(geOpTag);
+        SET_THREAD_TASKID_AND_STREAMID(GetCtrlSQStream()->Id_(), flipTaskId);
+    } else {
+        TaskInfo submitTask = {};
+        rtError_t errorReason;
+        NULL_PTR_RETURN_MSG(DefaultStream_(), RT_ERROR_STREAM_NULL);
 
-    TaskInfo *tsk = DefaultStream_()->AllocTask(&submitTask, TS_TASK_TYPE_SET_STREAM_GE_OP_TAG, errorReason);
-    NULL_PTR_RETURN(tsk, errorReason);
+        tsk = DefaultStream_()->AllocTask(&submitTask, TS_TASK_TYPE_SET_STREAM_GE_OP_TAG, errorReason);
+        NULL_PTR_RETURN(tsk, errorReason);
 
-    (void)StreamTagSetTaskInit(tsk, stm, geOpTag);
-    error = device_->SubmitTask(tsk, taskGenCallback_);
-    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "StreamTagSetTask task submit failed, retCode=%#x",
-                         static_cast<uint32_t>(error));
-
-    stm->SetStreamTag(geOpTag);
-
-    GET_THREAD_TASKID_AND_STREAMID(tsk, DefaultStream_()->Id_());
-    return RT_ERROR_NONE;
-
+        (void)StreamTagSetTaskInit(tsk, stm, geOpTag);
+        error = device_->SubmitTask(tsk, taskGenCallback_);
+        ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "StreamTagSetTask task submit failed, retCode=%#x",
+                            static_cast<uint32_t>(error));
+        stm->SetStreamTag(geOpTag);
+        GET_THREAD_TASKID_AND_STREAMID(tsk, DefaultStream_()->Id_());
+    }
+    return error;
 ERROR_RECYCLE:
     (void)device_->GetTaskFactory()->Recycle(tsk);
     return error;

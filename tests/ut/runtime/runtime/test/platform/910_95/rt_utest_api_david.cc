@@ -6325,7 +6325,7 @@ TEST_F(ApiDavidTest, memset_async)
     taskResMang->ResetTaskRes();
     error = rtFree(devPtr);
     EXPECT_EQ(error, RT_ERROR_NONE);
-
+    stream_->models_.clear();
     free(sqe);
     sqe = nullptr;
     delete rawDrv;

@@ -15,6 +15,7 @@
 #include "task.hpp"
 #include "model.hpp"
 #include "stream.hpp"
+#include "task_david.hpp"
 
 namespace cce {
 namespace runtime {
@@ -32,7 +33,7 @@ CtrlSQ::~CtrlSQ() noexcept
 rtError_t CtrlSQ::Setup()
 {
     RegCtrlMsgInitFunc();
-    // alloc resource: sq cq streamid
+    // alloc resource: sq cq stream id
     stream_ = StreamFactory::CreateStream(device_, 0U, RT_STREAM_PRIMARY_DEFAULT);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, stream_ == nullptr, RT_ERROR_STREAM_NEW,
         "CtrlSQ Setup failed.");
@@ -48,25 +49,64 @@ rtError_t CtrlSQ::Setup()
 rtError_t CtrlSQ::CreateCtrlMsg(RtCtrlMsgType msgType, const RtCtrlMsgParam &param, uint32_t * const msgId)
 {
     NULL_PTR_RETURN_MSG(stream_, RT_ERROR_STREAM_NULL);
+    // 根据type找到对应的setupFunc
+    const uint32_t idx = static_cast<uint32_t>(msgType);
+    if (idx >= static_cast<uint32_t>(RtCtrlMsgType::RT_CTRL_MSG_MAX) || ctrlMsgHandlerArr[idx] == nullptr) {
+        RT_LOG(RT_LOG_ERROR, "Ctrl msg handler not found, msgType=%u.", idx);
+        return RT_ERROR_INVALID_VALUE;
+    }
+    if (device_->IsDavidPlatform()) {
+        return CreateDavidCtrlMsg(msgType, param, msgId);
+    }
     TaskInfo submitTask = {};
     rtError_t error;
     TaskInfo *taskInfo = stream_->AllocTask(&submitTask, param.taskType, error);
     NULL_PTR_RETURN_MSG(taskInfo, error);
     RT_LOG(RT_LOG_INFO, "taskInfo type, type=%u, taskType=%u.", taskInfo->type, param.taskType);
-    // 根据type找到对应的setupFunc
-    const uint32_t idx = static_cast<uint32_t>(msgType);
-    if (ctrlMsgHandlerArr[idx] != nullptr) {
-        error = ctrlMsgHandlerArr[idx](taskInfo, param);
-    } else {
-        RT_LOG(RT_LOG_ERROR, "Ctrl msg handler not found, msgType=%u.", static_cast<uint32_t>(msgType));
-    }
-    RT_LOG(RT_LOG_INFO, "Ctrl msg create success, msgType=%u.", static_cast<uint32_t>(msgType));
+
+    (void)ctrlMsgHandlerArr[idx](taskInfo, param);
+    RT_LOG(RT_LOG_INFO, "Ctrl msg create success, msgType=%u.", idx);
 
     error = device_->SubmitTask(taskInfo, param.sendParam.callback, msgId, param.sendParam.timeout);
     if (error != RT_ERROR_NONE) {
          (void)device_->GetTaskFactory()->Recycle(taskInfo);
     }
-    RT_LOG(RT_LOG_INFO, "Ctrl msg send success, msgType=%u.", static_cast<uint32_t>(msgType));
+    RT_LOG(RT_LOG_INFO, "Ctrl msg send success, msgType=%u.", idx);
+    return error;
+}
+
+rtError_t CtrlSQ::CreateDavidCtrlMsg(RtCtrlMsgType msgType, const RtCtrlMsgParam &param, uint32_t * const msgId)
+{
+    TaskInfo *taskInfo = nullptr;
+    rtError_t error = CheckTaskCanSend(stream_);
+    ERROR_RETURN_MSG_INNER(error, "stream_id=%d check failed, retCode=%#x.", stream_->Id_(),
+        static_cast<uint32_t>(error));
+    // 根据type找到对应的setupFunc
+    const uint32_t idx = static_cast<uint32_t>(msgType);
+    uint32_t pos = 0xFFFFU;
+    stream_->StreamLock();
+    error = AllocTaskInfo(&taskInfo, stream_, pos);
+    ERROR_PROC_RETURN_MSG_INNER(error, stream_->StreamUnLock();, "Failed to alloc task, stream_id=%d, retCode=%#x.",
+        stream_->Id_(), static_cast<uint32_t>(error));
+    RT_LOG(RT_LOG_INFO, "taskInfo type, type=%u, taskType=%u.", taskInfo->type, param.taskType);
+
+    SaveTaskCommonInfo(taskInfo, stream_, pos);
+    // 根据type找到对应的setupFunc
+    (void)ctrlMsgHandlerArr[idx](taskInfo, param);
+    RT_LOG(RT_LOG_INFO, "Ctrl msg create success, msgType=%u.", idx);
+
+    error = DavidSendTask(taskInfo, stream_);
+    ERROR_PROC_RETURN_MSG_INNER(error,
+                                TaskUnInitProc(taskInfo);
+                                TaskRollBack(stream_, pos);
+                                stream_->StreamUnLock();,
+                                "Failed to submit task, error=%#x.", static_cast<uint32_t>(error));
+    stream_->StreamUnLock();
+    if (msgId != nullptr && taskInfo != nullptr) {
+        *msgId = taskInfo->taskSn;
+    }
+
+    RT_LOG(RT_LOG_INFO, "Ctrl msg send success, msgType=%u.", idx);
     return error;
 }
 
@@ -92,6 +132,7 @@ void CtrlSQ::RegCtrlMsgInitFunc(void) const
     ctrlMsgHandlerArr[static_cast<uint32_t>(RtCtrlMsgType::RT_CTRL_MSG_DEBUG_UNREGISTER)] = &CtrlMsgDebugUnRegisteInit;
     ctrlMsgHandlerArr[static_cast<uint32_t>(RtCtrlMsgType::RT_CTRL_MSG_SET_OVERFLOW_SWITCH)] = &CtrlMsgOverflowSwitchSetInit;
     ctrlMsgHandlerArr[static_cast<uint32_t>(RtCtrlMsgType::RT_CTRL_MSG_AICPU_MODEL_DESTROY)] = &CtrlMsgAicpuModelInit;
+    ctrlMsgHandlerArr[static_cast<uint32_t>(RtCtrlMsgType::RT_CTRL_MSG_SET_STREAM_TAG)] = &CtrlMsgSetStreamTagInit;
 }
 
 rtError_t CtrlSQ::SendStreamClearMsg(const Stream * const stm, rtClearStep_t step, rtTaskGenCallback callback)
@@ -164,6 +205,10 @@ rtError_t CtrlSQ::SendModelBindMsg(Model * const mdl, Stream * const streamIn, c
 
     param.modelMaintenanceParam = { MMT_STREAM_ADD, mdl, streamIn, streamType, 0U };
     rtError_t error = CreateCtrlMsg(RtCtrlMsgType::RT_CTRL_MSG_MODEL_BIND_STREAM, param);
+    if ((error != RT_ERROR_NONE) && device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_ALLOC_FROM_STREAM_POOL)) {
+        mdl->ModelRemoveStream(streamIn);
+    }
+    ERROR_RETURN_MSG_INNER(error, "Ctrl msg send failed, retCode=%#x", static_cast<uint32_t>(error));
 
     error = WaitComplete();
     ERROR_RETURN_MSG_INNER(error, "Ctrl msg wait failed, retCode=%#x", static_cast<uint32_t>(error));
@@ -288,5 +333,17 @@ rtError_t CtrlSQ::SendOverflowSwitchSetMsg(RtCtrlMsgType msgType, const RtOverfl
     return RT_ERROR_NONE;
 }
 
+rtError_t CtrlSQ::SendSetStreamTagMsg(RtCtrlMsgType msgType, const RtSetStreamTagParam &setStreamTagParam, rtTaskGenCallback callback, uint32_t *const flipTaskId)
+{
+    RtCtrlMsgParam param = {};
+    param.taskType = TS_TASK_TYPE_SET_STREAM_GE_OP_TAG;
+    param.setStreamTagParam = setStreamTagParam;
+    param.sendParam.callback = callback;
+    rtError_t error = CreateCtrlMsg(msgType, param, flipTaskId);
+    ERROR_RETURN_MSG_INNER(error, "Ctrl msg send failed, retCode=%#x", static_cast<uint32_t>(error));
+    error = WaitComplete();
+    ERROR_RETURN_MSG_INNER(error, "Ctrl msg wait failed, retCode=%#x", static_cast<uint32_t>(error));
+    return RT_ERROR_NONE;
+}
 }
 }

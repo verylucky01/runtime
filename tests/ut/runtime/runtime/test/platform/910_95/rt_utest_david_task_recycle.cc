@@ -940,6 +940,9 @@ TEST_F(DavidTaskRecycleTest, DoCompleteSuccessForNotifyWaitTaskForAiCpu)
 
     DoCompleteSuccessForNotifyWaitTask(&taskInfo, 0);
 
+    taskInfo.errorCode = CCU_TASK_LINK_ERROR;
+    DoCompleteSuccessForNotifyWaitTask(&taskInfo, 0);
+
     ret = rtNotifyDestroy(notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(stream);

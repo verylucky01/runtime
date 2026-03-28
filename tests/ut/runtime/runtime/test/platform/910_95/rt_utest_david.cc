@@ -2799,6 +2799,114 @@ TEST_F(DavidTaskTest, ccu_task_dev_error_proc)
     delete errorProc;
 }
 
+TEST_F(DavidTaskTest, MapFusionCcuErrorCodeForFastRecovery)
+{
+    rtError_t ret;
+    Device *device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
+    Stream *stream;
+
+    ret = rtStreamCreate((rtStream_t *)&stream, 0);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+
+    TaskInfo taskInfo = {0};
+    taskInfo.errorCode = AICPU_HCCL_OP_UB_DDRC_FAILED;
+    taskInfo.stream = stream;
+    taskInfo.type = TS_TASK_TYPE_FUSION_KERNEL;
+    taskInfo.u.fusionKernelTask.ccuSqeNum = 1u;
+
+    StarsDeviceErrorInfo errorInfo = {};
+    errorInfo.u.ccuErrorInfo.comm.coreNum = 1U;
+    rtDavidSqe_t *sqe = const_cast<rtDavidSqe_t *>(errorInfo.u.ccuErrorInfo.davidSqe);
+    RtDavidStarsCcuSqe *ccuSqe = reinterpret_cast<RtDavidStarsCcuSqe *>(sqe);
+    ccuSqe[0].resv.ccuResvDesc1.dieId = 1U;
+    ccuSqe[0].instStartId = 2U;
+    ccuSqe[0].resv.ccuResvDesc1.missionId = 4U;
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].status = 0x2;
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].dieId = 1U;
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].missionId = 4U;
+    for (uint8_t idx = 0U; idx < 10; idx++) {
+        ccuSqe[0].usrData[idx] = 0xFFFFFFFF;
+    }
+    
+    MOCKER(GetTaskInfo).stubs().will(returnValue(&taskInfo));
+    taskInfo.stream->Device_()->SetDeviceRas(true);
+    faultEventFlag = 7;
+    ProcessDavidStarsCcuErrorInfo(&errorInfo, 0, taskInfo.stream->Device_(), nullptr);
+    EXPECT_EQ(taskInfo.mte_error, TS_ERROR_LOCAL_MEM_ERROR);
+
+    MOCKER(GetTaskInfo).stubs().will(returnValue(&taskInfo));
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].status = 0x3;
+    taskInfo.stream->Device_()->SetDeviceRas(false);
+    faultEventFlag = 7;
+    ProcessDavidStarsCcuErrorInfo(&errorInfo, 0, taskInfo.stream->Device_(), nullptr);
+    EXPECT_EQ(taskInfo.mte_error, TS_ERROR_REMOTE_MEM_ERROR);
+
+    MOCKER(GetTaskInfo).stubs().will(returnValue(&taskInfo));
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].status = 0x5;
+    taskInfo.stream->Device_()->SetDeviceRas(true);
+    faultEventFlag = 0;
+    ProcessDavidStarsCcuErrorInfo(&errorInfo, 0, taskInfo.stream->Device_(), nullptr);
+    EXPECT_EQ(taskInfo.mte_error, TS_ERROR_LINK_ERROR);
+
+    ret = rtStreamDestroy(stream);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    ((Runtime *)Runtime::Instance())->DeviceRelease(device);
+}
+
+TEST_F(DavidTaskTest, MapCcuErrorCodeForFastRecovery)
+{
+    rtError_t ret;
+    Device *device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
+    Stream *stream;
+
+    ret = rtStreamCreate((rtStream_t *)&stream, 0);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+
+    TaskInfo taskInfo = {0};
+    taskInfo.errorCode = AICPU_HCCL_OP_UB_DDRC_FAILED;
+    taskInfo.stream = stream;
+    taskInfo.type = TS_TASK_TYPE_CCU_LAUNCH;
+    taskInfo.u.fusionKernelTask.ccuSqeNum = 1u;
+
+    StarsDeviceErrorInfo errorInfo = {};
+    errorInfo.u.ccuErrorInfo.comm.coreNum = 1U;
+    rtDavidSqe_t *sqe = const_cast<rtDavidSqe_t *>(errorInfo.u.ccuErrorInfo.davidSqe);
+    RtDavidStarsCcuSqe *ccuSqe = reinterpret_cast<RtDavidStarsCcuSqe *>(sqe);
+    ccuSqe[0].resv.ccuResvDesc1.dieId = 1U;
+    ccuSqe[0].instStartId = 2U;
+    ccuSqe[0].resv.ccuResvDesc1.missionId = 4U;
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].status = 0x2;
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].dieId = 1U;
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].missionId = 4U;
+    for (uint8_t idx = 0U; idx < 10; idx++) {
+        ccuSqe[0].usrData[idx] = 0xFFFFFFFF;
+    }
+    
+    MOCKER(GetTaskInfo).stubs().will(returnValue(&taskInfo));
+    taskInfo.stream->Device_()->SetDeviceRas(true);
+    faultEventFlag = 7;
+    ProcessDavidStarsCcuErrorInfo(&errorInfo, 0, taskInfo.stream->Device_(), nullptr);
+    EXPECT_EQ(taskInfo.mte_error, TS_ERROR_LOCAL_MEM_ERROR);
+
+    MOCKER(GetTaskInfo).stubs().will(returnValue(&taskInfo));
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].status = 0x3;
+    taskInfo.stream->Device_()->SetDeviceRas(false);
+    faultEventFlag = 7;
+    ProcessDavidStarsCcuErrorInfo(&errorInfo, 0, taskInfo.stream->Device_(), nullptr);
+    EXPECT_EQ(taskInfo.mte_error, TS_ERROR_REMOTE_MEM_ERROR);
+
+    MOCKER(GetTaskInfo).stubs().will(returnValue(&taskInfo));
+    errorInfo.u.ccuErrorInfo.dfxInfo[0].status = 0x5;
+    taskInfo.stream->Device_()->SetDeviceRas(true);
+    faultEventFlag = 0;
+    ProcessDavidStarsCcuErrorInfo(&errorInfo, 0, taskInfo.stream->Device_(), nullptr);
+    EXPECT_EQ(taskInfo.mte_error, TS_ERROR_LINK_ERROR);
+
+    ret = rtStreamDestroy(stream);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    ((Runtime *)Runtime::Instance())->DeviceRelease(device);
+}
+
 TEST_F(DavidTaskTest, base_task_ubdma_direct)
 {
     TaskInfo task = {};

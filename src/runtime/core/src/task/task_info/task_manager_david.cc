@@ -43,10 +43,6 @@
 #include "starsv2_base.hpp"
 namespace cce {
 namespace runtime {
-constexpr uint32_t CCU_TASK_LOCAL_MEM_ERROR = 0x02U;
-constexpr uint32_t CCU_TASK_REMOTE_MEM_ERROR = 0x03U;
-constexpr uint32_t CCU_TASK_LOCAL_MEM_ERROR_SUBSTATUS = 0x0U;   
-
 rtError_t DavidModelMaintainceTaskInit(TaskInfo * const taskInfo, const MmtType mType,
     Model *const modelPtr, Stream *const opStreamPtr, const rtModelStreamType_t modelStreamType,
     const uint32_t firstTaskIndex)
@@ -339,44 +335,16 @@ static void PrintErrorInfoForCcuLaunchTask(TaskInfo *taskInfo, const uint32_t de
     return;
 }
 
-static void MapCcuErrorCodeForFastRecovery(TaskInfo* taskInfo, const uint32_t devId)
-{
-    CcuLaunchTaskInfo *ccuLaunchTsk = &(taskInfo->u.ccuLaunchTask);
-
-    // Verify device status
-    const auto device = taskInfo->stream->Device_();
-    COND_RETURN_VOID(device == nullptr, "Invalid device");
-    RT_LOG(RT_LOG_DEBUG,
-                "CCU Launch task error status [%#x], subStatus [%#x], device_id=%u, stream_id=%d, task_id=%hu",
-                ccuLaunchTsk->errInfo.info.status, ccuLaunchTsk->errInfo.info.subStatus, devId, taskInfo->stream->Id_(), taskInfo->id);
-    bool hasMteErr = HasMteErr(device);
-    // map local mem error
-    if (ccuLaunchTsk->errInfo.info.status == CCU_TASK_LOCAL_MEM_ERROR && 
-        ccuLaunchTsk->errInfo.info.subStatus == CCU_TASK_LOCAL_MEM_ERROR_SUBSTATUS) {
-        if (hasMteErr && IsEventIdAndRasCodeMatch(devId, g_ubNonMemPoisonRasList) && !HasMemUceErr(devId, g_aicOrSdmaOrHcclLocalMulBitEccEventIdBlkList)) {
-            taskInfo->errorCode = TS_ERROR_LOCAL_MEM_ERROR;
-            RT_LOG(RT_LOG_DEBUG,
-                "CCU Launch local HBM UCE fault occurred: device_id=%u, stream_id=%d, task_id=%hu, retCode=%u",
-                devId, taskInfo->stream->Id_(), taskInfo->id, taskInfo->errorCode);
-        }
-    } 
-    // map remote mem error
-    else if (ccuLaunchTsk->errInfo.info.status == CCU_TASK_REMOTE_MEM_ERROR) {
-        if (!hasMteErr && !HasMemUceErr(devId, g_hcclRemoteMulBitEccEventIdBlkList)) {
-            taskInfo->errorCode = TS_ERROR_REMOTE_MEM_ERROR;
-            RT_LOG(RT_LOG_DEBUG,
-                "CCU Launch remote HBM UCE fault occurred: device_id=%u, stream_id=%d, task_id=%hu, retCode=%u",
-                devId, taskInfo->stream->Id_(), taskInfo->id, taskInfo->errorCode);
-        }
-    }
-}
-
 static void DoCompleteSuccessForCcuLaunchTask(TaskInfo* taskInfo, const uint32_t devId)
 {
     Stream * const stream = taskInfo->stream;
     CcuLaunchTaskInfo *ccuLaunchTsk = &(taskInfo->u.ccuLaunchTask);
+    if ((taskInfo->mte_error == TS_ERROR_LINK_ERROR) || (taskInfo->mte_error == TS_ERROR_LOCAL_MEM_ERROR) ||
+        (taskInfo->mte_error == TS_ERROR_REMOTE_MEM_ERROR)) {
+        taskInfo->errorCode = taskInfo->mte_error;
+        taskInfo->mte_error = 0U;
+    }
     if (unlikely((taskInfo->errorCode != static_cast<uint32_t>(RT_ERROR_NONE)))) {
-        MapCcuErrorCodeForFastRecovery(taskInfo, devId);
         RT_LOG(RT_LOG_ERROR, "CCU Launch task error, device_id=%u, retCode=%#x, [%s].",
             devId, taskInfo->errorCode, GetTsErrCodeDesc(taskInfo->errorCode));
         stream->SetErrCode(taskInfo->errorCode);
@@ -412,14 +380,15 @@ static void SetResultForCcuLaunchTask(TaskInfo *taskInfo, const rtLogicCqReport_
 #if F_DESC("FusionKernelTask")
 static void DoCompleteSuccessForFusionKernelTask(TaskInfo* taskInfo, const uint32_t devId)
 {
-    const uint32_t errorCode = taskInfo->errorCode;
     Stream * const stream = taskInfo->stream;
-    if ((taskInfo->mte_error == TS_ERROR_AICORE_MTE_ERROR) || (taskInfo->mte_error == TS_ERROR_LINK_ERROR)) {
+    if ((taskInfo->mte_error == TS_ERROR_AICORE_MTE_ERROR) || (taskInfo->mte_error == TS_ERROR_LINK_ERROR) ||
+        (taskInfo->mte_error == TS_ERROR_LOCAL_MEM_ERROR) || (taskInfo->mte_error == TS_ERROR_REMOTE_MEM_ERROR)) {
         taskInfo->errorCode = taskInfo->mte_error;
         taskInfo->mte_error = 0U;
     }
+    const uint32_t errorCode = taskInfo->errorCode;
     if (unlikely(errorCode != static_cast<uint32_t>(RT_ERROR_NONE))) {
-        stream->SetErrCode(taskInfo->errorCode);
+        stream->SetErrCode(errorCode);
         RT_LOG(RT_LOG_ERROR, "fusion kernel task proc error, retCode=%#x.", errorCode);
         PrintErrorInfo(taskInfo, devId);
     }

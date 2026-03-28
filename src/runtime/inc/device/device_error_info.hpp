@@ -34,6 +34,10 @@ namespace runtime {
     constexpr uint16_t RINGBUFFER_VEC_ERROR_1_OFFSET = 352;
     constexpr uint32_t MAX_RECORD_CORE_NUM  = 32U;
     constexpr uint32_t MAX_RECORD_DHA_NUM = 8U;
+    constexpr uint32_t CCU_TASK_LOCAL_MEM_ERROR = 0x02U;
+    constexpr uint32_t CCU_TASK_REMOTE_MEM_ERROR = 0x03U;
+    constexpr uint32_t CCU_TASK_LINK_ERROR = 0x05U;
+    constexpr uint32_t CCU_TASK_LOCAL_MEM_ERROR_SUBSTATUS = 0x0U;
 
 enum rtErrorType : std::uint8_t {
     AICORE_ERROR = 0,
@@ -67,6 +71,8 @@ extern const std::map<uint32_t, std::string> g_mulBitEccEventIdBlkList;
 extern const std::map<uint32_t, std::string> g_l2MulBitEccEventIdBlkList;
 
 extern const std::map<uint32_t, std::string> g_ubMemTimeoutEventIdBlkList;
+
+extern const std::map<uint32_t, std::string> g_ccuTimeoutEventIdBlkList;
 
 enum rtSdmaErrorType : std::uint32_t {
     // Submission Descriptor read response error
@@ -103,6 +109,7 @@ enum rtAICPUErrorType : std::uint16_t {
     AICPU_HCCL_OP_SDMA_LINK_FAILED = 1001,   // hccl op sdma link failed
     AICPU_HCCL_OP_UB_DDRC_FAILED = 1002,   // hccl op ub ddrc failed
     AICPU_HCCL_OP_UB_POISON_FAILED = 1003,   // hccl op ub poison failed
+    AICPU_HCCL_OP_UB_LINK_FAILED = 1004,   // hccl ub link error
 
     AE_BAD_PARAM = 11001,                // bad param
     AE_OPEN_SO_FAILED = 11002,           // open so failed

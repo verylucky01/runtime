@@ -66,6 +66,7 @@ void MapAicpuErrorCodeForFastRecovery(TaskInfo *taskInfo, const rtLogicCqReport_
     if (logicCq.errorCode == AICPU_HCCL_OP_UB_DDRC_FAILED) {
         if(HasMteErr(stream->Device_()) && IsEventIdAndRasCodeMatch(stream->Device_()->Id_(), g_ubNonMemPoisonRasList) && !HasMemUceErr(stream->Device_()->Id_(), g_aicOrSdmaOrHcclLocalMulBitEccEventIdBlkList)) {
                 taskInfo->errorCode = TS_ERROR_LOCAL_MEM_ERROR;
+                (RtPtrToUnConstPtr<Device *>(stream->Device_()))->SetDeviceFaultType(DeviceFaultType::HBM_UCE_ERROR);
                 RT_LOG(RT_LOG_ERROR,
                     "hccl aicpu task error is local mem error, device_id=%u, stream_id=%d, task_id=%hu, logicCq.errorCode=%u, logicCq.errorType=%hhu, taskInfo->errorCode=%u",
                     stream->Device_()->Id_(), stream->Id_(), taskInfo->id, logicCq.errorCode, logicCq.errorType, taskInfo->errorCode);
@@ -77,6 +78,14 @@ void MapAicpuErrorCodeForFastRecovery(TaskInfo *taskInfo, const rtLogicCqReport_
                     "hccl aicpu task error is remote mem error, device_id=%u, stream_id=%d, task_id=%hu, logicCq.errorCode=%u, logicCq.errorType=%hhu, taskInfo->errorCode=%u",
                     stream->Device_()->Id_(), stream->Id_(), taskInfo->id, logicCq.errorCode, logicCq.errorType, taskInfo->errorCode);
         }
+    } else if (logicCq.errorCode == AICPU_HCCL_OP_UB_LINK_FAILED) {
+        if (!HasBlacklistEventOnDevice(stream->Device_()->Id_(), g_ccuTimeoutEventIdBlkList)) {
+            taskInfo->errorCode = TS_ERROR_LINK_ERROR;
+            (RtPtrToUnConstPtr<Device *>(stream->Device_()))->SetDeviceFaultType(DeviceFaultType::LINK_ERROR);
+            RT_LOG(RT_LOG_ERROR,
+                    "hccl aicpu task error is link error, device_id=%u, stream_id=%d, task_id=%hu, logicCq.errorCode=%u, logicCq.errorType=%hhu, taskInfo->errorCode=%u",
+                    stream->Device_()->Id_(), stream->Id_(), taskInfo->id, logicCq.errorCode, logicCq.errorType, taskInfo->errorCode);
+        }
     }
 }
 
@@ -84,7 +93,7 @@ void SetStarsResultForDavinciTask(TaskInfo* taskInfo, const rtLogicCqReport_t &l
 {
     if (taskInfo->type == TS_TASK_TYPE_KERNEL_AICPU) {
         RT_LOG(RT_LOG_DEBUG, "AICPU Kernel task happen error, retCode=%#x.", logicCq.errorCode);
-        if (logicCq.errorCode == AICPU_HCCL_OP_UB_DDRC_FAILED || logicCq.errorCode == AICPU_HCCL_OP_UB_POISON_FAILED) {
+        if (logicCq.errorCode == AICPU_HCCL_OP_UB_DDRC_FAILED || logicCq.errorCode == AICPU_HCCL_OP_UB_POISON_FAILED || logicCq.errorCode == AICPU_HCCL_OP_UB_LINK_FAILED) {
             MapAicpuErrorCodeForFastRecovery(taskInfo, logicCq);
             return;
         } else if ((logicCq.errorCode >> RT_AICPU_ERROR_CODE_BIT_MOVE) == AE_END_OF_SEQUENCE) {

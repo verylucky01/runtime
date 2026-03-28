@@ -16,6 +16,7 @@
 #include "task_fail_callback_manager.hpp"
 #include "profiler_c.hpp"
 #include "acc_error_info.h"
+#include "error_code.h"
 
 namespace cce {
 namespace runtime {
@@ -805,6 +806,86 @@ static void HandleFusionKernelCcuException(rtExceptionExpandInfo_t * const expan
  	ParseCcuDfxInfo(&(fusionDetail->u.aicoreCcuInfo.ccuDetailMsg), info);
 }
 
+static void MapCcuErrorCodeForFastRecovery(const uint8_t status, const uint8_t subStatus, TaskInfo* taskInfo)
+{
+    // Verify device status
+    const auto device = taskInfo->stream->Device_();
+    COND_RETURN_VOID(device == nullptr, "Invalid device");
+    const uint32_t devId = device->Id_();
+    RT_LOG(RT_LOG_DEBUG,
+                "CCU Launch task error status [%#x], subStatus [%#x], device_id=%u, stream_id=%d, task_id=%hu",
+                status, subStatus, devId, taskInfo->stream->Id_(), taskInfo->id);
+    bool hasMteErr = HasMteErr(device);
+    // map local mem error
+    if (status == CCU_TASK_LOCAL_MEM_ERROR && subStatus == CCU_TASK_LOCAL_MEM_ERROR_SUBSTATUS) {
+        if (hasMteErr && IsEventIdAndRasCodeMatch(devId, g_ubNonMemPoisonRasList) && !HasMemUceErr(devId, g_aicOrSdmaOrHcclLocalMulBitEccEventIdBlkList)) {
+            taskInfo->mte_error = TS_ERROR_LOCAL_MEM_ERROR;
+            (RtPtrToUnConstPtr<Device *>(device))->SetDeviceFaultType(DeviceFaultType::HBM_UCE_ERROR);
+            RT_LOG(RT_LOG_ERROR,
+                "CCU Launch local HBM UCE fault occurred: device_id=%u, stream_id=%d, task_id=%hu, retCode=%u",
+                devId, taskInfo->stream->Id_(), taskInfo->id, taskInfo->mte_error);
+        }
+    }
+    // map remote mem error
+    else if (status == CCU_TASK_REMOTE_MEM_ERROR) {
+        if (!hasMteErr && !HasMemUceErr(devId, g_hcclRemoteMulBitEccEventIdBlkList)) {
+            taskInfo->mte_error = TS_ERROR_REMOTE_MEM_ERROR;
+            RT_LOG(RT_LOG_ERROR,
+                "CCU Launch remote HBM UCE fault occurred: device_id=%u, stream_id=%d, task_id=%hu, retCode=%u",
+                devId, taskInfo->stream->Id_(), taskInfo->id, taskInfo->mte_error);
+        }
+    } else if (status == CCU_TASK_LINK_ERROR) {
+        if (!HasBlacklistEventOnDevice(devId, g_ccuTimeoutEventIdBlkList)) {
+            taskInfo->mte_error = TS_ERROR_LINK_ERROR;
+            (RtPtrToUnConstPtr<Device *>(device))->SetDeviceFaultType(DeviceFaultType::LINK_ERROR);
+            RT_LOG(RT_LOG_ERROR,
+                "CCU Launch link fault occurred: device_id=%u, stream_id=%d, task_id=%hu, retCode=%u",
+                devId, taskInfo->stream->Id_(), taskInfo->id, taskInfo->mte_error);
+        }
+    } else {
+    }
+}
+
+static void MapFusionCcuErrorCodeForFastRecovery(const uint8_t ccuStatus, TaskInfo* taskInfo)
+{
+    // Verify device status
+    const auto device = taskInfo->stream->Device_();
+    COND_RETURN_VOID(device == nullptr, "Invalid device");
+    const uint32_t devId = device->Id_();
+    RT_LOG(RT_LOG_DEBUG,
+                "fusion CCU Launch task mte_error=%u, device_id=%u, stream_id=%d, task_id=%hu",
+                taskInfo->mte_error, devId, taskInfo->stream->Id_(), taskInfo->id);
+    bool hasMteErr = HasMteErr(device);
+    // map local mem error
+    if (ccuStatus == CCU_TASK_LOCAL_MEM_ERROR) {
+        if (hasMteErr && IsEventIdAndRasCodeMatch(devId, g_ubNonMemPoisonRasList) && !HasMemUceErr(devId, g_aicOrSdmaOrHcclLocalMulBitEccEventIdBlkList)) {
+            taskInfo->mte_error = TS_ERROR_LOCAL_MEM_ERROR;
+            (RtPtrToUnConstPtr<Device *>(device))->SetDeviceFaultType(DeviceFaultType::HBM_UCE_ERROR);
+            RT_LOG(RT_LOG_ERROR,
+                "fusion CCU Launch local HBM UCE fault occurred: device_id=%u, stream_id=%d, task_id=%hu, retCode=%u",
+                devId, taskInfo->stream->Id_(), taskInfo->id, taskInfo->mte_error);
+        }
+    } 
+    // map remote mem error
+    else if (ccuStatus == CCU_TASK_REMOTE_MEM_ERROR) {
+        if (!hasMteErr && !HasMemUceErr(devId, g_hcclRemoteMulBitEccEventIdBlkList)) {
+            taskInfo->mte_error = TS_ERROR_REMOTE_MEM_ERROR;
+            RT_LOG(RT_LOG_ERROR,
+                "fusion CCU Launch remote HBM UCE fault occurred: device_id=%u, stream_id=%d, task_id=%hu, retCode=%u",
+                devId, taskInfo->stream->Id_(), taskInfo->id, taskInfo->mte_error);
+        }
+    } else if (ccuStatus == CCU_TASK_LINK_ERROR) {
+        if (!HasBlacklistEventOnDevice(devId, g_ccuTimeoutEventIdBlkList)) {
+            taskInfo->mte_error = TS_ERROR_LINK_ERROR;
+            (RtPtrToUnConstPtr<Device *>(device))->SetDeviceFaultType(DeviceFaultType::LINK_ERROR);
+            RT_LOG(RT_LOG_ERROR,
+                "fusion CCU Launch link fault occurred: device_id=%u, stream_id=%d, task_id=%hu, retCode=%u",
+                devId, taskInfo->stream->Id_(), taskInfo->id, taskInfo->mte_error);
+        }
+    } else {
+    }
+}
+
 static void ParseAndGetCcuExceptionInfo(rtExceptionExpandInfo_t * const expandInfo, const TaskInfo * const taskInfo,
     const StarsDeviceErrorInfo * const info)
 {
@@ -817,8 +898,20 @@ static void ParseAndGetCcuExceptionInfo(rtExceptionExpandInfo_t * const expandIn
         /* ccu launch only has 1 ccu task */
         SetCcuExceptionSqeInfo(expandInfo->u.ccuInfo.missionInfo, ccuSqe, 0U, 0U);
         ParseCcuDfxInfo(&(expandInfo->u.ccuInfo), info);
+        const rtMultiCCUExDetailInfo_t * const multiCcuInfo = &(expandInfo->u.ccuInfo);
+        for (uint8_t idx = 0U; idx < multiCcuInfo->ccuMissionNum; idx++) {
+            const uint8_t status = multiCcuInfo->missionInfo[idx].status;
+            const uint8_t subStatus = multiCcuInfo->missionInfo[idx].subStatus;
+            MapCcuErrorCodeForFastRecovery(status, subStatus, RtPtrToUnConstPtr<TaskInfo *>(taskInfo));
+        }
     } else if (taskInfo->type == TS_TASK_TYPE_FUSION_KERNEL) {
         HandleFusionKernelCcuException(expandInfo, taskInfo, info, sqe);
+        const rtMultiCCUExDetailInfo_t * const multiCcuInfo = &(expandInfo->u.fusionInfo.u.aicoreCcuInfo.ccuDetailMsg);
+        for (uint8_t idx = 0U; idx < multiCcuInfo->ccuMissionNum; idx++) {
+            const uint8_t ccuStatus = multiCcuInfo->missionInfo[idx].status;
+            MapFusionCcuErrorCodeForFastRecovery(ccuStatus, RtPtrToUnConstPtr<TaskInfo *>(taskInfo));
+        }
+    } else {
     }
 }
 
@@ -836,7 +929,11 @@ static void TaskFailCallBackForFusionKernelTask(const TaskInfo * const taskInfo,
     fusionDetail->type = RT_FUSION_AICORE_CCU;
 
     ParseAndGetCcuExceptionInfo(expandInfo, taskInfo, info);
-    exceptionInfo.retcode = static_cast<uint32_t>(ACL_ERROR_RT_TS_ERROR);
+    rtError_t rtErrCode = RT_ERROR_TSFW_BASE;
+    if (taskInfo->mte_error != 0) {
+        (void)GetTsErrCodeMap(taskInfo->mte_error, &rtErrCode);
+    }
+    exceptionInfo.retcode = static_cast<uint32_t>(RT_TRANS_EXT_ERRCODE(rtErrCode));
     exceptionInfo.taskid = taskInfo->taskSn;
     exceptionInfo.streamid = static_cast<uint32_t>(streamId);
     exceptionInfo.tid = threadId;
@@ -860,7 +957,11 @@ static void TaskFailCallBackForCcuTask(const TaskInfo * const taskInfo, const ui
     rtExceptionExpandInfo_t *expandInfo = &(exceptionInfo.expandInfo);
 
     ParseAndGetCcuExceptionInfo(expandInfo, taskInfo, info);
-    exceptionInfo.retcode = static_cast<uint32_t>(ACL_ERROR_RT_TS_ERROR);
+    rtError_t errCode = RT_ERROR_TSFW_BASE;
+    if (taskInfo->mte_error != 0) {
+        (void)GetTsErrCodeMap(taskInfo->mte_error, &errCode);
+    }
+    exceptionInfo.retcode = static_cast<uint32_t>(RT_TRANS_EXT_ERRCODE(errCode));
     exceptionInfo.taskid = taskInfo->taskSn;
     exceptionInfo.streamid = static_cast<uint32_t>(streamId);
     exceptionInfo.tid = threadId;

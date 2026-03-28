@@ -1309,6 +1309,29 @@ TEST_F(TaskTestDavid, SetStarsResultForHcclUbPoisonDavinciTask)
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
+TEST_F(TaskTestDavid, SetStarsResultForHcclLinkDavinciTask)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+
+    rtStream_t newStream;
+    auto ret = rtStreamCreate(&newStream, 0);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    Stream *stream = static_cast<Stream *>(newStream);
+
+    TaskInfo taskInfo = {};
+    taskInfo.type = TS_TASK_TYPE_KERNEL_AICPU;
+    taskInfo.stream = stream;
+    rtLogicCqReport_t logicCq = {};
+    taskInfo.stream->Device_()->SetDeviceRas(false);
+    logicCq.errorCode = AICPU_HCCL_OP_UB_LINK_FAILED;
+    faultEventFlag = 0;
+    SetStarsResultForDavinciTask(&taskInfo, logicCq);
+    EXPECT_EQ(taskInfo.errorCode, TS_ERROR_LINK_ERROR);
+
+    ret = rtStreamDestroy(newStream);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+}
+
 TEST_F(TaskTestDavid, TaskGroupCheck)
 {
     TaskInfo task = {};

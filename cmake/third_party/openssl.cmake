@@ -71,12 +71,16 @@ if (ENABLE_OPEN_SRC)
         # ========== 构建命令 ==========
         set(OPENSSL_MAKE_CMD $(MAKE))
         set(OPENSSL_INSTALL_CMD $(MAKE) install_dev)
+        set(OPENSSL_DOWNLOAD_TIMESTAMP_ARG)
+        if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.24)
+            list(APPEND OPENSSL_DOWNLOAD_TIMESTAMP_ARG DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+        endif()
         # ========== ExternalProject_Add ==========
         if (NOT EXISTS "${OPEN_SOURCE_DIR}/openssl/Configure")
             message("openssl:not use cache")
             ExternalProject_Add(openssl_project
                 URL ${OPENSSL_TARBALL}                        # 从本地 tar.gz 获取源码
-                DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+                ${OPENSSL_DOWNLOAD_TIMESTAMP_ARG}
                 #URL_HASH SHA256=SKIP                          # 可加校验哈希，也可用 SKIP
                 DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/downloads
                 SOURCE_DIR ${OPENSSL_SRC_DIR}                 # 解压后的源码目录

@@ -44,6 +44,10 @@ rtError_t CtxStreamTaskClean(Context *const ctx)
             ERROR_RETURN(error, "ResetLogicCq fail, logicCq_id=%u, retCode=%#x.", stream->GetLogicalCqId(), error);
         }
     }
+    error = ctx->GetCtrlSQStream()->ResClear();
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "ResClear Ctrl stream fail, retCode=%#x.", error);
+    error = ctx->GetCtrlSQStream()->SqCqUpdate();
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Update Ctrl stream fail, retCode=%#x.", error);
     return error;
 }
 

@@ -185,7 +185,7 @@ bash build.sh --cann_3rd_lib_path=third_party
 编译完成之后会在`build_out`目录下生成`cann-npu-runtime_<version>_linux-<arch>.run`软件包。
 \<version>表示版本号。
 \<arch>表示操作系统架构，取值包括x86_64与aarch64。
-可执行如下命令安装编译生成的Runtime软件包，非正式发布包无社区签名。因此安装完成后，如果需要验证功能，请务必参考 "关于签名的补充说明" 进行操作。
+可执行如下命令安装编译生成的Runtime软件包。
 
 ```bash
 ./cann-npu-runtime_<version>_linux-<arch>.run --full --install-path=${install_path}
@@ -196,19 +196,6 @@ bash build.sh --cann_3rd_lib_path=third_party
 
 安装完成之后，用户编译生成的Runtime软件包会替换已安装CANN开发套件包中的Runtime相关软件。
                                        
-#### 关于签名的补充说明
-
-* 本仓编译产生`cann-npu-runtime_<version>_linux-<arch>.run`软件包中含有`cann-tsch-compat.tar.gz`（Runtime兼容升级包)。
-* `cann-tsch-compat.tar.gz`会在业务启动时加载至Device，加载过程中默认会由驱动进行安全验签，确保包可信。
-* 开发者下载本仓源码自行编译产生`cann-tsch-compat.tar.gz` 采用社区证书签名头，为此采用关闭驱动安全验签的机制。
-* 关闭验签方式：</br>
-配套使用HDK 25.5.T2.B001或以上版本，并通过该HDK配套的npu-smi工具关闭验签。详见[设置自定义验签能力使能状态](https://support.huawei.com/enterprise/zh/doc/EDOC1100540362/3152813c?idPath=23710424|251366513|254884019|261408772|252764743), [设置验签模式](https://support.huawei.com/enterprise/zh/doc/EDOC1100540362/a484ba7b?idPath=23710424|251366513|254884019|261408772|252764743)命令文档，以root用户在物理机上执行。 </br>
-以device 0为例 (其中 -i 后面的参数是device id）：
-    ```bash
-  npu-smi set -t custom-op-secverify-enable -i 0 -d 1     # 使能自定义验签
-  npu-smi set -t custom-op-secverify-mode -i 0 -d 0      # 设置成"关闭验签"模式
- 	```
-  
 ## 本地验证 
 
 编译完成后，用户可以进行开发测试，验证项目功能是否正常，本节将介绍如何做单元测试(UT: Unit Testing)。

@@ -16,6 +16,8 @@
 #include "memory_task.h"
 #include "driver/ascend_hal.h"
 #include <unordered_set>
+#include "task_david.hpp"
+#include "common/internal_error_define.hpp"
 
 namespace cce {
 namespace runtime {
@@ -52,11 +54,13 @@ public :
     rtError_t IpcOpenEventHandle(rtIpcEventHandle_t *ipcEventHandle);
     rtError_t EnableP2PForIpc(uint64_t deviceMemHandle) const;
     rtError_t IpcEventRecord(Stream * const stm);
+    rtError_t IpcEventRecordStarsV2(Stream * const stm);
     rtError_t IpcVaAndPaOperation(size_t granularity, rtDrvMemProp_t *prop, uint64_t *deviceMemHandle);
     rtError_t IpcHandleAllocAndExport(size_t granularity, rtDrvMemProp_t *prop, uint64_t* ipcHandle);
     rtError_t IpcHandleAllocAndImport(size_t granularity, rtIpcEventHandle_t* ipcEventHandle);
     rtError_t IpcMemHandleImport(size_t granularity, bool hostFlag, uint64_t deviceMemHandle);
     rtError_t IpcEventWait(Stream * const stm);
+    rtError_t IpcEventWaitStarsV2(Stream * const stm);
     rtError_t IpcEventQuery(rtEventStatus_t * const status);
     rtError_t IpcEventSync(int32_t timeout = -1);
     rtError_t GetIpcRecordIndex(uint16_t *curIndex);

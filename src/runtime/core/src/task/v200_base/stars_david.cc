@@ -53,6 +53,8 @@ uint32_t GetSendDavidSqeNum(const TaskInfo* const taskInfo)
         return TASK_SQE_NUM_TWO;
     } else if (type == TS_TASK_TYPE_FUSION_KERNEL) {
         return GetSendSqeNumForFusionKernelTask(taskInfo);
+    } else if (type == TS_TASK_TYPE_IPC_WAIT) {
+        return MEM_WAIT_V2_SQE_NUM;
     } else {
         return TASK_SQE_NUM_ONE;
     }
@@ -2116,38 +2118,6 @@ void InitWriteValueSqe(RtDavidStarsWriteValueSqe * const writeValueSqe,
     return;
 }
 
-void ConstructSqeForMemWriteValueTask(TaskInfo *const taskInfo, rtDavidSqe_t * const davidSqe, uint64_t sqBaseAddr)
-{
-    UNUSED(sqBaseAddr);
-    MemWriteValueTaskInfo *const writeValTsk = &(taskInfo->u.memWriteValueTask);
-    ConstructDavidSqeForHeadCommon(taskInfo, davidSqe);
-
-    RtDavidStarsWriteValueSqe * const sqe = &(davidSqe->writeValueSqe);
-    sqe->header.type = RT_DAVID_SQE_TYPE_WRITE_VALUE;
-    sqe->va = 1U;
-    sqe->kernelCredit = RT_STARS_DEFAULT_KERNEL_CREDIT_DAVID;
-    sqe->awsize = writeValTsk->awSize;
-    sqe->snoop = 0U;
-    sqe->awcache = 2U;  // 2U: 0010 Normal Non-cacheable Non-bufferable
-    sqe->awprot = 0U;
-
-    const uint64_t value = taskInfo->u.memWriteValueTask.value;
-    const uint64_t devAddr = taskInfo->u.memWriteValueTask.devAddr;
-    if (devAddr == 0ULL) {
-        sqe->header.type = RT_DAVID_SQE_TYPE_INVALID; //david
-        return;
-    }
-    
-    sqe->writeAddrLow = static_cast<uint32_t>(devAddr & MASK_32_BIT);
-    sqe->writeAddrHigh = static_cast<uint32_t>((devAddr >> UINT32_BIT_NUM) & MASK_17_BIT);
-    sqe->writeValuePart[0] = static_cast<uint32_t>(value & MASK_32_BIT);
-    sqe->writeValuePart[1] = static_cast<uint32_t>((value >> UINT32_BIT_NUM) & MASK_32_BIT);
-
-    PrintDavidSqe(davidSqe, "MemWriteValueTask");
-    RT_LOG(RT_LOG_INFO, "MemWriteValueTask stream_id=%d, awsize=%d ,task_id=%hu, devAddr=%#" PRIx64
-        ", value:%#" PRIx64, taskInfo->stream->Id_(), sqe->awsize, taskInfo->id, devAddr, value);
-}
-
 void RegTaskToDavidSqefunc(void)
 {
     g_toDavidSqeFunc[TS_TASK_TYPE_KERNEL_AICPU] = &ConstructDavidAICpuSqeForDavinciTask;
@@ -2224,9 +2194,11 @@ void RegTaskToDavidSqefunc(void)
     g_toDavidSqeFunc[TS_TASK_TYPE_DAVID_EVENT_RESET] = &ConstructDavidSqeForEventResetTask;
     g_toDavidSqeFunc[TS_TASK_TYPE_TSFW_AICPU_MSG_VERSION] = &ConstructDavidSqeForAicpuMsgVersionTask;
     g_toDavidSqeFunc[TS_TASK_TYPE_MEM_WAIT_VALUE] = &ConstructDavidSqeForMemWaitValueTask;
-    g_toDavidSqeFunc[TS_TASK_TYPE_MEM_WRITE_VALUE] = &ConstructSqeForMemWriteValueTask;
- 	g_toDavidSqeFunc[TS_TASK_TYPE_CAPTURE_RECORD] = &ConstructSqeForMemWriteValueTask;
+    g_toDavidSqeFunc[TS_TASK_TYPE_MEM_WRITE_VALUE] = &ConstructDavidSqeForMemWriteValueTask;
+ 	g_toDavidSqeFunc[TS_TASK_TYPE_CAPTURE_RECORD] = &ConstructDavidSqeForMemWriteValueTask;
  	g_toDavidSqeFunc[TS_TASK_TYPE_CAPTURE_WAIT] = &ConstructDavidSqeForMemWaitValueTask;
+    g_toDavidSqeFunc[TS_TASK_TYPE_IPC_RECORD] = &ConstructDavidSqeForMemWriteValueTask;
+    g_toDavidSqeFunc[TS_TASK_TYPE_IPC_WAIT] = &ConstructDavidSqeForMemWaitValueTask;
 }
 
 }  // namespace runtime

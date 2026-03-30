@@ -74,7 +74,8 @@ static bool IsNeedMoveMultipleSteps(tsTaskType_t type)
     return (type == TS_TASK_TYPE_DIRECT_SEND) ||
             (type == TS_TASK_TYPE_MEMCPY) ||
             (type == TS_TASK_TYPE_CCU_LAUNCH) ||
-            (type == TS_TASK_TYPE_FUSION_KERNEL);
+            (type == TS_TASK_TYPE_FUSION_KERNEL) ||
+            (type == TS_TASK_TYPE_IPC_WAIT);
 }
 
 static rtError_t PollingSqDisable(const rtLogicCqReport_t *logicCq, Stream * const failStm)

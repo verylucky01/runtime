@@ -38,6 +38,7 @@ rtError_t IpcEvent::IpcVaAndPaOperation(size_t granularity, rtDrvMemProp_t *prop
 
     // 1.3 halMemCreate alloc deviceMemPa
     prop->devid = device_->Id_();
+    prop->side = MEM_DEV_SIDE;
     error = NpuDriver::MallocPhysical(&deviceMemPa, p2pSize, prop, 0);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
         "ipc event setup failed, error=%#x.", static_cast<uint32_t>(error));
@@ -128,7 +129,7 @@ rtError_t IpcEvent::Setup()
     rtError_t error = RT_ERROR_NONE;
     rtDrvMemProp_t prop = {};
     prop.devid = IMPORT_DEVICE_ID;
-    prop.side = MEM_DEV_SIDE;
+    prop.side = MEM_HOST_SIDE;
     prop.mem_type = MEM_P2P_HBM_TYPE;
     prop.module_id = static_cast<uint16_t>(RUNTIME);
     prop.pg_type = MEM_NORMAL_PAGE_TYPE;

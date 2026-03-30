@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include "ipc_event.hpp"
+
 namespace cce {
 namespace runtime {
 IpcEvent::IpcEvent(Device *device, uint64_t eventFlag, Context *ctx)
@@ -33,6 +34,18 @@ rtError_t IpcEvent::IpcEventRecord(Stream * const stm)
 }
 
 rtError_t IpcEvent::IpcEventWait(Stream * const stm)
+{
+    UNUSED(stm);
+    return RT_ERROR_NONE;
+}
+
+rtError_t IpcEvent::IpcEventRecordStarsV2(Stream * const stm)
+{
+    UNUSED(stm);
+    return RT_ERROR_NONE;
+}
+ 
+rtError_t IpcEvent::IpcEventWaitStarsV2(Stream * const stm)
 {
     UNUSED(stm);
     return RT_ERROR_NONE;

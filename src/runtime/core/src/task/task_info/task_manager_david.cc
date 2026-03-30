@@ -533,31 +533,6 @@ void AicpuMsgVersionTaskInit(TaskInfo *taskInfo)
 
 #if F_DESC("钩子注册框架")
 
-
-
-static void DavidRegSetStarsResultFunc(void)
-{
-    for (auto &item : g_setStarsResultFunc) {
-        item = &SetStarsResultCommonForDavid;
-    }
-    g_setStarsResultFunc[TS_TASK_TYPE_KERNEL_AICPU] = &SetStarsResultForDavinciTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_KERNEL_AIVEC] = &SetStarsResultForDavinciTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_KERNEL_AICORE] = &SetStarsResultForDavinciTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_MEMCPY] = &SetStarsResultForMemcpyAsyncTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_EVENT_RECORD] = &SetStarsResultForEventRecordTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_DAVID_EVENT_RECORD] = &SetStarsResultForDavidEventRecordTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_MODEL_EXECUTE] = &SetStarsResultForModelExecuteTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_DATADUMP_LOADINFO] = &SetStarsResultForDataDumpLoadInfoTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_MODEL_TO_AICPU] = &SetStarsResultForModelToAicpuTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_STREAM_WAIT_EVENT] = &SetStarsResultForEventWaitTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_DAVID_EVENT_WAIT] = &SetStarsResultForEventWaitTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_AICPU_INFO_LOAD] = &SetStarsResultForAicpuInfoLoadTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_CCU_LAUNCH] = &SetResultForCcuLaunchTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_FUSION_KERNEL] = &SetStarsResultForFusionKernelTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_UB_DB_SEND] = &SetResultForUbDmaTask;
-    g_setStarsResultFunc[TS_TASK_TYPE_DIRECT_SEND] = &SetResultForUbDmaTask;
-}
-
 static void DavidRegPrintErrorInfoFunc(void)
 {
     for (auto &item : g_printErrorInfoFunc) {
@@ -584,29 +559,27 @@ static void DavidRegPrintErrorInfoFunc(void)
     g_printErrorInfoFunc[TS_TASK_TYPE_DIRECT_SEND] = &PrintErrorInfoForUbDirectSendTask;
 }
 
-static void DavidRegTaskUnInitFunc(void)
+static void DavidRegSetStarsResultFunc(void)
 {
-    for (uint32_t i = 0U; i < TS_TASK_TYPE_RESERVED; i++) {
-        g_taskUnInitFunc[i] = nullptr;
+    for (auto &item : g_setStarsResultFunc) {
+        item = &SetStarsResultCommonForDavid;
     }
-
-    g_taskUnInitFunc[TS_TASK_TYPE_KERNEL_AICORE] = &DavinciTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_KERNEL_AIVEC] = &DavinciTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_KERNEL_AICPU] = &DavinciTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_MULTIPLE_TASK] = &DavinciMultipleTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_MEMCPY] = &MemcpyAsyncTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_EVENT_RECORD] = &EventRecordTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_EVENT_RESET] = &EventResetTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DAVID_EVENT_RECORD] = &DavidEventRecordTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DAVID_EVENT_RESET] = &DavidEventResetTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DAVID_EVENT_WAIT] = &DavidEventWaitTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_MODEL_EXECUTE] = &ModelExecuteTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_STREAM_SWITCH] = &StreamSwitchTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_STREAM_ACTIVE] = &StreamActiveTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_STREAM_LABEL_SWITCH_BY_INDEX] = &StreamLabelSwitchByIndexTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_STARS_COMMON] = &StarsCommonTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_FUSION_KERNEL] = &FusionKernelTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_MEM_WAIT_VALUE] = &MemWaitTaskUnInit;
+    g_setStarsResultFunc[TS_TASK_TYPE_KERNEL_AICPU] = &SetStarsResultForDavinciTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_KERNEL_AIVEC] = &SetStarsResultForDavinciTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_KERNEL_AICORE] = &SetStarsResultForDavinciTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_MEMCPY] = &SetStarsResultForMemcpyAsyncTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_EVENT_RECORD] = &SetStarsResultForEventRecordTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_DAVID_EVENT_RECORD] = &SetStarsResultForDavidEventRecordTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_MODEL_EXECUTE] = &SetStarsResultForModelExecuteTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_DATADUMP_LOADINFO] = &SetStarsResultForDataDumpLoadInfoTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_MODEL_TO_AICPU] = &SetStarsResultForModelToAicpuTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_STREAM_WAIT_EVENT] = &SetStarsResultForEventWaitTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_DAVID_EVENT_WAIT] = &SetStarsResultForEventWaitTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_AICPU_INFO_LOAD] = &SetStarsResultForAicpuInfoLoadTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_CCU_LAUNCH] = &SetResultForCcuLaunchTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_FUSION_KERNEL] = &SetStarsResultForFusionKernelTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_UB_DB_SEND] = &SetResultForUbDmaTask;
+    g_setStarsResultFunc[TS_TASK_TYPE_DIRECT_SEND] = &SetResultForUbDmaTask;
 }
 
 static void DavidRegDoCompleteSuccFunc(void)
@@ -638,6 +611,33 @@ static void DavidRegDoCompleteSuccFunc(void)
     g_doCompleteSuccFunc[TS_TASK_TYPE_UB_DB_SEND] = &DoCompleteSuccessForUbDmaDbModeTask;
     g_doCompleteSuccFunc[TS_TASK_TYPE_DIRECT_SEND] = &DoCompleteSuccessForUbDmaDirectWqeModeTask;
     g_doCompleteSuccFunc[TS_TASK_TYPE_FUSION_KERNEL] = &DoCompleteSuccessForFusionKernelTask;
+}
+
+static void DavidRegTaskUnInitFunc(void)
+{
+    for (uint32_t i = 0U; i < TS_TASK_TYPE_RESERVED; i++) {
+        g_taskUnInitFunc[i] = nullptr;
+    }
+
+    g_taskUnInitFunc[TS_TASK_TYPE_KERNEL_AICORE] = &DavinciTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_KERNEL_AIVEC] = &DavinciTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_KERNEL_AICPU] = &DavinciTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_MULTIPLE_TASK] = &DavinciMultipleTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_MEMCPY] = &MemcpyAsyncTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_EVENT_RECORD] = &EventRecordTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_EVENT_RESET] = &EventResetTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_DAVID_EVENT_RECORD] = &DavidEventRecordTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_DAVID_EVENT_RESET] = &DavidEventResetTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_DAVID_EVENT_WAIT] = &DavidEventWaitTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_MODEL_EXECUTE] = &ModelExecuteTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_STREAM_SWITCH] = &StreamSwitchTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_STREAM_ACTIVE] = &StreamActiveTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_STREAM_LABEL_SWITCH_BY_INDEX] = &StreamLabelSwitchByIndexTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_STARS_COMMON] = &StarsCommonTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_FUSION_KERNEL] = &FusionKernelTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_MEM_WAIT_VALUE] = &MemWaitTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_IPC_WAIT] = &StarsV2IpcEventWaitTaskUnInit;
+    g_taskUnInitFunc[TS_TASK_TYPE_IPC_RECORD] = &StarsV2IpcEventRecordTaskUnInit;
 }
 
 void RegDavidTaskFunc(void)

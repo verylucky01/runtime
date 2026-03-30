@@ -16,6 +16,7 @@
 #include "fusion_c.hpp"
 #include "dvpp_c.hpp"
 #include "event_c.hpp"
+#include "ipc_event.hpp"
 #include "memcpy_c.hpp"
 #include "notify_c.hpp"
 #include "count_notify.hpp"
@@ -428,15 +429,30 @@ rtError_t ApiImplDavid::EventCreateEx(Event ** const evt, const uint64_t flag)
     CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
     Device * const dev = curCtx->Device_();
     COND_RETURN_ERROR(dev == nullptr, RT_ERROR_INVALID_VALUE, "device is NULL.");
-    *evt = new (std::nothrow) DavidEvent(dev, flag, curCtx, true);
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, *evt == nullptr, RT_ERROR_EVENT_NEW, "new event failed.");
+
+    if (flag == RT_EVENT_IPC) {
+        *evt = new (std::nothrow) IpcEvent(dev, flag, curCtx);
+        COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, *evt == nullptr, RT_ERROR_EVENT_NEW, "new event failed.");
+        const rtError_t error = (*evt)->Setup();
+        COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, DELETE_O(*evt);,
+                            "setup failed, retCode=%#x", error);
+    } else {
+        *evt = new (std::nothrow) DavidEvent(dev, flag, curCtx, true);
+        COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, *evt == nullptr, RT_ERROR_EVENT_NEW, "new event failed.");
+    }
     return RT_ERROR_NONE;
 }
 
 rtError_t ApiImplDavid::EventDestroy(Event *evt)
 {
-    RT_LOG(RT_LOG_INFO, "event destroy event_id=%d.", evt->EventId_());
-    TryToFreeEventIdAndDestroyEvent(&evt, evt->EventId_(), true);
+    if (evt->GetEventFlag() == RT_EVENT_IPC) {
+        IpcEvent *eventIpc = dynamic_cast<IpcEvent *>(evt);
+        IpcEventDestroy(&eventIpc, MAX_INT32_NUM, true);
+    } else {
+        RT_LOG(RT_LOG_INFO, "event destroy event_id=%d.", evt->EventId_());
+        TryToFreeEventIdAndDestroyEvent(&evt, evt->EventId_(), true);
+    }
+    
     return RT_ERROR_NONE;
 }
 
@@ -549,7 +565,11 @@ rtError_t ApiImplDavid::EventRecord(Event * const evt, Stream * const stm)
             return RT_ERROR_NONE;
         }
     }
-    return EvtRecord(evt, curStm);
+    if (evt->GetEventFlag() == RT_EVENT_IPC) {
+        return (dynamic_cast<IpcEvent *>(evt))->IpcEventRecordStarsV2(curStm);
+    } else {
+        return EvtRecord(evt, curStm);
+    }
 }
 
 rtError_t ApiImplDavid::CaptureResetEvent(const Event * const evt, Stream * const stm)
@@ -730,9 +750,15 @@ rtError_t ApiImplDavid::StreamWaitEvent(Stream * const stm, Event * const evt, c
             }
         }
     }
-    const rtError_t error = EvtWait(evt, curStm, timeout);
-    COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE), error, "Stream wait event failed.");
-    return RT_ERROR_NONE;
+    
+    rtError_t error = RT_ERROR_NONE;
+    if (evt->GetEventFlag() == RT_EVENT_IPC) {
+        error = (dynamic_cast<IpcEvent *>(evt))->IpcEventWaitStarsV2(curStm);
+    } else {
+        error = EvtWait(evt, curStm, timeout);
+    }
+    ERROR_RETURN(error, "Stream wait event failed.");
+    return error;
 }
 
 rtError_t ApiImplDavid::MemcpyAsyncPtr(void * const memcpyAddrInfo, const uint64_t destMax,

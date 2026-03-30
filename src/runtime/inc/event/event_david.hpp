@@ -51,7 +51,7 @@ public:
     rtError_t GenEventId() override;
     bool IsEventInModel() override;
     bool IsEventWithoutWaitTask() const override {
-        return (((eventFlag_ & (RT_EVENT_DDSYNC | RT_EVENT_DDSYNC_NS | RT_EVENT_MC2 | RT_EVENT_EXTERNAL)) == 0U));
+        return (((eventFlag_ & (RT_EVENT_DDSYNC | RT_EVENT_DDSYNC_NS | RT_EVENT_MC2 | RT_EVENT_EXTERNAL | RT_EVENT_IPC)) == 0U));
     }
     bool IsCntNotify() const
     {

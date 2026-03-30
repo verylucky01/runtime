@@ -150,6 +150,38 @@ void ConstructDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t *cons
     ConstructSecondDavidSqeForMemWaitValueTask(taskInfo, condSqeAddr, fcPara);
 }
 
+void ConstructDavidSqeForMemWriteValueTask(TaskInfo *const taskInfo, rtDavidSqe_t * const davidSqe, uint64_t sqBaseAddr)
+{
+    UNUSED(sqBaseAddr);
+    MemWriteValueTaskInfo *const writeValTsk = &(taskInfo->u.memWriteValueTask);
+    ConstructDavidSqeForHeadCommon(taskInfo, davidSqe);
+
+    RtDavidStarsWriteValueSqe * const sqe = &(davidSqe->writeValueSqe);
+    sqe->header.type = RT_DAVID_SQE_TYPE_WRITE_VALUE;
+    sqe->va = 1U;
+    sqe->kernelCredit = RT_STARS_DEFAULT_KERNEL_CREDIT_DAVID;
+    sqe->awsize = writeValTsk->awSize;
+    sqe->snoop = 0U;
+    sqe->awcache = 2U;
+    sqe->awprot = 0U;
+
+    const uint64_t value = taskInfo->u.memWriteValueTask.value;
+    const uint64_t devAddr = taskInfo->u.memWriteValueTask.devAddr;
+    if (devAddr == 0ULL) {
+        sqe->header.type = RT_DAVID_SQE_TYPE_INVALID;
+        return;
+    }
+    
+    sqe->writeAddrLow = static_cast<uint32_t>(devAddr & MASK_32_BIT);
+    sqe->writeAddrHigh = static_cast<uint32_t>((devAddr >> UINT32_BIT_NUM) & MASK_17_BIT);
+    sqe->writeValuePart[0] = static_cast<uint32_t>(value & MASK_32_BIT);
+    sqe->writeValuePart[1] = static_cast<uint32_t>((value >> UINT32_BIT_NUM) & MASK_32_BIT);
+
+    PrintDavidSqe(davidSqe, "MemWriteValueTask");
+    RT_LOG(RT_LOG_INFO, "MemWriteValueTask stream_id=%d, awsize=%d ,task_id=%hu, devAddr=%#" PRIx64
+        ", value:%#" PRIx64, taskInfo->stream->Id_(), sqe->awsize, taskInfo->id, devAddr, value);
+}
+
 void ConstructNopSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t *const davidSqe)
 {
     ConstructDavidSqeForHeadCommon(taskInfo, davidSqe);
@@ -171,7 +203,7 @@ void ConstructFirstDavidSqeForMemWaitValueTask(TaskInfo* taskInfo, rtDavidSqe_t 
     sqe->header.type = RT_DAVID_SQE_TYPE_WRITE_VALUE;
     sqe->va = 1U;
     sqe->kernelCredit = RT_STARS_DEFAULT_KERNEL_CREDIT_DAVID;
-    sqe->awsize = RT_STARS_WRITE_VALUE_SIZE_TYPE_64BIT;
+    sqe->awsize = taskInfo->u.memWaitValueTask.awSize;
 
     constexpr uint64_t value = 0ULL;
     const uint64_t devAddr = RtPtrToValue(taskInfo->u.memWaitValueTask.writeValueAddr);

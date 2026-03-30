@@ -311,6 +311,7 @@ set(runtimeut_src_tiny_exclude_list
     ${TOP_DIR}/src/runtime/core/src/task/v200/aicpu_task_to_sqe.cc
     ${TOP_DIR}/src/runtime/core/src/task/v200/src/task/v200/task_proc_func_register.cc
     ${TOP_DIR}/src/runtime/core/src/event/ipc_event.cc
+    ${TOP_DIR}/src/runtime/core/src/event/ipc_event_starsV2.cc
     ${TOP_DIR}/src/runtime/core/src/pool/event_pool.cc
     ${TOP_DIR}/src/runtime/core/src/pool/event_expanding.cc
     ${TOP_DIR}/src/runtime/core/src/task/v200/notify_task_to_sqe.cc
@@ -564,6 +565,7 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/core/src/notify/notify.cc
     ${TOP_DIR}/src/runtime/core/src/event/event.cc
     ${TOP_DIR}/src/runtime/core/src/event/ipc_event.cc
+    ${TOP_DIR}/src/runtime/core/src/event/ipc_event_starsV2.cc
     ${TOP_DIR}/src/runtime/core/src/engine/logger.cc
     ${TOP_DIR}/src/runtime/core/src/runtime.cc
     ${TOP_DIR}/src/runtime/core/src/memory/mem_type.cc
@@ -1373,6 +1375,7 @@ set(runtimeut_v201_src_list
     ${TOP_DIR}/src/runtime/core/src/notify/notify.cc
     ${TOP_DIR}/src/runtime/core/src/event/event.cc
     ${TOP_DIR}/src/runtime/core/src/event/ipc_event.cc
+    ${TOP_DIR}/src/runtime/core/src/event/ipc_event_starsV2.cc
     ${TOP_DIR}/src/runtime/core/src/engine/logger.cc
     ${TOP_DIR}/src/runtime/core/src/runtime.cc
     ${TOP_DIR}/src/runtime/core/src/memory/mem_type.cc

@@ -190,6 +190,7 @@ set(libruntime_v200_src_files_exclude_for_tiny
     ${RUNTIME_CORE_DIR}/src/task/task_info/rdma_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/ffts_task.cc
     ${RUNTIME_CORE_DIR}/src/event/ipc_event.cc
+    ${RUNTIME_CORE_DIR}/src/event/ipc_event_starsV2.cc
     ${RUNTIME_CORE_DIR}/src/pool/event_expanding.cc
     ${RUNTIME_CORE_DIR}/src/pool/event_pool.cc
 )

@@ -1514,8 +1514,9 @@ void DoCompleteSuccessForIpcRecordTask(TaskInfo* taskInfo, const uint32_t devId)
     Stream * const stream = taskInfo->stream;
     COND_RETURN_VOID(memWriteValueTask->event == nullptr, "event is nullptr");
     IpcEvent *event = dynamic_cast<IpcEvent *>(memWriteValueTask->event);
-    COND_RETURN_VOID(event->GetIpcHandleVa() == nullptr, "ipcHandleVa is nullptr");
+    COND_RETURN_VOID(event == nullptr, "dynamic_cast failed: event is not IpcEvent");
     IpcHandleVa *vaHandle = event->GetIpcHandleVa();
+    COND_RETURN_VOID(event->GetIpcHandleVa() == nullptr, "ipcHandleVa is nullptr");
     uint16_t curIndex = memWriteValueTask->curIndex;
     event->IpcVaLock();
     if (vaHandle->deviceMemRef[curIndex] > 0U) { // do complete success call
@@ -1560,6 +1561,74 @@ void MemWaitTaskUnInit(TaskInfo *taskInfo)
     }
 
     memWaitValueTask->funCallMemSize2 = 0UL;
+}
+
+void StarsV2IpcEventWaitTaskUnInit(TaskInfo* taskInfo)
+{
+    MemWaitValueTaskInfo *memWaitValueTask = &taskInfo->u.memWaitValueTask;
+    Stream * const stream = taskInfo->stream;
+    COND_RETURN_VOID(memWaitValueTask->event == nullptr, "event is nullptr");
+    IpcEvent *event = dynamic_cast<IpcEvent *>(memWaitValueTask->event);
+    COND_RETURN_VOID(event == nullptr, "dynamic_cast failed: event is not IpcEvent");
+    IpcHandleVa *vaHandle = event->GetIpcHandleVa();
+    COND_RETURN_VOID(event->GetIpcHandleVa() == nullptr, "ipcHandleVa is nullptr");
+    uint16_t curIndex = memWaitValueTask->curIndex;
+    event->IpcVaLock();
+    if (vaHandle->deviceMemRef[curIndex] > 0U) {
+        vaHandle->deviceMemRef[curIndex]--;
+    } else {
+        RT_LOG(RT_LOG_ERROR, "device_id=%u, event_id=%u, current_id=%u, count already is zero",
+            stream->Device_()->Id_(), curIndex, vaHandle->currentIndex);
+    }
+    if (vaHandle->deviceMemRef[curIndex] == 0U) {
+        uint8_t* addr = event->GetCurrentHostMem() + curIndex;
+        (void)memset_s(RtPtrToPtr<void*>(addr), sizeof(uint8_t), 0, sizeof(uint8_t));
+    }
+    event->IpcEventCountSub();
+    event->IpcVaUnLock();
+ 
+    IpcEventDestroy(&event, MAX_INT32_NUM, false);
+ 
+    if (memWaitValueTask->baseFuncCallSvmMem != nullptr) {
+        const auto dev = taskInfo->stream->Device_();
+        (void)dev->Driver_()->DevMemFree(memWaitValueTask->baseFuncCallSvmMem, dev->Id_());
+        memWaitValueTask->baseFuncCallSvmMem = nullptr;
+        memWaitValueTask->funcCallSvmMem2 = nullptr;
+        memWaitValueTask->writeValueAddr = nullptr;
+    }
+    memWaitValueTask->funCallMemSize2 = 0UL;
+    RT_LOG(RT_LOG_INFO, "device_id=%u, stream_id=%d, task_id=%hu, event_id=%u",
+        stream->Device_()->Id_(), stream->Id_(), taskInfo->id, curIndex);
+}
+ 
+void StarsV2IpcEventRecordTaskUnInit(TaskInfo* taskInfo)
+{
+    MemWriteValueTaskInfo *memWriteValueTask = &taskInfo->u.memWriteValueTask;
+    Stream * const stream = taskInfo->stream;
+    COND_RETURN_VOID(memWriteValueTask->event == nullptr, "event is nullptr");
+    IpcEvent *event = dynamic_cast<IpcEvent *>(memWriteValueTask->event);
+    COND_RETURN_VOID(event == nullptr, "dynamic_cast failed: event is not IpcEvent");
+    IpcHandleVa *vaHandle = event->GetIpcHandleVa();
+    COND_RETURN_VOID(event->GetIpcHandleVa() == nullptr, "ipcHandleVa is nullptr");
+    uint16_t curIndex = memWriteValueTask->curIndex;
+    event->IpcVaLock();
+    if (vaHandle->deviceMemRef[curIndex] > 0U) {
+        vaHandle->deviceMemRef[curIndex]--;
+    } else {
+        RT_LOG(RT_LOG_ERROR, "device_id=%u, event_id=%u, current_id=%u, count already is zero",
+            stream->Device_()->Id_(), curIndex, vaHandle->currentIndex);
+    }
+    if (vaHandle->deviceMemRef[curIndex] == 0U) {
+        uint8_t* addr = event->GetCurrentHostMem() + curIndex;
+        event->SetIpcFinished();
+        (void)memset_s(RtPtrToPtr<void*>(addr), sizeof(uint8_t), 0, sizeof(uint8_t));
+    }
+    event->IpcEventCountSub();
+    event->IpcVaUnLock();
+ 
+    IpcEventDestroy(&event, MAX_INT32_NUM, false);
+    RT_LOG(RT_LOG_INFO, "ipc wait complete, device_id=%u, stream_id=%d, task_id=%hu, event_id=%u",
+        stream->Device_()->Id_(), stream->Id_(), taskInfo->id, curIndex);
 }
 
 uint32_t GetSendSqeNumForMemWaitTask(const TaskInfo * const taskInfo)
@@ -1836,8 +1905,9 @@ void DoCompleteSuccessForIpcWaitTask(TaskInfo* taskInfo, const uint32_t devId)
     Stream * const stream = taskInfo->stream;
     COND_RETURN_VOID(memWaitValueTask->event == nullptr, "event is nullptr");
     IpcEvent *event = dynamic_cast<IpcEvent *>(memWaitValueTask->event);
-    COND_RETURN_VOID(event->GetIpcHandleVa() == nullptr, "ipcHandleVa is nullptr");
+    COND_RETURN_VOID(event == nullptr, "dynamic_cast failed: event is not IpcEvent");
     IpcHandleVa *vaHandle = event->GetIpcHandleVa();
+    COND_RETURN_VOID(event->GetIpcHandleVa() == nullptr, "ipcHandleVa is nullptr");
     uint16_t curIndex = memWaitValueTask->curIndex;
     event->IpcVaLock();
     if (vaHandle->deviceMemRef[curIndex] > 0U) { // do complete success call

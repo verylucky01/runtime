@@ -145,6 +145,7 @@ const std::unordered_set<RtOptionalFeatureType> CHIP_DAVID_FEATURE{
     RtOptionalFeatureType::RT_FEATURE_TASK_MODEL_MAINTAINCE_WITH_VA,
     RtOptionalFeatureType::RT_FEATURE_DFX_TS_GET_DEVICE_MSG,
     RtOptionalFeatureType::RT_FEATURE_DRIVER_GET_FAULT_EVENT,
+    RtOptionalFeatureType::RT_FEATURE_IPC_EVENT,
     RtOptionalFeatureType::RT_FEATURE_DEVICE_DCACHE_LOCK_DOT_ALLOC_STACK,
     RtOptionalFeatureType::RT_FEATURE_DEVICE_MESSAGE_QUEUE,
     RtOptionalFeatureType::RT_FEATURE_TASK_VALUE_WAIT,

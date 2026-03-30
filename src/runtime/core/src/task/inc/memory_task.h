@@ -48,6 +48,8 @@ rtError_t MemWaitValueTaskInit(TaskInfo *taskInfo, const void * const devAddr,
                                const uint64_t value, const uint32_t flag);
 void ConstructSqeForMemWaitValueTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
 void MemWaitTaskUnInit(TaskInfo *taskInfo);
+void StarsV2IpcEventWaitTaskUnInit(TaskInfo* taskInfo);
+void StarsV2IpcEventRecordTaskUnInit(TaskInfo* taskInfo);
 uint32_t GetSendSqeNumForMemWaitTask(const TaskInfo * const taskInfo);
 void ReleaseCpyTmpMemForDavid(TaskInfo * const taskInfo);
 rtError_t AllocCpyTmpMemForDavid(TaskInfo * const taskInfo, uint32_t &cpyType,

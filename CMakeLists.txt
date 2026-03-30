@@ -34,6 +34,11 @@ if(NOT DEFINED PRODUCT_SIDE)
     set(PRODUCT_SIDE host)
 endif()
 
+# Mark cache entries as consumed even when the current configuration path does not use them.
+set(_cmake_arg_enable_sign "${ENABLE_SIGN}")
+set(_cmake_arg_custom_sign_script "${CUSTOM_SIGN_SCRIPT}")
+set(_cmake_arg_version_info "${VERSION_INFO}")
+
 # third_party
 include(${RUNTIME_DIR}/cmake/third_party/protobuf.cmake)
 include(${RUNTIME_DIR}/cmake/third_party/json.cmake)

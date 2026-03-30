@@ -100,16 +100,26 @@ def implement_function(func):
     参    数 : 调用脚本的传参
     返  回 值 : 解析后的参数值
     """
+    void_pointer_prefixes = (
+        "void *",
+        "void*",
+        "const void *",
+        "const void*",
+        "DLLEXPORT void *",
+        "DLLEXPORT void*",
+        "DLLEXPORT const void *",
+        "DLLEXPORT const void*",
+    )
+    void_prefixes = ("void", "DLLEXPORT void")
     function_def = func[:len(func) - 1].replace(";", "")
     function_def += '\n'
     function_def += '{\n'
-    if not func.startswith("void"):
-        if not func.startswith("DLLEXPORT void"):
-            function_def += '    return 0;'
-    if func.startswith("DLLEXPORT void *"):
+    is_void_pointer = any(func.startswith(prefix) for prefix in void_pointer_prefixes)
+    is_void_function = any(func.startswith(prefix) for prefix in void_prefixes)
+    if is_void_pointer:
         function_def += '    return NULL;'
-    if func.startswith("DLLEXPORT void*"):
-        function_def += '    return NULL;'
+    elif not is_void_function:
+        function_def += '    return 0;'
     function_def += '\n'
     function_def += '}'
     return function_def

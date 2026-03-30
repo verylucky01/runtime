@@ -10,6 +10,13 @@
 
 include(ExternalProject)
 set(ABL_CSEC ${RUNTIME_DIR}/../abl/libc_sec)
+
+if(CMAKE_GENERATOR MATCHES "Makefiles")
+    set(CSEC_BUILD_JOB_SERVER_AWARE TRUE)
+else()
+    set(CSEC_BUILD_JOB_SERVER_AWARE FALSE)
+endif()
+
 if (ENABLE_OPEN_SRC)
     add_library(c_sec_headers INTERFACE)
     if (EXISTS "${ABL_CSEC}" AND IS_DIRECTORY "${ABL_CSEC}")
@@ -54,6 +61,7 @@ if (ENABLE_OPEN_SRC)
                 SOURCE_DIR        ${CSEC_SOURCE_DIR}
                 CONFIGURE_COMMAND ""
                 BUILD_IN_SOURCE   1
+                BUILD_JOB_SERVER_AWARE ${CSEC_BUILD_JOB_SERVER_AWARE}
                 BUILD_COMMAND
                     ${CMAKE_MAKE_PROGRAM} -C <SOURCE_DIR> lib
                     CC=${CMAKE_C_COMPILER}
@@ -79,6 +87,7 @@ if (ENABLE_OPEN_SRC)
                     -P ${CMAKE_CURRENT_LIST_DIR}/csec_patch.cmake
                 CONFIGURE_COMMAND ""
                 BUILD_IN_SOURCE 1
+                BUILD_JOB_SERVER_AWARE ${CSEC_BUILD_JOB_SERVER_AWARE}
                 BUILD_COMMAND 
                     ${CMAKE_MAKE_PROGRAM} -C <SOURCE_DIR> lib
                     CC=${CMAKE_C_COMPILER}

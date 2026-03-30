@@ -739,10 +739,14 @@ rtError_t Model::LoadCompleteByStreamPrep(Stream * &stream)
         error = context_->StreamCreate(static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U, &stream);
         ERROR_RETURN_MSG_INNER(error, "Fail to create model load stream, retCode=%#x!", static_cast<uint32_t>(error));
         RT_LOG(RT_LOG_DEBUG, "create a aicpu stream for model load, model_id=%u, stream_id=%d.", Id_(), stream->Id_());
-    } else {
+    } else if(dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {
         COND_RETURN_ERROR_MSG_INNER(streams_.empty(), RT_ERROR_MODEL_STREAM, "There is no stream of the model");
         stream = context_->GetCtrlSQStream();
-        RT_LOG(RT_LOG_DEBUG, "create not a aicpu stream for model load");
+        RT_LOG(RT_LOG_DEBUG, "use ctrl sq for model load");
+    } else {
+        COND_RETURN_ERROR_MSG_INNER(streams_.empty(), RT_ERROR_MODEL_STREAM, "There is no stream of the model");
+        stream = context_->DefaultStream_();
+        RT_LOG(RT_LOG_DEBUG, "use default stream for model load");
     }
 
     stream->SetLatestModlId(id_);

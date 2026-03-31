@@ -110,6 +110,16 @@ struct TsProfileKeypoint {
     uint16_t resv;
 };
 
+struct TsDavidKeypoint {
+    TsProfileDataHead head;
+    uint64_t timestamp;
+    uint64_t indexId;
+    uint64_t modelId;
+    uint16_t tagId;
+    uint16_t streamId;
+    uint32_t taskId;
+};
+
 // hwts
 constexpr uint8_t HWTS_TASK_START_TYPE = 0;
 constexpr uint8_t HWTS_TASK_END_TYPE = 1;

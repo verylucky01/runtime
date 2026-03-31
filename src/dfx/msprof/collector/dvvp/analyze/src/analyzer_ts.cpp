@@ -13,7 +13,7 @@
 namespace Analysis {
 namespace Dvvp {
 namespace Analyze {
-
+using namespace analysis::dvvp::common::utils;
 bool AnalyzerTs::IsTsData(const std::string &fileName)
 {
     // ts data contains "ts_track.data"
@@ -52,7 +52,8 @@ void AnalyzerTs::ParseTsTrackData(CONST_CHAR_PTR data, uint32_t len)
             BufferRemainingData(dataLen_);
             return;
         }
-        if (remainingLen < tsHeader->bufSize) {
+        // sizeof(TsProfileKeypoint) equal to sizeof(TsDavidKeypoint)
+        if (remainingLen < tsHeader->bufSize || remainingLen < sizeof(TsProfileKeypoint)) {
             // remaining is not enough for bufSize to parse, cache it to buffer
             MSPROF_LOGI("Ts remains %u bytes unparsed, bufSize %u, cache it", remainingLen, tsHeader->bufSize);
             break;
@@ -61,7 +62,15 @@ void AnalyzerTs::ParseTsTrackData(CONST_CHAR_PTR data, uint32_t len)
             // data check ok, parse it
             ParseTsTimelineData(dataPtr_ + offset, remainingLen);
         } else if (tsHeader->rptType == TS_KEYPOINT_RPT_TYPE) {
-            ParseTsKeypointData(dataPtr_ + offset, remainingLen);
+            if (IsExtPmu()) {
+                const TsDavidKeypoint *tsData =
+                    Utils::ReinterpretCast<const TsDavidKeypoint, const TsProfileDataHead>(tsHeader);
+                ParseTsKeypointData(tsData);
+            } else {
+                const TsProfileKeypoint *tsData =
+                    Utils::ReinterpretCast<const TsProfileKeypoint, const TsProfileDataHead>(tsHeader);
+                ParseTsKeypointData(tsData);
+            }
         }
         offset += tsHeader->bufSize;
     }
@@ -120,17 +129,13 @@ void AnalyzerTs::ParseTsTimelineData(CONST_CHAR_PTR data, uint32_t len)
     }
 }
 
-void AnalyzerTs::ParseTsKeypointData(CONST_CHAR_PTR data, uint32_t len)
+template<typename T>
+void AnalyzerTs::ParseTsKeypointData(const T *tsData)
 {
-    if (len < sizeof(TsProfileKeypoint)) {
-        return;
-    }
-
-    auto tsData = reinterpret_cast<const TsProfileKeypoint *>(data);
-    if (tsData->head.bufSize != sizeof(TsProfileKeypoint) || tsData->timestamp == 0) {
+    if (tsData->head.bufSize != sizeof(T) || tsData->timestamp == 0) {
         MSPROF_LOGE("keypoint op error. bufSize %" PRIu64 " bytes, struct_len %u, "
             "indexId %" PRIu64 ", taskId %u, streamId %u, timestamp %" PRIu64, tsData->head.bufSize,
-            sizeof(TsProfileKeypoint), tsData->indexId, tsData->taskId, tsData->streamId, tsData->timestamp);
+            sizeof(T), tsData->indexId, tsData->taskId, tsData->streamId, tsData->timestamp);
         return;
     }
 
@@ -149,7 +154,7 @@ void AnalyzerTs::ParseTsKeypointData(CONST_CHAR_PTR data, uint32_t len)
         opData.indexId = tsData->indexId;
         opData.modelId = tsData->modelId;
         opData.streamId = tsData->streamId;
-        opData.taskId = tsData->taskId;
+        opData.taskId = static_cast<uint16_t>(tsData->taskId);
         opData.uploaded = false;
         keypointOpInfo_[key] = opData;
     } else if (tsData->tagId == TS_KEYPOINT_END_TASK_STATE) {
@@ -176,7 +181,7 @@ void AnalyzerTs::ParseTsKeypointData(CONST_CHAR_PTR data, uint32_t len)
         MSPROF_LOGE("keypoint tagId error. tagId %u", tsData->tagId);
         return;
     }
-    analyzedBytes_ += sizeof(TsProfileKeypoint);
+    analyzedBytes_ += sizeof(T);
 }
 
 void AnalyzerTs::PrintStats()
@@ -196,6 +201,9 @@ void AnalyzerTs::PrintStats()
         times,
         totalTsMerges_);
 }
+
+template void AnalyzerTs::ParseTsKeypointData(const TsProfileKeypoint *tsData);
+template void AnalyzerTs::ParseTsKeypointData(const TsDavidKeypoint *tsData);
 }  // namespace Analyze
 }  // namespace Dvvp
 }  // namespace Analysis

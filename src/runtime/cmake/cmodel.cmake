@@ -225,7 +225,6 @@ set(libruntime_cmodel_src_files_optional
     ${RUNTIME_CORE_DIR}/src/task/task_info/rdma_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/ffts_task.cc
     ${RUNTIME_CORE_DIR}/src/event/ipc_event.cc
-    ${RUNTIME_CORE_DIR}/src/event/ipc_event_starsV2.cc
     ${RUNTIME_CORE_DIR}/src/pool/event_expanding.cc
     ${RUNTIME_CORE_DIR}/src/pool/event_pool.cc
 )
@@ -409,6 +408,7 @@ set(libruntime_cmodel_v200_src_files
     ${RUNTIME_FEATURE_DIR}/soma/stream_mem_pool.cc
     ${RUNTIME_CORE_DIR}/src/launch/label.cc
     ${RUNTIME_CORE_DIR}/src/event/event.cc
+    ${RUNTIME_CORE_DIR}/src/event/ipc_event_starsV2.cc
     ${RUNTIME_CORE_DIR}/src/event/event_david.cc
     ${RUNTIME_CORE_DIR}/src/notify/notify.cc
     ${RUNTIME_CORE_DIR}/src/engine/logger.cc

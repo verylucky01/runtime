@@ -36,7 +36,8 @@ public:
 private:
     void ParseTsTrackData(CONST_CHAR_PTR data, uint32_t len);
     void ParseTsTimelineData(CONST_CHAR_PTR data, uint32_t len);
-    void ParseTsKeypointData(CONST_CHAR_PTR data, uint32_t len);
+    template<typename T>
+    void ParseTsKeypointData(const T *tsData);
     uint8_t GetRptType(CONST_CHAR_PTR data, uint32_t len);
 
     void PrintStats();

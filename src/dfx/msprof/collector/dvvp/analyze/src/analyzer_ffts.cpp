@@ -100,7 +100,9 @@ void AnalyzerFfts::HandleOptimizeAcsqTaskData(const T *acsqLog, uint32_t logType
     uint16_t streamId = acsqLog->streamId;
     std::string key;
     if (IsExtPmu()) {
-        key = std::to_string(taskId);
+        constexpr uint32_t offsetTask = 16;
+        uint32_t extTaskId = (static_cast<uint32_t>(taskId) << offsetTask | streamId);
+        key = std::to_string(extTaskId);
     } else {
         StarsRollBackStreamTaskId(&streamId, &taskId);
         key = std::to_string(taskId) + KEY_SEPARATOR + std::to_string(streamId);

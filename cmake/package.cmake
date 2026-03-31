@@ -14,13 +14,26 @@
 message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
 if (ENABLE_OPEN_SRC)
-    set(INSTALL_DIR ${CMAKE_SYSTEM_PROCESSOR}-linux/lib64)
+    set(INSTALL_DIR runtime/lib)
     set(SCHED_TARGETS dgw_client tsdclient)
 else()
     set(INSTALL_DIR lib)
     set(SCHED_TARGETS dgw_client tsdclient)
 endif()
 
+set(script_prefix ${RUNTIME_DIR}/scripts/package/runtime/scripts)
+install(DIRECTORY ${script_prefix}/
+    DESTINATION share/info/runtime/script
+    FILE_PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE  # 文件权限
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE
+    DIRECTORY_PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE  # 目录权限
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE
+    COMPONENT npu-runtime
+)
 set(SCRIPTS_FILES
     ${RUNTIME_DIR}/scripts/package/common/sh/check_version_required.awk
     ${RUNTIME_DIR}/scripts/package/common/sh/common_func.inc
@@ -28,26 +41,12 @@ set(SCRIPTS_FILES
     ${RUNTIME_DIR}/scripts/package/common/sh/common_interface.csh
     ${RUNTIME_DIR}/scripts/package/common/sh/common_interface.fish
     ${RUNTIME_DIR}/scripts/package/common/sh/version_compatiable.inc
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/cleanup.sh
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/help.info
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/install.sh
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/run_runtime_install.sh
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/run_runtime_uninstall.sh
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/run_runtime_upgrade.sh
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/runtime_custom_install.sh
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/runtime_func.sh
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/uninstall.sh
-    ${RUNTIME_DIR}/scripts/package/runtime/scripts/ver_check.sh
 )
 
 install(FILES ${SCRIPTS_FILES}
     DESTINATION share/info/runtime/script
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
-    PERMISSIONS
-    OWNER_READ OWNER_WRITE OWNER_EXECUTE  # 文件权限
-    GROUP_READ GROUP_EXECUTE
-    WORLD_READ WORLD_EXECUTE
 )
 set(COMMON_FILES
     ${RUNTIME_DIR}/scripts/package/common/sh/install_common_parser.sh
@@ -75,7 +74,7 @@ install(FILES ${CMAKE_BINARY_DIR}/version.npu-runtime.info
 )
 
 install(FILES ${CONF_FILES}
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/conf
+    DESTINATION runtime/conf
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -85,12 +84,12 @@ install(FILES ${PACKAGE_FILES}
     COMPONENT npu-runtime
 )
 install(FILES ${RUNTIME_DIR}/src/acl/config/swFeatureList.json
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/data/ascendcl_config
+    DESTINATION runtime/data/ascendcl_config
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
 install(FILES ${RUNTIME_DIR}/src/dfx/error_manager/error_code.json
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/conf/error_manager
+    DESTINATION runtime/conf/error_manager
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -98,6 +97,9 @@ set(BIN_FILES
     ${RUNTIME_DIR}/scripts/package/runtime/scripts/prereq_check.bash
     ${RUNTIME_DIR}/scripts/package/runtime/scripts/prereq_check.csh
     ${RUNTIME_DIR}/scripts/package/runtime/scripts/prereq_check.fish
+    ${RUNTIME_DIR}/scripts/package/runtime/scripts/setenv.bash
+    ${RUNTIME_DIR}/scripts/package/runtime/scripts/setenv.csh
+    ${RUNTIME_DIR}/scripts/package/runtime/scripts/setenv.fish
     ${INSTALL_OPTIONAL}
 )
 install(FILES ${BIN_FILES}
@@ -107,20 +109,13 @@ install(FILES ${BIN_FILES}
 )
 
 install(FILES ${RUNTIME_DIR}/scripts/package/runtime/set_env.sh
-    DESTINATION .
-    PERMISSIONS OWNER_READ GROUP_READ
+    DESTINATION runtime
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
 
-install(DIRECTORY ${RUNTIME_DIR}/include/driver
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(DIRECTORY ${RUNTIME_DIR}/include/dfx/base/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include/base
+install(DIRECTORY ${RUNTIME_DIR}/include
+    DESTINATION runtime
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -128,7 +123,7 @@ install(DIRECTORY ${RUNTIME_DIR}/include/dfx/base/
 install(FILES
     ${LIBC_SEC_HEADER}/securec.h
     ${LIBC_SEC_HEADER}/securectype.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include
+    DESTINATION runtime/include
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -138,7 +133,7 @@ install(FILES
     ${RUNTIME_DIR}/pkg_inc/dump/adump_api.h
     ${RUNTIME_DIR}/pkg_inc/dump/adump_pub.h
     ${RUNTIME_DIR}/pkg_inc/dump/adump_device_pub.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/dump
+    DESTINATION runtime/pkg_inc/dump
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -158,12 +153,13 @@ install(FILES
     ${RUNTIME_DIR}/pkg_inc/runtime/rt_external_stars_define.h
     ${RUNTIME_DIR}/pkg_inc/runtime/rt_external_stream.h
     ${RUNTIME_DIR}/pkg_inc/runtime/rt_external_dqs.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/runtime
+    DESTINATION runtime/pkg_inc/runtime
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
 
 install(FILES
+    ${RUNTIME_DIR}/pkg_inc/runtime/runtime/__clang_cce_runtime.h
     ${RUNTIME_DIR}/pkg_inc/runtime/runtime/base.h
     ${RUNTIME_DIR}/pkg_inc/runtime/runtime/config.h
     ${RUNTIME_DIR}/pkg_inc/runtime/runtime/context.h
@@ -186,7 +182,7 @@ install(FILES
     ${RUNTIME_DIR}/pkg_inc/runtime/runtime/rt.h
     ${RUNTIME_DIR}/pkg_inc/runtime/runtime/stars_interface.h
     ${RUNTIME_DIR}/pkg_inc/runtime/runtime/stream.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/runtime/runtime
+    DESTINATION runtime/pkg_inc/runtime/runtime
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -205,13 +201,13 @@ install(FILES
     ${RUNTIME_DIR}/pkg_inc/runtime/runtime/rts/rts_stream.h
     ${RUNTIME_DIR}/pkg_inc/runtime/runtime/rts/rts.h
     ${RUNTIME_DIR}/pkg_inc/runtime/runtime/rts/rts_snapshot.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/runtime/runtime/rts
+    DESTINATION runtime/pkg_inc/runtime/runtime/rts
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
 
 install(DIRECTORY ${RUNTIME_DIR}/include/driver
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc
+    DESTINATION runtime/pkg_inc
     COMPONENT npu-runtime
 )
 
@@ -220,14 +216,14 @@ install(FILES
     ${RUNTIME_DIR}/pkg_inc/profiling/devprof_pub.h
     ${RUNTIME_DIR}/pkg_inc/profiling/prof_api.h
     ${RUNTIME_DIR}/pkg_inc/profiling/prof_common.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/profiling
+    DESTINATION runtime/pkg_inc/profiling
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
 
 install(FILES
     ${RUNTIME_DIR}/pkg_inc/toolchain/prof_api.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/toolchain
+    DESTINATION runtime/pkg_inc/toolchain
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -235,7 +231,7 @@ install(FILES
 install(FILES
     ${RUNTIME_DIR}/pkg_inc/trace/atrace_pub.h
     ${RUNTIME_DIR}/pkg_inc/trace/atrace_types.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/trace
+    DESTINATION runtime/pkg_inc/trace
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -243,14 +239,14 @@ install(FILES
 install(FILES
     ${RUNTIME_DIR}/pkg_inc/watchdog/awatchdog_types.h
     ${RUNTIME_DIR}/pkg_inc/watchdog/awatchdog.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/watchdog
+    DESTINATION runtime/pkg_inc/watchdog
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
 
 install(FILES
     ${RUNTIME_DIR}/pkg_inc/mmpa/mmpa_api.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/mmpa
+    DESTINATION runtime/pkg_inc/mmpa
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -259,73 +255,16 @@ install(FILES
     ${RUNTIME_DIR}/pkg_inc/mmpa/sub_inc/mmpa_linux.h
     ${RUNTIME_DIR}/pkg_inc/mmpa/sub_inc/mmpa_typedef_linux.h
     ${RUNTIME_DIR}/pkg_inc/mmpa/sub_inc/mmpa_env_define.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/mmpa/sub_inc
+    DESTINATION runtime/pkg_inc/mmpa/sub_inc
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
 
 install(DIRECTORY
-    ${RUNTIME_DIR}/pkg_inc/aicpu_sched/common/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/aicpu
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-    # 排除type_def.h
-    PATTERN "type_def.h" EXCLUDE
-)
-
-# 单独安装type_def.h到aicpu/common目录
-install(FILES
-    ${RUNTIME_DIR}/pkg_inc/aicpu_sched/common/type_def.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/aicpu/common
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(DIRECTORY
-    ${RUNTIME_DIR}/pkg_inc/aicpu_sched/aicpu_schedule/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/aicpu/aicpu_schedule
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(DIRECTORY
+    ${RUNTIME_DIR}/pkg_inc/aicpu_sched
     ${RUNTIME_DIR}/pkg_inc/queue_schedule
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/aicpu
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(DIRECTORY
-    ${RUNTIME_DIR}/pkg_inc/aicpu_sched/cpu_kernels/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/aicpu/cpu_kernels
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(DIRECTORY
-    ${RUNTIME_DIR}/pkg_inc/tsd/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/aicpu/tsd
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(DIRECTORY
-    ${RUNTIME_DIR}/include/external/acl/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include/acl
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(DIRECTORY
-    ${RUNTIME_DIR}/include/external/ge/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include/ge
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(FILES
-    ${RUNTIME_DIR}/include/external/acl/error_codes/ge_error_codes.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include/ge
+    ${RUNTIME_DIR}/pkg_inc/tsd
+    DESTINATION runtime/pkg_inc
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -335,7 +274,7 @@ install(FILES
     ${RUNTIME_DIR}/pkg_inc/base/dlog_pub.h
     ${RUNTIME_DIR}/pkg_inc/base/log_types.h
     ${RUNTIME_DIR}/pkg_inc/base/plog.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/pkg_inc/base
+    DESTINATION runtime/pkg_inc/base
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -343,42 +282,29 @@ install(FILES
 install(FILES
     ${RUNTIME_DIR}/src/dfx/log/inc/toolchain/alog_pub.h
     ${RUNTIME_DIR}/src/dfx/log/inc/toolchain/log_types.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include/base
+    DESTINATION runtime/include/dfx/base
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
  
 install(FILES
     ${RUNTIME_DIR}/src/dfx/error_manager/error_manager.h
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include/experiment/metadef/common/util/error_manager
+    DESTINATION runtime/include/experiment/metadef/common/util/error_manager
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
 
 install(DIRECTORY ${RUNTIME_DIR}/pkg_inc/platform
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include
+    DESTINATION runtime/include
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
 
-install(DIRECTORY ${RUNTIME_DIR}/src/platform/platform_config/cann/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/data/platform_config
+install(DIRECTORY ${RUNTIME_DIR}/src/platform/platform_config
+    DESTINATION runtime/data
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
-
-install(DIRECTORY ${RUNTIME_DIR}/src/platform/platform_config/cann-dev/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/data/platform_config
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(DIRECTORY ${RUNTIME_DIR}/src/platform/platform_config/kirin/
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/data/platform_config
-    ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
 install(FILES
     ${PROTOBUF_HOST_STATIC_FINAL_PATH}
     DESTINATION ${INSTALL_DIR}
@@ -406,13 +332,13 @@ install(TARGETS platform
 )
 
 install(TARGETS platform stub_acl_rt stub_acl_tdt_channel stub_acl_tdt_queue stub_acl_prof stub_error_manager ascend_hal_stub
-        LIBRARY DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/devlib/linux/${TARGET_ARCH} ${INSTALL_OPTIONAL} COMPONENT npu-runtime
-        ARCHIVE DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/devlib/linux/${TARGET_ARCH} ${INSTALL_OPTIONAL} COMPONENT npu-runtime
+        LIBRARY DESTINATION runtime/devlib/linux/${TARGET_ARCH} ${INSTALL_OPTIONAL} COMPONENT npu-runtime
+        ARCHIVE DESTINATION runtime/devlib/linux/${TARGET_ARCH} ${INSTALL_OPTIONAL} COMPONENT npu-runtime
 )
 
 install(FILES
     ${CMAKE_BINARY_DIR}/lib_acl/stub/linux/${TARGET_ARCH}/libascendcl.so
-    DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/devlib/linux/${TARGET_ARCH}
+    DESTINATION runtime/devlib/linux/${TARGET_ARCH}
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
 )
@@ -444,7 +370,7 @@ install(TARGETS atrace_share
 )
 
 install(TARGETS asc_dumper
-    RUNTIME DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/bin
+    RUNTIME DESTINATION runtime/bin
     ${INSTALL_OPTIONAL} COMPONENT npu-runtime
 )
 
@@ -464,21 +390,10 @@ install(CODE
     COMPONENT npu-runtime
 )
 
-install(FILES
-    ${CMAKE_BINARY_DIR}/lib_acl/libascendcl.so
-    ${CMAKE_BINARY_DIR}/lib_acl/libdatatransfer.so
-    ${CMAKE_BINARY_DIR}/lib_acl/libindextransform.so
+install(DIRECTORY
+    ${CMAKE_BINARY_DIR}/lib_acl/
     DESTINATION ${INSTALL_DIR}
     ${INSTALL_OPTIONAL}
-    COMPONENT npu-runtime
-)
-
-install(FILES
-    ${CMAKE_BINARY_DIR}/lib_acl/dcache_lock_mix_ascend950.o
-    ${CMAKE_BINARY_DIR}/lib_acl/dcache_lock_mix.o
-    ${CMAKE_BINARY_DIR}/lib_acl/libascend_kms.so
-    DESTINATION ${INSTALL_DIR}
-    OPTIONAL
     COMPONENT npu-runtime
 )
 
@@ -488,6 +403,6 @@ install(TARGETS queue_schedule_so
 )
  
 install(TARGETS queue_schedule
-    RUNTIME DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/bin
+    RUNTIME DESTINATION runtime/bin
     ${INSTALL_OPTIONAL} COMPONENT npu-runtime
 )

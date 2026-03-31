@@ -1905,6 +1905,7 @@ typedef drvError_t DVresult;
 #define DV_MEM_LOCK_DEV_DVPP    0x0020
 #define DV_MEM_LOCK_HOST_AGENT  0x0040
 #define DV_MEM_USER_MALLOC      0x0080
+#define DV_MEM_USER_REGISTER    0x0100
 #define DV_MEM_UVM              0x0200
 #define DV_MEM_SOMA             0x0400
 
@@ -1918,6 +1919,7 @@ struct DVattribute {
     /**< DV_MEM_LOCK_DEV_DVPP   : dev_dvpp mapped memory & lock dev */
     /**< DV_MEM_LOCK_HOST_AGENT : host agent mapped memory & lock host */
     /**< DV_MEM_USER_MALLOC     : not svm addr range, default user malloc */
+    /**< DV_MEM_USER_REGISTER   : user malloc host memory registered by halHostRegister */
     UINT32 memType;
     UINT32 resv1;
     UINT32 resv2;

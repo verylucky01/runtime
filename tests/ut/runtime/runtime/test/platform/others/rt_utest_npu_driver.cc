@@ -26,6 +26,8 @@
 using namespace testing;
 using namespace cce::runtime;
 
+DVresult drvMemGetAttribute_9(DVdeviceptr vptr, struct DVattribute *attr);
+
 class NpuDriverTest : public testing::Test
 {
 protected:
@@ -361,6 +363,38 @@ TEST_F(NpuDriverTest, memory_attributes_fail)
 
     error = rawDrv->PointerGetAttributes(&attributes,NULL);
     EXPECT_NE(error, RT_ERROR_NONE);
+
+    delete rawDrv;
+}
+
+TEST_F(NpuDriverTest, memory_attributes_user_register)
+{
+    NpuDriver *rawDrv = new NpuDriver();
+    rtPointerAttributes_t ptrAttr = {};
+    rtPtrAttributes_t locationAttr = {};
+    rtMemLocationType location = RT_MEMORY_LOC_MAX;
+    rtMemLocationType realLocation = RT_MEMORY_LOC_MAX;
+    uint32_t dummy = 0U;
+    const void *ptr = &dummy;
+
+    MOCKER(drvMemGetAttribute)
+        .stubs()
+        .will(invoke(drvMemGetAttribute_9));
+
+    rtError_t error = rawDrv->PointerGetAttributes(&ptrAttr, ptr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(ptrAttr.memoryType, RT_MEMORY_TYPE_USER);
+    EXPECT_EQ(ptrAttr.locationType, RT_MEMORY_LOC_HOST);
+
+    error = rawDrv->PtrGetAttributes(ptr, &locationAttr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(locationAttr.location.type, RT_MEMORY_LOC_HOST);
+    EXPECT_EQ(locationAttr.location.id, 0U);
+
+    error = rawDrv->PtrGetRealLocation(ptr, location, realLocation);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(location, RT_MEMORY_LOC_HOST);
+    EXPECT_EQ(realLocation, RT_MEMORY_LOC_HOST);
 
     delete rawDrv;
 }
@@ -4072,6 +4106,11 @@ DVresult drvMemGetAttribute_1(DVdeviceptr vptr, struct DVattribute *attr)
 DVresult drvMemGetAttribute_2(DVdeviceptr vptr, struct DVattribute *attr)
 {
     attr->memType = DV_MEM_LOCK_HOST;
+    return DRV_ERROR_NONE;
+}
+DVresult drvMemGetAttribute_9(DVdeviceptr vptr, struct DVattribute *attr)
+{
+    attr->memType = DV_MEM_USER_REGISTER;
     return DRV_ERROR_NONE;
 }
 TEST_F(NpuDriverTest, host_register_06)

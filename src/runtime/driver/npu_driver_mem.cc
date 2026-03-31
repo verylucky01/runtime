@@ -182,6 +182,7 @@ rtError_t NpuDriver::HostRegister(void *ptr, uint64_t size, rtHostRegisterType t
     if ((typeMask & RT_HOST_REGISTER_READONLY) != 0U) {
         flag |= MEM_REGISTER_READ_ONLY;
     }
+
     RT_LOG(RT_LOG_INFO, "memory type %u.", flag);
     const drvError_t drvRet = halHostRegister(ptr, static_cast<UINT64>(size), flag,
         deviceId, devPtr);
@@ -1984,6 +1985,9 @@ rtError_t NpuDriver::PointerGetAttributes(rtPointerAttributes_t * const attribut
     } else if ((dvAttributes.memType & DV_MEM_SVM_HOST) != 0U) {
         attributes->memoryType = RT_MEMORY_TYPE_SVM;
         attributes->locationType = RT_MEMORY_LOC_MANAGED;
+    } else if ((dvAttributes.memType & DV_MEM_USER_REGISTER) != 0U) {
+        attributes->memoryType = RT_MEMORY_TYPE_USER;
+        attributes->locationType = RT_MEMORY_LOC_HOST;
     } else if ((dvAttributes.memType & DV_MEM_USER_MALLOC) != 0U) {
         attributes->memoryType = RT_MEMORY_TYPE_USER;
         attributes->locationType = (IsRegisteredMemory(ptr)) ? RT_MEMORY_LOC_HOST : RT_MEMORY_LOC_UNREGISTERED;
@@ -2057,6 +2061,8 @@ rtError_t NpuDriver::PtrGetAttributes(const void * const ptr, rtPtrAttributes_t 
         attributes->location.type = RT_MEMORY_LOC_MANAGED;
     } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_SVM)) != 0U) {
         attributes->location.type = RT_MEMORY_LOC_MANAGED;
+    } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_USER_REGISTER)) != 0U) {
+        attributes->location.type = RT_MEMORY_LOC_HOST;
     } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_USER_MALLOC)) != 0U) {
         attributes->location.type = (IsRegisteredMemory(ptr)) ? RT_MEMORY_LOC_HOST : RT_MEMORY_LOC_UNREGISTERED;
     } else {
@@ -2106,6 +2112,9 @@ rtError_t NpuDriver::PtrGetRealLocation(const void * const ptr, rtMemLocationTyp
     } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_SVM)) != 0U) {
         location = RT_MEMORY_LOC_MANAGED;
         realLocation = RT_MEMORY_LOC_HOST; // to be check
+    } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_USER_REGISTER)) != 0U) {
+        location = RT_MEMORY_LOC_HOST;
+        realLocation = RT_MEMORY_LOC_HOST;
     } else if ((dvAttributes.memType & static_cast<uint32_t>(DV_MEM_USER_MALLOC)) != 0U) {
         location = (IsRegisteredMemory(ptr)) ? RT_MEMORY_LOC_HOST : RT_MEMORY_LOC_UNREGISTERED;
         realLocation = RT_MEMORY_LOC_HOST;

@@ -51,6 +51,12 @@ DVresult drvMemGetAttribute_8(DVdeviceptr vptr, struct DVattribute *attr)
     attr->memType = 0x01000; // else
     return DRV_ERROR_NONE;
 }
+
+DVresult drvMemGetAttribute_9(DVdeviceptr vptr, struct DVattribute *attr)
+{
+    attr->memType = DV_MEM_USER_REGISTER;
+    return DRV_ERROR_NONE;
+}
 extern rtError_t rtStreamAddToModel(rtStream_t stm, rtModel_t captureMdl);
 
 drvError_t drvGetPlatformInfo_1(uint32_t *info)

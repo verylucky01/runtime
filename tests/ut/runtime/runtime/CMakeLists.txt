@@ -51,6 +51,7 @@ set(runtimeut_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/v100/task_proc_func_register.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/task_checker.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/memory_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/v100/memory_corruption_checker.cc
 )
 
 set(runtimeut_david_series_common_src_task_list
@@ -90,6 +91,7 @@ set(runtimeut_david_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/v200/aicpu_task_to_sqe.cc
     ${TOP_DIR}/src/runtime/core/src/task/v200/task_checker.cc
     ${TOP_DIR}/src/runtime/core/src/task/v200/notify_task_to_sqe.cc
+    ${TOP_DIR}/src/runtime/core/src/task/v200/memory_corruption_checker.cc
 )
 
 set(runtimeut_src_api_list
@@ -1304,6 +1306,7 @@ set(runtimeut_v201_src_task_list
     ${TOP_DIR}/src/runtime/feature/dps/dqs_c.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/v201/api_impl_v200_adapt.cc
     ${TOP_DIR}/src/runtime/core/src/task/v201/notify_task_to_sqe.cc
+    ${TOP_DIR}/src/runtime/core/src/task/v201/memory_corruption_checker.cc
 )
 
 set(runtimeut_v201_src_list

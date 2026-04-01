@@ -57,6 +57,7 @@ add_executable(runtime_utest_task_david
     rt_utest_stream_ub.cc
     rt_utest_dcache_lock_david.cc
     rt_utest_david_customer_stack_size.cc
+    rt_utest_memory_corruption.cc
 )
 
 target_compile_definitions(runtime_utest_task_david PUBLIC

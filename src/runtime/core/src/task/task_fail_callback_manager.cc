@@ -13,6 +13,26 @@
 namespace cce {
 namespace runtime {
 
+void TriggerMemoryCorruptionCheck(rtExceptionInfo_t *const exceptionInfo, const Device *dev, uint32_t realDeviceId,
+    rtBinHandle binHandle, rtExceptionArgsInfo_t *kernelInfo)
+{
+    if (exceptionInfo != nullptr) {
+        if (exceptionInfo->expandInfo.type == RT_EXCEPTION_AICORE) {
+            binHandle = exceptionInfo->expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.bin;
+            kernelInfo = &(exceptionInfo->expandInfo.u.aicoreInfo.exceptionArgs);
+        } else if (exceptionInfo->expandInfo.type == RT_EXCEPTION_FUSION &&
+            exceptionInfo->expandInfo.u.fusionInfo.type == RT_FUSION_AICORE_CCU) {
+            binHandle = exceptionInfo->expandInfo.u.fusionInfo.u.aicoreCcuInfo.exceptionArgs.exceptionKernelInfo.bin;
+            kernelInfo = &(exceptionInfo->expandInfo.u.fusionInfo.u.aicoreCcuInfo.exceptionArgs);
+        }
+    }
+
+    if (binHandle != nullptr) {
+        Program *program = RtPtrToPtr<Program *>(binHandle);
+        CheckKernelMemoryCorruption(program, dev, realDeviceId, kernelInfo);
+    }
+}
+
 void TaskFailCallBackNotify(rtExceptionInfo_t *const exceptionInfo)
 {
     const uint32_t realDeviceId = exceptionInfo->deviceid;
@@ -30,6 +50,8 @@ void TaskFailCallBackNotify(rtExceptionInfo_t *const exceptionInfo)
     if (it != exceptionRegMap.end()) {
         (void)exceptionRegMap.erase(it);
     }
+
+    TriggerMemoryCorruptionCheck(exceptionInfo, dev, realDeviceId);
 }
 
 rtError_t TaskFailCallBackReg(const char_t *regName, void *callback, void *args,

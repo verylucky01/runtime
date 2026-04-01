@@ -45,6 +45,7 @@ set(libruntime_cmodel_v100_task_src_files
     ${RUNTIME_CORE_DIR}/src/task/v100/task_proc_func_register.cc
     ${RUNTIME_CORE_DIR}/src/task/v100/task_checker.cc
     ${RUNTIME_CORE_DIR}/src/task/v100/memory_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/v100/memory_corruption_checker.cc
     ${RUNTIME_CORE_DIR}/src/launch/memcpy_stars.cc
     ${RUNTIME_CORE_DIR}/src/launch/dvpp_stars.cc
 )
@@ -108,6 +109,7 @@ set(libruntime_cmodel_v200_task_src_files
     ${RUNTIME_CORE_DIR}/src/task/v200/task_checker.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/aicpu_task_to_sqe.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/notify_task_to_sqe.cc
+    ${RUNTIME_CORE_DIR}/src/task/v200/memory_corruption_checker.cc
 )
 
 set(libruntime_cmodel_api_src_files_cmodel

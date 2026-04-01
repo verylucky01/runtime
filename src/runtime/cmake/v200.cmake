@@ -96,6 +96,7 @@ set(libruntime_v200_task_src_files
     ${RUNTIME_CORE_DIR}/src/task/v200/aicpu_task_to_sqe.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/task_checker.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/notify_task_to_sqe.cc
+    ${RUNTIME_CORE_DIR}/src/task/v200/memory_corruption_checker.cc
 )
 
 set(libruntime_v201_task_src_files
@@ -109,6 +110,7 @@ set(libruntime_v201_task_src_files
     ${RUNTIME_CORE_DIR}/src/task/v201/aicpu_task_to_sqe.cc
     ${RUNTIME_FEATURE_DIR}/dps/dqs_c.cc
     ${RUNTIME_CORE_DIR}/src/task/v201/notify_task_to_sqe.cc
+    ${RUNTIME_CORE_DIR}/src/task/v201/memory_corruption_checker.cc
 )
 
 set(libruntime_v200_context_src_files

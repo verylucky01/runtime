@@ -652,19 +652,19 @@ static void CheckAixErrorClassInFusionKernel(const StarsDeviceErrorInfo *errInfo
     SetDeviceFaultTypeByAixErrClass(dev, errInfo, errTaskPtr);
 }
 
-rtError_t ProcessDavidStarsFusionKernelErrorInfo(const StarsDeviceErrorInfo * const info,
-    const uint64_t errorNumber, const Device * const dev, const DeviceErrorProc * const insPtr)
+static void GetExceptionArgsForFusionKernelTask(const TaskInfo * const taskInfo, rtExceptionArgsInfo_t * const argsInfo)
 {
-    if (info == nullptr) {
-        return RT_ERROR_NONE;
-    }
+    (void)memset_s(argsInfo, sizeof(rtExceptionArgsInfo_t), 0U, sizeof(rtExceptionArgsInfo_t));
+    const FusionTaskInfo * const fusionKernelTask = &(taskInfo->u.fusionKernelTask);
 
-    TaskInfo *errTaskPtr = GetTaskInfo(dev, static_cast<uint32_t>(info->u.fusionKernelErrorInfo.comm.streamId),
-        static_cast<uint32_t>(info->u.fusionKernelErrorInfo.comm.taskId));
-    if (errTaskPtr != nullptr) {
-        errTaskPtr->isRingbufferGet = true;
-    }
+    Kernel *kernel = fusionKernelTask->aicPart.kernel;
+    GetKernelExceptionDfxInfo(kernel, &(fusionKernelTask->aicPart.inputArgsSize), fusionKernelTask->args,
+        fusionKernelTask->argsSize, argsInfo);
+    return;
+}
 
+static void LogFusionKernelErrorInfo(const StarsDeviceErrorInfo * const info, uint64_t errorNumber)
+{
     RT_LOG_CALL_MSG(ERR_MODULE_TBE, "The error from device(chipId=%u, dieId=%u), serial number is %" PRIu64 ", "
         "exception occurred during fusion kernel task execution, streamId=%u, taskId=%u, subtasks' subType=%hu,"
         "sqeLength=%hu, cqeStatus=%u.", info->u.fusionKernelErrorInfo.comm.chipId, info->u.fusionKernelErrorInfo.comm.dieId,
@@ -685,6 +685,30 @@ rtError_t ProcessDavidStarsFusionKernelErrorInfo(const StarsDeviceErrorInfo * co
         sizeof(StarsFusionKernelErrorInfo),
         info->u.fusionKernelErrorInfo.aicError, info->u.fusionKernelErrorInfo.aivError,
         info->u.fusionKernelErrorInfo.aicpuError, info->u.fusionKernelErrorInfo.ccuError);
+}
+
+rtError_t ProcessDavidStarsFusionKernelErrorInfo(const StarsDeviceErrorInfo * const info,
+    const uint64_t errorNumber, const Device * const dev, const DeviceErrorProc * const insPtr)
+{
+    if (info == nullptr) {
+        return RT_ERROR_NONE;
+    }
+
+    TaskInfo *errTaskPtr = GetTaskInfo(dev, static_cast<uint32_t>(info->u.fusionKernelErrorInfo.comm.streamId),
+        static_cast<uint32_t>(info->u.fusionKernelErrorInfo.comm.taskId));
+    if (errTaskPtr != nullptr) {
+        errTaskPtr->isRingbufferGet = true;
+    }
+
+    LogFusionKernelErrorInfo(info, errorNumber);
+
+    rtExceptionArgsInfo_t kernelInfo = {};
+    rtBinHandle binHandle = nullptr;
+    
+    if (errTaskPtr != nullptr && errTaskPtr->type == TS_TASK_TYPE_FUSION_KERNEL) { 
+        GetExceptionArgsForFusionKernelTask(errTaskPtr, &kernelInfo);
+        binHandle = kernelInfo.exceptionKernelInfo.bin;
+    }
 
     /* 处理子任务 */
     const StarsDeviceErrorInfo *errInfo = nullptr;
@@ -700,26 +724,17 @@ rtError_t ProcessDavidStarsFusionKernelErrorInfo(const StarsDeviceErrorInfo * co
 
     if (info->u.fusionKernelErrorInfo.aicError == 1U) {
         errInfo = RtPtrToPtr<const StarsDeviceErrorInfo *>(&(info->u.fusionKernelErrorInfo.aicInfo));
+        TriggerMemoryCorruptionCheck(nullptr, dev, dev->Id_(), binHandle, &kernelInfo);
         CheckAixErrorClassInFusionKernel(errInfo, info, RtPtrToUnConstPtr<Device *>(dev), errTaskPtr);
         (void)ProcessDavidStarsCoreErrorInfo(errInfo, errorNumber, dev, insPtr);
     }
     if (info->u.fusionKernelErrorInfo.aivError == 1U) {
         errInfo = RtPtrToPtr<const StarsDeviceErrorInfo *>(&(info->u.fusionKernelErrorInfo.aivInfo));
+        TriggerMemoryCorruptionCheck(nullptr, dev, dev->Id_(), binHandle, &kernelInfo);
         CheckAixErrorClassInFusionKernel(errInfo, info, RtPtrToUnConstPtr<Device *>(dev), errTaskPtr);
         (void)ProcessDavidStarsCoreErrorInfo(errInfo, errorNumber, dev, insPtr);
     }
     return RT_ERROR_NONE;
-}
-
-static void GetExceptionArgsForFusionKernelTask(const TaskInfo * const taskInfo, rtExceptionArgsInfo_t * const argsInfo)
-{
-    (void)memset_s(argsInfo, sizeof(rtExceptionArgsInfo_t), 0U, sizeof(rtExceptionArgsInfo_t));
-    const FusionTaskInfo * const fusionKernelTask = &(taskInfo->u.fusionKernelTask);
-
-    Kernel *kernel = fusionKernelTask->aicPart.kernel;
-    GetKernelExceptionDfxInfo(kernel, &(fusionKernelTask->aicPart.inputArgsSize), fusionKernelTask->args,
-        fusionKernelTask->argsSize, argsInfo);
-    return;
 }
 
 static void SetCcuExceptionSqeInfo(rtCcuMissionDetailInfo_t * const sqeInfo, const RtDavidStarsCcuSqe * const ccuSqe,

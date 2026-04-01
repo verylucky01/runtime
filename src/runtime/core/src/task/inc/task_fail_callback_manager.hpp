@@ -19,6 +19,12 @@
 namespace cce {
 namespace runtime {
 
+void CheckKernelMemoryCorruption(Program *program, const Device *device, 
+    uint32_t deviceId, rtExceptionArgsInfo_t *kernelInfo);
+
+void TriggerMemoryCorruptionCheck(rtExceptionInfo_t *const exceptionInfo, const Device *dev, uint32_t realDeviceId,
+    rtBinHandle binHandle = nullptr, rtExceptionArgsInfo_t *kernelInfo = nullptr);
+
 void TaskFailCallBackNotify(rtExceptionInfo_t *const exceptionInfo);
 rtError_t TaskFailCallBackReg(const char_t *regName, void *callback, void *args,
     TaskFailCallbackType type);

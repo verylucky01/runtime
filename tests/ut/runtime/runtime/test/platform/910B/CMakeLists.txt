@@ -54,6 +54,7 @@ set(runtimeut_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/v100/task_proc_func_register.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/task_checker.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/memory_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/v100/memory_corruption_checker.cc
 )
 
 set(runtimeut_src_api_list

@@ -1,6 +1,6 @@
 set(CMAKE_CXX_STANDARD 14)
-include_directories(${OPEN_SOURCE_DIR}/boost-1.87.0)
-include_directories(${OPEN_SOURCE_DIR}/mockcpp_src/include)
+include_directories(${CANN_3RD_LIB_PATH}/boost-1.87.0)
+include_directories(${CANN_3RD_LIB_PATH}/mockcpp_src/include)
 # compile for ut
 set(SLOG_STUB_FILES
         ${CMAKE_CURRENT_LIST_DIR}/../depends/slog/slog_stub.cc)

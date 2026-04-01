@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------------------------------------
 add_subdirectory(test)
 set(BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${OPEN_SOURCE_DIR}/boost-1.87.0)
+include_directories(${CANN_3RD_LIB_PATH}/boost-1.87.0)
 
 set(runtimeut_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/task.cc
@@ -1279,7 +1279,7 @@ target_link_directories(intf_llt_pub INTERFACE
 
 target_link_libraries(intf_llt_pub INTERFACE
     GTest::gtest
-    ${OPEN_SOURCE_DIR}/mockcpp/lib/libmockcpp.a
+    ${CANN_3RD_LIB_PATH}/mockcpp/lib/libmockcpp.a
     -lpthread
     $<$<BOOL:${ENABLE_GCOV}>:-lgcov>
 )
@@ -1614,4 +1614,4 @@ set(RUNTIME_TARGET
     runtime_utest_mini_v3
 )
 add_custom_target(runtime_ut DEPENDS ${RUNTIME_TARGET})
-include_directories(${OPEN_SOURCE_DIR}/mockcpp_src/include)
+include_directories(${CANN_3RD_LIB_PATH}/mockcpp_src/include)

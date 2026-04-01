@@ -8,8 +8,8 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-include_directories(${OPEN_SOURCE_DIR}/boost-1.87.0)
-include_directories(${OPEN_SOURCE_DIR}/mockcpp_src/include)
+include_directories(${CANN_3RD_LIB_PATH}/boost-1.87.0)
+include_directories(${CANN_3RD_LIB_PATH}/mockcpp_src/include)
 set(runtime_raw_device_adpt_common_list
     ${TOP_DIR}/src/runtime/core/src/device/raw_device_adpt_comm.cc
 )

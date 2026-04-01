@@ -8,11 +8,11 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-include_directories(${OPEN_SOURCE_DIR}/boost-1.87.0)
+include_directories(${CANN_3RD_LIB_PATH}/boost-1.87.0)
 add_library(intf_qs_llt_pub INTERFACE)
 target_include_directories(intf_qs_llt_pub INTERFACE
-  ${OPEN_SOURCE_DIR}/mockcpp_src/include
-  ${OPEN_SOURCE_DIR}/boost-1.87.0
+  ${CANN_3RD_LIB_PATH}/mockcpp_src/include
+  ${CANN_3RD_LIB_PATH}/boost-1.87.0
 )
 target_compile_definitions(intf_qs_llt_pub INTERFACE
   _GLIBCXX_USE_CXX11_ABI=0
@@ -33,7 +33,7 @@ target_link_options(intf_qs_llt_pub INTERFACE
 )
 target_link_libraries(intf_qs_llt_pub INTERFACE
     GTest::gtest
-    ${OPEN_SOURCE_DIR}/mockcpp/lib/libmockcpp.a
+    ${CANN_3RD_LIB_PATH}/mockcpp/lib/libmockcpp.a
 )
 add_subdirectory(ut)
 add_subdirectory(st)

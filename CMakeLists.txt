@@ -50,10 +50,10 @@ add_subdirectory(src)
 if (ENABLE_COV OR ENABLE_UT)
 
     set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules 
-        ${OPEN_SOURCE_DIR}/cmake/modules
+        ${CANN_3RD_LIB_PATH}/cmake/modules
     )
-    set(CMAKE_PREFIX_PATH ${OPEN_SOURCE_DIR}/json 
-        ${OPEN_SOURCE_DIR}/gtest_shared/lib64/cmake/GTest
+    set(CMAKE_PREFIX_PATH ${CANN_3RD_LIB_PATH}/json 
+        ${CANN_3RD_LIB_PATH}/gtest_shared/lib64/cmake/GTest
         ${ASCEND_INSTALL_PATH}
         ${RUNTIME_DIR}/cmake
     )
@@ -89,7 +89,7 @@ if(ENABLE_DEVICE)
             -DTOOLCHAIN_DIR=${TOOLCHAIN_DIR}
             -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/device_install
             -DCMAKE_TOOLCHAIN_FILE=${RUNTIME_DIR}/cmake/aarch64-hcc-toolchain.cmake
-            -DOPEN_SOURCE_DIR=${OPEN_SOURCE_DIR}
+            -DCANN_3RD_LIB_PATH=${CANN_3RD_LIB_PATH}
             -DCMAKE_C_AR=${CMAKE_C_AR}
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER_}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER_}

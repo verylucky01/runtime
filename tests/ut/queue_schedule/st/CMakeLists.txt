@@ -129,7 +129,7 @@ set(LOCAL_C_INCLUDES
     ${CMAKE_BINARY_DIR}/proto/aicpu
     ${CMAKE_BINARY_DIR}/proto/aicpu/proto
     ${CMAKE_CURRENT_SOURCE_DIR}/../stub
-    ${OPEN_SOURCE_DIR}/mockcpp_src/include
+    ${CANN_3RD_LIB_PATH}/mockcpp_src/include
 )
 
 add_executable(queue_schedule_st

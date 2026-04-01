@@ -13,7 +13,7 @@ include_directories(${BASE_DIR}/src/dfx/error_manager)
 include_directories(${BASE_DIR}/include/dfx)
 include_directories(${BASE_DIR}/pkg_inc)
 include_directories(${BASE_DIR}/pkg_inc/base)
-include_directories(${OPEN_SOURCE_DIR}/mockcpp_src/include)
+include_directories(${CANN_3RD_LIB_PATH}/mockcpp_src/include)
 
 set(UT_FILES
     "testcase/error_manager_unittest.cc"

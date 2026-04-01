@@ -22,7 +22,7 @@ include(GNUInstallDirs)
 # ==========================================================================================================
 # 1. Paths & Directories Setup
 # ==========================================================================================================
-set(PROTOBUF_LIB_CACHE_DIR ${OPEN_SOURCE_DIR}/lib_cache/protobuf-25.1/)
+set(PROTOBUF_LIB_CACHE_DIR ${CANN_3RD_LIB_PATH}/lib_cache/protobuf-25.1/)
 set(PROTOBUF_SRC_DIR ${CMAKE_BINARY_DIR}/protobuf-src)
 set(PROTOBUF_DL_DIR ${CMAKE_BINARY_DIR}/downloads)
 set(PROTOBUF_STATIC_PKG_DIR ${CMAKE_BINARY_DIR}/protobuf_static)
@@ -100,21 +100,21 @@ endif()
 # ==========================================================================================================
 if (NEED_BUILD_PROTOBUF)
     # 解析 protobuf 源码包路径
-    if (EXISTS ${OPEN_SOURCE_DIR}/protobuf-all-25.1.tar.gz)
-        set(PROTOBUF_PATH ${OPEN_SOURCE_DIR}/protobuf-all-25.1.tar.gz)
-    elseif (EXISTS ${OPEN_SOURCE_DIR}/protobuf-25.1.tar.gz)
-        set(PROTOBUF_PATH ${OPEN_SOURCE_DIR}/protobuf-25.1.tar.gz)
-    elseif (EXISTS ${OPEN_SOURCE_DIR}/protobuf/protobuf-all-25.1.tar.gz)
-        set(PROTOBUF_PATH ${OPEN_SOURCE_DIR}/protobuf/protobuf-all-25.1.tar.gz)
+    if (EXISTS ${CANN_3RD_LIB_PATH}/protobuf-all-25.1.tar.gz)
+        set(PROTOBUF_PATH ${CANN_3RD_LIB_PATH}/protobuf-all-25.1.tar.gz)
+    elseif (EXISTS ${CANN_3RD_LIB_PATH}/protobuf-25.1.tar.gz)
+        set(PROTOBUF_PATH ${CANN_3RD_LIB_PATH}/protobuf-25.1.tar.gz)
+    elseif (EXISTS ${CANN_3RD_LIB_PATH}/protobuf/protobuf-all-25.1.tar.gz)
+        set(PROTOBUF_PATH ${CANN_3RD_LIB_PATH}/protobuf/protobuf-all-25.1.tar.gz)
     else ()
-        set(PROTOBUF_PATH ${OPEN_SOURCE_DIR}/protobuf/protobuf-25.1.tar.gz)
+        set(PROTOBUF_PATH ${CANN_3RD_LIB_PATH}/protobuf/protobuf-25.1.tar.gz)
     endif ()
 
     # 解析 abseil 源码包路径
-    if (EXISTS ${OPEN_SOURCE_DIR}/abseil-cpp-20230802.1.tar.gz)
-        set(ABSEIL_PATH ${OPEN_SOURCE_DIR}/abseil-cpp-20230802.1.tar.gz)
+    if (EXISTS ${CANN_3RD_LIB_PATH}/abseil-cpp-20230802.1.tar.gz)
+        set(ABSEIL_PATH ${CANN_3RD_LIB_PATH}/abseil-cpp-20230802.1.tar.gz)
     else()
-        set(ABSEIL_PATH ${OPEN_SOURCE_DIR}/abseil-cpp/abseil-cpp-20230802.1.tar.gz)
+        set(ABSEIL_PATH ${CANN_3RD_LIB_PATH}/abseil-cpp/abseil-cpp-20230802.1.tar.gz)
     endif()
 
     if (NOT EXISTS "${ABSEIL_PATH}" OR NOT EXISTS "${PROTOBUF_PATH}")

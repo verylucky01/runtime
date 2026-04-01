@@ -224,7 +224,7 @@ build_rts() {
               -DVERSION=${VERSION} \
               -DCMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
               -DASCEND_INSTALL_PATH=${ASCEND_INSTALL_PATH} \
-              -DOPEN_SOURCE_DIR=${ASCEND_3RD_LIB_PATH} \
+              -DCANN_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
               -DENABLE_COV=${ENABLE_COV} \
               -DENABLE_GCOV=${ENABLE_GCOV} \
               -DENABLE_ASAN=${ENABLE_ASAN} \

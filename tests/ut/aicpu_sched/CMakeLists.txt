@@ -14,8 +14,8 @@ set(AICPU_SCHED_PATH
 
 add_library(intf_aicpu_llt_pub INTERFACE)
 target_include_directories(intf_aicpu_llt_pub INTERFACE
-  ${OPEN_SOURCE_DIR}/mockcpp_src/include
-  ${OPEN_SOURCE_DIR}/boost-1.87.0
+  ${CANN_3RD_LIB_PATH}/mockcpp_src/include
+  ${CANN_3RD_LIB_PATH}/boost-1.87.0
 )
 target_compile_definitions(intf_aicpu_llt_pub INTERFACE
   _GLIBCXX_USE_CXX11_ABI=0
@@ -36,7 +36,7 @@ target_link_options(intf_aicpu_llt_pub INTERFACE
 )
 target_link_libraries(intf_aicpu_llt_pub INTERFACE
     GTest::gtest
-    ${OPEN_SOURCE_DIR}/mockcpp/lib/libmockcpp.a
+    ${CANN_3RD_LIB_PATH}/mockcpp/lib/libmockcpp.a
 )
 
 add_subdirectory(aicpu_cust_schedule/ut)

@@ -9,8 +9,8 @@
 # -----------------------------------------------------------------------------------------------------------
 set(MSPROF_SOURCE_DIR ${TOP_DIR}/src/dfx/msprof/collector)
 
-include_directories(${OPEN_SOURCE_DIR}/boost-1.87.0)
-include_directories(${OPEN_SOURCE_DIR}/mockcpp_src/include)
+include_directories(${CANN_3RD_LIB_PATH}/boost-1.87.0)
+include_directories(${CANN_3RD_LIB_PATH}/mockcpp_src/include)
 
 ############# intf_llt_pub ####################
 add_library(msprof_intf_llt_pub INTERFACE)
@@ -43,7 +43,7 @@ link_directories(${TOP_DIR}/output/third_party)
 
 target_link_libraries(msprof_intf_llt_pub INTERFACE
     GTest::gtest
-    ${OPEN_SOURCE_DIR}/mockcpp/lib/libmockcpp.a
+    ${CANN_3RD_LIB_PATH}/mockcpp/lib/libmockcpp.a
     dl
     -lpthread
     $<$<BOOL:${ENABLE_GCOV}>:-lgcov>

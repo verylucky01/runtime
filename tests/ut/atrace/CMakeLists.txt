@@ -9,6 +9,6 @@
 # -----------------------------------------------------------------------------------------------------------
 set(ADIAG_DIR ${TOP_DIR}/src/dfx/trace)
 set(ATRACE_SOURCE_DIR ${ADIAG_DIR}/atrace)
-include_directories(${OPEN_SOURCE_DIR}/mockcpp_src/include)
+include_directories(${CANN_3RD_LIB_PATH}/mockcpp_src/include)
 
 add_subdirectory(ut)

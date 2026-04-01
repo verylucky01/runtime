@@ -251,7 +251,7 @@ build_rts() {
   CMAKE_ARGS="-DENABLE_OPEN_SRC=True \
               -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
               -DCMAKE_INSTALL_PREFIX=${OUTPUT_PATH} \
-              -DOPEN_SOURCE_DIR=${ASCEND_3RD_LIB_PATH} \
+              -DCANN_3RD_LIB_PATH=${ASCEND_3RD_LIB_PATH} \
               -DENABLE_ASAN=${ENABLE_ASAN} \
               -DENABLE_COV=${ENABLE_COV} \
               -DENABLE_UT=${ENABLE_UT}"

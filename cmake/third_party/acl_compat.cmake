@@ -14,7 +14,7 @@ if (ENABLE_OPEN_SRC AND NOT EXISTS "${CMAKE_BINARY_DIR}/include_acl")
     set(ACL_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/download")
     set(ACL_SOURCE_DIR "${CMAKE_BINARY_DIR}/acl_compat")
 
-    file(GLOB LOCAL_TAR_FILE "${OPEN_SOURCE_DIR}/acl-compat_*_linux-${CMAKE_HOST_SYSTEM_PROCESSOR}.tar.gz")
+    file(GLOB LOCAL_TAR_FILE "${CANN_3RD_LIB_PATH}/acl-compat_*_linux-${CMAKE_HOST_SYSTEM_PROCESSOR}.tar.gz")
     if (LOCAL_TAR_FILE)
         list(GET LOCAL_TAR_FILE -1 REQ_URL)
     else()

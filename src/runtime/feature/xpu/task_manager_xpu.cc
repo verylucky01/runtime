@@ -14,6 +14,7 @@
 #include "stream_xpu.hpp"
 #include "stream.hpp"
 #include "task_info.h"
+#include "task_manager.h"
 
 namespace cce {
 namespace runtime {

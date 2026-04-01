@@ -12,6 +12,7 @@
 #include "stars_david.hpp"
 #include "dqs_task_info.hpp"
 #include "task_info.h"
+#include "task_manager.h"
 
 namespace cce {
 namespace runtime {
@@ -36,56 +37,75 @@ static void UpdateTaskToSqeFunc(void)
     return;
 }
 
-static void UpdateDoCompleteSuccFunc()
+static void UpdateDoCompleteSuccFunc(const std::vector<rtChipType_t> &chipTypes)
 {
-    g_doCompleteSuccFunc[TS_TASK_TYPE_DQS_PREPARE] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_DQS_ADSPC] = &DoCompleteSuccess;
-    g_doCompleteSuccFunc[TS_TASK_TYPE_DQS_BATCH_DEQUEUE] = &DoCompleteSuccess;
+    PfnDoCompleteSucc *doCompleteSuccFunc = nullptr;
+    for (auto chipType : chipTypes) {
+        doCompleteSuccFunc = g_taskFuncArrays[chipType].doCompleteSuccFunc;
+
+        doCompleteSuccFunc[TS_TASK_TYPE_DQS_PREPARE] = &DoCompleteSuccess;
+        doCompleteSuccFunc[TS_TASK_TYPE_DQS_ADSPC] = &DoCompleteSuccess;
+        doCompleteSuccFunc[TS_TASK_TYPE_DQS_BATCH_DEQUEUE] = &DoCompleteSuccess;
+    }
 
     return;
 }
 
-static void UpdatePrintErrorInfoFunc()
+static void UpdatePrintErrorInfoFunc(const std::vector<rtChipType_t> &chipTypes)
 {
-    g_printErrorInfoFunc[TS_TASK_TYPE_DQS_MBUF_FREE] = &PrintErrorInfoForDqsMbufFreeTask;
-    g_printErrorInfoFunc[TS_TASK_TYPE_DQS_PREPARE] = &PrintErrorInfoForDqsPrepareTask;
-    g_printErrorInfoFunc[TS_TASK_TYPE_DQS_ZERO_COPY] = &PrintErrorInfoForDqsZeroCopyTask;
-    g_printErrorInfoFunc[TS_TASK_TYPE_DQS_INTER_CHIP_PREPROC] = &PrintErrorInfoForDqsInterChipPreProcTask;
-    g_printErrorInfoFunc[TS_TASK_TYPE_DQS_INTER_CHIP_POSTPROC] = &PrintErrorInfoForDqsInterChipPostProcTask;
-    g_printErrorInfoFunc[TS_TASK_TYPE_DQS_ADSPC] = &PrintErrorInfoForDqsAdspcTask;
-    g_printErrorInfoFunc[TS_TASK_TYPE_DQS_BATCH_DEQUEUE] = &PrintErrorInfoForDqsBatchDequeueTask;
-    g_printErrorInfoFunc[TS_TASK_TYPE_DQS_CONDITION_COPY] = &PrintErrorInfoForDqsConditionCopyTask;
-    
+    PfnPrintErrorInfo *printErrorInfoFunc = nullptr;
+    for (auto chipType : chipTypes) {
+        printErrorInfoFunc = g_taskFuncArrays[chipType].printErrorInfoFunc;
+
+        printErrorInfoFunc[TS_TASK_TYPE_DQS_MBUF_FREE] = &PrintErrorInfoForDqsMbufFreeTask;
+        printErrorInfoFunc[TS_TASK_TYPE_DQS_PREPARE] = &PrintErrorInfoForDqsPrepareTask;
+        printErrorInfoFunc[TS_TASK_TYPE_DQS_ZERO_COPY] = &PrintErrorInfoForDqsZeroCopyTask;
+        printErrorInfoFunc[TS_TASK_TYPE_DQS_INTER_CHIP_PREPROC] = &PrintErrorInfoForDqsInterChipPreProcTask;
+        printErrorInfoFunc[TS_TASK_TYPE_DQS_INTER_CHIP_POSTPROC] = &PrintErrorInfoForDqsInterChipPostProcTask;
+        printErrorInfoFunc[TS_TASK_TYPE_DQS_ADSPC] = &PrintErrorInfoForDqsAdspcTask;
+        printErrorInfoFunc[TS_TASK_TYPE_DQS_BATCH_DEQUEUE] = &PrintErrorInfoForDqsBatchDequeueTask;
+        printErrorInfoFunc[TS_TASK_TYPE_DQS_CONDITION_COPY] = &PrintErrorInfoForDqsConditionCopyTask;
+    }
+
     return;
 }
 
-static void UpdateTaskUninitFunc()
+static void UpdateTaskUninitFunc(const std::vector<rtChipType_t> &chipTypes)
 {
-    g_taskUnInitFunc[TS_TASK_TYPE_DQS_MBUF_FREE] = &DqsMbufFreeTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DQS_PREPARE] = &DqsPrepareTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DQS_ZERO_COPY] = &DqsZeroCopyTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DQS_INTER_CHIP_PREPROC] = &DqsInterChipPreProcTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DQS_INTER_CHIP_POSTPROC] = &DqsInterChipPostProcTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DQS_ADSPC] = &DqsAdspcTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DQS_BATCH_DEQUEUE] = &DqsBatchDequeTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DQS_CONDITION_COPY] = &DqsConditionCopyTaskUnInit;
-    g_taskUnInitFunc[TS_TASK_TYPE_DQS_FRAME_ALIGN] = &DqsFrameAlignTaskUnInit;
+    PfnTaskUnInit *taskUnInitFunc = nullptr;
+    for (auto chipType : chipTypes) {
+        taskUnInitFunc = g_taskFuncArrays[chipType].taskUnInitFunc;
+
+        taskUnInitFunc[TS_TASK_TYPE_DQS_MBUF_FREE] = &DqsMbufFreeTaskUnInit;
+        taskUnInitFunc[TS_TASK_TYPE_DQS_PREPARE] = &DqsPrepareTaskUnInit;
+        taskUnInitFunc[TS_TASK_TYPE_DQS_ZERO_COPY] = &DqsZeroCopyTaskUnInit;
+        taskUnInitFunc[TS_TASK_TYPE_DQS_INTER_CHIP_PREPROC] = &DqsInterChipPreProcTaskUnInit;
+        taskUnInitFunc[TS_TASK_TYPE_DQS_INTER_CHIP_POSTPROC] = &DqsInterChipPostProcTaskUnInit;
+        taskUnInitFunc[TS_TASK_TYPE_DQS_ADSPC] = &DqsAdspcTaskUnInit;
+        taskUnInitFunc[TS_TASK_TYPE_DQS_BATCH_DEQUEUE] = &DqsBatchDequeTaskUnInit;
+        taskUnInitFunc[TS_TASK_TYPE_DQS_CONDITION_COPY] = &DqsConditionCopyTaskUnInit;
+        taskUnInitFunc[TS_TASK_TYPE_DQS_FRAME_ALIGN] = &DqsFrameAlignTaskUnInit;
+    }
 
     return;
 }
 
 void RegTaskFunc(void)
 {
+    static const std::vector<rtChipType_t> chipTypes = {
+        CHIP_MC62CM12A
+    };
+    
     RegDavidTaskFunc();
 
     // 更新差异化的ToSqe钩子函数
     UpdateTaskToSqeFunc();
     // 更新差异化complete钩子函数
-    UpdateDoCompleteSuccFunc();
+    UpdateDoCompleteSuccFunc(chipTypes);
     // 更新差异化error info钩子函数
-    UpdatePrintErrorInfoFunc();
+    UpdatePrintErrorInfoFunc(chipTypes);
     // 更新差异化uninit钩子函数
-    UpdateTaskUninitFunc();
+    UpdateTaskUninitFunc(chipTypes);
 
     return;
 }

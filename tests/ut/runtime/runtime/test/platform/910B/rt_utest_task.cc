@@ -26,6 +26,8 @@
 #include "kernel.hpp"
 #include <thread>
 #include <chrono>
+#include <vector>
+#include <atomic>
 #include "ctrl_stream.hpp"
 #include "ctrl_stream.hpp"
 #include "runtime.hpp"
@@ -48,6 +50,7 @@
 #include "davinci_kernel_task.h"
 #include "stub_task.hpp"
 #include "para_convertor.hpp"
+#include "task_manager.h"
 
 using namespace testing;
 using namespace cce::runtime;
@@ -512,9 +515,9 @@ TEST_F(CloudV2TaskTest, cmoAddrTaskInfo_ConstructSqe)
     InitByStream(&cmoAddrTask, stream);
     EXPECT_NE(cmoAddrTask.stream, nullptr);
     rtCmoAddrInfo *cmoAddrInfo;
-    cmoAddrTask.u.cmoAddrTaskInfo.cmoAddrInfo = reinterpret_cast<void *>(cmoAddrInfo);
+    cmoAddrTask.u.cmoAddrTaskInfo.cmoAddrInfo = RtPtrToPtr<void *>(cmoAddrInfo);
     rtCmoOpCode_t cmoOpCode = RT_CMO_PREFETCH;
-    error = CmoAddrTaskInit(&cmoAddrTask, reinterpret_cast<void *>(cmoAddrInfo), cmoOpCode);
+    error = CmoAddrTaskInit(&cmoAddrTask, RtPtrToPtr<void *>(cmoAddrInfo), cmoOpCode);
     EXPECT_EQ(error, RT_ERROR_MODEL_NULL);
     rtStarsSqe_t sqe = {};
     ToConstructSqe(&cmoAddrTask, &sqe);
@@ -591,13 +594,13 @@ TEST_F(CloudV2TaskTest, CmoAddrTask_for_prefetch_test)
     Model *tmpModel = stream_->Model_();
     stream_->models_.clear();
     // single stream cmoAddrTask init
-    error = CmoAddrTaskInit(&task, reinterpret_cast<void *>(&cmoAddrInfo), cmoOpCode);
+    error = CmoAddrTaskInit(&task, RtPtrToPtr<void *>(&cmoAddrInfo), cmoOpCode);
     EXPECT_EQ(error, RT_ERROR_MODEL_NULL);
 
     // model stream cmoAddrTask init
     stream_->SetModel(tmpModel);
     stream_->SetLatestModlId(tmpModel->Id_());
-    error = CmoAddrTaskInit(&task, reinterpret_cast<void *>(&cmoAddrInfo), cmoOpCode);
+    error = CmoAddrTaskInit(&task, RtPtrToPtr<void *>(&cmoAddrInfo), cmoOpCode);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     // ConstructCmoAddrSqe
@@ -1252,10 +1255,10 @@ TEST_F(CloudV2TaskTest1, AicpuKernelArgsRelease)
 
     AicpuTaskInfo *aicpuTaskInfo = &(task.u.aicpuTaskInfo);
     aicpuTaskInfo->kernel = nullptr;
-    aicpuTaskInfo->comm.argHandle = reinterpret_cast<void*>(0x1U);
+    aicpuTaskInfo->comm.argHandle = RtPtrToPtr<void*>(0x1U);
     MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
     DavinciTaskUnInit(&task);
-    stm->SetArgHandle(reinterpret_cast<void*>(0x0U));
+    stm->SetArgHandle(RtPtrToPtr<void*>(0x0U));
 
     delete stm;
     delete dev;
@@ -1280,4 +1283,226 @@ TEST_F(CloudV2TaskTest1, AicpuKernelArgsRelease2)
 
     delete stm;
     delete dev;
+}
+
+TEST_F(CloudV2TaskTest, RefreshTaskFuncPointer_valid_chip_type)
+{
+    rtChipType_t chipType = CHIP_CLOUD;
+    RefreshTaskFuncPointer(chipType);
+    RefreshTaskFuncPointer(chipType);
+}
+
+TEST_F(CloudV2TaskTest, RefreshTaskFuncPointer_invalid_chip_type)
+{
+    rtChipType_t invalidChipType = static_cast<rtChipType_t>(100);
+    RefreshTaskFuncPointer(invalidChipType);
+}
+
+TEST_F(CloudV2TaskTest, RefreshTaskFuncPointer_chip_type_boundary)
+{
+    RefreshTaskFuncPointer(CHIP_BEGIN);
+    RefreshTaskFuncPointer(static_cast<rtChipType_t>(CHIP_END - 1));
+}
+
+TEST_F(CloudV2TaskTest, RefreshTaskFuncPointer_concurrent_access)
+{
+    const int threadCount = 10;
+    std::vector<std::thread> threads;
+    
+    for (int i = 0; i < threadCount; i++) {
+        threads.emplace_back([i]() {
+            rtChipType_t chipType = (i % 2 == 0) ? CHIP_CLOUD : CHIP_DC;
+            RefreshTaskFuncPointer(chipType);
+        });
+    }
+    
+    for (auto &thread : threads) {
+        thread.join();
+    }
+}
+
+TEST_F(CloudV2TaskTest, RefreshTaskFuncPointer_concurrent_mixed_access)
+{
+    const int threadCount = 20;
+    std::vector<std::thread> threads;
+    std::atomic<int> callCount(0);
+    
+    for (int i = 0; i < threadCount; i++) {
+        threads.emplace_back([i, &callCount]() {
+            for (int j = 0; j < 100; j++) {
+                rtChipType_t chipType = static_cast<rtChipType_t>(i % 5);
+                RefreshTaskFuncPointer(chipType);
+                callCount++;
+            }
+        });
+    }
+    
+    for (auto &thread : threads) {
+        thread.join();
+    }
+    
+    EXPECT_EQ(callCount.load(), threadCount * 100);
+}
+
+TEST_F(CloudV2TaskTest, RefreshTaskFuncPointer_switch_chip_type)
+{
+    RefreshTaskFuncPointer(CHIP_CLOUD);
+    RefreshTaskFuncPointer(CHIP_DC);
+    RefreshTaskFuncPointer(CHIP_ADC);
+    RefreshTaskFuncPointer(CHIP_CLOUD);
+}
+
+TEST_F(CloudV2TaskTest, RefreshTaskFuncPointer_mutex_thread_safety)
+{
+    const int threadCount = 50;
+    std::vector<std::thread> threads;
+    std::atomic<int> successCount(0);
+    
+    for (int i = 0; i < threadCount; i++) {
+        threads.emplace_back([i, &successCount]() {
+            rtChipType_t chipType = static_cast<rtChipType_t>(CHIP_BEGIN + (i % (CHIP_END - CHIP_BEGIN)));
+            RefreshTaskFuncPointer(chipType);
+            successCount++;
+        });
+    }
+    
+    for (auto &thread : threads) {
+        thread.join();
+    }
+    
+    EXPECT_EQ(successCount.load(), threadCount);
+}
+
+TEST_F(CloudV2TaskTest, RegTaskFunc_valid_params)
+{
+    rtChipType_t chipType = CHIP_CLOUD;
+    tsTaskType_t taskType = TS_TASK_TYPE_KERNEL_AICPU;
+    TaskFuncOpType opType = TaskFuncOpType::TO_COMMAND;
+    PfnTaskToCmd testFunc = nullptr;
+    
+    rtError_t ret = RegTaskFunc(chipType, taskType, opType, RtPtrToPtr<void*>(testFunc));
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+}
+
+TEST_F(CloudV2TaskTest, RegTaskFunc_invalid_chip_type)
+{
+    rtChipType_t invalidChipType = static_cast<rtChipType_t>(100);
+    tsTaskType_t taskType = TS_TASK_TYPE_KERNEL_AICPU;
+    TaskFuncOpType opType = TaskFuncOpType::TO_COMMAND;
+    PfnTaskToCmd testFunc = nullptr;
+    
+    rtError_t ret = RegTaskFunc(invalidChipType, taskType, opType, RtPtrToPtr<void*>(testFunc));
+    EXPECT_EQ(ret, RT_ERROR_TASK_BASE);
+}
+
+TEST_F(CloudV2TaskTest, RegTaskFunc_invalid_task_type)
+{
+    rtChipType_t chipType = CHIP_CLOUD;
+    tsTaskType_t invalidTaskType = TS_TASK_TYPE_RESERVED;
+    TaskFuncOpType opType = TaskFuncOpType::TO_COMMAND;
+    PfnTaskToCmd testFunc = nullptr;
+    
+    rtError_t ret = RegTaskFunc(chipType, invalidTaskType, opType, RtPtrToPtr<void*>(testFunc));
+    EXPECT_EQ(ret, RT_ERROR_TASK_BASE);
+}
+
+TEST_F(CloudV2TaskTest, RegTaskFunc_invalid_op_type)
+{
+    rtChipType_t chipType = CHIP_CLOUD;
+    tsTaskType_t taskType = TS_TASK_TYPE_KERNEL_AICPU;
+    TaskFuncOpType invalidOpType = TaskFuncOpType::MAX_OP_TYPE;
+    PfnTaskToCmd testFunc = nullptr;
+    
+    rtError_t ret = RegTaskFunc(chipType, taskType, invalidOpType, RtPtrToPtr<void*>(testFunc));
+    EXPECT_EQ(ret, RT_ERROR_TASK_BASE);
+}
+
+TEST_F(CloudV2TaskTest, RegTaskFunc_chip_type_boundary)
+{
+    PfnTaskToCmd testFunc = nullptr;
+    
+    rtError_t ret1 = RegTaskFunc(CHIP_BEGIN, TS_TASK_TYPE_KERNEL_AICPU, 
+                                 TaskFuncOpType::TO_COMMAND, RtPtrToPtr<void*>(testFunc));
+    EXPECT_EQ(ret1, RT_ERROR_NONE);
+    
+    rtError_t ret2 = RegTaskFunc(static_cast<rtChipType_t>(CHIP_END - 1), 
+                                 TS_TASK_TYPE_KERNEL_AICPU, 
+                                 TaskFuncOpType::TO_COMMAND, 
+                                 RtPtrToPtr<void*>(testFunc));
+    EXPECT_EQ(ret2, RT_ERROR_NONE);
+}
+
+TEST_F(CloudV2TaskTest, RegTaskFunc_different_chip_types)
+{
+    PfnTaskToCmd testFunc = nullptr;
+    
+    rtError_t ret1 = RegTaskFunc(CHIP_CLOUD, TS_TASK_TYPE_KERNEL_AICPU, 
+                                 TaskFuncOpType::TO_COMMAND, RtPtrToPtr<void*>(testFunc));
+    EXPECT_EQ(ret1, RT_ERROR_NONE);
+    
+    rtError_t ret2 = RegTaskFunc(CHIP_DC, TS_TASK_TYPE_KERNEL_AICPU, 
+                                 TaskFuncOpType::TO_COMMAND, RtPtrToPtr<void*>(testFunc));
+    EXPECT_EQ(ret2, RT_ERROR_NONE);
+    
+    rtError_t ret3 = RegTaskFunc(CHIP_ADC, TS_TASK_TYPE_KERNEL_AICPU, 
+                                 TaskFuncOpType::TO_COMMAND, RtPtrToPtr<void*>(testFunc));
+    EXPECT_EQ(ret3, RT_ERROR_NONE);
+}
+
+TEST_F(CloudV2TaskTest, RegTaskFunc_all_op_types)
+{
+    rtChipType_t chipType = CHIP_CLOUD;
+    tsTaskType_t taskType = TS_TASK_TYPE_KERNEL_AICPU;
+    void* testFunc = nullptr;
+    
+    rtError_t ret1 = RegTaskFunc(chipType, taskType, TaskFuncOpType::TO_COMMAND, testFunc);
+    EXPECT_EQ(ret1, RT_ERROR_NONE);
+    
+    rtError_t ret2 = RegTaskFunc(chipType, taskType, TaskFuncOpType::TO_SQE, testFunc);
+    EXPECT_EQ(ret2, RT_ERROR_NONE);
+    
+    rtError_t ret3 = RegTaskFunc(chipType, taskType, TaskFuncOpType::DO_COMPLETE_SUCC, testFunc);
+    EXPECT_EQ(ret3, RT_ERROR_NONE);
+    
+    rtError_t ret4 = RegTaskFunc(chipType, taskType, TaskFuncOpType::TASK_UNINIT, testFunc);
+    EXPECT_EQ(ret4, RT_ERROR_NONE);
+    
+    rtError_t ret5 = RegTaskFunc(chipType, taskType, TaskFuncOpType::WAIT_ASYNC_COMPLETE, testFunc);
+    EXPECT_EQ(ret5, RT_ERROR_NONE);
+    
+    rtError_t ret6 = RegTaskFunc(chipType, taskType, TaskFuncOpType::PRINT_ERROR_INFO, testFunc);
+    EXPECT_EQ(ret6, RT_ERROR_NONE);
+    
+    rtError_t ret7 = RegTaskFunc(chipType, taskType, TaskFuncOpType::SET_RESULT, testFunc);
+    EXPECT_EQ(ret7, RT_ERROR_NONE);
+    
+    rtError_t ret8 = RegTaskFunc(chipType, taskType, TaskFuncOpType::SET_STARS_RESULT, testFunc);
+    EXPECT_EQ(ret8, RT_ERROR_NONE);
+}
+
+TEST_F(CloudV2TaskTest, RegTaskFunc_concurrent_registration)
+{
+    const int threadCount = 10;
+    std::vector<std::thread> threads;
+    std::atomic<int> successCount(0);
+    
+    for (int i = 0; i < threadCount; i++) {
+        threads.emplace_back([i, &successCount]() {
+            rtChipType_t chipType = static_cast<rtChipType_t>(i % 3);
+            tsTaskType_t taskType = TS_TASK_TYPE_KERNEL_AICPU;
+            TaskFuncOpType opType = static_cast<TaskFuncOpType>(i % 8);
+            void* testFunc = nullptr;
+            
+            rtError_t ret = RegTaskFunc(chipType, taskType, opType, testFunc);
+            if (ret == RT_ERROR_NONE) {
+                successCount++;
+            }
+        });
+    }
+    
+    for (auto &thread : threads) {
+        thread.join();
+    }
+    
+    EXPECT_EQ(successCount.load(), threadCount);
 }

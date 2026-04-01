@@ -15,14 +15,7 @@
 
 namespace cce {
 namespace runtime {
-using PfnDoCompleteSucc = void (*)(TaskInfo *taskInfo, const uint32_t devId);
-using PfnTaskUnInit = void (*)(TaskInfo *taskInfo);
-using PfnPrintErrorInfo = void (*)(TaskInfo *taskInfo, const uint32_t devId);
-using PfnTaskSetStarsResult = void (*)(TaskInfo *taskInfo, const rtLogicCqReport_t &logicCq);
-extern PfnDoCompleteSucc g_doCompleteSuccFunc[TS_TASK_TYPE_RESERVED];
-extern PfnTaskUnInit g_taskUnInitFunc[TS_TASK_TYPE_RESERVED];
-extern PfnPrintErrorInfo g_printErrorInfoFunc[TS_TASK_TYPE_RESERVED];
-extern PfnTaskSetStarsResult g_setStarsResultFunc[TS_TASK_TYPE_RESERVED];
+
 void ConstructSqeForModelExecuteTask(TaskInfo * const taskInfo, rtStarsSqe_t * const command);
 void ConstructSqeForCallbackLaunchTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
 void ConstructSqeForNpuGetFloatStaTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
@@ -66,7 +59,7 @@ void SetResultForModelExecuteTask(TaskInfo * const taskInfo, const void * const 
 
 void PrintErrorInfoCommon(TaskInfo *taskInfo, const uint32_t devId);
 rtError_t AllocFuncCallMemForModelExecuteTask(TaskInfo * const taskInfo, rtStarsModelExeFuncCallPara_t &funcCallPara);
-void RegTaskToCommandFunc(void);
+
 }
 }
 #endif

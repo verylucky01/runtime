@@ -41,6 +41,7 @@
 #include "device_sq_cq_pool.hpp"
 #include "sq_addr_memory_pool.hpp"
 #include "printf.hpp"
+#include "task_manager.h"
 
 namespace cce {
 namespace runtime {
@@ -523,6 +524,8 @@ rtError_t RawDevice::Init()
     ERROR_RETURN_MSG_INNER(error, "Failed to init StreamSyncEsched, retCode=%#x", static_cast<uint32_t>(error));
 
     const rtChipType_t chipType = Runtime::Instance()->GetChipType();
+
+    RefreshTaskFuncPointer(chipType);
 
     error = GET_CHIP_FEATURE_SET(chipType, featureSet_);
     ERROR_RETURN_MSG_INNER(error, "Failed to get feature, chipType=%d, device_id=%u, retCode=%#x", chipType,

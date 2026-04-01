@@ -447,27 +447,33 @@ struct RtStarsMemWaitValueLastInstrFcEx {
 	RtStarsCondOpBranch branch2;      // r2 != r5, goto loadValue
 
     /* wait success */
-    RtStarsCondOpLoadImm loadProfDisableStatus1; // wait success, load prof disable status to r2
+    RtStarsCondOpLoadImm loadProfDisableStatus1; // wait success, load sqId to r3, prof disable status is bit32
+    RtStarsCondOpImmSLLI srli1;                  // r2 = r3 >> 32, r2 is prof disable status
     RtStarsSetCsrJumpPc jumpPc4;
     RtStarsCondOpBranch branch4;      // r2 == r0(0), goto sqe next check
-    RtStarsCondOpLHWI lhwi4;          // load profDisableAddr to r4
+    RtStarsCondOpLHWI lhwi4;          // load sqIdMemAddr to r5
     RtStarsCondOpLLWI llwi4;
-    RtStarsCondOpStore  updateProfDisableStatus1; // write r4 to 0x0 by r0
+    RtStarsCondOpLHWI lhwi41;          // load 0xFFFFFFFF to r4
+    RtStarsCondOpLLWI llwi41;
+    RtStarsCondOpOp   andOp;           // r4 = r3 & r4 = sqId & 0xFFFFFFFF
+    RtStarsCondOpStore  updateProfDisableStatus1; // write r5, sqId bit32 clear to 0
     RtStarsSetCsrJumpPc jumpPc5;
     RtStarsCondOpBranch branch5;      // r2 != r0(0), goto end
 
     /* wait failed */
-    RtStarsCondOpLoadImm loadProfDisableStatus2; // wait failed, load prof disable status to r2
+    RtStarsCondOpLoadImm loadProfDisableStatus2; // wait failed, load sqId to r5, prof disable status is bit32
+    RtStarsCondOpImmSLLI srli2;                  // r2 = r5 >> 32, r2 is prof disable status
     RtStarsSetCsrJumpPc jumpPc6;
     RtStarsCondOpBranch branch6;      // r2 != r0(0), goto sqe pre
     RtStarsCondOpLoadImm loadProfSwitch;  // load value(u64) from profSwitchAddr to r3
     RtStarsSetCsrJumpPc jumpPc7;
     RtStarsCondOpBranch branch7;      // r3 == r0(0), goto sqe pre
-    RtStarsCondOpLHWI lhwi5;          // load profDisableAddr to r4
+    RtStarsCondOpLHWI lhwi5;          // load sqIdMemAddr to r4
     RtStarsCondOpLLWI llwi5;
-    RtStarsCondOpLHWI lhwi6;          // load 0x1 to r5
-    RtStarsCondOpLLWI llwi6;
-    RtStarsCondOpStore  updateProfDisableStatus2; // write r4 to 0x1 by r5
+    RtStarsCondOpLHWI lhwi51;          // load 0x100000000 to r2
+    RtStarsCondOpLLWI llwi51;
+    RtStarsCondOpOp   orOp;           // r5 = r5 | r2, sqId bit32 set to 1
+    RtStarsCondOpStore  updateProfDisableStatus2; // write r4, sqId bit32 set to 1
     RtStarsSetCsrJumpPc jumpPc8;
     RtStarsCondOpBranch branch8;      // r3 != r0(0), goto end
 
@@ -482,8 +488,7 @@ struct RtStarsMemWaitValueLastInstrFcEx {
     RtStarsCondOpBranch branch9;        // goto end
 
     /* sqe next */
-    RtStarsCondOpLoadImm loadSqId2;    // load sqid from virtual addr to r3
-	RtStarsCondOpLHWI lhwi8;          // load sq head next to r4
+	RtStarsCondOpLHWI lhwi8;          // r3 is sqId, load sq head next to r4
     RtStarsCondOpLLWI llwi8;
 	RtStarsCondOpImmSLLI slli2;        // r4 = r4 < 16
 	RtStarsCondOpOp        op3;       // r3 = r3 | r4, sqId=r3[10:0], head=r3[31:16]
@@ -492,19 +497,18 @@ struct RtStarsMemWaitValueLastInstrFcEx {
     RtStarsCondOpBranch branch10;        // goto end
 
     /* sqe next check */
-    RtStarsCondOpLoadImm loadSqId3;   // load sqid from virtual addr to r3
-    RtStarsCondOpLHWI lhwi9;          // load sqRegAddrArray to r4
+    RtStarsCondOpLHWI lhwi9;          // r3 is sqId, load sqRegAddrArray to r4
     RtStarsCondOpLLWI llwi9;
-    RtStarsCondOpImmSLLI slli3;       // r3 = r3 < 3 (r3=sqid << 3)
-    RtStarsCondOpOp        op4;       // r4 = r4 + r3
+    RtStarsCondOpImmSLLI slli3;       // r5 = r3 < 3 (r5=sqid << 3)
+    RtStarsCondOpOp        op4;       // r4 = r4 + r5
     RtStarsCondOpLoad ldr1;           // LD_R: read sqRegAddr to r5,  from r4
     RtStarsCondOpLoad ldr2;           // LD_R: read sqTail to r2,  from r5 + offset(STARS_SIMPLE_SQ_TAIL_OFFSET)
-    RtStarsCondOpLHWI lhwi10;         // load lastSqePos to r3
+    RtStarsCondOpLHWI lhwi10;         // load lastSqePos to r4
     RtStarsCondOpLLWI llwi10;
     RtStarsSetCsrJumpPc jumpPc11;
-    RtStarsCondOpBranch branch11;     // r3 == r2, goto ldr2, until sqTail != lastSqePos
+    RtStarsCondOpBranch branch11;     // r4 == r2, goto ldr2, until sqTail != lastSqePos
     RtStarsSetCsrJumpPc jumpPc12;
-    RtStarsCondOpBranch branch12;     // r3 != r2, goto sqe next
+    RtStarsCondOpBranch branch12;     // r4 != r2, goto sqe next
     RtStarsCondOpNop end;
 };
 

@@ -32,16 +32,6 @@ rtError_t Context::TryRecycleCaptureModelResource(const uint32_t allocSqNum, con
     return RT_ERROR_FEATURE_NOT_SUPPORT;
 }
 
-TIMESTAMP_EXTERN(FftsPlusTaskInit);
-rtError_t Context::FftsPlusTaskLaunch(const rtFftsPlusTaskInfo_t * const fftsPlusTaskInfo, Stream * const stm,
-                                      const uint32_t flag)
-{
-    UNUSED(fftsPlusTaskInfo);
-    UNUSED(stm);
-    UNUSED(flag);
-    return RT_ERROR_FEATURE_NOT_SUPPORT;
-}
-
 rtError_t Context::RDMASend(const uint32_t sqIndex, const uint32_t wqeIndex, Stream * const stm)
 {
     UNUSED(sqIndex);

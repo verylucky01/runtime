@@ -21,12 +21,14 @@ set(runtimeut_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/task_submit/v100/task_submit.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/task_manager.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/task_info.cc
-    ${TOP_DIR}/src/runtime/core/src/task/task_info/ffts_task.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/ffts_task.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/davinci_kernel_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/model/model_execute_task_info.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/davinci_kernel_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/event_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/memory_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/rdma_task.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/rdma_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/reduce_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_label_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_stream_task.cc
@@ -83,6 +85,7 @@ set(runtimeut_src_api_list
 set(runtimeut_src_context_list
     ${TOP_DIR}/src/runtime/core/src/context/context.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_standard_soc.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/context_ffts_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_manage.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_protect.cc
 )
@@ -392,6 +395,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/src/runtime/core/src/dfx
     ${TOP_DIR}/src/runtime/core/src/stream
     ${TOP_DIR}/src/runtime/core/src/task/inc
+    ${TOP_DIR}/src/runtime/feature/ffts
     ${TOP_DIR}/src/runtime/core/src/profiler
     ${TOP_DIR}/src/runtime/core/src/pool
     ${TOP_DIR}/src/runtime/core/src/ttlv

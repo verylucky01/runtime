@@ -45,6 +45,7 @@ set(david_series_common_task_src_file
     ${RUNTIME_CORE_DIR}/src/task/task_info/task_info.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/model/model_execute_task_info.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/davinci_kernel_task.cc
+    ${RUNTIME_FEATURE_DIR}/ffts/davinci_kernel_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/event_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/david_event_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/memory_task.cc
@@ -175,6 +176,7 @@ set(libruntime_v200_src_files_exclude_for_tiny
     ${RUNTIME_CORE_DIR}/src/api_impl/api_error_uvm.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_uvm.cc
     ${RUNTIME_CORE_DIR}/src/context/context_standard_soc.cc
+    ${RUNTIME_FEATURE_DIR}/ffts/context_ffts_standard_soc.cc
     ${RUNTIME_CORE_DIR}/src/dfx/fp16_t.cpp
     ${RUNTIME_CORE_DIR}/src/dfx/hifloat.cpp
     ${RUNTIME_CORE_DIR}/src/dfx/printf.cc
@@ -191,7 +193,8 @@ set(libruntime_v200_src_files_exclude_for_tiny
     ${RUNTIME_CORE_DIR}/src/profiler/api_profile_log_decoratoc_standard_soc.cc
     ${RUNTIME_CORE_DIR}/src/task/task_to_sqe.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/rdma_task.cc
-    ${RUNTIME_CORE_DIR}/src/task/task_info/ffts_task.cc
+    ${RUNTIME_FEATURE_DIR}/ffts/rdma_task.cc
+    ${RUNTIME_FEATURE_DIR}/ffts/ffts_task.cc
     ${RUNTIME_CORE_DIR}/src/event/ipc_event.cc
     ${RUNTIME_CORE_DIR}/src/event/ipc_event_starsV2.cc
     ${RUNTIME_CORE_DIR}/src/pool/event_expanding.cc
@@ -394,6 +397,7 @@ set(RUNTIME_INC_DIR_COMMON_V200
     ${RUNTIME_CORE_DIR}/src/engine/stars
     ${RUNTIME_CORE_DIR}/src/stream
     ${RUNTIME_CORE_DIR}/src/task/inc
+    ${RUNTIME_FEATURE_DIR}/ffts
     ${RUNTIME_FEATURE_DIR}/dps
     ${RUNTIME_CORE_DIR}/src/profiler
     ${RUNTIME_CORE_DIR}/src/pool
@@ -407,6 +411,7 @@ set(RUNTIME_INC_DIR_COMMON_V200
     ${RUNTIME_CORE_DIR}/src/kernel/args
     ${RUNTIME_CORE_DIR}/src/memory
     ${RUNTIME_FEATURE_DIR}/soma
+    ${RUNTIME_FEATURE_DIR}/ffts
     ${RUNTIME_FEATURE_DIR}/cntnotify
     ${RUNTIME_FEATURE_DIR}/snapshot
     ${RUNTIME_FEATURE_DIR}/xpu

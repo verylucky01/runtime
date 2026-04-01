@@ -18,12 +18,14 @@ set(runtimeut_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/task_submit/v100/task_submit.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/task_manager.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/task_info.cc
-    ${TOP_DIR}/src/runtime/core/src/task/task_info/ffts_task.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/ffts_task.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/davinci_kernel_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/model/model_execute_task_info.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/davinci_kernel_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/event_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/memory_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/rdma_task.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/rdma_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/reduce_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_label_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_stream_task.cc
@@ -201,6 +203,7 @@ set(runtimeut_platform_list
 set(runtimeut_src_context_list
     ${TOP_DIR}/src/runtime/core/src/context/context.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_standard_soc.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/context_ffts_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_manage.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_protect.cc
 )
@@ -288,6 +291,7 @@ set(runtimeut_src_tiny_exclude_list
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_error_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_standard_soc.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/context_ffts_standard_soc.cc
     ${TOP_DIR}/src/runtime/driver/npu_driver_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/engine/hwts/direct_hwts_engine.cc
     ${TOP_DIR}/src/runtime/core/src/engine/hwts/hwts_engine.cc
@@ -305,6 +309,8 @@ set(runtimeut_src_tiny_exclude_list
     ${TOP_DIR}/src/runtime/core/src/task/cond_op/cond_op_task_david.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/rdma_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/ffts_task.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/ffts_task.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/rdma_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/ubdma_task_david.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/model/model_update_task_david.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/notify/notify_task_david.cc
@@ -325,6 +331,7 @@ set(runtimeut_src_tiny_include_list
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/v100/api_impl_v100.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_tiny_stub.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/context_ffts_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/dfx/printf_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/dfx/kernel_dfx_info.cc
     ${TOP_DIR}/src/runtime/driver/npu_driver_tiny_stub.cc
@@ -335,7 +342,7 @@ set(runtimeut_src_tiny_include_list
     ${TOP_DIR}/src/runtime/core/src/profiler/api_profile_log_decoratoc_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/profiler/api_profile_decorator_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/task/tiny/rdma_task_tiny_stub.cc
-    ${TOP_DIR}/src/runtime/core/src/task/tiny/ffts_task_tiny_stub.cc
+    ${TOP_DIR}/src/runtime/feature/ffts/ffts_task_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/task/tiny/task_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/pool/event_pool_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/event/ipc_event_tiny_stub.cc
@@ -1160,6 +1167,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/src/runtime/core/src/dfx
     ${TOP_DIR}/src/runtime/core/src/stream
     ${TOP_DIR}/src/runtime/core/src/task/inc
+    ${TOP_DIR}/src/runtime/feature/ffts
     ${TOP_DIR}/src/runtime/feature/dps
     ${TOP_DIR}/src/runtime/core/src/profiler
     ${TOP_DIR}/src/runtime/core/src/pool

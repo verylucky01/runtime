@@ -40,6 +40,7 @@
 #include "task_fail_callback_manager.hpp"
 #include "model.hpp"
 #include "subscribe.hpp"
+#include "rdma_task.h"
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -147,6 +148,151 @@ TEST_F(CloudV2ApiAbnormalTest, rtNpuGetFloatStatusAbnormal)
     rtError_t error;
     error = rtNpuGetFloatStatus(nullptr, 0, 0, nullptr);
     EXPECT_NE(error, RT_ERROR_NONE);
+}
+
+TEST(RdmaPiValueModifyTaskTest, ConstructSqeRdmaPiValueModifyTaskSuccess)
+{
+    Stream *stream = static_cast<Stream *>(malloc(sizeof(Stream)));
+    ASSERT_NE(stream, nullptr);
+    (void)memset_s(stream, sizeof(Stream), 0, sizeof(Stream));
+    stream->streamId_ = 7;
+
+    TaskInfo taskInfo = {};
+    taskInfo.stream = stream;
+    taskInfo.id = 123U;
+    taskInfo.u.rdmaPiValueModifyInfo.funCallMemAddrAlign = reinterpret_cast<void *>(0x12345000UL);
+
+    MOCKER(PrintSqe).stubs();
+
+    rtStarsSqe_t command = {};
+    ConstructSqeRdmaPiValueModifyTask(&taskInfo, &command);
+
+    const RtStarsFunctionCallSqe &sqe = command.fuctionCallSqe;
+    EXPECT_EQ(sqe.kernel_credit, RT_STARS_DEFAULT_KERNEL_CREDIT);
+    EXPECT_EQ(sqe.csc, 1U);
+    EXPECT_EQ(sqe.sqeHeader.type, RT_STARS_SQE_TYPE_COND);
+    EXPECT_EQ(sqe.sqeHeader.l1_lock, 0U);
+    EXPECT_EQ(sqe.sqeHeader.l1_unlock, 0U);
+    EXPECT_EQ(sqe.sqeHeader.block_dim, 0U);
+    EXPECT_EQ(sqe.sqeHeader.rt_stream_id, static_cast<uint16_t>(taskInfo.stream->Id_()));
+    EXPECT_EQ(sqe.sqeHeader.task_id, taskInfo.id);
+    EXPECT_EQ(sqe.conds_sub_type, CONDS_SUB_TYPE_PI_VALUE_MODIFY);
+
+    free(stream);
+    GlobalMockObject::verify();
+}
+
+TEST(RdmaPiValueModifyTaskTest, RdmaPiValueModifyTaskUnInitSuccess)
+{
+    (void)rtSetSocVersion("Ascend910B1");
+    ASSERT_EQ(rtSetDevice(0), RT_ERROR_NONE);
+    Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
+    ASSERT_NE(rtInstance, nullptr);
+    Device *device = rtInstance->DeviceRetain(0, 0);
+    ASSERT_NE(device, nullptr);
+    Stream *stream = static_cast<Stream *>(malloc(sizeof(Stream)));
+    ASSERT_NE(stream, nullptr);
+    (void)memset_s(stream, sizeof(Stream), 0, sizeof(Stream));
+    stream->device_ = device;
+    stream->streamId_ = 8;
+
+    TaskInfo taskInfo = {};
+    taskInfo.stream = stream;
+    taskInfo.u.rdmaPiValueModifyInfo.funCallMemAddr = reinterpret_cast<void *>(0x12345000UL);
+    taskInfo.u.rdmaPiValueModifyInfo.funCallMemAddrAlign = reinterpret_cast<void *>(0x12346000UL);
+    taskInfo.u.rdmaPiValueModifyInfo.dfxAddr = reinterpret_cast<void *>(0x12347000UL);
+    taskInfo.u.rdmaPiValueModifyInfo.rdmaSubContextCount = 2U;
+
+    MOCKER_CPP_VIRTUAL(taskInfo.stream->Device_()->Driver_(), &Driver::DevMemFree)
+        .stubs()
+        .with(mockcpp::any(), mockcpp::any())
+        .will(returnValue(RT_ERROR_NONE));
+
+    RdmaPiValueModifyTaskUnInit(&taskInfo);
+
+    EXPECT_EQ(taskInfo.u.rdmaPiValueModifyInfo.funCallMemAddr, nullptr);
+    EXPECT_EQ(taskInfo.u.rdmaPiValueModifyInfo.funCallMemAddrAlign, nullptr);
+    EXPECT_EQ(taskInfo.u.rdmaPiValueModifyInfo.dfxAddr, nullptr);
+    EXPECT_EQ(taskInfo.u.rdmaPiValueModifyInfo.rdmaSubContextCount, 0U);
+
+    free(stream);
+    rtInstance->DeviceRelease(device);
+    (void)rtDeviceReset(0);
+    GlobalMockObject::verify();
+}
+
+TEST(RdmaPiValueModifyTaskTest, PrintDfxInfoForRdmaPiValueModifyTaskCountNotifyReturn)
+{
+    TaskInfo taskInfo = {};
+    taskInfo.u.notifywaitTask.isCountNotify = true;
+    taskInfo.u.notifywaitTask.u.notify = nullptr;
+
+    MOCKER(CheckLogLevel).stubs().will(returnValue(1));
+
+    PrintDfxInfoForRdmaPiValueModifyTask(&taskInfo, 0);
+
+    GlobalMockObject::verify();
+}
+
+TEST(RdmaPiValueModifyTaskTest, PrintDfxInfoForRdmaPiValueModifyTaskSuccess)
+{
+    rtSocType_t socType = GlobalContainer::GetSocType();
+    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+
+    rtContext_t ctx = nullptr;
+    rtError_t ret = rtCtxCreate(&ctx, 0, 0);
+    ASSERT_EQ(ret, RT_ERROR_NONE);
+    Context *curCtx = static_cast<Context *>(ctx);
+
+    rtStream_t stream = nullptr;
+    ret = rtStreamCreate(&stream, 0);
+    ASSERT_EQ(ret, RT_ERROR_NONE);
+    Stream *stm = static_cast<Stream *>(stream);
+
+    CaptureModel *captureModel = new CaptureModel();
+    ASSERT_NE(captureModel, nullptr);
+    curCtx->models_.push_back(captureModel);
+    captureModel->context_ = curCtx;
+    captureModel->InsertRdmaPiValueModifyInfo(1, 1);
+
+    TaskInfo piValueModifyTask = {};
+    piValueModifyTask.type = TS_TASK_TYPE_RDMA_PI_VALUE_MODIFY;
+    piValueModifyTask.u.rdmaPiValueModifyInfo.funCallMemAddr = reinterpret_cast<void *>(0x12345000UL);
+    piValueModifyTask.u.rdmaPiValueModifyInfo.funCallMemAddrAlign = reinterpret_cast<void *>(0x12346000UL);
+    piValueModifyTask.u.rdmaPiValueModifyInfo.dfxAddr = reinterpret_cast<void *>(0x12347000UL);
+    piValueModifyTask.u.rdmaPiValueModifyInfo.rdmaSubContextCount = 1;
+
+    std::vector<uint64_t> rdmaPiValueInfo{1};
+    MOCKER(CheckLogLevel).stubs().will(returnValue(1));
+    MOCKER_CPP(&TaskFactory::GetTask)
+        .stubs()
+        .with(mockcpp::any(), mockcpp::any())
+        .will(returnValue(&piValueModifyTask));
+    MOCKER_CPP_VIRTUAL(stm->Device_()->Driver_(), &Driver::MemCopySync)
+        .stubs()
+        .with(outBoundP(static_cast<void *>(rdmaPiValueInfo.data()), sizeof(uint64_t)),
+              mockcpp::any(), mockcpp::any(), mockcpp::any(), mockcpp::any())
+        .will(returnValue(RT_ERROR_NONE));
+
+    Notify notify(0, 0);
+    notify.endGraphModel_ = captureModel;
+
+    TaskInfo taskInfo = {};
+    taskInfo.stream = stm;
+    taskInfo.u.notifywaitTask.isCountNotify = false;
+    taskInfo.u.notifywaitTask.u.notify = &notify;
+
+    PrintDfxInfoForRdmaPiValueModifyTask(&taskInfo, 0);
+
+    ret = rtStreamDestroy(stream);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    captureModel->streams_.clear();
+    delete captureModel;
+    curCtx->models_.clear();
+    ret = rtCtxDestroy(ctx);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    GlobalContainer::SetSocType(socType);
+    GlobalMockObject::verify();
 }
 
 // rts prefix api

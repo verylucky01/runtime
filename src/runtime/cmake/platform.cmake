@@ -42,6 +42,8 @@ set(RUNTIME_INC_DIR_COMMON_PLATFORM
     ${RUNTIME_CORE_DIR}/src/engine/stars
     ${RUNTIME_CORE_DIR}/src/stream
     ${RUNTIME_CORE_DIR}/src/task/inc
+    ${RUNTIME_FEATURE_DIR}/ffts
+    ${RUNTIME_FEATURE_DIR}/ffts
     ${RUNTIME_CORE_DIR}/src/profiler
     ${RUNTIME_CORE_DIR}/src/pool
     ${RUNTIME_CORE_DIR}/src/ttlv

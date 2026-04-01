@@ -18,6 +18,7 @@ set(libruntime_v100_task_src_files
     ${RUNTIME_CORE_DIR}/src/task/task_info/task_info.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/model/model_execute_task_info.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/davinci_kernel_task.cc
+    ${RUNTIME_FEATURE_DIR}/ffts/davinci_kernel_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/event_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/memory_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/reduce_task.cc
@@ -130,6 +131,7 @@ set(libruntime_src_files_include_for_tiny
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_tiny_stub.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/v100/api_impl_v100.cc
     ${RUNTIME_CORE_DIR}/src/context/context_tiny_stub.cc
+    ${RUNTIME_FEATURE_DIR}/ffts/context_ffts_tiny_stub.cc
     ${RUNTIME_CORE_DIR}/src/dfx/printf_tiny_stub.cc
     ${RUNTIME_CORE_DIR}/src/event/ipc_event_tiny_stub.cc
     ${RUNTIME_CORE_DIR}/src/pool/event_pool_tiny_stub.cc
@@ -139,7 +141,7 @@ set(libruntime_src_files_include_for_tiny
     ${RUNTIME_CORE_DIR}/src/kernel/binary_loader.cc
     ${RUNTIME_CORE_DIR}/src/kernel/json_parse.cc
     ${RUNTIME_CORE_DIR}/src/task/tiny/rdma_task_tiny_stub.cc
-    ${RUNTIME_CORE_DIR}/src/task/tiny/ffts_task_tiny_stub.cc
+    ${RUNTIME_FEATURE_DIR}/ffts/ffts_task_tiny_stub.cc
     ${RUNTIME_CORE_DIR}/src/task/tiny/task_tiny_stub.cc
     ${RUNTIME_CORE_DIR}/src/profiler/api_profile_decorator_tiny_stub.cc
     ${RUNTIME_CORE_DIR}/src/profiler/api_profile_log_decoratoc_tiny_stub.cc
@@ -407,12 +409,14 @@ set(RUNTIME_INC_DIR_TINY
     ${RUNTIME_CORE_DIR}/src/engine/stars
     ${RUNTIME_CORE_DIR}/src/stream
     ${RUNTIME_CORE_DIR}/src/task/inc
+    ${RUNTIME_FEATURE_DIR}/ffts
     ${RUNTIME_CORE_DIR}/src/profiler
     ${RUNTIME_CORE_DIR}/src/pool
     ${RUNTIME_CORE_DIR}/src/ttlv
     ${RUNTIME_CORE_DIR}/src/device
     ${RUNTIME_DIR}/src/runtime/driver
     ${RUNTIME_CORE_DIR}/src/common
+    ${RUNTIME_FEATURE_DIR}/ffts
     ${RUNTIME_CORE_DIR}/src/plugin_manage
     ${RUNTIME_CORE_DIR}/src/kernel
     ${RUNTIME_CORE_DIR}/src/kernel/arg_loader

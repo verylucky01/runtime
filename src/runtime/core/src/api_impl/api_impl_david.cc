@@ -1751,15 +1751,15 @@ static rtError_t SetLimitSizeByType(const rtLimitType_t type, const uint32_t val
     Runtime *rt = Runtime::Instance();
     uint32_t alignVal = (val + STACK_PHY_BASE_ALIGN_LEN - 1U) / STACK_PHY_BASE_ALIGN_LEN * STACK_PHY_BASE_ALIGN_LEN;
     switch (type) {
-        case RT_LIMIT_TYPE_SIMT_WARP_STACK_SIZE:
-            rt->SetSimtWarpStkSize(alignVal);
+        case RT_LIMIT_TYPE_SIMT_STACK_SIZE:
+            rt->SetSimtWarpStkSize(alignVal * RT_MAX_THREAD_NUM_PER_WARP);
             break;
         case RT_LIMIT_TYPE_SIMT_DVG_WARP_STACK_SIZE:
             rt->SetSimtDvgWarpStkSize(alignVal);
             break;
         default:
             RT_LOG_OUTER_MSG_INVALID_PARAM(type,
-               std::to_string(RT_LIMIT_TYPE_SIMT_WARP_STACK_SIZE) + " or " + std::to_string(RT_LIMIT_TYPE_SIMT_DVG_WARP_STACK_SIZE));
+               std::to_string(RT_LIMIT_TYPE_SIMT_STACK_SIZE) + " or " + std::to_string(RT_LIMIT_TYPE_SIMT_DVG_WARP_STACK_SIZE));
             return RT_ERROR_DEVICE_LIMIT;
     }
     COND_RETURN_OUT_ERROR_MSG_CALL(((rt->GetSimtWarpStkSize() == 0) && (rt->GetSimtDvgWarpStkSize() == 0)),

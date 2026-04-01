@@ -41,10 +41,9 @@ rtError_t RawDevice::AllocSimtStackPhyBase(const rtChipType_t chipType)
     if (!IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_SIMT)) {
         return RT_ERROR_NONE;
     }
-    const uint32_t simtWarpStkSize = Runtime::Instance()->GetSimtWarpStkSize();
+    const uint64_t simtWarpStkSize = Runtime::Instance()->GetSimtWarpStkSize();
     const uint32_t simtDvgWarpStkSize = Runtime::Instance()->GetSimtDvgWarpStkSize();
-    uint64_t stackPhySize = 72ULL * 64ULL * (static_cast<uint64_t>(simtWarpStkSize) +
-        static_cast<uint64_t>(simtDvgWarpStkSize));
+    uint64_t stackPhySize = 72ULL * 64ULL * (simtWarpStkSize + static_cast<uint64_t>(simtDvgWarpStkSize));
     stackPhySize += static_cast<uint64_t>(STACK_PHY_BASE_ALIGN_LEN);   // 128B align
 
     const rtError_t error =  driver_->DevMemAlloc(&simtStackPhyBase_,
@@ -58,7 +57,7 @@ rtError_t RawDevice::AllocSimtStackPhyBase(const rtChipType_t chipType)
         RtPtrToValue(simtStackPhyBase_) :
         (((RtPtrToValue(simtStackPhyBase_) >> STACK_PHY_BASE_ALIGN_BIT) + 1U) << STACK_PHY_BASE_ALIGN_BIT);
     simtStackPhyBaseAlign_ = RtValueToPtr<void *>(devAlignAddr);
-    simtWarpStkSize_ = simtWarpStkSize;
+    simtWarpStkSize_ = (simtWarpStkSize >= MAX_UINT32_NUM) ? MAX_UINT32_NUM : simtWarpStkSize;
     simtDvgWarpStkSize_ = simtDvgWarpStkSize;
     return RT_ERROR_NONE;
 }

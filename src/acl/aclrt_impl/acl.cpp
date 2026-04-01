@@ -128,7 +128,7 @@ namespace {
     }
     const std::map<rtLimitType_t, std::string> limitToKeyMap = {
         {RT_LIMIT_TYPE_STACK_SIZE, "aicore_stack_size"},
-        {RT_LIMIT_TYPE_SIMT_WARP_STACK_SIZE, "simt_stack_size"},
+        {RT_LIMIT_TYPE_SIMT_STACK_SIZE, "simt_stack_size"},
         {RT_LIMIT_TYPE_SIMT_DVG_WARP_STACK_SIZE, "simt_divergence_stack_size"}};
 
     aclError SetStackSizeByType(const char_t* const configPath, rtLimitType_t limitType, const std::string& typeName)

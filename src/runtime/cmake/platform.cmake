@@ -156,6 +156,7 @@ macro(runtime_platform_others_obj target_name)
         ${RUNTIME_DIR}/src/runtime/config/cloud/dev_info_reg.cc
         ${RUNTIME_DIR}/src/runtime/config/dc/dev_info_reg.cc
         ${RUNTIME_DIR}/src/runtime/config/mc62cm12a/dev_info_reg.cc
+        ${RUNTIME_DIR}/src/runtime/config/mc32dm11a/dev_info_reg.cc
         ${RUNTIME_DIR}/src/runtime/config/adc/dev_info_reg.cc
         ${RUNTIME_DIR}/src/runtime/config/mini/dev_info_reg.cc
         ${RUNTIME_DIR}/src/runtime/config/mini_v3/dev_info_reg.cc

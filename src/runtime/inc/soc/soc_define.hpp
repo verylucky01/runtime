@@ -133,9 +133,10 @@ typedef enum tagRtChipType {
     CHIP_DAVID = 15,
     CHIP_CLOUD_V5 = 16,
     CHIP_MC62CM12A = 17,  /* MC62CM12A */
-    CHIP_X90 = 18,  /* KirinX90 */
-    CHIP_9030 = 19,  /* Kirin9030 */
-    CHIP_XPU = 20,
+    CHIP_MC32DM11A = 18,  /* MC32DM11A */
+    CHIP_X90,  /* KirinX90 */
+    CHIP_9030,  /* Kirin9030 */
+    CHIP_XPU,
     CHIP_END
 } rtChipType_t;
 

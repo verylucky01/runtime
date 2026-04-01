@@ -51,6 +51,7 @@ private:
     static void InitHardwareInfoAs31xm1x();
     static void InitHardwareInfoLite();
     static void InitHardwareInfoMc62cm12a();
+    static void InitHardwareInfoMc32dm11a();
     static HardWareConfig hardWareConfig_[PLATFORM_END];
 };
 }

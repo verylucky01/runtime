@@ -49,6 +49,12 @@ constexpr uint32_t CUBEFREQ_ADC_BS9SX1A = 1230U;
 #define PLATFORMCONFIG_MC62CM12A           PLAT_COMBINE((static_cast<uint32_t>(ARCH_M510)), \
                                                             (static_cast<uint32_t>(CHIP_MC62CM12A)), \
                                                             (static_cast<uint32_t>(VER_NA)))
+
+/* ----------------------------------------MC32DM11A---------------------------------------- */
+/* --------platform-------- */
+#define PLATFORMCONFIG_MC32DM11A           PLAT_COMBINE((static_cast<uint32_t>(ARCH_M510)), \
+                                                            (static_cast<uint32_t>(CHIP_MC32DM11A)), \
+                                                            (static_cast<uint32_t>(VER_NA)))
 }
 }
 #endif  // __CCE_RUNTIME_CONFIG_DEFINE_ADC_HPP__

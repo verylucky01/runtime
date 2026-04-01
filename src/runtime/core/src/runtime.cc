@@ -740,6 +740,9 @@ rtError_t Runtime::SetSocTypeByChipType(int64_t hardwareVersion, int64_t aicoreN
         case CHIP_MC62CM12A:
             socType_ = SOC_MC62CM12A;
             break;
+        case CHIP_MC32DM11A:
+            socType_ = SOC_MC62CM12A;
+            break;
         case CHIP_X90:
             socType_ = SOC_KIRINX90;
             break;

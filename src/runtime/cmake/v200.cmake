@@ -465,11 +465,11 @@ set(libruntime_v200_dev_info_src_files
     ${RUNTIME_DIR}/src/runtime/config/mini/dev_info_proc_func.cc
     ${RUNTIME_DIR}/src/runtime/config/mini_v3/dev_info_proc_func.cc
     ${RUNTIME_DIR}/src/runtime/config/tiny/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/mc62cm12a/dev_info_proc_func.cc
 )
 
 set(libruntime_v201_dev_info_src_files
     ${RUNTIME_DIR}/src/runtime/config/mc62cm12a/dev_info_proc_func.cc
+    ${RUNTIME_DIR}/src/runtime/config/mc32dm11a/dev_info_proc_func.cc
 )
 
 #------------------------- runtime -------------------------

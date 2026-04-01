@@ -177,6 +177,7 @@ set(runtimeut_platform_list
     ${TOP_DIR}/src/runtime/config/cloud/dev_info_reg.cc
     ${TOP_DIR}/src/runtime/config/dc/dev_info_reg.cc
     ${TOP_DIR}/src/runtime/config/mc62cm12a/dev_info_reg.cc
+    ${TOP_DIR}/src/runtime/config/mc32dm11a/dev_info_reg.cc
     ${TOP_DIR}/src/runtime/config/adc/dev_info_reg.cc
     ${TOP_DIR}/src/runtime/config/mini/dev_info_reg.cc
     ${TOP_DIR}/src/runtime/config/mini_v3/dev_info_reg.cc
@@ -193,6 +194,7 @@ set(runtimeut_platform_list
     ${TOP_DIR}/src/runtime/config/cloud/dev_info_proc_func.cc
     ${TOP_DIR}/src/runtime/config/dc/dev_info_proc_func.cc
     ${TOP_DIR}/src/runtime/config/mc62cm12a/dev_info_proc_func.cc
+    ${TOP_DIR}/src/runtime/config/mc32dm11a/dev_info_proc_func.cc
     ${TOP_DIR}/src/runtime/config/adc/dev_info_proc_func.cc
     ${TOP_DIR}/src/runtime/config/mini/dev_info_proc_func.cc
     ${TOP_DIR}/src/runtime/config/mini_v3/dev_info_proc_func.cc
@@ -1447,6 +1449,7 @@ add_executable(runtime_utest_task_v201
     test/main.cc
     test/platform/others/rt_utest_v201_task_singlef.cc
     test/platform/others/rt_utest_v201_task.cc
+    test/platform/others/rt_utest_v201L_task.cc
 )
 
 target_include_directories(

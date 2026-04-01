@@ -226,6 +226,13 @@ void Config::InitHardwareInfoMc62cm12a()
     return;
 }
 
+void Config::InitHardwareInfoMc32dm11a()
+{
+    constexpr size_t platIndex = static_cast<size_t>(PLATFORM_MC32DM11A);
+    hardWareConfig_[platIndex].platformConfig = PLATFORMCONFIG_MC32DM11A;
+    return;
+}
+
 rtError_t Config::InitHardwareInfo() const
 {
     InitHardwareInfoCloudV1();
@@ -241,6 +248,7 @@ rtError_t Config::InitHardwareInfo() const
     InitHardwareInfoBs9sx1a();
     InitHardwareInfoLite();
     InitHardwareInfoMc62cm12a();
+    InitHardwareInfoMc32dm11a();
 
     return RT_ERROR_NONE;
 }

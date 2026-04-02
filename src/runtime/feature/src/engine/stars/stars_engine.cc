@@ -1331,7 +1331,7 @@ rtError_t StarsEngine::SubmitSend(TaskInfo * const workTask, uint32_t * const fl
 }
 
 rtError_t StarsEngine::StarsResumeRtsq(const rtLogicCqReport_t &logicCq, const uint16_t taskType,
-    const Stream * const failStm) const
+    Stream * const failStm) const
 {
     uint32_t offset = 1U;   // skip the error sqe
     uint32_t head = 0U;
@@ -1370,7 +1370,10 @@ rtError_t StarsEngine::StarsResumeRtsq(const rtLogicCqReport_t &logicCq, const u
         if ((cnt++ % RT_GET_HEAD_CYCLE_NUM) == 0U) {
             queryCnt++;
             error = devDrv->GetSqEnable(devId, tsId, static_cast<uint32_t>(logicCq.sqId), enable);
-            ERROR_RETURN_MSG_INNER(error, "Failed to get sq enable, stream_id=%d", logicCq.streamId);
+            COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
+                failStm->SetStreamStatus(StreamStatus::ABNORMAL);,
+                "Failed to get sq enable, device_id=%u, stream_id=%hu, retCode=%#x.",
+                dev->Id_(), logicCq.streamId, static_cast<uint32_t>(error));
             if ((cnt % RT_QUERY_CNT_NUM) == 0U) {
                 RT_LOG(RT_LOG_EVENT, "dev_id=%u, ts_id=%u, stream_id=%d, enable=%u",
                     devId, tsId, logicCq.sqId, enable);
@@ -1391,6 +1394,7 @@ rtError_t StarsEngine::StarsResumeRtsq(const rtLogicCqReport_t &logicCq, const u
             const uint64_t count = (endCnt > beginCnt) ? (endCnt - beginCnt) : 0ULL;
             const int32_t spendTime = static_cast<int32_t>(count);
             if (spendTime > getSqTimeout) {
+                failStm->SetStreamStatus(StreamStatus::ABNORMAL);
                 RT_LOG(RT_LOG_ERROR, "sq disable timeout, stream_id=%hu, sync remain time=%dms",
                     logicCq.streamId, failStm->GetSyncRemainTime());
                 return RT_ERROR_NONE;
@@ -1437,7 +1441,9 @@ rtError_t StarsEngine::StarsResumeRtsq(const rtLogicCqReport_t &logicCq, const u
     }
 
     error = devDrv->EnableSq(devId, tsId, static_cast<uint32_t>(logicCq.sqId));
-    ERROR_RETURN_MSG_INNER(error, "Enable sq failed, stream_id=%hu, sq_id=%hu, device_id=%u, retCode=%#x.",
+    COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
+        failStm->SetStreamStatus(StreamStatus::ABNORMAL);,
+        "Enable sq failed, stream_id=%hu, sq_id=%hu, device_id=%u, retCode=%#x.",
         logicCq.streamId, logicCq.sqId, devId, static_cast<uint32_t>(error));
 
     RT_LOG(RT_LOG_WARNING, "Resume stream_id=%hu, sq_id=%hu, sq_head=%hu, task_id=%hu, taskType=%hu, head=%u.",

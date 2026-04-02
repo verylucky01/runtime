@@ -105,7 +105,7 @@ private:
     rtError_t SubmitSend(TaskInfo * const workTask, uint32_t * const flipTaskId) override;
 
     rtError_t StarsResumeRtsq(const rtLogicCqReport_t &logicCq,
-        const uint16_t taskType, const Stream * const failStm) const;
+        const uint16_t taskType, Stream * const failStm) const;
 
     void StarsCqeReceive(const rtLogicCqReport_t &logicCq, TaskInfo * const runTask) const;
 

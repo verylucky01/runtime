@@ -422,10 +422,6 @@ int32_t DumpManager::GetInputOutputTensors(
 bool DumpManager::IsEnableDumpOperatorWithCapture(const std::string& opType, const std::string& opName,
     aclrtStream stream)
 {
-    if (dumpSetting_.GetDumpDebugStatus() || dumpSetting_.IsDumpDataStats()) {
-        IDE_LOGI("overflow or stats is not follow the capture");
-        return false;
-    }
     rtStreamCaptureStatus status = RT_STREAM_CAPTURE_STATUS_MAX;
     rtModel_t* captureMdl = nullptr;
     int32_t ret = rtStreamGetCaptureInfo(stream, &status, captureMdl);
@@ -460,9 +456,13 @@ int32_t DumpManager::DumpOperatorWithCfg(const std::string &opType, const std::s
         "No tensor need to dump. op=%s[%s].", opName.c_str(), opType.c_str());
 
     if (IsEnableDumpOperatorWithCapture(opType, opName, stream)) {
+        if (dumpSetting_.GetDumpDebugStatus() || dumpSetting_.IsDumpDataStats()) {
+            IDE_LOGI("overflow or stats is not allow in capture stream");
+            return ADUMP_SUCCESS;
+        }
         return DumpOperatorWithCapture(opType, opName, inputTensors, outputTensors, stream);
     }
-
+    
     OperatorDumper opDumper(opType, opName);
     ret = opDumper.SetDumpSetting(dumpSetting_)
               .RuntimeStream(stream)
@@ -496,6 +496,10 @@ int32_t DumpManager::DumpOperatorV2(
         "Get input and output tensors failed! opName: %s, opType: %s", opName.c_str(), opType.c_str());
 
     if (IsEnableDumpOperatorWithCapture(opType, opName, stream)) {
+        if (dumpSetting_.GetDumpDebugStatus() || dumpSetting_.IsDumpDataStats()) {
+            IDE_LOGI("overflow or stats is not allow in capture stream");
+            return ADUMP_SUCCESS;
+        }
         return DumpOperatorWithCapture(opType, opName, inputTensors, outputTensors, stream);
     }
 
@@ -549,7 +553,8 @@ int32_t DumpManager::DumpOperatorWithCapture(
     if (ret != ADUMP_SUCCESS) {
         return ret;
     }
-    IDE_LOGI("%s(%s) dump data : set event, callback function success", opName.c_str(), opType.c_str());
+    IDE_LOGI("%s(%s) set main stream %u, dump stream %u, callback function success", 
+        opName.c_str(), opType.c_str(), dumpInfoPtr->streamId, dumpInfoPtr->dumpStmId);
 
     return ADUMP_SUCCESS;
 }

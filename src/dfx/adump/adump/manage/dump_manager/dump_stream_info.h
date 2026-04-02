@@ -54,6 +54,9 @@ typedef struct DumpStreamInfo {
     std::string mainStreamKey;
     std::string opType;
     std::string opName;
+    uint32_t dumpStmId;
+    uint32_t dumpEvtId;
+    uint32_t mainEvtId;
     uint32_t taskId;
     uint32_t streamId;
     uint32_t deviceId;

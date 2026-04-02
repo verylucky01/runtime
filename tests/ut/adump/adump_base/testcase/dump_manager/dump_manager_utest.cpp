@@ -144,7 +144,7 @@ TEST_F(DumpManagerUtest, Test_GetDumpInfoFromMap_CreateNew)
     EXPECT_EQ(dumpInfo->mainStreamKey, "test_key_123");
     EXPECT_EQ(dumpInfo->opType, "Add");
     EXPECT_EQ(dumpInfo->opName, "test_op");
-    
+
     DumpResourceSafeMap::Instance().EnqueueCleanup("test_key_123");
     DumpResourceSafeMap::Instance().waitAndClear();
 }
@@ -234,6 +234,42 @@ TEST_F(DumpManagerUtest, Test_DumpOperatorV2_WithCapture_EmptyTensors)
     rtStream_t stream = reinterpret_cast<rtStream_t>(0x1);
     ret = DumpManager::Instance().DumpOperatorV2("Add", "add_op", tensors, stream);
     EXPECT_EQ(ret, ADUMP_SUCCESS);
+}
+
+TEST_F(DumpManagerUtest, Test_DumpOperatorV2_CaptureWithStatusMode_SkipDump)
+{
+    std::string validConfigData = ReadFileToString(JSON_BASE "datadump/dump_data_tensor.json");
+    int32_t ret = DumpManager::Instance().SetDumpConfig(validConfigData.c_str(), validConfigData.size());
+    ASSERT_EQ(ret, ADUMP_SUCCESS);
+
+    MOCKER(rtStreamGetCaptureInfo).stubs().will(returnValue(0));
+
+    int64_t data[1024];
+    for (int i = 0; i < 1024; i++) {
+        data[i] = 0;
+    }
+
+    std::vector<TensorInfoV2> tensors;
+    TensorInfoV2 tensor;
+    tensor.tensorAddr = reinterpret_cast<int64_t*>(data);
+    tensor.tensorSize = 1024;
+    tensor.placement = TensorPlacement::kOnDeviceHbm;
+    tensor.type = TensorType::INPUT;
+    tensors.push_back(tensor);
+
+    rtStream_t stream = reinterpret_cast<rtStream_t>(0x1);
+
+    std::string mainStreamKey = "1_1";
+    auto dumpInfoBefore = DumpResourceSafeMap::Instance().get(mainStreamKey);
+    if (dumpInfoBefore != nullptr) {
+        DumpResourceSafeMap::Instance().remove(mainStreamKey);
+    }
+
+    ret = DumpManager::Instance().DumpOperatorV2("Add", "add_op", tensors, stream);
+    EXPECT_EQ(ret, ADUMP_SUCCESS);
+
+    auto dumpInfo = DumpResourceSafeMap::Instance().get(mainStreamKey);
+    EXPECT_EQ(dumpInfo, nullptr);
 }
 
 TEST_F(DumpManagerUtest, Test_RegisterSnapShotCallback_OK)

@@ -140,6 +140,17 @@ int32_t DumpStreamCreate(DumpStreamInfo** ptr)
         return ret;
     }
 
+    dumpPtr->dumpStmId = 0;
+    ret = rtGetStreamId(dumpPtr->stm, reinterpret_cast<int32_t*>(&(dumpPtr->dumpStmId)));
+    if (ret != RT_ERROR_NONE) {
+        IDE_LOGE("get dump stream id failed, ret: %d", ret);
+        rtEventDestroy(dumpPtr->mainStmEvt);
+        rtEventDestroy(dumpPtr->dumpStmEvt);
+        rtStreamDestroy(dumpPtr->stm);
+        delete dumpPtr;
+        return ret;
+    }
+
     *ptr = dumpPtr;
     return ADUMP_SUCCESS;
 }
@@ -501,13 +512,13 @@ int32_t SetupAsyncDump(
 {
     rtError_t ret = rtEventRecord(dumpInfoPtr->mainStmEvt, mainStream);
     IDE_CTRL_VALUE_FAILED(
-        ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) main stream record event failed, ret: %d", opName.c_str(),
-        opType.c_str(), ret);
+        ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) main stream (%u) record event failed, ret: %d", opName.c_str(),
+        opType.c_str(), dumpInfoPtr->streamId, ret);
 
     ret = rtStreamWaitEvent(dumpInfoPtr->stm, dumpInfoPtr->mainStmEvt);
     IDE_CTRL_VALUE_FAILED(
-        ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) dump stream wait event failed, ret: %d", opName.c_str(),
-        opType.c_str(), ret);
+        ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) dump stream  (%u) wait event failed, ret: %d", opName.c_str(),
+        opType.c_str(), dumpInfoPtr->dumpStmId, ret);
 
     // 创建指向 shared_ptr 的指针，确保DumpStreamInfo的引用计数不为0, 并通过unique_ptr来保证指针释放
     auto callbackArg = std::make_unique<std::shared_ptr<DumpStreamInfo>>(dumpInfoPtr);
@@ -516,20 +527,21 @@ int32_t SetupAsyncDump(
     ret = rtsLaunchHostFunc(
         dumpInfoPtr->stm, reinterpret_cast<rtCallback_t>(DumpDataRecordInCaptureStream), (void*)rawContext);
     if (ret != RT_ERROR_NONE) {
-        IDE_LOGE("%s(%s) launch host function failed, ret: %d", opName.c_str(), opType.c_str(), ret);
+        IDE_LOGE("%s(%s) launch host function register failed in dump stream (%u), ret: %d", opName.c_str(), 
+            opType.c_str(), dumpInfoPtr->dumpStmId, ret);
         delete rawContext;
         return ADUMP_FAILED;
     }
 
     ret = rtEventRecord(dumpInfoPtr->dumpStmEvt, dumpInfoPtr->stm);
     IDE_CTRL_VALUE_FAILED(
-        ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) dump stream record event failed, ret: %d", opName.c_str(),
-        opType.c_str(), ret);
+        ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) dump stream (%u) record event failed, ret: %d", opName.c_str(),
+        opType.c_str(), dumpInfoPtr->dumpStmId, ret);
 
     ret = rtStreamWaitEvent(mainStream, dumpInfoPtr->dumpStmEvt);
     IDE_CTRL_VALUE_FAILED(
-        ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) main stream wait event failed, ret: %d", opName.c_str(),
-        opType.c_str(), ret);
+        ret == RT_ERROR_NONE, return ADUMP_FAILED, "%s(%s) main stream (%u) wait event failed, ret: %d", opName.c_str(),
+        opType.c_str(), dumpInfoPtr->streamId, ret);
 
     return ADUMP_SUCCESS;
 }

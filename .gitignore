@@ -4,3 +4,7 @@
 /build_out/
 /output/
 /cov/
+
+# pre-commit log
+log/
+oat_reports/

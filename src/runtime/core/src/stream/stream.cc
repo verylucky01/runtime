@@ -4053,7 +4053,8 @@ const std::string Stream::GetTaskTag(const uint16_t taskId)
 
 bool Stream::GetForceRecycleFlag(bool flag) const
 {
-    bool forceRecycleFlag = (flag || (GetFailureMode() == ABORT_ON_FAILURE));
+    bool forceRecycleFlag = (flag || (GetFailureMode() == ABORT_ON_FAILURE)) || 
+        ((GetStreamStatus() != StreamStatus::NORMAL));
     if ((context_ != nullptr) && (context_->GetFailureError() != RT_ERROR_NONE)) {
         forceRecycleFlag = true;
     }

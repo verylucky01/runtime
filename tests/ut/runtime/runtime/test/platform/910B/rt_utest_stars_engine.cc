@@ -1566,6 +1566,44 @@ TEST_F(CloudV2StarsEngineTest, StarsResumeRtsq_RT_STARS_EXIST_ERROR)
     delete device;
 }
 
+TEST_F(CloudV2StarsEngineTest, StarsResumeRtsq_01)
+{
+    rtError_t ret;
+    Device *device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
+    StarsEngine engine(device);
+    Stream *stream;
+    ret = rtStreamCreate((rtStream_t *)&stream, 0);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    stream->device_ = device;
+
+    MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::GetSqEnable)
+        .stubs()
+        .with(mockcpp::any(), mockcpp::any(), mockcpp::any(), outBound(false))
+        .will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::SetSqHead).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::EnableSq).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::GetSqHead).stubs().will(returnValue(RT_ERROR_NONE));
+
+    uint16_t tail = 1;
+    MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::GetSqTail)
+        .stubs()
+        .with(mockcpp::any(), mockcpp::any(), mockcpp::any(), outBound(tail))
+        .will(returnValue(RT_ERROR_NONE));
+
+    TaskInfo reportTask = {};
+    rtLogicCqReport_t report = {0};
+    reportTask.type = TS_TASK_TYPE_FUSION_KERNEL;
+    reportTask.stream = stream;
+    report.sqeType = RT_DAVID_SQE_TYPE_NOTIFY_WAIT;
+    report.errorType = RT_STARS_CQE_ERR_TYPE_EXCEPTION;
+    report.errorCode = TS_ERROR_END_OF_SEQUENCE;
+    ret = engine.StarsResumeRtsq(report, 0U, stream);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    ret = rtStreamDestroy(stream);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
+    ((Runtime *)Runtime::Instance())->DeviceRelease(device);
+}
+
 TEST_F(CloudV2StarsEngineTest, WaitTask3)
 {
     uint32_t recycleTaskId = 0;

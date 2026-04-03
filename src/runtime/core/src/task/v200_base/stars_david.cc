@@ -995,9 +995,9 @@ static void ConstructDavidSqeForAddEndGraphTask(TaskInfo * const taskInfo, rtDav
     sqe->res5 = 0xFFFFU;
 
     PrintDavidSqe(davidSqe, "AddEndGraphTask");
-    RT_LOG(RT_LOG_INFO, "AddEndGraphTask:ConstructDavidSqe, topicType=%u, sqe addr=%p, device_id=%u, stream_id=%d,"
-        "task_id=%hu", static_cast<uint32_t>(sqe->topicType), davidSqe, taskInfo->stream->Device_()->Id_(),
-        stm->Id_(), taskInfo->id);
+    RT_LOG(RT_LOG_INFO, "AddEndGraphTask, topicType=%u, device_id=%u, stream_id=%d,"
+        "task_id=%hu, task_sn=%u.", static_cast<uint32_t>(sqe->topicType), taskInfo->stream->Device_()->Id_(),
+        stm->Id_(), taskInfo->id, taskInfo->taskSn);
 }
 
 static void ConstructDavidSqeForModelToAicpuTask(TaskInfo * const taskInfo, rtDavidSqe_t *const davidSqe,
@@ -1039,9 +1039,9 @@ static void ConstructDavidSqeForModelToAicpuTask(TaskInfo * const taskInfo, rtDa
 
     sqe->destPid = 0U;
     PrintDavidSqe(davidSqe, "ModelToAicpuTask");
-    RT_LOG(RT_LOG_INFO, "ModelToAicpuTask:ConstructDavidSqe, topic_type=%u, cmd_type=%u, device_id=%u,"
-        "stream_id=%d, task_id=%hu", static_cast<uint32_t>(sqe->topicType),
-        taskInfo->u.modelToAicpuTask.cmdType, taskInfo->stream->Device_()->Id_(), stm->Id_(), taskInfo->id);
+    RT_LOG(RT_LOG_INFO, "ModelToAicpuTask, topic_type=%u, cmd_type=%u, device_id=%u,"
+        "stream_id=%d, task_id=%hu, task_sn=%u.", static_cast<uint32_t>(sqe->topicType), taskInfo->u.modelToAicpuTask.cmdType,
+        taskInfo->stream->Device_()->Id_(), stm->Id_(), taskInfo->id, taskInfo->taskSn);
 }
 
 static void ConstructDavidSqeForDebugRegisterForStreamTask(TaskInfo *taskInfo, rtDavidSqe_t * const davidSqe,
@@ -1463,7 +1463,6 @@ static void ConstructAicSqePart(T * const kernelInfo, RtDavidStarsAicAivKernelSq
         CheckBlockDim(stm, sqeType, blockDim);
     }
     sqe->ratio = 1U;            // only ratio is 1.
-    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, sqe_schem=%u, ratio=%u", schemMode, sqe->schem, sqe->ratio);
 
     /* word8-9 */
     sqe->aicStartPcLow = static_cast<uint32_t>(funcAddr);
@@ -1479,6 +1478,8 @@ static void ConstructAicSqePart(T * const kernelInfo, RtDavidStarsAicAivKernelSq
     sqe->aicTaskParamPtrHigh = (sqe->aicTaskParamPtrHigh & 0xFFF00000U) | static_cast<uint32_t>(addr >> UINT32_BIT_NUM);
     sqe->aivTaskParamPtrLow = 0U;
     sqe->aivTaskParamPtrHigh = 0U;
+    RT_LOG(RT_LOG_INFO, "set cfgInfo schemMode=%u, sqe_schem=%u, ratio=%u, aivSimtDcuSmSize=%u.",
+        schemMode, sqe->schem, sqe->ratio, sqe->aivSimtDcuSmSize);
 }
 
 static void ConstructDavidCommonSqeForDavinciTask(TaskInfo *taskInfo, rtDavidSqe_t * const command,

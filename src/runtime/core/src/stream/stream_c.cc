@@ -258,7 +258,10 @@ rtError_t StreamDebugRegister(Stream * const debugStream, const uint32_t flag, c
         "stream_id=%d alloc ccuLaunch task failed, retCode=%#x.", stmId, static_cast<uint32_t>(error));
     SaveTaskCommonInfo(rtDbgRegStreamTask, debugStream, pos);
 
-    (void)DebugRegisterForStreamTaskInit(rtDbgRegStreamTask, static_cast<uint32_t>(stmId), addr, flag);
+    error = DebugRegisterForStreamTaskInit(rtDbgRegStreamTask, static_cast<uint32_t>(stmId), addr, flag);
+    COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, RT_ERROR_DEBUG_REGISTER_FAILED, 
+        TaskUnInitProc(rtDbgRegStreamTask); TaskRollBack(debugStream, pos); debugStream->StreamUnLock();,
+        "task init failed, stream_id=%d, retCode=%#x.", stmId, static_cast<uint32_t>(error));
     rtDbgRegStreamTask->stmArgPos = static_cast<DavidStream *>(debugStream)->GetArgPos();
     error = DavidSendTask(rtDbgRegStreamTask, debugStream);
     COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, RT_ERROR_DEBUG_REGISTER_FAILED, 

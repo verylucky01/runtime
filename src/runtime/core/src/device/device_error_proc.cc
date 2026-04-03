@@ -1482,7 +1482,7 @@ rtError_t DeviceErrorProc::PrintStreamTimeoutSnapshotInfo()
         (void)memset_s(errStr, sizeof(errMsg), 0U, sizeof(errMsg));
         const uint16_t streamId = streamTaskInfo->detailInfo[i].stream_id;
         const uint16_t taskId = streamTaskInfo->detailInfo[i].task_id;
-        TaskInfo *tsk = GetTaskInfo(device_, static_cast<uint32_t>(streamId), static_cast<uint32_t>(taskId));
+        TaskInfo *tsk = GetTaskInfo(device_, static_cast<uint32_t>(streamId), static_cast<uint32_t>(taskId), true);
         if (tsk == nullptr) {
             RT_LOG(RT_LOG_ERROR, "stream_id=%hu task_id=%hu can not find", streamId, taskId);
             continue;
@@ -1621,7 +1621,7 @@ rtError_t ProcessStarsAicpuErrorInfo(const StarsDeviceErrorInfo * const info,
     rtFftsPlusTaskErrInfo_t fftsPlusErrInfo = rtFftsPlusTaskErrInfo_t();
     /* aicpu error by ffts+ */
     TaskInfo *errTaskPtr = GetTaskInfo(dev, static_cast<uint32_t>(info->u.aicpuErrorInfo.comm.streamId),
-            static_cast<uint32_t>(info->u.aicpuErrorInfo.comm.taskId));
+            static_cast<uint32_t>(info->u.aicpuErrorInfo.comm.taskId), true);
     if (errTaskPtr != nullptr) {
         errTaskPtr->isRingbufferGet = true;
         if ((errTaskPtr->type ==  TS_TASK_TYPE_FFTS_PLUS) && (type == FFTS_PLUS_AICPU_ERROR)) {
@@ -1812,7 +1812,7 @@ rtError_t DeviceErrorProc::ProcessStarsDvppErrorInfo(const StarsDeviceErrorInfo 
 
     TaskInfo *errTaskPtr = GetTaskInfo(dev,
         static_cast<uint32_t>(info->u.dvppErrorInfo.streamId),
-        static_cast<uint32_t>(info->u.dvppErrorInfo.taskId));
+        static_cast<uint32_t>(info->u.dvppErrorInfo.taskId), true);
     if (errTaskPtr != nullptr) {
         errTaskPtr->isRingbufferGet = true;
     }
@@ -2096,7 +2096,7 @@ rtError_t DeviceErrorProc::ProcessStarsSqeErrorInfo(const StarsDeviceErrorInfo *
     }
 
     TaskInfo *errTaskPtr = GetTaskInfo(
-        dev, static_cast<uint32_t>(info->u.sqeErrorInfo.streamId), static_cast<uint32_t>(info->u.sqeErrorInfo.taskId));
+        dev, static_cast<uint32_t>(info->u.sqeErrorInfo.streamId), static_cast<uint32_t>(info->u.sqeErrorInfo.taskId), true);
     if (errTaskPtr != nullptr) {
         errTaskPtr->isRingbufferGet = true;
     }

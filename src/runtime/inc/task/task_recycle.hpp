@@ -35,7 +35,7 @@ rtError_t RecycleTaskBySqHeadForRecyleThread(Stream * const stm);
 rtError_t RefreshForceRecyleFlagAndSendMaintainceTask(Stream * const stm);
 
 // ===================== 对外API =================================================================//
-TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t pos);
+TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t pos, bool posIsSqHead = false);
 // 模型流中的任务回收
 void RecycleModelBindStreamAllTask(Stream * const stm, const bool cleanFlag);
 

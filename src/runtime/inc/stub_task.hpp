@@ -23,7 +23,7 @@ class Notify;
 
 void RecycleThreadDoForStarsV2(Device *deviceInfo);
 
-TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t id);
+TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t pos, bool posIsSqHead = false);
 
 rtError_t TaskReclaimByStream(const Stream * const stm, const bool limited, const bool needLog = true);
 

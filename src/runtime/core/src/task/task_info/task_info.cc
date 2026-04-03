@@ -340,7 +340,7 @@ TaskInfo* GetRealReportFaultTaskForNotifyWaitTask(TaskInfo *taskInfo, const void
             taskId = sw_status.model_exec_ex.task_id;
         }
 
-        TaskInfo *taskPtr = GetTaskInfo(dev, static_cast<uint32_t>(streamId), static_cast<uint32_t>(taskId));
+        TaskInfo *taskPtr = GetTaskInfo(dev, static_cast<uint32_t>(streamId), static_cast<uint32_t>(taskId), true);
         
         return taskPtr;
     }

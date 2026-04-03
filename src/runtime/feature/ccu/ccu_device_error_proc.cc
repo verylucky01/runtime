@@ -275,7 +275,7 @@ rtError_t ProcessDavidStarsCcuErrorInfo(const StarsDeviceErrorInfo * const info,
     }
 
     TaskInfo *errTaskPtr = GetTaskInfo(dev, static_cast<uint32_t>(info->u.ccuErrorInfo.comm.streamId),
-        static_cast<uint32_t>(info->u.ccuErrorInfo.comm.taskId));
+        static_cast<uint32_t>(info->u.ccuErrorInfo.comm.taskId), true);
 
     RT_LOG_CALL_MSG(ERR_MODULE_TBE, "The error from device(D-die, chipId=%u, dieId=%u), serial number is %" PRIu64 ", "
         "ccu task print, coreNum=%hu, streamId=%hu, taskId=%hu.", info->u.ccuErrorInfo.comm.chipId,

@@ -195,7 +195,7 @@ std::string DeviceStreamSnapshotHandler::GetActiveStreamSnapshot(const rtStreamS
     for (uint32_t i = 0U; i < cnt; ++i) {
         auto &streamSnapshot = streamSnapshots[i];
         TaskInfo *tsk = GetTaskInfo(
-            dev_, static_cast<uint32_t>(streamSnapshot.streamId), static_cast<uint32_t>(streamSnapshot.taskId));
+            dev_, static_cast<uint32_t>(streamSnapshot.streamId), static_cast<uint32_t>(streamSnapshot.taskId), true);
         outStream << "\t"
                   << "[" << i << "] streamId=" << streamSnapshot.streamId << ", " << TaskIdCamelbackNaming() << "="
                   << streamSnapshot.taskId;

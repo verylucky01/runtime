@@ -636,7 +636,7 @@ void GetExceptionArgs(TaskInfo* taskInfo, rtExceptionArgsInfo_t *argsInfo)
 
 void TaskFailCallBack(const uint32_t streamId, const uint32_t taskId,
                       const uint32_t threadId, const uint32_t retCode,
-                      const Device * const dev)
+                      const Device * const dev, bool isNeedTransTaskId)
 {
     COND_RETURN_DEBUG(((retCode == static_cast<uint32_t>(RT_ERROR_NONE)) || (retCode == TS_ERROR_END_OF_SEQUENCE) ||
                        (retCode == TS_MODEL_ABORT_NORMAL)), ,
@@ -654,7 +654,7 @@ void TaskFailCallBack(const uint32_t streamId, const uint32_t taskId,
     TaskInfo *workTask = nullptr;
     uint32_t exceptionTaskId = 0xFFFFFFFFU;
     if (dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_ALLOC_FROM_STREAM_POOL)) {
-        workTask = GetTaskInfo(dev, streamId, taskId);
+        workTask = GetTaskInfo(dev, streamId, taskId, isNeedTransTaskId);
         if (workTask != nullptr) {
             exceptionTaskId = workTask->taskSn;
         }

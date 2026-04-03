@@ -535,7 +535,7 @@ TaskInfo *GetRealReportFaultTaskForModelExecuteTask(TaskInfo * const taskInfo)
 
     Device *const dev = stream->Device_();
 
-    TaskInfo *taskPtr = GetTaskInfo(dev, modelExecuteTaskInfo->errorStreamId, modelExecuteTaskInfo->errorTaskId);
+    TaskInfo *taskPtr = GetTaskInfo(dev, modelExecuteTaskInfo->errorStreamId, modelExecuteTaskInfo->errorTaskId, true);
     return taskPtr;
 }
 
@@ -584,7 +584,7 @@ void ReportErrorInfoForModelExecuteTask(TaskInfo * const taskInfo, const uint32_
         stream->SetDrvErr(static_cast<uint32_t>(RT_ERROR_SOCKET_CLOSE));
     }
     TaskFailCallBack(modelExecuteTaskInfo->errorStreamId, modelExecuteTaskInfo->errorTaskId,
-        taskInfo->tid, errorCode, stream->Device_());
+        taskInfo->tid, errorCode, stream->Device_(), true);
 }
 
 void DoCompleteSuccessForModelExecuteTask(TaskInfo * const taskInfo, const uint32_t devId)

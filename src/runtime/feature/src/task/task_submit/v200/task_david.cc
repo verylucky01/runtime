@@ -435,10 +435,6 @@ rtError_t DavidSendTask(TaskInfo *taskInfo, Stream * const stm)
     uint16_t checkCount = 0U;
     uint64_t sqBaseAddr = stm->GetSqBaseAddr();
     Profiler *profilerPtr = Runtime::Instance()->Profiler_();
-    if ((profilerPtr != nullptr) && (!dev->IsDeviceRelease())) {
-        profilerPtr->ReportTaskTrack(taskInfo, devId);
-    }
-
     if (stm->IsSoftwareSqEnable()) {
         dev->GetTaskFactory()->SetSerialId(stm, taskInfo);
         sqBaseAddr = 0ULL;
@@ -446,6 +442,10 @@ rtError_t DavidSendTask(TaskInfo *taskInfo, Stream * const stm)
         if (sqBaseAddr != 0ULL) { // 非扩流场景
             sqeAddr = RtValueToPtr<rtDavidSqe_t *>(sqBaseAddr + (pos << SHIFT_SIX_SIZE));
         }
+    }
+
+    if ((profilerPtr != nullptr) && (!dev->IsDeviceRelease())) {
+        profilerPtr->ReportTaskTrack(taskInfo, devId);
     }
 
     ToConstructDavidSqe(taskInfo, sqeAddr, sqBaseAddr);

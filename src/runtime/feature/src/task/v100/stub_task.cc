@@ -17,9 +17,10 @@
 namespace cce {
 namespace runtime {
 
-TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t id)
+TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t pos, bool posIsSqHead)
 {
-    return dev->GetTaskFactory()->GetTask(static_cast<int32_t>(streamId), static_cast<uint16_t>(id));
+    UNUSED(posIsSqHead);
+    return dev->GetTaskFactory()->GetTask(static_cast<int32_t>(streamId), static_cast<uint16_t>(pos));
 }
 
 rtError_t TaskReclaimByStream(const Stream *const stm, const bool limited, const bool needLog)

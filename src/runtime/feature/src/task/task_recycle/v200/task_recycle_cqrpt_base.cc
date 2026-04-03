@@ -319,7 +319,7 @@ rtError_t ProcReport(Device * const dev, uint32_t streamId, const uint32_t syncP
         }
 
         /* 这里能判断pos和stream id的合法性，因此后续不需要再判断 */
-        TaskInfo *reportTask = GetTaskInfo(dev, streamId, pos);
+        TaskInfo *reportTask = GetTaskInfo(dev, streamId, pos, true);
         if (unlikely(reportTask == nullptr)) {
             RT_LOG(RT_LOG_WARNING, "GetTask error, device_id=%u, stream_id=%hu, pos=%hu.",
                 dev->Id_(), streamId, report.sqHead);

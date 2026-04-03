@@ -284,7 +284,7 @@ rtError_t FinishedTaskReclaim(const Stream * const stm, const bool limited, cons
     return ret;
 }
 
-TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t pos)
+TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t pos, bool posIsSqHead)
 {
     TaskInfo *reportTask = nullptr;
     Stream *recycleStm = nullptr;
@@ -292,7 +292,9 @@ TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t pos)
     COND_PROC((recycleStm == nullptr), return nullptr;);
 
     if (recycleStm->IsSoftwareSqEnable()) {
-        return dev->GetTaskFactory()->GetTask(static_cast<int32_t>(streamId), static_cast<uint16_t>(pos));
+        uint32_t task_id = pos;
+ 	    COND_PROC(posIsSqHead, recycleStm->GetTaskIdByPos(static_cast<uint16_t>(pos), task_id););
+ 	    return dev->GetTaskFactory()->GetTask(static_cast<int32_t>(streamId), static_cast<uint16_t>(task_id));
     }
 
     if (recycleStm->taskResMang_ != nullptr) {

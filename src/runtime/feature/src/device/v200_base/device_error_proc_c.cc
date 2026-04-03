@@ -466,7 +466,7 @@ static void SetDeviceFaultTypeByAixErrClass(const Device * const dev, const Star
 static void ProcessCoreErrorClass(const Device * const dev, const StarsDeviceErrorInfo * const info)
 {
     TaskInfo *errTaskPtr = GetTaskInfo(dev, static_cast<uint32_t>(info->u.davidCoreErrorInfo.comm.streamId),
-        static_cast<uint32_t>(info->u.davidCoreErrorInfo.comm.taskId));
+        static_cast<uint32_t>(info->u.davidCoreErrorInfo.comm.taskId), true);
     if (errTaskPtr != nullptr) {
         errTaskPtr->isRingbufferGet = true;
         if ((errTaskPtr->type != TS_TASK_TYPE_KERNEL_AICORE) && (errTaskPtr->type != TS_TASK_TYPE_KERNEL_AIVEC)) {
@@ -541,7 +541,7 @@ rtError_t ProcessDavidStarsCoreErrorInfo(const StarsDeviceErrorInfo * const info
     const uint16_t type = info->u.davidCoreErrorInfo.comm.type;
 
     TaskInfo *errTaskPtr = GetTaskInfo(dev, static_cast<uint32_t>(info->u.davidCoreErrorInfo.comm.streamId),
-        static_cast<uint32_t>(info->u.davidCoreErrorInfo.comm.taskId));
+        static_cast<uint32_t>(info->u.davidCoreErrorInfo.comm.taskId), true);
 
     for (uint32_t coreIdx = 0U; coreIdx < static_cast<uint32_t>(info->u.davidCoreErrorInfo.comm.coreNum); coreIdx++) {
         if ((errTaskPtr != nullptr) && (errTaskPtr->u.aicTaskInfo.kernel == nullptr)) {
@@ -620,7 +620,7 @@ rtError_t ProcessStarsSdmaErrorInfo(const StarsDeviceErrorInfo * const info,
     RUNTIME_NULL_NO_PROC_WITH_RET(info);
     RUNTIME_NULL_NO_PROC_WITH_RET(dev);
     TaskInfo *errTaskPtr = GetTaskInfo(dev, static_cast<uint32_t>(info->u.sdmaErrorInfo.comm.streamId),
-        static_cast<uint32_t>(info->u.sdmaErrorInfo.comm.taskId));
+        static_cast<uint32_t>(info->u.sdmaErrorInfo.comm.taskId), true);
     if (errTaskPtr != nullptr) {
         errTaskPtr->isRingbufferGet = true;
     }
@@ -655,7 +655,7 @@ rtError_t ProcessDavidStarsFusionKernelErrorInfo(const StarsDeviceErrorInfo * co
     }
 
     TaskInfo *errTaskPtr = GetTaskInfo(dev, static_cast<uint32_t>(info->u.fusionKernelErrorInfo.comm.streamId),
-        static_cast<uint32_t>(info->u.fusionKernelErrorInfo.comm.taskId));
+        static_cast<uint32_t>(info->u.fusionKernelErrorInfo.comm.taskId), true);
     if (errTaskPtr != nullptr) {
         errTaskPtr->isRingbufferGet = true;
     }
@@ -877,7 +877,7 @@ rtError_t ProcessDavidStarsCcuErrorInfo(const StarsDeviceErrorInfo * const info,
     }
 
     TaskInfo *errTaskPtr = GetTaskInfo(dev, static_cast<uint32_t>(info->u.ccuErrorInfo.comm.streamId),
-        static_cast<uint32_t>(info->u.ccuErrorInfo.comm.taskId));
+        static_cast<uint32_t>(info->u.ccuErrorInfo.comm.taskId), true);
 
     RT_LOG_CALL_MSG(ERR_MODULE_TBE, "The error from device(D-die, chipId=%u, dieId=%u), serial number is %" PRIu64 ", "
         "ccu task print, coreNum=%hu, streamId=%hu, taskId=%hu.", info->u.ccuErrorInfo.comm.chipId,
@@ -907,7 +907,7 @@ rtError_t ProcessDavidStarsWaitTimeoutErrorInfo(const StarsDeviceErrorInfo * con
         return RT_ERROR_NONE;
     }
 
-    TaskInfo *errTaskPtr = GetTaskInfo(dev, info->u.timeoutErrorInfo.streamId, info->u.timeoutErrorInfo.taskId);
+    TaskInfo *errTaskPtr = GetTaskInfo(dev, info->u.timeoutErrorInfo.streamId, info->u.timeoutErrorInfo.taskId, true);
     if (errTaskPtr != nullptr) {
         errTaskPtr->isRingbufferGet = true;
     }

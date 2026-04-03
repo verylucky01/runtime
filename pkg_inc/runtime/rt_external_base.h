@@ -161,7 +161,7 @@ typedef enum tagRtStreamFlagType {
 
 typedef enum tagRtLimitType {
     RT_LIMIT_TYPE_LOW_POWER_TIMEOUT = 0,  // timeout for power down , ms
-    RT_LIMIT_TYPE_SIMT_WARP_STACK_SIZE = 1,
+    RT_LIMIT_TYPE_SIMT_STACK_SIZE = 1,
     RT_LIMIT_TYPE_SIMT_DVG_WARP_STACK_SIZE = 2,
     RT_LIMIT_TYPE_STACK_SIZE = 3,  // max stack size for each core, bytes
     RT_LIMIT_TYPE_RESERVED,

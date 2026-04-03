@@ -5700,7 +5700,7 @@ rtError_t GetSimtStackInfoByTimes(NpuDriver *drv, const uint32_t deviceId, const
 TEST_F(ApiDavidTest, TEST_RT_DEV_SETLIMIT_02)
 {
     int32_t deviceId = 0;
-    rtLimitType_t type = RT_LIMIT_TYPE_SIMT_WARP_STACK_SIZE;
+    rtLimitType_t type = RT_LIMIT_TYPE_SIMT_STACK_SIZE;
     uint32_t value = 2048;
     Runtime *rt = (Runtime *)Runtime::Instance();
     rtError_t error = rtSetDevice(0);
@@ -5794,7 +5794,7 @@ TEST_F(ApiDavidTest, TEST_RT_DEV_SETLIMIT_NOT_SETDEVICE)
 {
     Runtime *rt = (Runtime *)Runtime::Instance();
     int32_t deviceId = 0;
-    rtLimitType_t type = RT_LIMIT_TYPE_SIMT_WARP_STACK_SIZE;
+    rtLimitType_t type = RT_LIMIT_TYPE_SIMT_STACK_SIZE;
     uint32_t value = 2048 * 2;
     uint32_t oriSimtWarpStkSize = rt->GetSimtWarpStkSize();
     MOCKER_CPP(&ApiImpl::CurrentContext)
@@ -5832,7 +5832,7 @@ TEST_F(ApiDavidTest, TEST_RT_DEV_SETLIMIT_REPEAT)
     gset_times = 0U;
     gget_times = 0U;
     uint32_t deviceId = 0;
-    rtLimitType_t type = RT_LIMIT_TYPE_SIMT_WARP_STACK_SIZE;
+    rtLimitType_t type = RT_LIMIT_TYPE_SIMT_STACK_SIZE;
     uint32_t value = 2048 * 2;
     rtError_t error = rtSetDevice(0);
     EXPECT_EQ(error, RT_ERROR_NONE);

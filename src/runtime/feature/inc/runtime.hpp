@@ -731,11 +731,11 @@ public:
     {
         return connectUbFlag_;
     }
-    void SetSimtWarpStkSize(uint32_t simtWarpStkSize) {
+    void SetSimtWarpStkSize(uint64_t simtWarpStkSize) {
         simtWarpStkSize_ = simtWarpStkSize;
     }
 
-    uint32_t GetSimtWarpStkSize() const
+    uint64_t GetSimtWarpStkSize() const
     { 
         return simtWarpStkSize_;
     }
@@ -1069,7 +1069,7 @@ private:
     std::mutex simtStackMutex_;
     std::mutex simdFifoMutex_;
     std::mutex simtFifoMutex_;
-    uint32_t simtWarpStkSize_{RT_KIS_SIMT_WARP_STK_SIZE};
+    uint64_t simtWarpStkSize_{RT_KIS_SIMT_WARP_STK_SIZE};
     uint32_t simtDvgWarpStkSize_{RT_KIS_SIMT_DVG_WARP_STK_SIZE};
 
     std::unique_ptr<Thread> hbmRasThread_;

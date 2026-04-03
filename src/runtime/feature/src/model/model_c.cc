@@ -41,7 +41,9 @@ rtError_t ModelDebugRegister(Model * const mdl, const uint32_t flag, const void 
     ERROR_PROC_RETURN_MSG_INNER(error, dftStm->StreamUnLock();, "Failed to alloc task, stream_id=%d, retCode=%#x.",
         dftStm->Id_(), static_cast<uint32_t>(error));
     SaveTaskCommonInfo(rtDbgRegTask, dftStm, pos);
-    (void)DebugRegisterTaskInit(rtDbgRegTask, mdl->Id_(), addr, flag);
+    error = DebugRegisterTaskInit(rtDbgRegTask, mdl->Id_(), addr, flag);
+    ERROR_PROC_RETURN_MSG_INNER(error, TaskUnInitProc(rtDbgRegTask); TaskRollBack(dftStm, pos); dftStm->StreamUnLock();,
+        "Failed to init DebugRegisterTask, stream_id=%d, retCode=%#x", dftStm->Id_(), static_cast<uint32_t>(error));
     error = DavidSendTask(rtDbgRegTask, dftStm);
     ERROR_PROC_RETURN_MSG_INNER(error, TaskUnInitProc(rtDbgRegTask);
                                        TaskRollBack(dftStm, pos);

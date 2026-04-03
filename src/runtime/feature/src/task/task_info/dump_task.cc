@@ -138,14 +138,21 @@ rtError_t DebugRegisterTaskInit(TaskInfo* taskInfo, const uint32_t mdlId,
     TaskCommonInfoInit(taskInfo);
     taskInfo->u.debugRegisterTask.addr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(address));
     auto dev = taskInfo->stream->Device_();
+    rtError_t error = RT_ERROR_NONE;
     if (!dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_DEBUG_REGISTER_WITH_VA_ADDR)) {
         uint64_t pptr;
-        const rtError_t error = dev->Driver_()->MemAddressTranslate(
+        error = dev->Driver_()->MemAddressTranslate(
             static_cast<int32_t>(dev->Id_()),
             static_cast<uint64_t>(reinterpret_cast<uintptr_t>(address)), &pptr);
         ERROR_RETURN_MSG_INNER(error, "Convert memory from virtual to dma physical failed!");
         RT_LOG(RT_LOG_DEBUG, "pptr offset=%#" PRIx64 ".", pptr);
         taskInfo->u.debugRegisterTask.addr = pptr;
+    } else {
+        rtPtrAttributes_t attributes;
+        error = dev->Driver_()->PtrGetAttributes(address, &attributes);
+        COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE) || (attributes.location.type != RT_MEMORY_LOC_DEVICE),
+            RT_ERROR_DEBUG_REGISTER_FAILED, "address=0x%lx is unexpected, device_id=%u, error=%#x.",
+            taskInfo->u.debugRegisterTask.addr, dev->Id_(), static_cast<uint32_t>(error));
     }
 
     taskInfo->type = TS_TASK_TYPE_DEBUG_REGISTER;
@@ -235,14 +242,21 @@ rtError_t DebugRegisterForStreamTaskInit(TaskInfo* taskInfo, const uint32_t stmI
     TaskCommonInfoInit(taskInfo);
     taskInfo->u.debugRegisterForStreamTask.addr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(address));
     auto dev = taskInfo->stream->Device_();
-     if (!dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_DEBUG_REGISTER_WITH_VA_ADDR)) {
+    rtError_t error = RT_ERROR_NONE;
+    if (!dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_DEBUG_REGISTER_WITH_VA_ADDR)) {
         uint64_t pptr = 0ULL;
-        const rtError_t error = dev->Driver_()->MemAddressTranslate(
+        error = dev->Driver_()->MemAddressTranslate(
             static_cast<int32_t>(dev->Id_()),
             static_cast<uint64_t>(reinterpret_cast<uintptr_t>(address)), &pptr);
         ERROR_RETURN_MSG_INNER(error, "Convert memory address from virtual to dma physical failed!");
         RT_LOG(RT_LOG_DEBUG, "pptr offset=%#" PRIx64, pptr);
         taskInfo->u.debugRegisterForStreamTask.addr = pptr;
+    } else {
+        rtPtrAttributes_t attributes;
+        error = dev->Driver_()->PtrGetAttributes(address, &attributes);
+        COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE) || (attributes.location.type != RT_MEMORY_LOC_DEVICE),
+            RT_ERROR_DEBUG_REGISTER_FAILED, "address=0x%lx is unexpected, device_id=%u, error=%#x.",
+            taskInfo->u.debugRegisterForStreamTask.addr, dev->Id_(), static_cast<uint32_t>(error));
     }
 
     taskInfo->type = TS_TASK_TYPE_DEBUG_REGISTER_FOR_STREAM;

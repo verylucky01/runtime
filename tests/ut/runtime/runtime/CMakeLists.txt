@@ -66,6 +66,7 @@ set(runtimeut_david_series_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/task_recycle/v200/task_recycle_dvpp.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_recycle/v200/task_recycle_send_sync.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/task_manager_david.cc
+    ${TOP_DIR}/src/runtime/feature/ccu/ccu_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/david_event_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/ubdma_task_david.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_task_david.cc
@@ -83,6 +84,7 @@ set(runtimeut_david_series_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/v200_base/aicpu_sqe_common_proc.cc
     ${TOP_DIR}/src/runtime/core/src/task/v200_base/memory_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/v200_base/stars_david.cc
+    ${TOP_DIR}/src/runtime/feature/ccu/ccu_sqe.cc
 )
 
 set(runtimeut_david_src_task_list
@@ -125,10 +127,12 @@ set(runtimeut_src_david_series_common_c_list
     ${TOP_DIR}/src/runtime/core/src/launch/fusion_c.cc
 
     ${TOP_DIR}/src/runtime/core/src/stream/stream_c.cc
+    ${TOP_DIR}/src/runtime/feature/ccu/ccu_stream.cc
     ${TOP_DIR}/src/runtime/core/src/dfx/coredump_c.cc
     ${TOP_DIR}/src/runtime/core/src/dfx/fast_recover.cc
     ${TOP_DIR}/src/runtime/core/src/launch/memcpy_starsv2.cc
     ${TOP_DIR}/src/runtime/core/src/device/v200_base/device_error_proc_c.cc
+    ${TOP_DIR}/src/runtime/feature/ccu/ccu_device_error_proc.cc
     ${TOP_DIR}/src/runtime/core/src/launch/cond_starsv2.cc
     ${TOP_DIR}/src/runtime/core/src/launch/label_common.cc
     ${TOP_DIR}/src/runtime/core/src/launch/label_starsv2.cc
@@ -1183,6 +1187,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/src/runtime/core/src/kernel/args
     ${TOP_DIR}/src/runtime/core/src/task/
     ${TOP_DIR}/src/runtime/core/src/memory/
+    ${TOP_DIR}/src/runtime/feature/ccu/
     ${TOP_DIR}/src/runtime/feature/soma/
     ${TOP_DIR}/src/runtime/feature/cntnotify/
     ${TOP_DIR}/src/runtime/feature/snapshot/

@@ -422,10 +422,12 @@ set(RUNTIME_INC_DIR_TINY
     ${RUNTIME_CORE_DIR}/src/kernel/arg_loader
     ${RUNTIME_CORE_DIR}/src/kernel/args
     ${RUNTIME_CORE_DIR}/inc_c
+    ${RUNTIME_FEATURE_DIR}/ccu
     ${RUNTIME_CORE_DIR}/src/memory
     ${RUNTIME_FEATURE_DIR}/soma
     ${RUNTIME_FEATURE_DIR}/cntnotify
     ${RUNTIME_FEATURE_DIR}/snapshot
+    ${RUNTIME_FEATURE_DIR}/ccu
     ${RUNTIME_FEATURE_DIR}/xpu
     ${RUNTIME_CORE_DIR}/src/uvm
     ${RUNTIME_CORE_DIR}/src/event

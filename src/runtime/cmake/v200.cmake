@@ -81,11 +81,13 @@ set(david_series_common_task_src_file
     ${RUNTIME_CORE_DIR}/src/task/task_recycle/v200/task_recycle_common_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_recycle/v200/task_recycle_cqrpt_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/task_manager_david.cc
+    ${RUNTIME_FEATURE_DIR}/ccu/ccu_task.cc
     ${RUNTIME_CORE_DIR}/src/task/v200_base/davinci_task.cc
     ${RUNTIME_CORE_DIR}/src/task/v200_base/davinci_task_launch_config.cc
     ${RUNTIME_CORE_DIR}/src/task/v200_base/memcpy_sqe_common_proc.cc
     ${RUNTIME_CORE_DIR}/src/task/v200_base/aicpu_sqe_common_proc.cc
     ${RUNTIME_CORE_DIR}/src/task/v200_base/memory_task.cc
+    ${RUNTIME_FEATURE_DIR}/ccu/ccu_sqe.cc
 )
 
 set(libruntime_v200_task_src_files
@@ -135,6 +137,7 @@ set(libruntime_v200_stream_src_files
     ${libruntime_v200_stream_common_src_files}
 
     ${RUNTIME_CORE_DIR}/src/stream/stream_c.cc
+    ${RUNTIME_FEATURE_DIR}/ccu/ccu_stream.cc
     ${RUNTIME_CORE_DIR}/src/stream/stream_david.cc
     ${RUNTIME_CORE_DIR}/src/stream/v200/stream_creator_c.cc
 )
@@ -144,6 +147,7 @@ set(libruntime_v201_stream_src_files
     ${libruntime_v200_stream_common_src_files}
 
     ${RUNTIME_CORE_DIR}/src/stream/stream_c.cc
+    ${RUNTIME_FEATURE_DIR}/ccu/ccu_stream.cc
     ${RUNTIME_CORE_DIR}/src/stream/stream_david.cc
     ${RUNTIME_FEATURE_DIR}/dps/stream_with_dqs.cc
     ${RUNTIME_CORE_DIR}/src/stream/v201/stream_creator_c.cc
@@ -298,6 +302,7 @@ set(libruntime_v200_v201_common_src_files
     ${RUNTIME_CORE_DIR}/src/launch/cmo_barrier_common.cc
     ${RUNTIME_CORE_DIR}/src/launch/cmo_barrier_starsv2.cc
     ${RUNTIME_CORE_DIR}/src/device/v200_base/device_error_proc_c.cc
+    ${RUNTIME_FEATURE_DIR}/ccu/ccu_device_error_proc.cc
     ${RUNTIME_CORE_DIR}/src/event/event_c.cc
     ${RUNTIME_CORE_DIR}/src/launch/memcpy_starsv2.cc
     ${RUNTIME_CORE_DIR}/src/model/model_c.cc
@@ -365,6 +370,7 @@ set(RUNTIME_INC_DIR_COMMON_V200
     ${RUNTIME_CORE_DIR}
     ${RUNTIME_DIR}/src/runtime/inc
     ${RUNTIME_CORE_DIR}/inc_c
+    ${RUNTIME_FEATURE_DIR}/ccu
     ${RUNTIME_DIR}/src/runtime/inc/args
     ${RUNTIME_DIR}/src/runtime/inc/arg_loader
     ${RUNTIME_DIR}/src/runtime/inc/common
@@ -414,6 +420,7 @@ set(RUNTIME_INC_DIR_COMMON_V200
     ${RUNTIME_FEATURE_DIR}/ffts
     ${RUNTIME_FEATURE_DIR}/cntnotify
     ${RUNTIME_FEATURE_DIR}/snapshot
+    ${RUNTIME_FEATURE_DIR}/ccu
     ${RUNTIME_FEATURE_DIR}/xpu
     ${RUNTIME_CORE_DIR}/src/uvm
     ${RUNTIME_CORE_DIR}/src/event

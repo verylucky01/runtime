@@ -9,6 +9,7 @@
  */
 
 #include "api_impl_david.hpp"
+#include "ccu_stream.hpp"
 #include "context.hpp"
 #include "stream_c.hpp"
 #include "aix_c.hpp"

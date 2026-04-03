@@ -292,6 +292,7 @@ set(libruntime_v100_src_files
 set(RUNTIME_INC_DIR_OPEN
     ${RUNTIME_DIR}/src/runtime/inc
     ${RUNTIME_CORE_DIR}/inc_c
+    ${RUNTIME_FEATURE_DIR}/ccu
     ${RUNTIME_DIR}/src/runtime/inc/args
     ${RUNTIME_DIR}/src/runtime/inc/arg_loader
     ${RUNTIME_DIR}/src/runtime/inc/common
@@ -336,6 +337,7 @@ set(RUNTIME_INC_DIR_OPEN
     ${RUNTIME_FEATURE_DIR}/soma
     ${RUNTIME_FEATURE_DIR}/cntnotify
     ${RUNTIME_FEATURE_DIR}/snapshot
+    ${RUNTIME_FEATURE_DIR}/ccu
     ${RUNTIME_FEATURE_DIR}/ffts
     ${RUNTIME_FEATURE_DIR}/xpu
     ${RUNTIME_CORE_DIR}/src/uvm

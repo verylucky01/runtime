@@ -28,6 +28,7 @@ enum class AixErrClass : int32_t {
 
 rtError_t ProcRingBufferTaskDavid(
     const Device *const dev, const void *const devMem, const bool delFlag, const uint32_t len);
+void GetExceptionArgsForFusionKernelTask(const TaskInfo * const taskInfo, rtExceptionArgsInfo_t * const argsInfo);
 rtError_t ProcessDavidStarsFusionKernelErrorInfo(const StarsDeviceErrorInfo *const info, const uint64_t errorNumber,
     const Device *const dev, const DeviceErrorProc *const insPtr);
 rtError_t ProcessDavidStarsWaitTimeoutErrorInfo(const StarsDeviceErrorInfo * const info,

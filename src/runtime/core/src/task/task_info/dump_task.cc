@@ -151,7 +151,7 @@ rtError_t DebugRegisterTaskInit(TaskInfo* taskInfo, const uint32_t mdlId,
         rtPtrAttributes_t attributes;
         error = dev->Driver_()->PtrGetAttributes(address, &attributes);
         COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE) || (attributes.location.type != RT_MEMORY_LOC_DEVICE),
-            RT_ERROR_DEBUG_REGISTER_FAILED, "address=0x%llx is unexpected, device_id=%u, error=%#x.",
+            RT_ERROR_DEBUG_REGISTER_FAILED, "address=0x%lx is unexpected, device_id=%u, error=%#x.",
             taskInfo->u.debugRegisterTask.addr, dev->Id_(), static_cast<uint32_t>(error));
     }
 
@@ -255,7 +255,7 @@ rtError_t DebugRegisterForStreamTaskInit(TaskInfo* taskInfo, const uint32_t stmI
         rtPtrAttributes_t attributes;
         error = dev->Driver_()->PtrGetAttributes(address, &attributes);
         COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE) || (attributes.location.type != RT_MEMORY_LOC_DEVICE),
-            RT_ERROR_DEBUG_REGISTER_FAILED, "address=0x%llx is unexpected, device_id=%u, error=%#x.",
+            RT_ERROR_DEBUG_REGISTER_FAILED, "address=0x%lx is unexpected, device_id=%u, error=%#x.",
             taskInfo->u.debugRegisterForStreamTask.addr, dev->Id_(), static_cast<uint32_t>(error));
     }
 

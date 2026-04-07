@@ -59,6 +59,8 @@ uint64_t AdumpGetDumpSwitch(const DumpType dumpType)
     bool isEnable = DumpManager::Instance().IsEnableDump(dumpType);
     if (dumpType == DumpType::OPERATOR && isEnable) {
         return DumpManager::Instance().AdumpGetDumpSwitch();
+    } else if (dumpType == DumpType::OP_OVERFLOW && isEnable) {
+        return DumpManager::Instance().AdumpGetDumpSwitch();
     }
     return isEnable;
 }

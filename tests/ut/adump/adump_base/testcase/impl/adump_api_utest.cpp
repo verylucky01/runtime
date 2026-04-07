@@ -117,6 +117,23 @@ TEST_F(AdumpApiUtest, Test_EnableOperatorOverflowDump)
     EXPECT_EQ(AdumpIsDumpEnable(DumpType::OP_OVERFLOW), false);
 }
 
+TEST_F(AdumpApiUtest, Test_EnableOperatorOverflowDump_With_Geoptions)
+{
+    DumpConfig dumpConf;
+    dumpConf.dumpPath = "/path/to/dump/dir";
+    dumpConf.dumpStatus = "on";
+    dumpConf.dumpMode = "all";
+    // GE options: Set dumpSwitch with zero
+    dumpConf.dumpSwitch = 0U;
+    EXPECT_EQ(AdumpSetDumpConfig(DumpType::OP_OVERFLOW, dumpConf), ADUMP_SUCCESS);
+    EXPECT_EQ(AdumpIsDumpEnable(DumpType::OP_OVERFLOW), true);
+    EXPECT_EQ(AdumpGetDumpSwitch(DumpType::OP_OVERFLOW), 0U);
+    dumpConf.dumpStatus = "off";
+    dumpConf.dumpSwitch = 0U;
+    EXPECT_EQ(AdumpSetDumpConfig(DumpType::OP_OVERFLOW, dumpConf), ADUMP_SUCCESS);
+    EXPECT_EQ(AdumpIsDumpEnable(DumpType::OP_OVERFLOW), false);
+}
+
 TEST_F(AdumpApiUtest, Test_DisableOperatorDump)
 {
     DumpConfig dumpConf;

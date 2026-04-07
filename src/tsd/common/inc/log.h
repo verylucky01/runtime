@@ -19,52 +19,6 @@
 #include "inc/error_code.h"
 #include "mmpa/mmpa_api.h"
 
-namespace tsd {
-class TSDLog {
-public:
-    /**
-     * @ingroup log
-     * @brief 获取TSDLog指针
-     */
-    static TSDLog *GetInstance();
-
-    /**
-     * @ingroup TSDRefreshLevel
-     * @brief return error log to client for debug
-     */
-    std::string GetErrorMsg();
-
-    /**
-     * @ingroup TSDRefreshLevel
-     * @brief save last 10 error log for debug
-     * @param [in]funcPointer : error log need to save
-     * @param [in]filePath : error log need to save
-     * @param [in]lineNumber : error log need to save
-     * @param [in]format : error log need to save
-     */
-    void RestoreErrorMsg(const char_t * const funcPointer, const char_t * const filePath, const int32_t lineNumber,
-                         const char_t * const format, ...);
-
-protected:
-    /**
-     * @ingroup log
-     * @brief TSDLog构造函数
-     */
-    TSDLog() = default;
-    ~TSDLog() = default;
-
-private:
-    TSDLog(const TSDLog &) = delete;
-    TSDLog(TSDLog &&) = delete;
-    TSDLog &operator=(const TSDLog &) = delete;
-    TSDLog &operator=(TSDLog &) = delete;
-    TSDLog &operator=(TSDLog &&) = delete;
-
-    std::mutex errorListMutex_;
-    std::queue<std::string> errorList_;
-};
-} // namespace tsd
-
 #define TSD_INFO(log, ...)                                                                                 \
     do {                                                                                                   \
         if ((&CheckLogLevel != nullptr) && (&DlogRecord != nullptr)) {                                     \
@@ -73,7 +27,6 @@ private:
         }                                                                                                  \
     } while (false)
 
-#ifdef TSD_HOST_LIB
 #define TSD_ERROR(log, ...)                                                                                \
     do {                                                                                                   \
         if (&DlogRecord != nullptr) {                                                                      \
@@ -81,17 +34,7 @@ private:
                        &__FUNCTION__[0U], mmGetTid(), ##__VA_ARGS__);                                      \
         }                                                                                                  \
     } while (false)
-#else
-#define TSD_ERROR(log, ...)                                                                                \
-    do {                                                                                                   \
-        ::tsd::TSDLog::GetInstance()->RestoreErrorMsg(&__FUNCTION__[0U], __FILE__, __LINE__,               \
-                                                      (log), ##__VA_ARGS__);                               \
-        if (&DlogRecord != nullptr) {                                                                      \
-            dlog_error(static_cast<int32_t>(TDT), "[%s][tid:%llu] " log,                                   \
-                       &__FUNCTION__[0U], mmGetTid(), ##__VA_ARGS__);                                      \
-        }                                                                                                  \
-    } while (false)
-#endif
+
 
 #define TSD_WARN(log, ...)                                                                                 \
     do {                                                                                                   \
@@ -113,17 +56,6 @@ private:
 #define TSD_REPORT_INNER_ERROR(log, ...)                                                                   \
     do {                                                                                                   \
         REPORT_INNER_ERROR(TSD_REPORT_ERROR_CODE, (log), ##__VA_ARGS__);                                   \
-    } while (false)
-
-#define TSD_REPORT_CALL_ERROR(log, ...)                                                                    \
-    do {                                                                                                   \
-        REPORT_CALL_ERROR(TSD_REPORT_ERROR_CODE, (log), ##__VA_ARGS__);                                    \
-    } while (false)
-
-#define TSD_SYS_EVENT(log, ...)                                                                            \
-    do {                                                                                                   \
-        syslog(LOG_NOTICE, "[%s %d] " log,                                                                 \
-                  &__FUNCTION__[0U], __LINE__, ##__VA_ARGS__);                                             \
     } while (false)
 
 #define TSD_RUN_INFO(log, ...)                                                                             \

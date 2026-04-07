@@ -21,7 +21,6 @@ set(PROTO_LIST
 
 set(tdt_common_files
     ${BASE_DIR}/common/src/hdc_common.cpp
-    ${BASE_DIR}/common/src/log.cpp
     ${BASE_DIR}/common/src/message_parse_interface.cpp
     ${BASE_DIR}/common/src/internal_api.cpp
     ${BASE_DIR}/common/src/hdc_client.cpp

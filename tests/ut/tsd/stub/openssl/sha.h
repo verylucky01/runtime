@@ -13,6 +13,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifndef SHA256_DIGEST_LENGTH
+#define SHA256_DIGEST_LENGTH 32
+#endif
+
 void SHA256(const unsigned char *message, size_t message_len, unsigned char *hash);
 
 #ifdef __cplusplus

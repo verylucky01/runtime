@@ -20,18 +20,7 @@
 namespace tsd {
     class ProcessUtilCommon {
     public:
-
-        static TSD_StatusT SetThreadAffinity(const pthread_t &threadId, const std::vector<uint32_t> &cpuIds);
-
-        static TSD_StatusT SaveThreadAffinity(pthread_t &threadId, cpu_set_t * const cpusetSaved);
-
-        static TSD_StatusT RestoreThreadAffinity(pthread_t &threadId, const cpu_set_t * const cpusetSaved);
-
         static TSD_StatusT ReadCurMemCtrolType(const std::string &path, std::string &memCtrolType);
-
-        static TSD_StatusT GetCurHomePath(std::string &curHomePath);
-
-        static bool IsInBlackEnvList(const std::string &curEnv);
 
         static std::string CalFileSha256HashValue(const std::string &filePath);
     };

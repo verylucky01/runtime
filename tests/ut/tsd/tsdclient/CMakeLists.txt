@@ -27,7 +27,6 @@ set(TSD_COMMON_SRC_FILE
     ${TSD_SRC_PATH}/common/src/hdc_client.cpp
     ${TSD_SRC_PATH}/common/src/hdc_common.cpp
     ${TSD_SRC_PATH}/common/src/internal_api.cpp
-    ${TSD_SRC_PATH}/common/src/log.cpp
     ${TSD_SRC_PATH}/common/src/message_parse_client.cpp
     ${TSD_SRC_PATH}/common/src/message_parse_interface.cpp
     ${TSD_SRC_PATH}/common/src/package_process_config.cpp
@@ -53,7 +52,6 @@ set(TSD_UT_TEST_SRC_FILE
     test/version_verify_utest.cpp
     test/package_worker_utils_utest.cpp
     test/path_mgr_utest.cpp
-    test/log_utest.cpp
     test/internal_api_utest.cpp
     test/main.cpp
     test/common_util_func.cpp
@@ -112,6 +110,8 @@ target_compile_definitions(tsd_client_utest PRIVATE
     LLT_MODE=1
     PLATFORM_MODE=1
     TDT_HOST_LIB
+    TSD_HOST_LIB
+    tsd_UT
     google=ascend_private
 )
 target_link_libraries(tsd_client_utest PRIVATE

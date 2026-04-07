@@ -276,6 +276,8 @@ filelist_update() {
     if [ -f "$install_dir/share/info/ge-executor/version.info" ] && \
        [ -f "$install_dir/share/info/ge-executor/ascend_install.info" ]; then # if ge-executor package installed
         filelist_remove_acl_empty_headers
+        find . -maxdepth 5 -type f \( -name "acl_mdl.h" -o -name "acl_op.h" -o -name "acl_base_mdl.h" \) -print0 2>/dev/null | \
+            xargs -0 rm -f 2>/dev/null
     elif [ "$stage" = "uninstall" ]; then
         filelist_recover_acl_empty_headers
     fi

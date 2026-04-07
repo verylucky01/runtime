@@ -957,13 +957,7 @@ do_copy_files() {
     local feature_param="$5"
     local total_uninstall_path exec_mode ret
 
-    # 检测 ge-executor 是否已经安装
-    if [ "$COPY_ALL" = "y" ]; then
-        if [ -f "$install_path/share/info/ge-executor/version.info" ] && \
-           [ -f "$install_path/share/info/ge-executor/ascend_install.info" ]; then
-            find . -maxdepth 5 -type f \( -name "acl_mdl.h" -o -name "acl_op.h" -o -name "acl_base_mdl.h" \) -print0 2>/dev/null | \
-            xargs -0 rm -f 2>/dev/null
-        fi    
+    if [ "$COPY_ALL" = "y" ]; then   
         cp -af * "$install_path"
         ret="$?" && [ $ret -ne 0 ] && return $ret
     else

@@ -773,6 +773,15 @@ TEST_F(EngineTest, ReportStatusOomProc_01)
     EXPECT_EQ(engine->GetDevRunningState(), DEV_RUNNING_NORMAL);
 }
 
+TEST_F(EngineTest, ReportOomQueryProc)
+{
+    MOCKER_CPP(&NpuDriver::GetDeviceAicpuStat).stubs().will(returnValue(RT_ERROR_DEVICE_OOM)).then(returnValue(RT_ERROR_NONE));
+    std::unique_ptr<StarsEngine> engine = std::make_unique<StarsEngine>(device_);
+    engine->ReportOomQueryProc();
+    engine->ReportOomQueryProc();
+    EXPECT_EQ(engine->GetDevRunningState(), DEV_RUNNING_NORMAL);
+}
+
 TEST_F(EngineTest, DvppWaitGroup)
 {
     DvppGrp *grp = new DvppGrp(device_, 0);

@@ -785,9 +785,18 @@ void Engine::ReportSocketCloseProc()
 
 void Engine::ReportOomQueryProc() const
 {
-    const rtError_t error = NpuDriver::GetDeviceAicpuStat(device_->Id_());
-    if (error == RT_ERROR_DEVICE_OOM) {
-        ReportStatusOomProc(error, device_->Id_());
+    static bool currOomFlag = false;
+    static bool latestOomFlag = false;
+    const uint32_t devId = device_->Id_();
+    const rtError_t error = NpuDriver::GetDeviceAicpuStat(devId);
+    currOomFlag = (error == RT_ERROR_DEVICE_OOM) ? true : false;
+    if (currOomFlag != latestOomFlag) {
+        if (currOomFlag) {
+            ReportStatusOomProc(error, devId);
+        } else {
+            RT_LOG(RT_LOG_INFO, "Device oom recovery, device_id=%u.", devId);
+        }
+        latestOomFlag = currOomFlag;
     }
 }
 

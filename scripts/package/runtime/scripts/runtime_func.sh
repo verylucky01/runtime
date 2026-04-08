@@ -261,13 +261,13 @@ remove_stub_softlink() {
 filelist_remove_acl_empty_headers() {
     local curpath=$(dirname $(readlink -f "$0"))
     chmod u+w "$curpath" "$curpath/filelist.csv" 2> /dev/null
-    sed -i 's/.*\/include\/external\/acl\/\(acl_base_mdl\|acl_mdl\|acl_op\)\.h/# &/' $curpath/filelist.csv
+    sed -i 's/.*\/include\/acl\/\(acl_base_mdl\|acl_mdl\|acl_op\)\.h/# &/' $curpath/filelist.csv
 }
 
 filelist_recover_acl_empty_headers() {
     local curpath=$(dirname $(readlink -f "$0"))
     chmod u+w "$curpath" "$curpath/filelist.csv" 2> /dev/null
-    sed -i 's/^# \(.*\/include\/external\/acl\/\(acl_base_mdl\|acl_mdl\|acl_op\)\.h\)/\1/' $curpath/filelist.csv
+    sed -i 's/^# \(.*\/include\/acl\/\(acl_base_mdl\|acl_mdl\|acl_op\)\.h\)/\1/' $curpath/filelist.csv
 }
 
 filelist_update() {

@@ -104,6 +104,7 @@ struct DqsZeroCopyTaskInfo {
     void *destPtr;
     void *offsetPtr;
     uint64_t allocSize;
+    rtDqsZeroCopyType copyType;
 };
  
 struct DqsSchedEndTaskInfo {

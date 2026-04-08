@@ -749,7 +749,8 @@ rtError_t DqsZeroCopyTaskInit(TaskInfo *taskInfo, const Stream * const stream, c
     taskInfo->typeName = "ZeroCopyTask";
     DqsCommonTaskInfo *const commonTaskInfo = &(taskInfo->u.dqsZeroCopyTask.commonTaskInfo);
     InitDqsCommonTaskInfo(commonTaskInfo, sizeof(RtStarsDqsZeroCopyFc), stream->GetSqId());
-
+    // 需要区分IN & OUT
+    taskInfo->u.dqsZeroCopyTask.copyType = cfg->zeroCopyCfg->copyType;
     const rtError_t error = PrepareSqeInfoForDqsZeroCopyTask(taskInfo, cfg);
     ERROR_RETURN_MSG_INNER(error, "Init for DqsZeroCopyTask failed, retCode=%#x.", static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
@@ -993,7 +994,9 @@ void ConstructSqeForDqsZeroCopyTask(TaskInfo * const taskInfo, rtDavidSqe_t * co
     RtDavidStarsFunctionCallSqe &sqe = davidSqe->fuctionCallSqe;
     DqsZeroCopyTaskInfo *dqsZeroCopyTask = &(taskInfo->u.dqsZeroCopyTask);
     const Stream *const stm = taskInfo->stream;
-    InitDqsFunctionCallSqe(sqe, stm->GetStarsWrCqeFlag(), stm->Id_(), taskInfo->id, CONDS_SUB_TYPE_DQS_ZERO_COPY);
+    const RtCondsSubType zeroCopyType = (taskInfo->u.dqsZeroCopyTask.copyType == RT_DQS_ZERO_COPY_INPUT) ?
+        CONDS_SUB_TYPE_DQS_ZERO_COPY_IN : CONDS_SUB_TYPE_DQS_ZERO_COPY_OUT;
+    InitDqsFunctionCallSqe(sqe, stm->GetStarsWrCqeFlag(), stm->Id_(), taskInfo->id, zeroCopyType);
 
     DqsCommonTaskInfo *const commonTaskInfo = &(dqsZeroCopyTask->commonTaskInfo);
     const uint64_t funcAddr = RtPtrToValue(commonTaskInfo->funcCallSvmMem);

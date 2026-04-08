@@ -2566,7 +2566,7 @@ rtError_t rtGetC2cCtrlAddr(uint64_t *addr, uint32_t *len)
     const rtChipType_t chipType = rtInstance->GetChipType();
     if (!IS_SUPPORT_CHIP_FEATURE(chipType, RtOptionalFeatureType::RT_FEATURE_DEVICE_C2C_SYNC)) {
         RT_LOG(RT_LOG_WARNING, "chip type(%d) does not support.", static_cast<int32_t>(chipType));
-        return RT_ERROR_FEATURE_NOT_SUPPORT;
+        return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
     }
 
     Api * const apiInstance = Api::Instance();

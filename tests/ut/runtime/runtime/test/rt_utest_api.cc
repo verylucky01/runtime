@@ -3351,7 +3351,7 @@ TEST_F(ApiTest, rtGetC2cCtrlAddr_david)
     GlobalContainer::SetRtChipType(CHIP_DAVID);
  
     error = rtGetC2cCtrlAddr(&addr, &len);
-    EXPECT_EQ(error, RT_ERROR_FEATURE_NOT_SUPPORT);
+    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
  
     // restore all type
     rtInstance->SetChipType(oriChipType);

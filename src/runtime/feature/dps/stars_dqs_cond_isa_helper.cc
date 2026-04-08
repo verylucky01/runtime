@@ -460,6 +460,7 @@ void ConstructDqsBatchDequeueFc(RtStarsDqsBatchDequeueFc &fc, const RtStarsDqsBa
     ConstructLHWI(r4, funcCallPara.mbufFreeAddr, fc.lhwiMbufFreeAddr);
 
     ConstructLLWI(r7, 0U, fc.llwiIndex); // r7赋值为index
+    ConstructLHWI(r7, 0U, fc.lhwiIndex);
     // 循环开始，后续流程R2\3\4\7寄存器都不可写，因为存储了临时变量作为索引
 
     /* pa和va的相关配置 */

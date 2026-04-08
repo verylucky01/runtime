@@ -88,7 +88,7 @@ rtError_t SnapShotAclGraphRestore(Device * const dev)
     RT_LOG(RT_LOG_INFO, "Start to restore aclgraph.");
     NULL_PTR_RETURN(dev, RT_ERROR_DEVICE_NULL);
     const int32_t deviceId = dev->Id_();
-    auto mdlList = std::make_unique<rtModelList_t>();
+    auto mdlList = std::make_unique<ModelList_t>();
     NULL_PTR_RETURN(mdlList, RT_ERROR_MEMORY_ALLOCATION);
     ContextManage::DeviceGetModelList(deviceId, mdlList.get());
     COND_RETURN_DEBUG((mdlList->mdlNum == 0U),

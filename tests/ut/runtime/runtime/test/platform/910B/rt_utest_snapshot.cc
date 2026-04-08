@@ -19,6 +19,7 @@
 #include "rts_snapshot.h"
 #include "global_state_manager.hpp"
 #include "api_decorator.hpp"
+#include "snapshot_process_helper.hpp"
 #undef private
 #undef protected
 
@@ -451,4 +452,18 @@ TEST_F(SnapshotTest, SnapShotProcessRestore3)
     captureModel->ModelRemoveStream(stm);
     delete captureModel;
     delete captureModel1;
+}
+
+TEST_F(SnapshotTest, SnapShotProcessRestore4)
+{
+    MOCKER_CPP(&SnapShotDeviceRestore).stubs()
+        .will(returnValue(RT_ERROR_NONE))
+        .then(returnValue(RT_ERROR_DRV_NOT_SUPPORT));
+    MOCKER_CPP(&SnapShotResourceRestore).stubs()
+        .will(returnValue(RT_ERROR_DRV_NOT_SUPPORT));  
+    rtError_t error = ContextManage::SnapShotProcessRestore();
+    EXPECT_NE(error, RT_ERROR_NONE);
+
+    error = ContextManage::SnapShotProcessRestore();
+    EXPECT_EQ(error, RT_ERROR_DRV_NOT_SUPPORT);
 }

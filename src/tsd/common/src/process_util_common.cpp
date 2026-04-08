@@ -21,22 +21,6 @@ namespace {
     constexpr const int32_t HX_PRINT_POS = 2;
 }
 namespace tsd {
-TSD_StatusT ProcessUtilCommon::ReadCurMemCtrolType(const std::string &path, std::string &memCtrolType)
-{
-    std::ifstream fs;
-    fs.open(path);
-    if (!fs.is_open()) {
-        return static_cast<uint32_t>(TSD_INTERNAL_ERROR);
-    }
-    (void)getline(fs, memCtrolType);
-    if (memCtrolType.empty()) {
-        fs.close();
-        return static_cast<uint32_t>(TSD_INTERNAL_ERROR);
-    }
-    fs.close();
-    return TSD_OK;
-}
-
 std::string ProcessUtilCommon::CalFileSha256HashValue(const std::string &filePath)
 {
     std::ifstream curFile(filePath, std::ios::binary);

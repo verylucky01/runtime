@@ -20,8 +20,6 @@
 namespace tsd {
     class ProcessUtilCommon {
     public:
-        static TSD_StatusT ReadCurMemCtrolType(const std::string &path, std::string &memCtrolType);
-
         static std::string CalFileSha256HashValue(const std::string &filePath);
     };
 } // namespace tsd

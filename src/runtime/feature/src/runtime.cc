@@ -6066,9 +6066,37 @@ rtError_t Runtime::SaveModelDataInfoToList(Program *prog)
             // save program load addr
             std::unique_ptr<ModuleMemInfo> progMemInfo(std::make_unique<ModuleMemInfo>(i, prog->LoadSize(),
                 prog->GetBinAlignBaseAddr(i), nullptr));
-            COND_PROC(progMemInfo == nullptr, ret = RT_ERROR_MEMORY_ALLOCATION);
             NULL_PTR_RETURN(progMemInfo, RT_ERROR_MEMORY_ALLOCATION);
             moduleBackupList_.push_back(std::move(progMemInfo));
+        }
+
+        const std::map<std::string, void*>& soNameDevAddrMap = prog->GetSoNameDevAddrMap(i);
+        for (const auto& iter : soNameDevAddrMap) {
+            const std::string& soName = iter.first;
+            void* soNameDevAddr = iter.second;
+            if (soNameDevAddr != nullptr) {
+                std::unique_ptr<ModuleMemInfo> progMemInfo(
+                    std::make_unique<ModuleMemInfo>(i, soName.size() + 1, soNameDevAddr, nullptr));
+                NULL_PTR_RETURN(progMemInfo, RT_ERROR_MEMORY_ALLOCATION);
+                moduleBackupList_.push_back(std::move(progMemInfo));
+                RT_LOG(
+                    RT_LOG_INFO, "prog id=%u, soName=%s, soNameDevAddr=%p", prog->Id_(), soName.c_str(), soNameDevAddr);
+            }
+        }
+
+        const std::map<std::string, void*>& funcNameDevAddrMap = prog->GetFuncNameDevAddrMap(i);
+        for (const auto& iter : funcNameDevAddrMap) {
+            const std::string& funcName = iter.first;
+            void* funcNameDevAddr = iter.second;
+            if (funcNameDevAddr != nullptr) {
+                std::unique_ptr<ModuleMemInfo> progMemInfo(
+                    std::make_unique<ModuleMemInfo>(i, funcName.size() + 1, funcNameDevAddr, nullptr));
+                NULL_PTR_RETURN(progMemInfo, RT_ERROR_MEMORY_ALLOCATION);
+                moduleBackupList_.push_back(std::move(progMemInfo));
+                RT_LOG(
+                    RT_LOG_INFO, "prog id=%u, funcName=%s, funcNameDevAddr=%p", prog->Id_(), funcName.c_str(),
+                    funcNameDevAddr);
+            }
         }
     }
 

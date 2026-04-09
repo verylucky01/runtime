@@ -351,6 +351,31 @@ TEST_F(SnapshotTest, GetPoolIndex_AfterAlloc) {
     EXPECT_GE(poolIndex, 0U);
 }
 
+TEST_F(SnapshotTest, SaveModelDataInfoToList)
+{
+    PlainProgram prog;
+    prog.SetKernelRegType(RT_KERNEL_REG_TYPE_CPU);
+    rtFuncHandle funcHandle = nullptr;
+    funcHandle = nullptr;
+
+    void* memBase = (void*)100;
+    NpuDriver drv;
+
+    MOCKER_CPP_VIRTUAL(&drv, &NpuDriver::DevMemAlloc)
+        .stubs()
+        .with(outBoundP(&memBase, sizeof(memBase)), mockcpp::any(), mockcpp::any(), mockcpp::any())
+        .will(returnValue(RT_ERROR_NONE));
+
+    MOCKER_CPP_VIRTUAL(&drv, &NpuDriver::MemCopySync).stubs().will(returnValue(RT_ERROR_NONE));
+
+    auto error = rtsRegisterCpuFunc(&prog, "RunCpuKernel", "Abs", &funcHandle);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+    EXPECT_EQ(true, funcHandle != nullptr);
+    error = Runtime::Instance()->SaveModelDataInfoToList(&prog);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    GlobalMockObject::verify();
+}
+
 TEST_F(SnapshotTest, SnapShotProcessRestore1)
 {
     rtContext_t ctx;

@@ -832,6 +832,8 @@ rtError_t Program::RegisterCpuKernel(const std::vector<CpuKernelInfo> &kernelInf
     }
 
     kernelMapLock_.Unlock();
+    const auto error = Runtime::Instance()->AddProgramToPool(this);
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "add program to pool failed, retCode=%#x", error);
     return RT_ERROR_NONE;
 }
 

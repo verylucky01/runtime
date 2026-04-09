@@ -265,6 +265,16 @@ public:
         return mapUsedCtx_;
     }
 
+    const std::map<std::string, void*>& GetSoNameDevAddrMap(const uint32_t deviceId) const
+    {
+        return soNameDevAddrMap_[deviceId];
+    }
+
+    const std::map<std::string, void*>& GetFuncNameDevAddrMap(const uint32_t deviceId) const
+    {
+        return funcNameDevAddrMap_[deviceId];
+    }
+
     rtError_t Register(const void *data, const uint64_t length, const bool isLoadFromFile = false);
     // register only cpu kernel by json
     rtError_t RegisterCpuKernel(const std::vector<CpuKernelInfo> &kernelInfos);

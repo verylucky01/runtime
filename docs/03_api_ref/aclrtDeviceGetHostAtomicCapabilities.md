@@ -23,7 +23,7 @@ aclError aclrtDeviceGetHostAtomicCapabilities(uint32_t* capabilities, const aclr
 | --- | --- | --- |
 | capabilities | 输出 | 原子操作支持能力数组，数组长度与count参数值一致。数组中的每个元素是一个位掩码，位掩码的每一位代表对不同数据类型原子操作的支持情况，1表示支持，0表示不支持。类型定义请参见[aclrtAtomicOperationCapability](aclrtAtomicOperationCapability.md)。 |
 | operations | 输入 | 待查询的原子操作数组，数组长度与count参数值一致。类型定义请参见[aclrtAtomicOperation](aclrtAtomicOperation.md)。 |
-| count | 输入 | 待查询的原子操作数量，其大小必须与capabilities以及operations参数数组的长度一致。 |
+| count | 输入 | 待查询的原子操作数量，其大小必须与capabilities以及operations参数数组的长度一致，否则会导致未定义的行为。 |
 | deviceId | 输入 | Device ID。<br>用户调用[aclrtGetDeviceCount](aclrtGetDeviceCount.md)接口获取可用的Device数量后，这个Device ID的取值范围：[0, (可用的Device数量-1)] |
 
 ## 返回值说明

@@ -404,7 +404,6 @@ public:
     rtError_t GetFreeStreamNum(uint32_t * const streamCount) override;
     rtError_t GetAvailEventNum(uint32_t * const eventCount) override;
     rtError_t GetTaskIdAndStreamID(uint32_t * const taskId, uint32_t * const streamId) override;
-    rtError_t GetMaxModelNum(uint32_t * const maxModelCount) override;
 
     // model
     rtError_t ModelCreate(Model ** const mdl, const uint32_t flag) override;

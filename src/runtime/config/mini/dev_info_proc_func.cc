@@ -21,16 +21,12 @@ static void MacroInitMini(rtSocType_t socType, RtMacroValue &value)
     UNUSED(socType);
     value.maxPersistTaskNum = 65535U;
     value.maxTaskNumPerStream = 65500U;
-    value.maxSinkTaskNum = 1000000U;
     value.maxSupportTaskNum = 2000000U;
-    value.pctraceFileLength = (4U * 1024U) + 6U;
-    value.pctraceFileHead = 32U;
     value.maxAllocStreamNum = 992U;
     value.stubEventCount = 1024U;
     value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT;
     value.maxTaskNumPerHugeStream = 0U;
     value.maxAllocHugeStreamNum = 0U;
-    value.maxModelNum = 1024U;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID;
     value.maxPhysicalStreamNum = value.maxAllocStreamNum;
 }

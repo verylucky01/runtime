@@ -1944,39 +1944,6 @@ rtError_t ApiImpl::StreamGetMode(const Stream * const stm, uint64_t * const stmM
     return RT_ERROR_NONE;
 }
 
-rtError_t ApiImpl::GetMaxModelNum(uint32_t * const maxModelCount)
-{
-    const Runtime * const rt = Runtime::Instance();
-    if (!rt->HaveDevice() && !rt->GetIsUserSetSocVersion()) {
-        RT_LOG(RT_LOG_WARNING, "No device exists, Resources cannot be queried without set soc version.");
-        return RT_ERROR_FEATURE_NOT_SUPPORT;
-    }
-    DevProperties props;
-    GET_DEV_PROPERTIES(rt->GetChipType(), props);
-    if (rt->GetIsUserSetSocVersion()) {
-        *maxModelCount = (props.resetMaxModelNum & NUM_RESET_WITH_FIXED_VALUE) != 0 ?
-            2048U : Runtime::macroValue_.maxModelNum;
-        RT_LOG(RT_LOG_INFO, "Offline mode, maxModelCount=%u.", *maxModelCount);
-        return RT_ERROR_NONE;
-    }
-
-    *maxModelCount = Runtime::macroValue_.maxModelNum; // 注册每一个芯片的属性
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    Device * const dev = curCtx->Device_();
-    const uint32_t tsVersion = dev->GetTschVersion();
-    if (((props.resetMaxModelNum & NUM_RESET_WITH_FIXED_VALUE) != 0) &&
-        (tsVersion >= static_cast<uint32_t>(TS_VERSION_EXPEND_MODEL_ID))) {
-        *maxModelCount = 2048U;
-    }
-    if ((props.resetMaxModelNum & NUM_RESET_WITH_DRIVER) != 0) {
-        const rtError_t error = NpuDriver::GetMaxModelNum(dev->Id_(), dev->DevGetTsId(), maxModelCount);
-        ERROR_RETURN(error, "Get max model num failed.");
-        return RT_ERROR_NONE;
-    }
-    return RT_ERROR_NONE;
-}
-
 rtError_t ApiImpl::EventCreate(Event ** const evt, const uint64_t flag)
 {
     RT_LOG(RT_LOG_DEBUG, "flag=%" PRIu64 ".", flag);

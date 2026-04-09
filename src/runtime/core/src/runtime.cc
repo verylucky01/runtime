@@ -260,14 +260,10 @@ void Runtime::MacroInitDefault(RtMacroValue &value) const
 {
     value.maxPersistTaskNum = 15000U;
     value.maxTaskNumPerStream = 1018U;
-    value.maxSinkTaskNum = 15000U;
     value.maxSupportTaskNum = MAX_UINT16_NUM;
-    value.pctraceFileLength = (4U * 1024U) + 6U;
-    value.pctraceFileHead = 32U;
     value.maxAllocStreamNum = 56U;
     value.stubEventCount = 512U;
     value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT;
-    value.maxModelNum = 1024U;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID;
     value.maxPhysicalStreamNum = value.maxAllocStreamNum;
 }

@@ -493,10 +493,6 @@ TEST_F(CloudV2ApiTest910b, testBinaryGetFunctionTest)
     error = apiDec.GetAvailEventNum(NULL);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    MOCKER_CPP_VIRTUAL(impl, &ApiImpl::GetMaxModelNum).stubs().will(returnValue(RT_ERROR_NONE));
-    error = apiDec.GetMaxModelNum(NULL);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
     MOCKER_CPP_VIRTUAL(impl, &ApiImpl::EventCreateEx).stubs().will(returnValue(RT_ERROR_NONE));
     error = apiDec.EventCreateEx(NULL, 1);
     EXPECT_EQ(error, RT_ERROR_NONE);

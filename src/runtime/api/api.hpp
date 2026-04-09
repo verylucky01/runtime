@@ -495,7 +495,6 @@ public:
     virtual rtError_t GetFreeStreamNum(uint32_t * const streamCount) = 0;
     virtual rtError_t GetAvailEventNum(uint32_t * const eventCount) = 0;
     virtual rtError_t GetTaskIdAndStreamID(uint32_t * const taskId, uint32_t * const streamId) = 0;
-    virtual rtError_t GetMaxModelNum(uint32_t * const maxModelCount) = 0;
 
     // model
     virtual rtError_t ModelCreate(Model ** const mdl, uint32_t flag) = 0;

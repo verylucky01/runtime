@@ -21,15 +21,11 @@ static void MacroInitAS31XM1(rtSocType_t socType, RtMacroValue &value)
     UNUSED(socType);
     value.maxPersistTaskNum = 32760U;
     value.maxTaskNumPerStream = 4058U; // inherit 11 DC . 38 tasks are reserved. 4096 - 38
-    value.maxSinkTaskNum = 1000000U;
     value.maxSupportTaskNum = 2000000U;
-    value.pctraceFileHead = 32U;
-    value.pctraceFileLength = (4U * 1024U) + 6U;
     value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT_MDC;
     value.maxTaskNumPerHugeStream = 0U;
     value.maxAllocHugeStreamNum = 0U;
     value.maxAllocStreamNum = 64U;
-    value.maxModelNum = 64U;
     value.rtsqDepth = 4096U; // rtsq depth
     value.stubEventCount = 65536U;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID;

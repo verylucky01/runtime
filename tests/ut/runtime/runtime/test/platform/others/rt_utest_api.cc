@@ -428,10 +428,6 @@ TEST_F(ApiTest, testBinaryGetFunctionTest)
     error = apiDec.GetAvailEventNum(NULL);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    MOCKER_CPP_VIRTUAL(impl, &ApiImpl::GetMaxModelNum).stubs().will(returnValue(RT_ERROR_NONE));
-    error = apiDec.GetMaxModelNum(NULL);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
     MOCKER_CPP_VIRTUAL(impl, &ApiImpl::EventCreateEx).stubs().will(returnValue(RT_ERROR_NONE));
     error = apiDec.EventCreateEx(NULL, 1);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -3322,29 +3318,6 @@ TEST_F(ApiTest, LAUNCH_KERNEL_TEST_1)
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
-TEST_F(ApiTest, LAUNCH_KERNEL_TEST_2)
-{
-    rtError_t error;
-    void *args[] = {&error, NULL};
-    PCTrace* pctraceHandle = new PCTrace();
-    RawDevice *stubDevice = new RawDevice(0);
-    stubDevice->Init();
-
-    TaskInfo *pctraceTask = (const_cast<TaskFactory *>(stubDevice->GetTaskFactory()))->Alloc(
-        (cce::runtime::Stream*)stream_, TS_TASK_TYPE_PCTRACE_ENABLE, error);
-
-    MOCKER(memcpy_s).stubs().will(returnValue(NULL));
-    MOCKER_CPP(&Context::ConfigPCTraceTask).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
-    // ConfigPCTraceTask not use in product=mini
-    error = rtKernelLaunch(&function_, 1, (void *)args, sizeof(args), NULL, stream_);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
-
-    error = rtStreamSynchronize(stream_);
-    (const_cast<TaskFactory *>(stubDevice->GetTaskFactory()))->Recycle(pctraceTask);
-    delete pctraceHandle;
-    delete stubDevice;
-}
-
 TEST_F(ApiTest, LAUNCH_KERNEL_TEST_3)
 {
     rtError_t error;
@@ -3357,34 +3330,10 @@ TEST_F(ApiTest, LAUNCH_KERNEL_TEST_3)
         (cce::runtime::Stream*)stream_, TS_TASK_TYPE_PCTRACE_ENABLE, error);
 
     MOCKER(memcpy_s).stubs().will(returnValue(NULL));
-    MOCKER_CPP(&Context::ConfigPCTraceTask).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
     MOCKER_CPP(&Context::GetModule).stubs().will(returnValue((Module *)NULL));
 
     error = rtKernelLaunch(&function_, 1, (void *)args, sizeof(args), NULL, stream_);
     EXPECT_EQ(error, ACL_ERROR_RT_MEMORY_ALLOCATION);
-
-    error = rtStreamSynchronize(stream_);
-    (const_cast<TaskFactory *>(stubDevice->GetTaskFactory()))->Recycle(pctraceTask);
-    delete pctraceHandle;
-    delete stubDevice;
-}
-
-TEST_F(ApiTest, LAUNCH_KERNEL_TEST_4)
-{
-    rtError_t error;
-    void *args[] = {&error, NULL};
-    PCTrace* pctraceHandle = new PCTrace();
-    RawDevice *stubDevice = new RawDevice(0);
-    stubDevice->Init();
-
-    TaskInfo *pctraceTask = (const_cast<TaskFactory *>(stubDevice->GetTaskFactory()))->Alloc(
-        (cce::runtime::Stream*)stream_, TS_TASK_TYPE_PCTRACE_ENABLE, error);
-
-    MOCKER(memcpy_s).stubs().will(returnValue(NULL));
-    MOCKER_CPP(&Context::ConfigPCTraceTask).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
-
-    error = rtKernelLaunch(&function_, 1, (void *)args, sizeof(args), NULL, stream_);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
 
     error = rtStreamSynchronize(stream_);
     (const_cast<TaskFactory *>(stubDevice->GetTaskFactory()))->Recycle(pctraceTask);
@@ -7194,38 +7143,6 @@ TEST_F(ApiTest, get_taskid_streamid)
     error = rtGetTaskIdAndStreamID(&taskid, NULL);
     EXPECT_NE(error, RT_ERROR_NONE);
 
-}
-
-TEST_F(ApiTest, rtGetMaxModelNum)
-{
-    rtError_t error;
-    uint32_t maxModelCount;
-    MOCKER_CPP(&ApiImpl::CurrentContext)
-        .stubs()
-        .will(invoke(CurrentContextStub));
-    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(true);
-    error = rtGetMaxModelNum(&maxModelCount);
-    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-}
-
-TEST_F(ApiTest, rtGetMaxModelNum2)
-{
-    rtError_t error;
-    uint32_t maxModelCount;
-    Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    bool oldHaveDevice = rtInstance->isHaveDevice_;
-    bool oldOffline = rtInstance->GetIsUserSetSocVersion();
-    rtInstance->isHaveDevice_ = false;
-    rtInstance->SetIsUserSetSocVersion(false);
-    error = rtGetMaxModelNum(&maxModelCount);
-    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
-    rtInstance->isHaveDevice_ = true;
-    rtInstance->SetIsUserSetSocVersion(true);
-    error = rtGetMaxModelNum(&maxModelCount);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    rtInstance->isHaveDevice_ = oldHaveDevice;
-    rtInstance->SetIsUserSetSocVersion(oldOffline);
 }
 
 TEST_F(ApiTest, rts_api_get_taskid)

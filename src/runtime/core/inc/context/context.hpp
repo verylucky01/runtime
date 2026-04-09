@@ -561,8 +561,6 @@ private:
     rtError_t Init();
     rtError_t OnlineStreamInit(const rtChipType_t chipType);
 
-    rtError_t ConfigPCTraceTask(const Kernel * const registeredKernel, std::shared_ptr<PCTrace> &rtPCTrace,
-        const uint32_t coreDim, Stream * const stm, const uint16_t taskId, Module * const mdl);
     virtual rtError_t TearDownStream(Stream *stm, bool flag = true) const;
     bool IsStreamNotSync(const uint32_t flags) const;
 

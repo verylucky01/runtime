@@ -22,16 +22,12 @@ static void MacroInitSolomon(rtSocType_t socType, RtMacroValue &value)
     uint32_t rtsqDepth = 2049U;
     value.maxPersistTaskNum = 60000U;
     value.maxTaskNumPerStream = rtsqDepth - 35U;
-    value.maxSinkTaskNum = 500000U;
     value.maxSupportTaskNum = 1000000U;
-    value.pctraceFileLength = 4864U;
-    value.pctraceFileHead = 128U;
     value.maxAllocStreamNum = 2016U;
     value.stubEventCount = 131072U;
     value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT;
     value.maxTaskNumPerHugeStream = 0U;
     value.maxAllocHugeStreamNum = 0U;
-    value.maxModelNum = 2048U;
     value.rtsqDepth = rtsqDepth;
     value.rtcqDepth = rtsqDepth;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID;

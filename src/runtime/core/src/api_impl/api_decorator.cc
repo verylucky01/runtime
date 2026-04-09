@@ -388,11 +388,6 @@ rtError_t ApiDecorator::GetTaskIdAndStreamID(uint32_t * const taskId, uint32_t *
     return impl_->GetTaskIdAndStreamID(taskId, streamId);
 }
 
-rtError_t ApiDecorator::GetMaxModelNum(uint32_t * const maxModelCount)
-{
-    return impl_->GetMaxModelNum(maxModelCount);
-}
-
 rtError_t ApiDecorator::GetStreamId(Stream * const stm, int32_t * const streamId)
 {
     return impl_->GetStreamId(stm, streamId);

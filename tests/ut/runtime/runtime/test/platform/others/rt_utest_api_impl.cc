@@ -311,24 +311,6 @@ TEST_F(ApiImplTest, rtGetDevMsgOffline)
     GlobalMockObject::verify();
 }
 
-TEST_F(ApiImplTest, GetMaxModelNum)
-{
-    rtError_t error;
-    ApiImpl apiImpl;
-    Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
-    rtInstance->SetChipType(CHIP_CLOUD);
-    GlobalContainer::SetRtChipType(CHIP_CLOUD);
-    Device* device = rtInstance->DeviceRetain(0, 0);
-    device->SetTschVersion(TS_VERSION_EXPEND_MODEL_ID);
-    uint32_t maxModelCount;
-    Context context(device, false);
-    context.Init();
-    MOCKER(ContextManage::CheckContextIsValid).stubs().will(returnValue(true));
-    MOCKER_CPP(&ApiImpl::CurrentContext).stubs().will(returnValue(&context));
-    error = apiImpl.GetMaxModelNum(&maxModelCount);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-}
-
 TEST_F(ApiImplTest, IPC_ADAPT)
 {
     ApiImpl apiImpl;

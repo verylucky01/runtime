@@ -105,87 +105,6 @@ TEST_F(CloudV2ContextTest, memcpy_invalid_stream)
     (void)((Runtime *)Runtime::Instance())->PrimaryContextRelease(devId);
 }
 
-/* UT for context.cc ConfigPCTraceTask() "if (error != RT_ERROR_NONE)" Line:240 */
-TEST_F(CloudV2ContextTest, CONFIG_PCTRACE_TASK_TEST_2)
-{
-    int32_t devId;
-    rtError_t error;
-    Context *ctx;
-
-    Kernel *kernel = (Kernel *)malloc(sizeof(Kernel));
-    std::shared_ptr<PCTrace> pctraceHandle = nullptr;
-    uint32_t coreDim = 0;
-    TaskInfo *task = (TaskInfo *)malloc(sizeof(TaskInfo));
-    void *baseAddr = &devId;
-
-    error = rtGetDevice(&devId);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    RefObject<Context*> *refObject = NULL;
-    refObject = (RefObject<Context*> *)((Runtime *)Runtime::Instance())->PrimaryContextRetain(devId);
-    ctx = refObject->GetVal();
-    InitByStream(task, ctx->defaultStream_);
-    task->id = 0;
-    kernel->pctraceFlag_ = FUNC_MODE_PCTRACE_USERPROFILE_RECORDLOOP;
-
-    MOCKER_CPP(&PCTrace::AllocPCTraceMemory).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
-    MOCKER_CPP(&PCTrace::FreePCTraceMemory).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
-    Device* dev = ((Runtime *)Runtime::Instance())->GetDevice(devId, 0);
-    MOCKER_CPP_VIRTUAL(dev, &Device::ModuleRetain).stubs()
-            .will(returnValue(true));
-    MOCKER_CPP_VIRTUAL(dev, &Device::ModuleRelease).stubs()
-            .will(returnValue(true));
-    Module module(dev);
-    error = ctx->ConfigPCTraceTask(kernel, pctraceHandle, coreDim, (Stream *) ctx->DefaultStream_(), task->id,
-                                   &module);
-    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
-
-    (void)((Runtime *)Runtime::Instance())->PrimaryContextRelease(devId);
-    free(kernel);
-    free(task);
-}
-
-/* UT for context.cc ConfigPCTraceTask() "if (error != RT_ERROR_NONE)" Line:218 */
-TEST_F(CloudV2ContextTest, CONFIG_PCTRACE_TASK_TEST_3)
-{
-    int32_t devId;
-    rtError_t error;
-    Context *ctx;
-
-    Kernel *kernel = (Kernel *)malloc(sizeof(Kernel));
-    std::shared_ptr<PCTrace> pctraceHandle;
-    uint32_t coreDim = 0;
-    TaskInfo *task = (TaskInfo *)malloc(sizeof(TaskInfo));
-    void *baseAddr = &devId;
-
-    error = rtGetDevice(&devId);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    RefObject<Context*> *refObject = NULL;
-    refObject = (RefObject<Context*> *)((Runtime *)Runtime::Instance())->PrimaryContextRetain(devId);
-    ctx = refObject->GetVal();
-    InitByStream(task, ctx->defaultStream_);
-    task->id = 0;
-
-    kernel->pctraceFlag_ = FUNC_MODE_PCTRACE_USERPROFILE_RECORDLOOP;
-
-    MOCKER_CPP(&PCTrace::AllocPCTraceMemory).stubs().will(returnValue(RT_ERROR_NONE));
-    MOCKER(PCTraceTaskInit).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
-    Device* dev = ((Runtime *)Runtime::Instance())->GetDevice(devId, 0);
-    MOCKER_CPP_VIRTUAL(dev, &Device::ModuleRetain).stubs()
-            .will(returnValue(true));
-    MOCKER_CPP_VIRTUAL(dev, &Device::ModuleRelease).stubs()
-            .will(returnValue(true));
-    Module module(dev);
-    error = ctx->ConfigPCTraceTask((const Kernel *) kernel, pctraceHandle, coreDim, (Stream *) ctx->DefaultStream_(),
-                                   task->id, &module);
-    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
-
-    (void)((Runtime *)Runtime::Instance())->PrimaryContextRelease(devId);
-    free(kernel);
-    free(task);
-}
-
 TEST_F(CloudV2ContextTest, TEAR_DOWN_TEST)
 {
     int32_t devId;
@@ -1924,7 +1843,6 @@ TEST_F(CloudV2ContextTest, aicpu_kernel_launch_with_pctrace_failed)
     error = rtFunctionRegister(binHandle, &funStub, "foo_pctrace_failed", NULL, 1);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    MOCKER_CPP(&Context::ConfigPCTraceTask).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
     // pctrace not use in product=mini
     error = rtKernelLaunch(&funStub, 1, (void *)binary, sizeof(binary), NULL, NULL);
     EXPECT_NE(error, RT_ERROR_NONE);
@@ -1963,7 +1881,6 @@ TEST_F(CloudV2ContextTest, rtDevBinaryUnRegister_after_RuntimeKeeper_Destroy)
     error = rtFunctionRegister(binHandle, &funStub, "foo_rtDevBinaryUnRegister", NULL, 1);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    MOCKER_CPP(&Context::ConfigPCTraceTask).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
     // pctrace not use in product=mini
     error = rtKernelLaunch(&funStub, 1, (void *)binary, sizeof(binary), NULL, NULL);
     EXPECT_NE(error, RT_ERROR_NONE);

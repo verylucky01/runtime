@@ -17,16 +17,12 @@ namespace runtime {
 struct RtMacroValue {
     uint32_t maxPersistTaskNum;
     uint32_t maxTaskNumPerStream;
-    uint32_t maxSinkTaskNum;
     uint32_t maxSupportTaskNum;
-    uint32_t pctraceFileLength;
-    uint32_t pctraceFileHead;
     uint32_t maxAllocStreamNum;
     uint32_t stubEventCount;
     int32_t maxReportTimeoutCnt;
     uint32_t maxTaskNumPerHugeStream;
     uint32_t maxAllocHugeStreamNum;
-    uint32_t maxModelNum;
     uint32_t rtsqDepth;
     uint32_t rtcqDepth;
     uint32_t baseAicpuStreamId;

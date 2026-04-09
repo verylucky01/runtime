@@ -706,57 +706,6 @@ rtError_t Context::Synchronize(int32_t timeout)
     return SyncStreamsWithTimeout(syncStreams, timeout, startTime);
 }
 
-rtError_t Context::ConfigPCTraceTask(const Kernel * const registeredKernel, std::shared_ptr<PCTrace> &rtPCTrace,
-    const uint32_t coreDim, Stream * const stm, const uint16_t taskId, Module * const mdl)
-{
-    const int32_t streamId = stm->Id_();
-    const uint32_t pcTraceFlag = registeredKernel->PctraceFlag();
-    if (likely((pcTraceFlag != FUNC_MODE_PCTRACE_USERPROFILE_RECORDLOOP) &&
-               (pcTraceFlag != FUNC_MODE_PCTRACE_USERPROFILE_SKIPLOOP) &&
-               (pcTraceFlag != FUNC_MODE_PCTRACE_CYCLECNT_RECORDLOOP) &&
-               (pcTraceFlag != FUNC_MODE_PCTRACE_CYCLECNT_SKIPLOOP))) {
-        RT_LOG(RT_LOG_DEBUG, "kernel is not in pc trace mode, stream_id=%d, task_id=%u.",
-            streamId, static_cast<uint32_t>(taskId));
-        return RT_ERROR_NONE;
-    }
-
-    TaskInfo submitTask = {};
-    rtError_t errorReason;
-    TaskInfo *rtPCTraceTask = nullptr;
-    void *pcTraceAddr = nullptr;
-    const uint64_t addrSize = (static_cast<uint32_t>(coreDim * Runtime::macroValue_.pctraceFileLength)) +
-                               Runtime::macroValue_.pctraceFileHead;
-
-    RT_LOG(RT_LOG_INFO, "kernel is in pc trace mode, stream_id=%d, task_id=%u.",
-        streamId, static_cast<uint32_t>(taskId));
-    rtPCTrace.reset(new(std::nothrow) PCTrace());
-    NULL_PTR_RETURN_MSG(rtPCTrace, RT_ERROR_PCTRACE_NEW);
-
-    rtError_t error = rtPCTrace->Init(device_, mdl);
-    ERROR_GOTO_MSG_INNER(error, ERROR_PCTRACE_RECYCLE, "Init pc trace failed, retCode=%#x.", error);
-
-    error = rtPCTrace->AllocPCTraceMemory(&pcTraceAddr, addrSize);
-    ERROR_GOTO_MSG_INNER(error, ERROR_PCTRACE_RECYCLE, "Alloc pc trace memory failed, retCode=%#x.", error);
-
-    rtPCTraceTask = stm->AllocTask(&submitTask, TS_TASK_TYPE_PCTRACE_ENABLE, errorReason);
-    NULL_PTR_GOTO_MSG_INNER(rtPCTraceTask, ERROR_PCTRACE_RECYCLE, error, errorReason);
-
-    error = PCTraceTaskInit(rtPCTraceTask, taskId, static_cast<uint16_t>(coreDim), rtPCTrace);
-    ERROR_GOTO_MSG_INNER(error, ERROR_PCTRACE_TASK_RECYCLE,
-        "Init pc trace task failed, stream_id=%d, task_id=%u, retCode=%#x.",
-        streamId, static_cast<uint32_t>(taskId), error);
-
-    error = device_->SubmitTask(rtPCTraceTask);
-    ERROR_GOTO_MSG_INNER(error, ERROR_PCTRACE_TASK_RECYCLE, "Submit pc trace task failed, retCode=%#x.", error);
-    return RT_ERROR_NONE;
-
-ERROR_PCTRACE_TASK_RECYCLE:
-    (void)device_->GetTaskFactory()->Recycle(rtPCTraceTask);
-ERROR_PCTRACE_RECYCLE:
-    rtPCTrace.reset();
-    return error;
-}
-
 TIMESTAMP_EXTERN(rtKernelLaunch_KernelLookup);
 TIMESTAMP_EXTERN(rtKernelLaunch_ALLKernelLookup);
 TIMESTAMP_EXTERN(rtKernelLaunch_GetModule);
@@ -1304,14 +1253,6 @@ rtError_t Context::LaunchKernel(const void * const stubFunc, const uint32_t core
     }
     registeredKernel->SetPrefetchCnt1_(prefetchCnt1);
     registeredKernel->SetPrefetchCnt2_(prefetchCnt2);
-    // just offline support pctrace
-    if (device_->Driver_()->GetRunMode() == RT_RUN_MODE_OFFLINE) {
-        std::shared_ptr<PCTrace> rtPCTrace = nullptr;
-        error = ConfigPCTraceTask(aicTask->kernel, rtPCTrace, coreDim, stm, kernTask->id, launchMdl);
-        ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE,
-            "Config pctrace task during kernel launching failed, retCode=%#x", error);
-        SetPcTrace(kernTask, rtPCTrace);
-    }
 
     RT_LOG(RT_LOG_INFO, "device_id=%lu, stream_id=%d, task_id=%hu, kernelType=%u, kernel_name=%s, "
         "arg_size=%u, taskRation=%u, funcType=%u, coreDim=%u, mixType=%hhu, addr1=0x%llx, addr2=0x%llx, "

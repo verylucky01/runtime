@@ -108,7 +108,6 @@ static const DevProperties CHIP_AS31XM1_PROPERTIES = {
     .memInfoType = RT_MEM_INFO_TYPE_DDR_SIZE,
     .taskPrefetchCount = PREFETCH_CNT_8,
     .maxAllocHugeStreamNum = DEFAULT,
-    .resetMaxModelNum = DEFAULT,
     .reduceAicNum = false,
     .timeoutUpdateMethod = TimeoutUpdateMethod::TIMEOUT_SET_WITH_AICPU,
     .hugePolicyFlag = TS_4G_CONTIGUOUS_PHY,

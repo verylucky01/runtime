@@ -93,7 +93,6 @@ static const DevProperties CHIP_5612_PROPERTIES = {
     .memInfoType = RT_MEM_INFO_TYPE_DDR_SIZE,
     .taskPrefetchCount = PREFETCH_CNT_8,
     .maxAllocHugeStreamNum = DEFAULT,
-    .resetMaxModelNum = NUM_RESET_WITH_DRIVER,
     .reduceAicNum = false,
     .timeoutUpdateMethod = TimeoutUpdateMethod::DEFAULT_METHOD,
     .hugePolicyFlag = DEFAULT,

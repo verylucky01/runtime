@@ -22,16 +22,12 @@ static void MacroInitCloud(rtSocType_t socType, RtMacroValue &value)
     UNUSED(socType);
     value.maxPersistTaskNum = 60000U;
     value.maxTaskNumPerStream = 2042U;
-    value.maxSinkTaskNum = 2048U * 2042U;
     value.maxSupportTaskNum = 2048U * 2042U;
-    value.pctraceFileLength = 4864U;
-    value.pctraceFileHead = 128U;
     value.maxAllocStreamNum = 2016U;
     value.stubEventCount = 65536U;
     value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT;
     value.maxTaskNumPerHugeStream = 0U;
     value.maxAllocHugeStreamNum = 0U;
-    value.maxModelNum = 1024U;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID;
     value.maxPhysicalStreamNum = value.maxAllocStreamNum;
 }

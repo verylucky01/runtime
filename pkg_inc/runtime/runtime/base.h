@@ -792,15 +792,6 @@ RTS_API rtError_t rtGetTaskIdAndStreamID(uint32_t *taskId, uint32_t *streamId);
 
 /**
  * @ingroup dvrt_base
- * @brief get max model num
- * @param [out] max model num
- * @param [in] null
- * @return RT_ERROR_NONE for ok
- */
-RTS_API rtError_t rtGetMaxModelNum(uint32_t *maxModelCount);
-
-/**
- * @ingroup dvrt_base
  * @brief set stream mode
  * @param [in] stm  stream needed to be set mode
  * @param [in] stmMode mode

@@ -25,14 +25,10 @@ static void MacroInitMC32DM11A(rtSocType_t socType, RtMacroValue &value)
     value.maxAllocStreamNum = 159U;  // one is reserved for SDMA safety processing
     value.maxPersistTaskNum = 32760U;
     value.maxTaskNumPerStream = value.rtsqDepth - 35U;
-    value.maxSinkTaskNum = 1000000U;
     value.maxSupportTaskNum = 2000000U;
-    value.pctraceFileHead = 32U;
-    value.pctraceFileLength = (4U * 1024U) + 6U;
     value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT_MDC;
     value.maxTaskNumPerHugeStream = 0U;
     value.maxAllocHugeStreamNum = 0U;
-    value.maxModelNum = 256U;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID;
     value.maxPhysicalStreamNum = value.maxAllocStreamNum;
 }

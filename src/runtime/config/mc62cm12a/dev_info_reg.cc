@@ -130,7 +130,6 @@ static const DevProperties CHIP_MC62CM12A_PROPERTIES = {
     .memInfoType = RT_MEM_INFO_TYPE_DDR_SIZE,
     .taskPrefetchCount = PREFETCH_CNT_8,
     .maxAllocHugeStreamNum = DEFAULT,
-    .resetMaxModelNum = NUM_RESET_WITH_DRIVER,
     .reduceAicNum = false,
     .timeoutUpdateMethod = TimeoutUpdateMethod::TIMEOUT_WITHOUT_UPDATE,
     .hugePolicyFlag = P2P_ALIGNED,

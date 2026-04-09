@@ -97,14 +97,10 @@ static void MacroInit610Lite(rtSocType_t socType, RtMacroValue &value)
     value.maxAllocStreamNum = 112U;
     value.maxPersistTaskNum = 32760U;
     value.maxTaskNumPerStream = 1024U;
-    value.maxSinkTaskNum = 1000000U;
     value.maxSupportTaskNum = 2000000U;
-    value.pctraceFileHead = 32U;
-    value.pctraceFileLength = (4U * 1024U) + 6U;
     value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT_MDC;
     value.maxTaskNumPerHugeStream = 8192U;
     value.maxAllocHugeStreamNum = 16U;
-    value.maxModelNum = 256U;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID;
     value.maxPhysicalStreamNum = value.maxAllocStreamNum;
     ParseIniFile(socType, value);

@@ -245,7 +245,6 @@ struct DevProperties final {
     uint32_t memInfoType;
     uint32_t taskPrefetchCount;
     uint32_t maxAllocHugeStreamNum;
-    uint32_t resetMaxModelNum;
     bool reduceAicNum;
     TimeoutUpdateMethod timeoutUpdateMethod;
     uint32_t hugePolicyFlag;

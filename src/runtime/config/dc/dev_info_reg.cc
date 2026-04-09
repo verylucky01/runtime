@@ -133,7 +133,6 @@ static const DevProperties CHIP_DC_PROPERTIES = {
     .memInfoType = RT_MEM_INFO_TYPE_DDR_SIZE,
     .taskPrefetchCount = PREFETCH_CNT_10,
     .maxAllocHugeStreamNum = DEFAULT,
-    .resetMaxModelNum = NUM_RESET_WITH_DRIVER,
     .reduceAicNum = false,
     .timeoutUpdateMethod = TimeoutUpdateMethod::DEFAULT_METHOD,
     .hugePolicyFlag = TS_4G_CONTIGUOUS_PHY,

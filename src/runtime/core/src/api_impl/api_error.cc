@@ -1179,12 +1179,6 @@ rtError_t ApiErrorDecorator::StreamGetMode(const Stream * const stm, uint64_t * 
     return impl_->StreamGetMode(curStm, stmMode);
 }
 
-rtError_t ApiErrorDecorator::GetMaxModelNum(uint32_t * const maxModelCount)
-{
-    NULL_PTR_RETURN_MSG_OUTER(maxModelCount, RT_ERROR_INVALID_VALUE);
-    return impl_->GetMaxModelNum(maxModelCount);
-}
-
 rtError_t ApiErrorDecorator::EventCreate(Event ** const evt, const uint64_t flag)
 {
     NULL_PTR_RETURN_MSG_OUTER(evt, RT_ERROR_INVALID_VALUE);

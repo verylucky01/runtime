@@ -30,16 +30,12 @@ static void MacroInit910B(rtSocType_t socType, RtMacroValue &value)
 
     value.maxPersistTaskNum = 60000U;
     value.maxTaskNumPerStream = rtsqDepth - 35U;
-    value.maxSinkTaskNum = 64 * 1024 * 1024U;
     value.maxSupportTaskNum = 64 * 1024 * 1024U;
-    value.pctraceFileLength = 4864U;
-    value.pctraceFileHead = 128U;
     value.maxAllocStreamNum = 32 * 1024U;
     value.stubEventCount = 65536U;
     value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT_STARS;
     value.maxTaskNumPerHugeStream = 0U;
     value.maxAllocHugeStreamNum = 0U;
-    value.maxModelNum = 2048U;
     value.rtsqDepth = rtsqDepth;
     value.baseAicpuStreamId = BASE_AICPU_STREAM_ID_V2;
     value.expandStreamRsvTaskNum = 0U;

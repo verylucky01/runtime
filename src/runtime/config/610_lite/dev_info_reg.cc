@@ -100,7 +100,6 @@ static const DevProperties CHIP_610LITE_PROPERTIES = {
     .memInfoType = RT_MEM_INFO_TYPE_DDR_SIZE,
     .taskPrefetchCount = PREFETCH_CNT_8,
     .maxAllocHugeStreamNum = 16U,
-    .resetMaxModelNum = DEFAULT,
     .reduceAicNum = false,
     .timeoutUpdateMethod = TimeoutUpdateMethod::TIMEOUT_NEED_RESET,
     .hugePolicyFlag = TS_4G_CONTIGUOUS_PHY,

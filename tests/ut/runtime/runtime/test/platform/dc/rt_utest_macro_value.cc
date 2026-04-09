@@ -42,15 +42,11 @@ TEST_F(MacroInitValueTest, MacroInitValue)
     RtMacroValue &value = Runtime::macroValue_;
     EXPECT_EQ(value.maxPersistTaskNum, 32760U);
     EXPECT_EQ(value.maxTaskNumPerStream, 2042U);
-    EXPECT_EQ(value.maxSinkTaskNum, 1024U * 2042U);
     EXPECT_EQ(value.maxSupportTaskNum, 1024U * 2042U);
-    EXPECT_EQ(value.pctraceFileLength, (4U * 1024U) + 6U);
-    EXPECT_EQ(value.pctraceFileHead, 32U);
     EXPECT_EQ(value.maxAllocStreamNum, 992U);
     EXPECT_EQ(value.stubEventCount, 1024U);
     EXPECT_EQ(value.maxReportTimeoutCnt, 36);
     EXPECT_EQ(value.maxTaskNumPerHugeStream, 0U);
     EXPECT_EQ(value.maxAllocHugeStreamNum, 0U);
-    EXPECT_EQ(value.maxModelNum, 1024U);
     EXPECT_EQ(value.baseAicpuStreamId, 1024U);
 }

@@ -634,17 +634,6 @@ rtError_t rtGetAvailEventNum(uint32_t * const eventCount)
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtGetMaxModelNum(uint32_t *maxModelCount)
-{
-    Api * const apiInstance = Api::Instance();
-    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t ret = apiInstance->GetMaxModelNum(maxModelCount);
-    COND_RETURN_WITH_NOLOG(ret == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
-    ERROR_RETURN_WITH_EXT_ERRCODE(ret);
-    return ACL_RT_SUCCESS;
-}
-
-VISIBILITY_DEFAULT
 rtError_t rtEventCreateWithFlag(rtEvent_t *evt, uint32_t flag)
 {
     GLOBAL_STATE_WAIT_IF_LOCKED();

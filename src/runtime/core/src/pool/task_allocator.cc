@@ -133,7 +133,7 @@ int32_t TaskAllocator::AllocId(const Stream * const stm, rtError_t &errCode)
     uint32_t maxCnt;
     if (stm->IsTaskSink()) {
         usedCnt = &usedCntSink_;
-        maxCnt = Runtime::macroValue_.maxSinkTaskNum;
+        maxCnt = UINT32_MAX;
     } else {
         usedCnt = &usedCntUnSink_;
         maxCnt = Runtime::macroValue_.maxSupportTaskNum;

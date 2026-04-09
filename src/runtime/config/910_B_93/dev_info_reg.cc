@@ -199,7 +199,6 @@ static const DevProperties CHIP_CLOUD_V2_PROPERTIES = {
     .memInfoType = RT_MEM_INFO_TYPE_HBM_SIZE,
     .taskPrefetchCount = PREFETCH_CNT_8,
     .maxAllocHugeStreamNum = DEFAULT,
-    .resetMaxModelNum = NUM_RESET_WITH_DRIVER,
     .reduceAicNum = true,
     .timeoutUpdateMethod = TimeoutUpdateMethod::DEFAULT_METHOD,
     .hugePolicyFlag = DEFAULT,

@@ -561,7 +561,6 @@ TEST_F(SolomonTaskTest, macroinit_for_chip_cloud_v5)
     Runtime *rt = ((Runtime *)Runtime::Instance());
     rt->MacroInit(CHIP_CLOUD_V5);
     rt->SetSocTypeByChipType(0, 1, 1);
-    EXPECT_EQ(Runtime::macroValue_.maxSinkTaskNum, 500000U);
 }
 
 TEST_F(DavidTaskTest, macroinit_for_chip_david)

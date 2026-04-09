@@ -26,7 +26,7 @@ add_custom_command(OUTPUT ${DCACHE_LOCK_MIX_OBJ}
 )
 
 install(FILES ${DCACHE_LOCK_MIX_OBJ}
-    DESTINATION lib/dav_3510
+    DESTINATION lib/ascend950
     OPTIONAL
 )
 message("${DCACHE_LOCK_AIC_SOURCE}")

@@ -8,7 +8,7 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-if (NOT ENABLE_OPEN_SRC)
+if(NOT ENABLE_OPEN_SRC)
     return()
 endif()
 
@@ -58,7 +58,7 @@ set(HOST_PROTOBUF_SHARED_CXXFLAGS "${SECURITY_COMPILE_OPT} -Wno-maybe-uninitiali
 set(DEV_PROTOBUF_STATIC_CXXFLAGS "-fvisibility=hidden -fvisibility-inlines-hidden -Wno-maybe-uninitialized -Wno-unused-parameter -fPIC -fstack-protector-all -D_FORTIFY_SOURCE=2 -D_GLIBCXX_USE_CXX11_ABI=1 -O2 -Dgoogle=ascend_private")
 set(HOST_PROTOBUF_STATIC_CXXFLAGS "-fvisibility=hidden -fvisibility-inlines-hidden -Wno-maybe-uninitialized -Wno-unused-parameter -fPIC -fstack-protector-all -D_FORTIFY_SOURCE=2 -D_GLIBCXX_USE_CXX11_ABI=0 -O2 -Dgoogle=ascend_private")
 
-if (PRODUCT_SIDE STREQUAL "device")
+if(PRODUCT_SIDE STREQUAL "device")
     set(HOST_PROTOBUF_SHARED_CXXFLAGS ${DEV_PROTOBUF_SHARED_CXXFLAGS})
     set(HOST_PROTOBUF_STATIC_CXXFLAGS ${DEV_PROTOBUF_STATIC_CXXFLAGS})
     set(PROTOBUF_TOOLCHAIN_ARGS
@@ -76,19 +76,31 @@ set(HOST_PROTOBUF_STATIC_CXXFLAGS "${HOST_PROTOBUF_STATIC_CXXFLAGS} ${PROTOBUF_S
 # ==========================================================================================================
 # 3. Find Existing Libraries & Protoc
 # ==========================================================================================================
-# 优先搜索 LD_LIBRARY_PATH 里的 bin，然后搜索 PROTOBUF_LIB_CACHE_DIR 的 bin
+# 优先搜索 LD_LIBRARY_PATH 里的 bin,然后搜索 PROTOBUF_LIB_CACHE_DIR 的 bin
 find_program(PROTOC_PATH protoc PATHS ${PROTOBUF_LIB_CACHE_DIR}/bin ${LD_BIN_PATHS} NO_DEFAULT_PATH)
 
-# 优先搜索 LD_LIBRARY_PATH 里的 lib，然后搜索 PROTOBUF_LIB_CACHE_DIR
-find_library(ASCEND_PROTOBUF_STATIC_LIB NAMES ${PROTOBUF_STATIC_FILE_NAME} PATHS ${PROTOBUF_LIB_CACHE_DIR}/lib ${LD_LIB_PATHS} NO_DEFAULT_PATH)
-find_library(HOST_PROTOBUF_STATIC_LIB NAMES ${PROTOBUF_STATIC_FILE_NAME} PATHS ${PROTOBUF_LIB_CACHE_DIR}/lib ${LD_LIB_PATHS} NO_DEFAULT_PATH)
+# 优先搜索 LD_LIBRARY_PATH 里的 lib,然后搜索 PROTOBUF_LIB_CACHE_DIR
+find_library(ASCEND_PROTOBUF_STATIC_LIB
+    NAMES ${PROTOBUF_STATIC_FILE_NAME}
+    PATHS ${PROTOBUF_LIB_CACHE_DIR}/lib ${LD_LIB_PATHS}
+    NO_DEFAULT_PATH
+)
+find_library(HOST_PROTOBUF_STATIC_LIB
+    NAMES ${PROTOBUF_STATIC_FILE_NAME}
+    PATHS ${PROTOBUF_LIB_CACHE_DIR}/lib ${LD_LIB_PATHS}
+    NO_DEFAULT_PATH
+)
 
-if (NOT PRODUCT_SIDE STREQUAL "device") 
-    find_library(ASCEND_PROTOBUF_SHARED_LIB NAMES libascend_protobuf.so.3.13.0.0 PATHS ${PROTOBUF_LIB_CACHE_DIR}/lib ${LD_LIB_PATHS} NO_DEFAULT_PATH)
+if(NOT PRODUCT_SIDE STREQUAL "device") 
+    find_library(ASCEND_PROTOBUF_SHARED_LIB
+        NAMES libascend_protobuf.so.3.13.0.0
+        PATHS ${PROTOBUF_LIB_CACHE_DIR}/lib ${LD_LIB_PATHS}
+        NO_DEFAULT_PATH
+    )
 endif()
 
 # 判断是否需要构建
-if (NOT PROTOC_PATH OR NOT ASCEND_PROTOBUF_STATIC_LIB OR NOT ASCEND_PROTOBUF_SHARED_LIB OR NOT HOST_PROTOBUF_STATIC_LIB OR NOT EXISTS "${PROTOBUF_INCLUDE_DIRS}")
+if(NOT PROTOC_PATH OR NOT ASCEND_PROTOBUF_STATIC_LIB OR NOT ASCEND_PROTOBUF_SHARED_LIB OR NOT HOST_PROTOBUF_STATIC_LIB OR NOT EXISTS "${PROTOBUF_INCLUDE_DIRS}")
     set(NEED_BUILD_PROTOBUF ON)
 else()
     set(NEED_BUILD_PROTOBUF OFF)
@@ -98,7 +110,7 @@ endif()
 # ==========================================================================================================
 # 4. Source Preparation (Download & Extract)
 # ==========================================================================================================
-if (NEED_BUILD_PROTOBUF)
+if(NEED_BUILD_PROTOBUF)
     # 解析 protobuf 源码包路径
     if (EXISTS ${CANN_3RD_LIB_PATH}/protobuf-all-25.1.tar.gz)
         set(PROTOBUF_PATH ${CANN_3RD_LIB_PATH}/protobuf-all-25.1.tar.gz)
@@ -106,47 +118,46 @@ if (NEED_BUILD_PROTOBUF)
         set(PROTOBUF_PATH ${CANN_3RD_LIB_PATH}/protobuf-25.1.tar.gz)
     elseif (EXISTS ${CANN_3RD_LIB_PATH}/protobuf/protobuf-all-25.1.tar.gz)
         set(PROTOBUF_PATH ${CANN_3RD_LIB_PATH}/protobuf/protobuf-all-25.1.tar.gz)
-    else ()
+    else()
         set(PROTOBUF_PATH ${CANN_3RD_LIB_PATH}/protobuf/protobuf-25.1.tar.gz)
-    endif ()
+    endif()
 
     # 解析 abseil 源码包路径
-    if (EXISTS ${CANN_3RD_LIB_PATH}/abseil-cpp-20230802.1.tar.gz)
+    if(EXISTS ${CANN_3RD_LIB_PATH}/abseil-cpp-20230802.1.tar.gz)
         set(ABSEIL_PATH ${CANN_3RD_LIB_PATH}/abseil-cpp-20230802.1.tar.gz)
     else()
         set(ABSEIL_PATH ${CANN_3RD_LIB_PATH}/abseil-cpp/abseil-cpp-20230802.1.tar.gz)
     endif()
 
-    if (NOT EXISTS "${ABSEIL_PATH}" OR NOT EXISTS "${PROTOBUF_PATH}")
-        set(REQ_URL "https://gitcode.com/cann-src-third-party/protobuf/releases/download/v25.1/protobuf-25.1.tar.gz")
-        set(ABS_REQ_URL "https://gitcode.com/cann-src-third-party/abseil-cpp/releases/download/20230802.1/abseil-cpp-20230802.1.tar.gz")
-        ExternalProject_Add(protobuf_src_dl URL ${REQ_URL} DOWNLOAD_DIR ${PROTOBUF_DL_DIR}/ TLS_VERIFY OFF DOWNLOAD_NO_EXTRACT 1 CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND "")
-        ExternalProject_Add(abseil_src_dl URL ${ABS_REQ_URL} DOWNLOAD_DIR ${PROTOBUF_DL_DIR}/abseil-cpp/ TLS_VERIFY OFF DOWNLOAD_NO_EXTRACT 1 CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND "")
-        ExternalProject_Add(protobuf_src
-            DOWNLOAD_COMMAND ""
-            COMMAND tar -zxf ${PROTOBUF_DL_DIR}/protobuf-25.1.tar.gz --strip-components 1 -C ${SOURCE_DIR}
-            COMMAND tar -zxf ${PROTOBUF_DL_DIR}/abseil-cpp/abseil-cpp-20230802.1.tar.gz --strip-components 1 -C ${SOURCE_DIR}/third_party/abseil-cpp
-            PATCH_COMMAND cd ${SOURCE_DIR} && patch -p1 < ${RUNTIME_DIR}/cmake/third_party/protobuf_25.1_change_version.patch && cd ${SOURCE_DIR}/third_party/abseil-cpp && patch -p1 < ${RUNTIME_DIR}/cmake/third_party/protobuf-hide_absl_symbols.patch
-            CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
-        )
-        add_dependencies(protobuf_src protobuf_src_dl abseil_src_dl)
-    else()
-        ExternalProject_Add(protobuf_src
-            DOWNLOAD_COMMAND ""
-            COMMAND tar -zxf ${PROTOBUF_PATH} --strip-components 1 -C ${SOURCE_DIR}
-            COMMAND tar -zxf ${ABSEIL_PATH} --strip-components 1 -C ${SOURCE_DIR}/third_party/abseil-cpp
-            PATCH_COMMAND cd ${SOURCE_DIR} && patch -p1 < ${RUNTIME_DIR}/cmake/third_party/protobuf_25.1_change_version.patch && cd ${SOURCE_DIR}/third_party/abseil-cpp && patch -p1 < ${RUNTIME_DIR}/cmake/third_party/protobuf-hide_absl_symbols.patch
-            CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
-        )
+    if(NOT EXISTS ${ABSEIL_PATH} OR NOT EXISTS ${PROTOBUF_PATH})
+        message("[ThirdPartyLib]: ${PROTOBUF_PATH} not found, need download.")
+        set(PROTOBUF_PATH "https://gitcode.com/cann-src-third-party/protobuf/releases/download/v25.1/protobuf-25.1.tar.gz")
     endif()
+    ExternalProject_Add(protobuf_src
+            URL ${PROTOBUF_PATH}
+            DOWNLOAD_DIR ${CANN_3RD_LIB_PATH}/protobuf
+            TLS_VERIFY OFF
+            SOURCE_DIR ${PROTOBUF_SRC_DIR}
+            PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_LIST_DIR}/protobuf_25.1_change_version.patch
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            INSTALL_COMMAND ""
+    )
+    include(${CMAKE_CURRENT_LIST_DIR}/abseil-cpp.cmake)
+    add_dependencies(protobuf_src abseil_build)
 
     # 如果只要头文件而无需全部编译，单独提取包含头文件的安装
-    if (ASCEND_PROTOBUF_STATIC_LIB AND NOT EXISTS "${PROTOBUF_INCLUDE_DIRS}")
+    if(ASCEND_PROTOBUF_STATIC_LIB AND NOT EXISTS "${PROTOBUF_INCLUDE_DIRS}")
         ExternalProject_Add(protobuf_headers_only_build
-            DEPENDS protobuf_src SOURCE_DIR ${PROTOBUF_SRC_DIR} DOWNLOAD_COMMAND "" UPDATE_COMMAND "" CONFIGURE_COMMAND "" BUILD_COMMAND ""
+            DEPENDS protobuf_src
+            SOURCE_DIR ${PROTOBUF_SRC_DIR}
+            DOWNLOAD_COMMAND ""
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
             INSTALL_COMMAND ${CMAKE_COMMAND} -E make_directory ${PROTOBUF_HOST_DIR}/include
                     COMMAND bash -c "cd ${PROTOBUF_SRC_DIR}/src && find google -name '*.h' -o -name '*.inc' | xargs -i cp --parents {} ${PROTOBUF_HOST_DIR}/include/"
-                    COMMAND bash -c "cd ${PROTOBUF_SRC_DIR}/third_party/abseil-cpp && find absl -name '*.h' -o -name '*.inc' | xargs -i cp --parents {} ${PROTOBUF_HOST_DIR}/include/"
+                    COMMAND bash -c "cd ${CMAKE_BINARY_DIR}/abseil_build-prefix/src/abseil_build && find absl -name '*.h' -o -name '*.inc' | xargs -i cp --parents {} ${PROTOBUF_HOST_DIR}/include/"
                     COMMAND bash -c "sed -i 's/#define ABSL_OPTION_USE_STD_STRING_VIEW 2/#define ABSL_OPTION_USE_STD_STRING_VIEW 0/g' ${PROTOBUF_HOST_DIR}/include/absl/base/options.h"
             EXCLUDE_FROM_ALL TRUE
         )
@@ -160,17 +171,88 @@ endif()
 # ==========================================================================================================
 
 # ---------------------------------------------------------
+# Target: ascend_protobuf (Shared)
+# ---------------------------------------------------------
+add_library(ascend_protobuf_shared_lib UNKNOWN IMPORTED)
+add_library(ascend_protobuf INTERFACE)
+
+if(NOT PRODUCT_SIDE STREQUAL "device" AND ASCEND_PROTOBUF_SHARED_LIB AND EXISTS "${PROTOBUF_INCLUDE_DIRS}")
+    message("[ThirdPartyLib]: protobuf shared use cache.")
+    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_LOCATION ${ASCEND_PROTOBUF_SHARED_LIB})
+    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_NO_SONAME TRUE)
+    target_include_directories(ascend_protobuf INTERFACE ${PROTOBUF_INCLUDE_DIRS})
+    target_link_libraries(ascend_protobuf INTERFACE ascend_protobuf_shared_lib)
+    get_filename_component(PROTOBUF_SHARED_LIB_DIR "${ASCEND_PROTOBUF_SHARED_LIB}" DIRECTORY)
+    get_filename_component(PROTOBUF_SHARED_PKG_DIR "${PROTOBUF_SHARED_LIB_DIR}" DIRECTORY)
+elseif(NOT PRODUCT_SIDE STREQUAL "device" AND TARGET protobuf_headers_target AND ASCEND_PROTOBUF_SHARED_LIB)
+    message("[ThirdPartyLib]: protobuf shared depend protobuf_headers_target.")
+    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_LOCATION ${ASCEND_PROTOBUF_SHARED_LIB})
+    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_NO_SONAME TRUE)
+    target_include_directories(ascend_protobuf INTERFACE ${PROTOBUF_INCLUDE_DIRS})
+    target_link_libraries(ascend_protobuf INTERFACE ascend_protobuf_shared_lib)
+    get_filename_component(PROTOBUF_SHARED_LIB_DIR "${ASCEND_PROTOBUF_SHARED_LIB}" DIRECTORY)
+    get_filename_component(PROTOBUF_SHARED_PKG_DIR "${PROTOBUF_SHARED_LIB_DIR}" DIRECTORY)
+    add_dependencies(ascend_protobuf protobuf_headers_target)
+else()
+    message("[ThirdPartyLib]: protobuf shared build.")
+    ExternalProject_Add(protobuf_shared_build
+        DEPENDS protobuf_src
+        SOURCE_DIR ${PROTOBUF_SRC_DIR}
+        DOWNLOAD_COMMAND ""
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ${CMAKE_COMMAND}
+            -G ${CMAKE_GENERATOR}
+            ${PROTOBUF_TOOLCHAIN_ARGS}
+            -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
+            -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+            -DCMAKE_INSTALL_LIBDIR=lib
+            -DBUILD_SHARED_LIBS=ON
+            -DCMAKE_CXX_STANDARD=14
+            -Dprotobuf_WITH_ZLIB=OFF
+            -DLIB_PREFIX=ascend_
+            -DCMAKE_SKIP_RPATH=TRUE
+            -Dprotobuf_BUILD_TESTS=OFF
+            -DCMAKE_CXX_FLAGS=${HOST_PROTOBUF_SHARED_CXXFLAGS}
+            -DCMAKE_INSTALL_PREFIX=${PROTOBUF_SHARED_PKG_DIR}
+            -Dprotobuf_BUILD_PROTOC_BINARIES=OFF
+            -DABSL_ROOT_DIR=${CMAKE_BINARY_DIR}/abseil_build-prefix/src/abseil_build
+            <SOURCE_DIR>
+        BUILD_COMMAND $(MAKE)
+        INSTALL_COMMAND $(MAKE) install
+        EXCLUDE_FROM_ALL TRUE
+    )
+    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_LOCATION ${PROTOBUF_SHARED_PKG_DIR}/lib/libascend_protobuf.so)
+    target_include_directories(ascend_protobuf INTERFACE ${PROTOBUF_SHARED_PKG_DIR}/include)
+    target_link_libraries(ascend_protobuf INTERFACE ascend_protobuf_shared_lib)
+    add_dependencies(ascend_protobuf protobuf_shared_build)
+    set(PROTOBUF_SHARED_LIB_DIR "${PROTOBUF_SHARED_PKG_DIR}/lib")
+endif()
+
+# ---------------------------------------------------------
 # Target: host_protoc
 # ---------------------------------------------------------
 add_executable(host_protoc IMPORTED)
-if (PROTOC_PATH)
+if(PROTOC_PATH)
     set_target_properties(host_protoc PROPERTIES IMPORTED_LOCATION ${PROTOC_PATH})
 else()
     ExternalProject_Add(protobuf_host_build
-        DEPENDS protobuf_src SOURCE_DIR ${PROTOBUF_SRC_DIR} DOWNLOAD_COMMAND "" UPDATE_COMMAND ""
-        CONFIGURE_COMMAND ${CMAKE_COMMAND} -DCMAKE_CXX_STANDARD=14 -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER} -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER} -DCMAKE_INSTALL_PREFIX=${PROTOBUF_HOST_DIR} -Dprotobuf_BUILD_TESTS=OFF -Dprotobuf_WITH_ZLIB=OFF <SOURCE_DIR>
+        DEPENDS protobuf_src
+        SOURCE_DIR ${PROTOBUF_SRC_DIR}
+        DOWNLOAD_COMMAND ""
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ${CMAKE_COMMAND}
+            -DCMAKE_CXX_STANDARD=14
+            -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
+            -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+            -DCMAKE_INSTALL_PREFIX=${PROTOBUF_HOST_DIR}
+            -Dprotobuf_BUILD_TESTS=OFF
+            -Dprotobuf_WITH_ZLIB=OFF
+            -DABSL_ROOT_DIR=${CMAKE_BINARY_DIR}/abseil_build-prefix/src/abseil_build
+            <SOURCE_DIR>
         BUILD_COMMAND $(MAKE) protoc
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/protobuf_host_build-prefix/src/protobuf_host_build-build/protoc ${CMAKE_BINARY_DIR}/bin/protoc
+        INSTALL_COMMAND ${CMAKE_COMMAND}
+            -E make_directory ${CMAKE_BINARY_DIR}/bin
+            COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/protobuf_host_build-prefix/src/protobuf_host_build-build/protoc ${CMAKE_BINARY_DIR}/bin/protoc
         EXCLUDE_FROM_ALL TRUE
     )
     set_target_properties(host_protoc PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/bin/protoc)
@@ -183,22 +265,47 @@ endif()
 add_library(ascend_protobuf_static_lib STATIC IMPORTED)
 add_library(ascend_protobuf_static INTERFACE)
 
-if (ASCEND_PROTOBUF_STATIC_LIB AND EXISTS "${PROTOBUF_INCLUDE_DIRS}")
+if(ASCEND_PROTOBUF_STATIC_LIB AND EXISTS "${PROTOBUF_INCLUDE_DIRS}")
+    message("[ThirdPartyLib]: protobuf static use cache.")
     set_target_properties(ascend_protobuf_static_lib PROPERTIES IMPORTED_LOCATION ${ASCEND_PROTOBUF_STATIC_LIB})
     target_include_directories(ascend_protobuf_static INTERFACE ${PROTOBUF_INCLUDE_DIRS})
     target_link_libraries(ascend_protobuf_static INTERFACE ascend_protobuf_static_lib)
     set(PROTOBUF_STATIC_FINAL_PATH ${ASCEND_PROTOBUF_STATIC_LIB})
 elseif(TARGET protobuf_headers_target AND ASCEND_PROTOBUF_STATIC_LIB)
+    message("[ThirdPartyLib]: protobuf static depend protobuf_headers_target.")
     set_target_properties(ascend_protobuf_static_lib PROPERTIES IMPORTED_LOCATION ${ASCEND_PROTOBUF_STATIC_LIB})
     target_include_directories(ascend_protobuf_static INTERFACE ${PROTOBUF_INCLUDE_DIRS})
     target_link_libraries(ascend_protobuf_static INTERFACE ascend_protobuf_static_lib)
     add_dependencies(ascend_protobuf_static protobuf_headers_target)
     set(PROTOBUF_STATIC_FINAL_PATH ${ASCEND_PROTOBUF_STATIC_LIB})
 else()
+    message("[ThirdPartyLib]: protobuf static build.")
     ExternalProject_Add(protobuf_static_build
-        DEPENDS protobuf_src SOURCE_DIR ${PROTOBUF_SRC_DIR} DOWNLOAD_COMMAND "" UPDATE_COMMAND ""
-        CONFIGURE_COMMAND ${CMAKE_COMMAND} -G ${CMAKE_GENERATOR} -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER} -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER} ${PROTOBUF_TOOLCHAIN_ARGS} -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_CXX_STANDARD=14 -Dprotobuf_WITH_ZLIB=OFF -DLIB_PREFIX=ascend_ -DCMAKE_SKIP_RPATH=TRUE -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_CXX_FLAGS=${HOST_PROTOBUF_STATIC_CXXFLAGS} -DCMAKE_INSTALL_PREFIX=${PROTOBUF_STATIC_PKG_DIR} -Dprotobuf_BUILD_PROTOC_BINARIES=OFF -DABSL_COMPILE_OBJ=TRUE <SOURCE_DIR>
-        BUILD_COMMAND $(MAKE) INSTALL_COMMAND $(MAKE) install EXCLUDE_FROM_ALL TRUE
+        DEPENDS protobuf_src
+        SOURCE_DIR ${PROTOBUF_SRC_DIR}
+        DOWNLOAD_COMMAND ""
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ${CMAKE_COMMAND}
+            -G ${CMAKE_GENERATOR}
+            ${PROTOBUF_TOOLCHAIN_ARGS}
+            -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
+            -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+            -DCMAKE_INSTALL_LIBDIR=lib
+            -DBUILD_SHARED_LIBS=OFF
+            -DCMAKE_CXX_STANDARD=14
+            -Dprotobuf_WITH_ZLIB=OFF
+            -DLIB_PREFIX=ascend_
+            -DCMAKE_SKIP_RPATH=TRUE
+            -Dprotobuf_BUILD_TESTS=OFF
+            -DCMAKE_CXX_FLAGS=${HOST_PROTOBUF_STATIC_CXXFLAGS}
+            -DCMAKE_INSTALL_PREFIX=${PROTOBUF_STATIC_PKG_DIR}
+            -Dprotobuf_BUILD_PROTOC_BINARIES=OFF
+            -DABSL_COMPILE_OBJ=TRUE
+            -DABSL_ROOT_DIR=${CMAKE_BINARY_DIR}/abseil_build-prefix/src/abseil_build
+            <SOURCE_DIR>
+        BUILD_COMMAND $(MAKE)
+        INSTALL_COMMAND $(MAKE) install
+        EXCLUDE_FROM_ALL TRUE
     )
     set_target_properties(ascend_protobuf_static_lib PROPERTIES IMPORTED_LOCATION ${PROTOBUF_STATIC_PKG_DIR}/lib/libascend_protobuf.a)
     target_include_directories(ascend_protobuf_static INTERFACE ${PROTOBUF_STATIC_PKG_DIR}/include)
@@ -208,61 +315,51 @@ else()
 endif()
 
 # ---------------------------------------------------------
-# Target: ascend_protobuf (Shared)
-# ---------------------------------------------------------
-add_library(ascend_protobuf_shared_lib UNKNOWN IMPORTED)
-add_library(ascend_protobuf INTERFACE)
-
-if (NOT PRODUCT_SIDE STREQUAL "device" AND ASCEND_PROTOBUF_SHARED_LIB AND EXISTS "${PROTOBUF_INCLUDE_DIRS}")
-    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_LOCATION ${ASCEND_PROTOBUF_SHARED_LIB})
-    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_NO_SONAME TRUE)
-    target_include_directories(ascend_protobuf INTERFACE ${PROTOBUF_INCLUDE_DIRS})
-    target_link_libraries(ascend_protobuf INTERFACE ascend_protobuf_shared_lib)
-    get_filename_component(PROTOBUF_SHARED_LIB_DIR "${ASCEND_PROTOBUF_SHARED_LIB}" DIRECTORY)
-    get_filename_component(PROTOBUF_SHARED_PKG_DIR "${PROTOBUF_SHARED_LIB_DIR}" DIRECTORY)
-elseif(NOT PRODUCT_SIDE STREQUAL "device" AND TARGET protobuf_headers_target AND ASCEND_PROTOBUF_SHARED_LIB)
-    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_LOCATION ${ASCEND_PROTOBUF_SHARED_LIB})
-    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_NO_SONAME TRUE)
-    target_include_directories(ascend_protobuf INTERFACE ${PROTOBUF_INCLUDE_DIRS})
-    target_link_libraries(ascend_protobuf INTERFACE ascend_protobuf_shared_lib)
-    get_filename_component(PROTOBUF_SHARED_LIB_DIR "${ASCEND_PROTOBUF_SHARED_LIB}" DIRECTORY)
-    get_filename_component(PROTOBUF_SHARED_PKG_DIR "${PROTOBUF_SHARED_LIB_DIR}" DIRECTORY)
-    add_dependencies(ascend_protobuf protobuf_headers_target)
-else()
-    ExternalProject_Add(protobuf_shared_build
-        DEPENDS protobuf_src SOURCE_DIR ${PROTOBUF_SRC_DIR} DOWNLOAD_COMMAND "" UPDATE_COMMAND ""
-        CONFIGURE_COMMAND ${CMAKE_COMMAND} -G ${CMAKE_GENERATOR} ${PROTOBUF_TOOLCHAIN_ARGS} -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER} -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER} -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=ON -DCMAKE_CXX_STANDARD=14 -Dprotobuf_WITH_ZLIB=OFF -DLIB_PREFIX=ascend_ -DCMAKE_SKIP_RPATH=TRUE -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_CXX_FLAGS=${HOST_PROTOBUF_SHARED_CXXFLAGS} -DCMAKE_INSTALL_PREFIX=${PROTOBUF_SHARED_PKG_DIR} -Dprotobuf_BUILD_PROTOC_BINARIES=OFF <SOURCE_DIR>
-        BUILD_COMMAND $(MAKE) INSTALL_COMMAND $(MAKE) install EXCLUDE_FROM_ALL TRUE
-    )
-    set_target_properties(ascend_protobuf_shared_lib PROPERTIES IMPORTED_LOCATION ${PROTOBUF_SHARED_PKG_DIR}/lib/libascend_protobuf.so)
-    target_include_directories(ascend_protobuf INTERFACE ${PROTOBUF_SHARED_PKG_DIR}/include)
-    target_link_libraries(ascend_protobuf INTERFACE ascend_protobuf_shared_lib)
-    add_dependencies(ascend_protobuf protobuf_shared_build)
-    set(PROTOBUF_SHARED_LIB_DIR "${PROTOBUF_SHARED_PKG_DIR}/lib")
-endif()
-
-# ---------------------------------------------------------
 # Target: protobuf_static (Host Static)
 # ---------------------------------------------------------
 add_library(host_protobuf_static_lib STATIC IMPORTED)
 add_library(protobuf_static INTERFACE)
 
-if (HOST_PROTOBUF_STATIC_LIB AND EXISTS "${PROTOBUF_INCLUDE_DIRS}")
+if(HOST_PROTOBUF_STATIC_LIB AND EXISTS "${PROTOBUF_INCLUDE_DIRS}")
+    message("[ThirdPartyLib]: protobuf host static use cache.")
     set_target_properties(host_protobuf_static_lib PROPERTIES IMPORTED_LOCATION ${HOST_PROTOBUF_STATIC_LIB})
     target_include_directories(protobuf_static INTERFACE ${PROTOBUF_INCLUDE_DIRS})
     target_link_libraries(protobuf_static INTERFACE host_protobuf_static_lib)
     set(PROTOBUF_HOST_STATIC_FINAL_PATH ${HOST_PROTOBUF_STATIC_LIB})
 elseif(TARGET protobuf_headers_target AND HOST_PROTOBUF_STATIC_LIB)
+    message("[ThirdPartyLib]: protobuf host static depend protobuf_headers_target.")
     set_target_properties(host_protobuf_static_lib PROPERTIES IMPORTED_LOCATION ${HOST_PROTOBUF_STATIC_LIB})
     target_include_directories(protobuf_static INTERFACE ${PROTOBUF_INCLUDE_DIRS})
     target_link_libraries(protobuf_static INTERFACE host_protobuf_static_lib) 
     add_dependencies(protobuf_static protobuf_headers_target)
     set(PROTOBUF_HOST_STATIC_FINAL_PATH ${HOST_PROTOBUF_STATIC_LIB})
 else()
+    message("[ThirdPartyLib]: protobuf host static build.")
     ExternalProject_Add(protobuf_host_static_build
-        DEPENDS protobuf_src SOURCE_DIR ${PROTOBUF_SRC_DIR} DOWNLOAD_COMMAND "" UPDATE_COMMAND ""
-        CONFIGURE_COMMAND ${CMAKE_COMMAND} -G ${CMAKE_GENERATOR} -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER} -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER} -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=OFF -DCMAKE_CXX_STANDARD=14 -Dprotobuf_WITH_ZLIB=OFF -DLIB_PREFIX=host_ascend_ -DCMAKE_SKIP_RPATH=TRUE -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_CXX_FLAGS=${HOST_PROTOBUF_STATIC_CXXFLAGS} -DCMAKE_INSTALL_PREFIX=${PROTOBUF_HOST_STATIC_PKG_DIR} -Dprotobuf_BUILD_PROTOC_BINARIES=OFF -DABSL_COMPILE_OBJ=TRUE <SOURCE_DIR>
-        BUILD_COMMAND $(MAKE) INSTALL_COMMAND $(MAKE) install EXCLUDE_FROM_ALL TRUE
+        DEPENDS protobuf_src
+        SOURCE_DIR ${PROTOBUF_SRC_DIR}
+        DOWNLOAD_COMMAND ""
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ${CMAKE_COMMAND}
+            -G ${CMAKE_GENERATOR}
+            -DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
+            -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+            -DCMAKE_INSTALL_LIBDIR=lib
+            -DBUILD_SHARED_LIBS=OFF
+            -DCMAKE_CXX_STANDARD=14
+            -Dprotobuf_WITH_ZLIB=OFF
+            -DLIB_PREFIX=host_ascend_
+            -DCMAKE_SKIP_RPATH=TRUE
+            -Dprotobuf_BUILD_TESTS=OFF
+            -DCMAKE_CXX_FLAGS=${HOST_PROTOBUF_STATIC_CXXFLAGS}
+            -DCMAKE_INSTALL_PREFIX=${PROTOBUF_HOST_STATIC_PKG_DIR}
+            -Dprotobuf_BUILD_PROTOC_BINARIES=OFF
+            -DABSL_COMPILE_OBJ=TRUE
+            -DABSL_ROOT_DIR=${CMAKE_BINARY_DIR}/abseil_build-prefix/src/abseil_build
+            <SOURCE_DIR>
+        BUILD_COMMAND $(MAKE)
+        INSTALL_COMMAND $(MAKE) install
+        EXCLUDE_FROM_ALL TRUE
     )
     set_target_properties(host_protobuf_static_lib PROPERTIES IMPORTED_LOCATION ${PROTOBUF_HOST_STATIC_PKG_DIR}/lib/libhost_ascend_protobuf.a)
     target_include_directories(protobuf_static INTERFACE ${PROTOBUF_HOST_STATIC_PKG_DIR}/include)

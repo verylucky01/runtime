@@ -13,6 +13,7 @@
 
 #include <vector>
 #include <mutex>
+#include <memory>
 
 namespace bqs {
 using char_t = char;
@@ -82,6 +83,7 @@ struct BQSBindQueueMbufPoolItem {
     uint32_t mbufPoolDataBlkSize;
     uint32_t mbufPoolDataOffset;
     uint64_t freeOpAddr;
+    uint64_t allocOpAddr;
 };
 
 struct BQSUnbindQueueMbufPoolItem {
@@ -111,6 +113,18 @@ struct BindQueueInterChipInfo{
     uint32_t dstMbufHeadPoolOffset;            // mbuf的head block的偏移
     uint64_t dstMbufDataPoolBaseAddr;          // data pool池的基地址
     uint64_t dstMbufHeadPoolBaseAddr;          // head pool池的基地址
+};
+
+struct BQSBindQueueAlignmentItem {
+    uint32_t queueId;                          // 消费者队列ID
+    uint32_t frameAlignMode;                   // 桢对齐模式
+    uint32_t frameAlignTimeoutMode;            // 桢对齐超时时的处理模式
+    uint32_t frameAlignTimeoutThreshold;       // 桢对齐时间阈值
+    uint32_t defaultInputAddr;;                // 使用默认桢对齐时使用的输入地址数据
+};
+
+struct BQSUnbindQueueAlignmentItem {
+    uint32_t queueId;                          // 消费者队列ID
 };
 
 struct BQSBindQueueResult {
@@ -298,6 +312,12 @@ public:
     uint32_t BindQueueInterChip(BindQueueInterChipInfo &interChipInfo) const;
 
     uint32_t UnbindQueueInterChip(uint16_t srcQueueId) const;
+
+    uint32_t BindQueueAlignment(const std::vector<BQSBindQueueAlignmentItem> &bindQueueVec,
+                               std::vector<BQSBindQueueResult> &bindResultVec) const;
+
+    uint32_t UnbindQueueAlignment(const std::vector<BQSUnbindQueueAlignmentItem> &bindQueueVec,
+                                  std::vector<BQSBindQueueResult> &bindResultVec) const;
 
     /**
      * Destroy pip of client to server

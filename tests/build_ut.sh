@@ -324,9 +324,19 @@ run_ut() {
       rm -rf ${BASEPATH}/cov
       mkdir -p ${BASEPATH}/cov
       echo "WARNING: If an error occurs due to the version of the lcov tool, please select the appropriate parameters according to the prompts for adaptation."
-      lcov -c -d ${ut_dir} -o cov/tmp.info
-      lcov -r cov/tmp.info '/usr/*' "${OUTPUT_PATH}/*" "${BASEPATH}/tests/*" \
-        "${ASCEND_3RD_LIB_PATH}/*" "${BASEPATH}/build/*" -o cov/coverage.info
+      local os_version=""
+      if [ -f /etc/os-release ]; then
+        os_version="$(grep '^VERSION_ID=' /etc/os-release | cut -d '=' -f 2 | tr -d '"')"
+      fi
+      if [[ "${os_version}" == "24.04" ]]; then
+        lcov -c -d ${ut_dir} -o cov/tmp.info --ignore-errors mismatch,gcov,source,negative
+        lcov -r cov/tmp.info '/usr/*' "${OUTPUT_PATH}/*" "${BASEPATH}/tests/*" \
+          "${ASCEND_3RD_LIB_PATH}/*" "${BASEPATH}/build/*" -o cov/coverage.info --ignore-errors mismatch,unused
+      else
+        lcov -c -d ${ut_dir} -o cov/tmp.info
+        lcov -r cov/tmp.info '/usr/*' "${OUTPUT_PATH}/*" "${BASEPATH}/tests/*" \
+          "${ASCEND_3RD_LIB_PATH}/*" "${BASEPATH}/build/*" -o cov/coverage.info
+      fi
       cd ${BASEPATH}/cov
       genhtml coverage.info
     fi

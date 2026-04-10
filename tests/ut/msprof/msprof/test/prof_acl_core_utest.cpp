@@ -4465,3 +4465,31 @@ TEST_F(MSPROF_ACL_CORE_UTEST, GetOutputPath) {
     MSPROF_LOGE("outputpath is %s", ProfAclMgr::instance()->GetOutputPath().c_str());
     EXPECT_EQ("", ProfAclMgr::instance()->GetOutputPath());
 }
+
+TEST_F(MSPROF_ACL_CORE_UTEST, MsprofResetDeviceHandle_SetUploaderStopped)
+{
+  using namespace Msprofiler::Api;
+  const uint32_t devId = 0;
+  HDC_SESSION session = (HDC_SESSION)0x12345678;
+  auto transport = std::shared_ptr<analysis::dvvp::transport::ITransport>(
+      new analysis::dvvp::transport::HDCTransport(session));
+  auto uploader = std::make_shared<analysis::dvvp::transport::Uploader>(transport);
+
+  MOCKER_CPP(&analysis::dvvp::transport::UploaderMgr::GetUploader)
+      .stubs()
+      .with(any(), outBound(uploader));
+  MOCKER(&analysis::dvvp::transport::Uploader::SetTransportStopped).stubs();
+  MOCKER_CPP(&analysis::dvvp::host::ProfManager::IdeCloudProfileProcess)
+      .stubs()
+      .will(returnValue(PROFILING_SUCCESS));
+
+  std::shared_ptr<analysis::dvvp::message::ProfileParams> params(new analysis::dvvp::message::ProfileParams());
+  ProfAclMgr::ProfAclTaskInfo taskInfo = {1, 0, params};
+  ProfAclMgr::instance()->devTasks_[devId] = taskInfo;
+
+  EXPECT_EQ(MSPROF_ERROR_NONE, ProfAclMgr::instance()->MsprofResetDeviceHandle(devId));
+  EXPECT_EQ(true, ProfAclMgr::instance()->devTasks_[devId].params->isCancel);
+
+  ProfAclMgr::instance()->devTasks_.clear();
+  GlobalMockObject::verify();
+}

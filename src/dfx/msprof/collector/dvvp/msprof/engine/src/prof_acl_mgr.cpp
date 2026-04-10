@@ -2131,6 +2131,13 @@ int32_t ProfAclMgr::MsprofResetDeviceHandle(uint32_t devId)
         return MSPROF_ERROR_NONE;
     }
     devTask->second.params->isCancel = true;
+    SHARED_PTR_ALIA<Uploader> uploader = nullptr;
+    UploaderMgr::instance()->GetUploader(std::to_string(devId), uploader);
+    if (uploader != nullptr) {
+        uploader->SetTransportStopped();
+        MSPROF_LOGI("Device %u set uploader stopped", devId);
+    }
+
     if (ProfManager::instance()->IdeCloudProfileProcess(devTask->second.params) != PROFILING_SUCCESS) {
         MSPROF_LOGE("Failed to stop profiling on device %u", devId);
         MSPROF_INNER_ERROR("EK9999", "Failed to stop profiling on device %u", devId);

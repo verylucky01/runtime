@@ -86,10 +86,10 @@ add_subdirectory(profhal)
 add_subdirectory(streamio)
 add_subdirectory(stub_utest)
 add_subdirectory(transport)
-# add_subdirectory(st/cli)
-# add_subdirectory(st/geoption)
-# add_subdirectory(st/acljson)
-# add_subdirectory(st/api)
+add_subdirectory(st/cli)
+add_subdirectory(st/geoption)
+add_subdirectory(st/acljson)
+add_subdirectory(st/api)
 
 ###################################################################################################
 
@@ -110,7 +110,7 @@ set(MSPROF_TARGET
     streamio_common_utest
     stub_file_utest
     transport
-    # cli_stest
+    cli_stest
     # geoption_stest
     # acljson_stest
     # proftransport_st_static
@@ -123,6 +123,5 @@ set(MSPROF_TARGET
     # api_mdc_stest
     # acl_api_stest
     # api_tiny_stest
-    # profapi_share_st
 )
 add_custom_target(msprof_ut DEPENDS ${MSPROF_TARGET})

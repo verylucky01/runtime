@@ -210,8 +210,10 @@ set(libmsprofHeaderDir
     ${TOP_DIR}/src/dfx/error_manager
     ${TOP_DIR}/src/inc
     ${TOP_DIR}/pkg_inc/dump
-    ${TOP_DIR}/pkg_inc/aicpu
+    ${TOP_DIR}/pkg_inc/aicpu_sched
     ${TOP_DIR}/pkg_inc/base
+    ${TOP_DIR}/pkg_inc/runtime
+    ${TOP_DIR}/pkg_inc/runtime/runtime
     ${TOP_DIR}/src/dfx/adump/inc/metadef/external
     ${MSPROF_SOURCE_DIR}/dvvp/msprof/msproftx/mstx/inc
     ${MSPROF_SOURCE_DIR}/dvvp/profimpl/platform/closed
@@ -729,7 +731,7 @@ set_target_properties(api_tiny_stest
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-####################### libprofapi.so ###########################
+####################### libprofapi_st.so ###########################
 set(prof_api_src_file
     ${MSPROF_SOURCE_DIR}/dvvp/profapi/src/prof_inner_api.cpp
     ${MSPROF_SOURCE_DIR}/dvvp/profapi/src/prof_acl_inner_api.cpp
@@ -740,6 +742,7 @@ set(prof_api_src_file
     ${MSPROF_SOURCE_DIR}/dvvp/profapi/src/prof_tx_plugin.cpp
     ${MSPROF_SOURCE_DIR}/dvvp/profapi/src/prof_acl_plugin.cpp
     ${MSPROF_SOURCE_DIR}/dvvp/profapi/src/prof_runtime_plugin.cpp
+    ${MSPROF_SOURCE_DIR}/dvvp/profapi/src/prof_mstx_plugin.cpp
 )
 
 add_library(profapi_share_st SHARED
@@ -753,7 +756,7 @@ add_library(profapi_share_st SHARED
     ${MSPROF_SOURCE_DIR}/basic/osal/osal.c
     ${MSPROFILER_SRC_FILE}
     stub/aoe_stub.cpp
-    ../../stub/error_manager_stub.cpp
+    ../../stub/error_manager_stub2.cpp
 )
 
 target_compile_definitions(profapi_share_st PRIVATE
@@ -763,7 +766,7 @@ target_compile_definitions(profapi_share_st PRIVATE
 
 set_target_properties(profapi_share_st
     PROPERTIES
-    OUTPUT_NAME profapi
+    OUTPUT_NAME profapi_st
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
 )
 
@@ -784,6 +787,7 @@ target_link_options(profapi_share_st PRIVATE
 )
 
 target_include_directories(profapi_share_st PRIVATE
+    ${libmsprofHeaderDir}
     ${MSPROF_SOURCE_DIR}/dvvp/profapi/inc
     ${MSPROF_SOURCE_DIR}/dvvp/analyze/inc
     ${MSPROF_SOURCE_DIR}/dvvp

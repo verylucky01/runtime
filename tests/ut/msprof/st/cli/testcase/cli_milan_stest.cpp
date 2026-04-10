@@ -21,9 +21,7 @@
 #include "job_device_rpc.h"
 #include "job_device_soc.h"
 #include "utils.h"
-#include "aicpu_report_hdc.h"
 #include "dev_mgr_api.h"
-#include "aicpu_report_hdc.h"
 #include "devprof_drv_aicpu.h"
 #include "dlog_pub.h"
 
@@ -55,7 +53,6 @@ protected:
         system(MILAN_MKDIR);
         system("touch ./cli");
         MOCKER(mmCreateProcess).stubs().will(invoke(mmCreateProcessStub));
-        MOCKER_CPP(&AicpuReportHdc::Init).stubs().will(returnValue(PROFILING_FAILED));
         EXPECT_EQ(2, SimulatorMgr().CreateDeviceSimulator(2, StPlatformType::CHIP_V4_1_0));
         SimulatorMgr().SetSocSide(SocType::HOST);
     }
@@ -436,7 +433,7 @@ TEST_F(CliMilanStest, CliDataAicpuReportData)
 {
     // milan: Collect DATAPREPROCESS report data
     const char* argv[] = {MILAN_OUTPUT_DIR, "--aicpu=on",};
-    std::vector<std::string> dataList = {"DATA_PREPROCESS.test"};
+    std::vector<std::string> dataList = {"DATA_PREPROCESS.hash_dic"};
     MsprofMgr().SetHostCheckList(dataList);
     EXPECT_EQ(PROFILING_SUCCESS, MsprofMgr().MsprofStartByAppMode(sizeof(argv) / sizeof(char *), argv));
 }
@@ -507,21 +504,21 @@ TEST_F(CliMilanStest, CliTaskTimeL3)
 TEST_F(CliMilanStest, CliFwkScheduleOff)
 {
     // milan: Task-based AI core/vector metrics: ArithmeticUtilization
-    const char* argv[] = {MILAN_OUTPUT_DIR, "--fwk-schedule=off", };
+    const char* argv[] = {MILAN_OUTPUT_DIR, "--ge-api=off", };
     EXPECT_EQ(PROFILING_SUCCESS, MsprofMgr().MsprofStartByAppMode(sizeof(argv) / sizeof(char *), argv));
 }
 
 TEST_F(CliMilanStest, CliFwkScheduleOn)
 {
     // milan: Task-based AI core/vector metrics: ArithmeticUtilization
-    const char* argv[] = {MILAN_OUTPUT_DIR, "--fwk-schedule=l0", };
+    const char* argv[] = {MILAN_OUTPUT_DIR, "--ge-api=l0", };
     EXPECT_EQ(PROFILING_SUCCESS, MsprofMgr().MsprofStartByAppMode(sizeof(argv) / sizeof(char *), argv));
 }
 
 TEST_F(CliMilanStest, CliFwkScheduleERROR)
 {
     // milan: Task-based AI core/vector metrics: ArithmeticUtilization
-    const char* argv[] = {MILAN_OUTPUT_DIR, "--fwk-schedule=L1", };
+    const char* argv[] = {MILAN_OUTPUT_DIR, "--ge-api=L1", };
     EXPECT_EQ(PROFILING_FAILED, MsprofMgr().MsprofStartByAppMode(sizeof(argv) / sizeof(char *), argv));
 }
 

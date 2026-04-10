@@ -7,12 +7,23 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-#include "gtest/gtest.h"
+#ifndef ACL_STUB_H
+#define ACL_STUB_H
 
-int main(int argc, char** argv) {
-    testing::InitGoogleTest(&argc, argv);
+#include "acl/acl.h"
+#include "acl/acl_prof.h"
 
-    // Runs all tests using Google Test.
-    testing::GTEST_FLAG(filter) = "CliMilanStest.*";
-    return RUN_ALL_TESTS();
-}
+// simulate aclmdlDataset from ge
+struct aclmdlDataset {
+    uint32_t seq;
+    uint32_t modelId;
+    uint32_t timeStamp;
+    uint32_t timeout;
+    uint64_t requestId;
+};
+
+aclError aclmdlLoadFromFile(const char * /* modelPath */, uint32_t *modelId);
+aclError aclmdlUnload(uint32_t modelId);
+aclError aclmdlExecute(uint32_t modelId, const aclmdlDataset * /* input */, aclmdlDataset * /* output */);
+
+#endif

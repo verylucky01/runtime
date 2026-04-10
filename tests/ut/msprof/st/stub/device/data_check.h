@@ -50,7 +50,7 @@ const std::unordered_map<std::string, std::string> INTERNAL_SWITCH_MAP = {
     {"runtime-api", "runtimeApi"},
     {"task-tsfw", "taskTsfw"},
     {"task-time", "taskTime"},
-    {"fwk-schedule", "fwkSchedule"},
+    {"ge-api", "geApi"},
     {"task-trace", "taskTrace"},
     {"task-memory", "taskMemory"},
     {"aicpu", "aicpuTrace"},

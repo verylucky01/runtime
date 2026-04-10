@@ -17,6 +17,7 @@
 #include "prof_acl_api.h"
 #include "msprof_stub.h"
 #include "data_report_manager.h"
+#include "acl_stub.h"
 
 using namespace std;
 const uint32_t WAIT_FOR_DURATION        = 1;

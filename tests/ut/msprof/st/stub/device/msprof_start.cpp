@@ -12,6 +12,7 @@
 #include "msprof_start.h"
 #include "acl/acl.h"
 #include "acl/acl_prof.h"
+#include "acl_stub.h"
 #include "data_check.h"
 #include "data_report_manager.h"
 #include "msprof_main.h"

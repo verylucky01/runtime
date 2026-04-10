@@ -1095,6 +1095,10 @@ extern "C" void ProfImplSetCompactBufPop(const ProfCompactBufPopCallback func);
 extern "C" void ProfImplSetAdditionalBufPop(const ProfAdditionalBufPopCallback func);
 extern "C" void ProfImplIfReportBufEmpty(const ProfReportBufEmptyCallback func);
 extern "C" void ProfImplSetAdditionalBufPush(const ProfAdditionalBufPushCallback func);
+extern "C" void ProfImplSetBatchAddBufPop(const ProfBatchAddBufPopCallback func);
+extern "C" void ProfImplSetBatchAddBufIndexShift(const ProfBatchAddBufIndexShiftCallBack func);
+extern "C" void ProfImplSetVarAddBlockBufBatchPop(const ProfVarAddBlockBufPopCallback func);
+extern "C" void ProfImplSetVarAddBlockBufIndexShift(const ProfVarAddBufIndexShiftCallBack func);
 extern "C" void ProfImplSetMarkEx(const ProfMarkExCallback func);
 extern "C" int32_t ProfImplReportRegTypeInfo(uint16_t level, uint32_t type, const std::string &typeName);
 extern "C" uint64_t ProfImplReportGetHashId(const std::string &info);
@@ -1145,6 +1149,10 @@ const std::map<std::string, void*> g_map = {
     {"ProfImplSetCompactBufPop", (void *)ProfImplSetCompactBufPop},
     {"ProfImplSetAdditionalBufPop", (void *)ProfImplSetAdditionalBufPop},
     {"ProfImplIfReportBufEmpty", (void *)ProfImplIfReportBufEmpty},
+    {"ProfImplSetBatchAddBufPop", (void *)ProfImplSetBatchAddBufPop},
+    {"ProfImplSetBatchAddBufIndexShift", (void *)ProfImplSetBatchAddBufIndexShift},
+    {"ProfImplSetVarAddBlockBufBatchPop", (void *)ProfImplSetVarAddBlockBufBatchPop},
+    {"ProfImplSetVarAddBlockBufIndexShift", (void *)ProfImplSetVarAddBlockBufIndexShift},
     {"ProfImplReportRegTypeInfo", (void *)ProfImplReportRegTypeInfo},
     {"ProfImplReportGetHashId", (void *)ProfImplReportGetHashId},
     {"ProfImplSetAdditionalBufPush", (void *)ProfImplSetAdditionalBufPush},

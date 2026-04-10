@@ -13,8 +13,7 @@
 #include <fstream>
 #include <cstring>
 #include <nlohmann/json.hpp>
-#include "acl/acl.h"
-#include "acl/acl_prof.h"
+#include "acl_stub.h"
 #include "ge_stub.h"
 #include "data_report_manager.h"
 #include "prof_api.h"
@@ -128,6 +127,11 @@ static int32_t AicpuCallbackFunc(uint32_t type, void *data, uint32_t len)
     return 0;
 }
 
+static int32_t AicpuStart()
+{
+    return 0;
+}
+
 int32_t HandleAicpu(void *data, uint32_t dataLen)
 {
     (void)dataLen;
@@ -170,7 +174,11 @@ int32_t HandleAicpu(void *data, uint32_t dataLen)
     // runtime 触发 aicpu 向 devprof 注册 start，触发 devprof 调用驱动接口 prof_sample_register
     struct AicpuStartPara para = {0, (uint32_t)OsalGetPid(), 143, profSwitch}; // aicpu channel id:143
     (void)AdprofRegisterCallback(10086, &AicpuCallbackFunc);
-    return AdprofInit(&para);
+    int32_t ret = AdprofAicpuStartRegister(AicpuStart, &para);
+    if (ret == -1) {
+        return MSPROF_ERROR;
+    }
+    return 0;
 }
 #endif
 

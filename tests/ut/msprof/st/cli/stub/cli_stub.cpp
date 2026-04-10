@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include "cli_stub.h"
 #include "acl/acl.h"
+#include "acl_stub.h"
 #include "data_check.h"
 #include "data_report_manager.h"
 #include "acp_api_plugin.h"

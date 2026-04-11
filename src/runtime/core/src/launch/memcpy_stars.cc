@@ -41,7 +41,7 @@ rtError_t MemcopyAsync(
         rtMemcpyAsyncTask->u.memcpyAsyncTaskInfo.guardMemVec->emplace_back(guardMem);
     }
 
-    error = stm->Device_()->SubmitTask(rtMemcpyAsyncTask, stm->Context_()->TaskGenCallback_());
+    error = stm->Device_()->SubmitTask(rtMemcpyAsyncTask);
     if (error != RT_ERROR_NONE) {
         goto ERROR_RECYCLE;
     }

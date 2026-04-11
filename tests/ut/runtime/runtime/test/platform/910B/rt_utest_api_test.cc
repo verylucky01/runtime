@@ -2256,6 +2256,24 @@ TEST_F(NewCloudV2ApiTest, rtDeviceTaskAbort_04)
     EXPECT_EQ(g_taskAbortCallBack, true);
 }
 
+TEST_F(NewCloudV2ApiTest, rtDeviceTaskAbort_05)
+{
+    rtError_t error = RT_ERROR_NONE;
+    uint32_t devId = 0U;
+    Runtime *rtInstance = ((Runtime *)Runtime::Instance());
+
+    MOCKER(halTsdrvCtl).stubs().will(returnValue(DRV_ERROR_NONE));
+    MOCKER(halSqCqFree).stubs().will(returnValue(DRV_ERROR_NONE));
+    MOCKER(halSqCqAllocate).stubs().will(returnValue(DRV_ERROR_NONE));
+    uint32_t status = static_cast<uint32_t>(APP_ABORT_TERMINATE_FINISH);
+    MOCKER_CPP(&Context::StreamsQuery).stubs().with(outBound(status)).will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&StreamSqCqManage::UpdateStreamSqCq).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER(ContextManage::IsSupportDeviceAbort).stubs().will(returnValue(true));
+
+    error = rtDeviceTaskAbort(devId, 1000);
+    EXPECT_EQ(error, DRV_ERROR_NONE);
+}
+
 TEST_F(NewCloudV2ApiTest, RT_SetOpExecuteWithMs_8)
 {
     rtError_t error;

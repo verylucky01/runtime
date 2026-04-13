@@ -22,7 +22,7 @@ namespace acl {
 
     aclError QueueProcessor::acltdtEnqueue(const uint32_t qid, const acltdtBuf buf, const int32_t timeout)
     {
-        ACL_REQUIRES_NOT_NULL(buf);
+        ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(buf);
         const QueueDataMutexPtr muPtr = GetMutexForData(qid);
         ACL_CHECK_MALLOC_RESULT(muPtr);
         const uint64_t startTime = GetTimestamp();

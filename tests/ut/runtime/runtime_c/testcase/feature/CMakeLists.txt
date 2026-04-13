@@ -69,7 +69,7 @@ add_executable(c_feature_linux_utest
 
 target_compile_options(c_feature_linux_utest PRIVATE
     $<$<BOOL:${ENABLE_ASAN}>:-fsanitize=address,-fsanitize=leak>
-    $<$<BOOL:${ENABLE_GCOV}>:--coverage,-fprofile-arcs,-ftest-coverage>
+    $<$<BOOL:${ENABLE_COV}>:--coverage -fprofile-arcs -ftest-coverage>
     -g
     -Wall
     -Wextra
@@ -123,7 +123,7 @@ add_executable(c_feature_liteos_utest
 
 target_compile_options(c_feature_liteos_utest PRIVATE
     $<$<BOOL:${ENABLE_ASAN}>:-fsanitize=address,-fsanitize=leak>
-    $<$<BOOL:${ENABLE_GCOV}>:--coverage,-fprofile-arcs,-ftest-coverage>
+    $<$<BOOL:${ENABLE_COV}>:--coverage -fprofile-arcs -ftest-coverage>
     -g
     -Wall
     -Wextra

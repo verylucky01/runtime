@@ -12,15 +12,15 @@
 #include "log_inner.h"
 
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
 
 #define POLICY_MASK_LOW_BIT 0xFF
 #define POLICY_MASK_HIGH_BIT 0xFF00
 
 struct PageType {
-  uint32_t aclPageType;
-  uint32_t rtPageTypeBit;
+    uint32_t aclPageType;
+    uint32_t rtPageTypeBit;
 };
 
 static struct PageType g_pageMap[] = {
@@ -31,33 +31,33 @@ static struct PageType g_pageMap[] = {
     {ACL_MEM_MALLOC_HUGE_ONLY_P2P, RT_MEMORY_POLICY_HUGE_PAGE_ONLY_P2P},
     {ACL_MEM_MALLOC_NORMAL_ONLY_P2P, RT_MEMORY_POLICY_DEFAULT_PAGE_ONLY_P2P}};
 
-
-static int Compare(const void *a, const void *b) {
-  return (int)((*(const struct PageType*)a).aclPageType - (*(const struct PageType*)b).aclPageType);
+static int Compare(const void* a, const void* b)
+{
+    return (int)((*(const struct PageType*)a).aclPageType - (*(const struct PageType*)b).aclPageType);
 }
 
+aclError GetMemTypeFromPolicy(aclrtMemMallocPolicy policy, rtMemType_t* type)
+{
+    uint32_t flags = RT_MEMORY_DEFAULT;
+    if (((uint32_t)policy & POLICY_MASK_HIGH_BIT) == ACL_MEM_TYPE_LOW_BAND_WIDTH) {
+        flags = RT_MEMORY_DDR;
+    } else if (((uint32_t)policy & POLICY_MASK_HIGH_BIT) == ACL_MEM_TYPE_HIGH_BAND_WIDTH) {
+        flags = RT_MEMORY_HBM;
+    } else {
+        ACL_LOG_WARN("invalid policy high bit!");
+    }
 
-aclError GetMemTypeFromPolicy(aclrtMemMallocPolicy policy, rtMemType_t *type) {
-  uint32_t flags = RT_MEMORY_DEFAULT;
-  if (((uint32_t)policy & POLICY_MASK_HIGH_BIT) == ACL_MEM_TYPE_LOW_BAND_WIDTH) {
-    flags = RT_MEMORY_DDR;
-  } else if (((uint32_t)policy & POLICY_MASK_HIGH_BIT) == ACL_MEM_TYPE_HIGH_BAND_WIDTH) {
-    flags = RT_MEMORY_HBM;
-  } else {
-    ACL_LOG_WARN("invalid policy high bit!");
-  }
-
-  size_t pageMapLen = sizeof(g_pageMap) / sizeof(g_pageMap[0]);
-  size_t pagePairLen = sizeof(g_pageMap[0]);
-  struct PageType pagePair = {(uint32_t)policy & POLICY_MASK_LOW_BIT, 0};
-  struct PageType *searchRet = (struct PageType*)bsearch(&pagePair, g_pageMap, pageMapLen, pagePairLen, Compare);
-  if (searchRet == NULL) {
-    ACL_LOG_ERROR("invalid policy low bit!");
-    return ACL_ERROR_INVALID_PARAM;
-  }
-  flags |= (*searchRet).rtPageTypeBit;
-  *type = flags;
-  return ACL_SUCCESS;
+    size_t pageMapLen = sizeof(g_pageMap) / sizeof(g_pageMap[0]);
+    size_t pagePairLen = sizeof(g_pageMap[0]);
+    struct PageType pagePair = {(uint32_t)policy & POLICY_MASK_LOW_BIT, 0};
+    struct PageType* searchRet = (struct PageType*)bsearch(&pagePair, g_pageMap, pageMapLen, pagePairLen, Compare);
+    if (searchRet == NULL) {
+        ACL_LOG_ERROR("invalid policy low bit!");
+        return ACL_ERROR_INVALID_PARAM;
+    }
+    flags |= (*searchRet).rtPageTypeBit;
+    *type = flags;
+    return ACL_SUCCESS;
 }
 #ifdef __cplusplus
 }

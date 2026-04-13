@@ -15,29 +15,25 @@
 extern "C" {
 #endif
 
-aclError aclrtSubscribeReport(uint64_t threadId, aclrtStream stream) {
-  return rtSubscribeReport(threadId, (rtStream_t)stream);
+aclError aclrtSubscribeReport(uint64_t threadId, aclrtStream stream)
+{
+    return rtSubscribeReport(threadId, (rtStream_t)stream);
 }
 
-aclError aclrtLaunchCallback(aclrtCallback fn, void *userData,
-                             aclrtCallbackBlockType blockType,
-                             aclrtStream stream) {
-  if ((blockType != ACL_CALLBACK_BLOCK) &&
-      (blockType != ACL_CALLBACK_NO_BLOCK)) {
-    ACL_LOG_INNER_ERROR("invalid block type, the current blockType = %d",
-                        blockType);
-    return ACL_ERROR_INVALID_PARAM;
-  }
-  return rtCallbackLaunch((rtCallback_t)(fn), userData, (rtStream_t)(stream),
-                          (blockType == ACL_CALLBACK_BLOCK));
+aclError aclrtLaunchCallback(aclrtCallback fn, void* userData, aclrtCallbackBlockType blockType, aclrtStream stream)
+{
+    if ((blockType != ACL_CALLBACK_BLOCK) && (blockType != ACL_CALLBACK_NO_BLOCK)) {
+        ACL_LOG_INNER_ERROR("invalid block type, the current blockType = %d", blockType);
+        return ACL_ERROR_INVALID_PARAM;
+    }
+    return rtCallbackLaunch((rtCallback_t)(fn), userData, (rtStream_t)(stream), (blockType == ACL_CALLBACK_BLOCK));
 }
 
-aclError aclrtProcessReport(int32_t timeout) {
-  return rtProcessReport(timeout);
-}
+aclError aclrtProcessReport(int32_t timeout) { return rtProcessReport(timeout); }
 
-aclError aclrtUnSubscribeReport(uint64_t threadId, aclrtStream stream) {
-  return rtUnSubscribeReport(threadId, (rtStream_t)(stream));
+aclError aclrtUnSubscribeReport(uint64_t threadId, aclrtStream stream)
+{
+    return rtUnSubscribeReport(threadId, (rtStream_t)(stream));
 }
 
 #if defined(__cplusplus)

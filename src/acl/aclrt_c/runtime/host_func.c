@@ -14,16 +14,16 @@
 extern "C" {
 #endif
 
-aclError aclrtSubscribeHostFunc(uint64_t hostFuncThreadId, aclrtStream exeStream) {
-  return rtSubscribeHostFunc(hostFuncThreadId, (rtStream_t)exeStream);
+aclError aclrtSubscribeHostFunc(uint64_t hostFuncThreadId, aclrtStream exeStream)
+{
+    return rtSubscribeHostFunc(hostFuncThreadId, (rtStream_t)exeStream);
 }
 
-aclError aclrtProcessHostFunc(int32_t timeout) {
-  return rtProcessHostFunc(timeout);
-}
+aclError aclrtProcessHostFunc(int32_t timeout) { return rtProcessHostFunc(timeout); }
 
-aclError aclrtUnSubscribeHostFunc(uint64_t hostFuncThreadId, aclrtStream exeStream) {
-  return rtUnSubscribeHostFunc(hostFuncThreadId, (rtStream_t)(exeStream));
+aclError aclrtUnSubscribeHostFunc(uint64_t hostFuncThreadId, aclrtStream exeStream)
+{
+    return rtUnSubscribeHostFunc(hostFuncThreadId, (rtStream_t)(exeStream));
 }
 
 #if defined(__cplusplus)

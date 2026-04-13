@@ -71,7 +71,7 @@ target_include_directories(ascendcl_c_utest PRIVATE
 target_compile_options(ascendcl_c_utest PRIVATE
     -g -Wall -Wextra -Wfloat-equal -Werror
     $<$<BOOL:${ENABLE_ASAN}>:-fsanitize=address,-fsanitize=leak>
-    $<$<BOOL:${ENABLE_GCOV}>:--coverage,-fprofile-arcs,-ftest-coverage>
+    $<$<BOOL:${ENABLE_COV}>:--coverage -fprofile-arcs -ftest-coverage>
 )
 
 target_compile_definitions(ascendcl_c_utest PRIVATE
@@ -83,7 +83,7 @@ target_compile_definitions(ascendcl_c_utest PRIVATE
 
 target_link_libraries(ascendcl_c_utest PRIVATE
     $<$<BOOL:${ENABLE_ASAN}>:-fsanitize=address,-fsanitize=leak>
-    $<$<BOOL:${ENABLE_GCOV}>:-lgcov>
+    $<$<BOOL:${ENABLE_COV}>:-lgcov>
     $<BUILD_INTERFACE:intf_pub>
     $<BUILD_INTERFACE:c_sec_headers>
     c_sec

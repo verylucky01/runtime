@@ -20,7 +20,7 @@ typedef uint32_t Status;
 
 Status GeInitialize(void);
 Status GeFinalize(void);
-Status GeDbgInit(const char *configPath);
+Status GeDbgInit(const char* configPath);
 Status GeDbgDeInit(void);
 Status GeNofifySetDevice(uint32_t chipId, uint32_t deviceId);
 

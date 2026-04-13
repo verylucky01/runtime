@@ -43,7 +43,7 @@ target_include_directories(c_base_utest PRIVATE
 
 target_compile_options(c_base_utest PRIVATE
     $<$<BOOL:${ENABLE_ASAN}>:-fsanitize=address,-fsanitize=leak>
-    $<$<BOOL:${ENABLE_GCOV}>:--coverage,-fprofile-arcs,-ftest-coverage>
+    $<$<BOOL:${ENABLE_COV}>:--coverage -fprofile-arcs -ftest-coverage>
     -g
     -Wall
     -Wextra

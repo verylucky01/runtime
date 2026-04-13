@@ -14,7 +14,6 @@
 #include "acl/acl_rt.h"
 #include "runtime/mem.h"
 
-
-aclError GetMemTypeFromPolicy(aclrtMemMallocPolicy policy, rtMemType_t *type);
+aclError GetMemTypeFromPolicy(aclrtMemMallocPolicy policy, rtMemType_t* type);
 
 #endif

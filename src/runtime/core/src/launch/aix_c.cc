@@ -296,8 +296,8 @@ rtError_t StreamLaunchKernelV1(const void * const stubFunc, const uint32_t coreD
     AicTaskInit(kernelTask, kernelType, static_cast<uint16_t>(coreDim), flag, &taskCfg, false);
     // for simt
     error = CheckDynSizeValid(kernelTask, registeredKernel);
-    ERROR_RETURN_MSG_INNER(error, "Failed to check SimtSmSize, stream_id=%d, retCode=%#x.", stm->Id_(),
-        static_cast<uint32_t>(error));
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "check simtSmSize failed, stream_id=%d, kernel_name=%s, retCode=%#x.",
+        stm->Id_(), registeredKernel->Name_().c_str(), static_cast<uint32_t>(error));
     error = static_cast<DavidStream *>(dstStm)->LoadArgsInfo(argsInfo, useArgPool, &result);
     ERROR_RETURN_MSG_INNER(error, "Failed to load args, stream_id=%d, useArgPool=%u, retCode=%#x.",
         stm->Id_(), useArgPool, static_cast<uint32_t>(error));
@@ -406,8 +406,8 @@ rtError_t StreamLaunchKernelWithHandle(void * const progHandle, const uint64_t t
     }
     AicTaskInit(kernelTask, kernelType, static_cast<uint16_t>(coreDim), flag, &taskCfg, false);
     error = CheckDynSizeValid(kernelTask, registeredKernel);
-    ERROR_RETURN_MSG_INNER(error, "Failed to check SimtSmSize, stream_id=%d, retCode=%#x.",
-        stm->Id_(), static_cast<uint32_t>(error));
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "check simtSmSize failed, stream_id=%d, kernel_name=%s, retCode=%#x.",
+        stm->Id_(), name.c_str(), static_cast<uint32_t>(error));
     error = static_cast<DavidStream *>(dstStm)->LoadArgsInfo(argsInfo, useArgPool, &result);
     ERROR_RETURN_MSG_INNER(error, "Failed to load args, stream_id=%d, useArgPool=%u, retCode=%#x.",
         stm->Id_(), useArgPool, static_cast<uint32_t>(error));
@@ -517,8 +517,8 @@ rtError_t StreamLaunchKernelV2(Kernel * const kernel, const uint32_t coreDim, St
     AicTaskInitByExtendAgrs(kernelTask, kernelType, coreDim, extendAgrs);
 
     error = CheckDynSizeValid(kernelTask, kernel);
-    ERROR_RETURN_MSG_INNER(error, "Failed to SetSimtSmSize, stream_id=%d, retCode=%#x.",
-        stm->Id_(), static_cast<uint32_t>(error));
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "check simtSmSize failed, stream_id=%d, kernel_name=%s, retCode=%#x.",
+        stm->Id_(), kernel->Name_().c_str(), static_cast<uint32_t>(error));
     error = static_cast<DavidStream *>(dstStm)->LoadArgsInfo(argsInfo, useArgPool, &result);
     ERROR_RETURN_MSG_INNER(error, "Failed to load args, stream_id=%d, useArgPool=%u, retCode=%#x.",
         stm->Id_(), useArgPool, static_cast<uint32_t>(error));

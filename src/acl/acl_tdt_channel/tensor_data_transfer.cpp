@@ -788,7 +788,7 @@ aclError acltdtGetSliceInfoFromItem(const acltdtDataItem *dataItem, size_t *slic
 
 aclError acltdtGetDimsFromItem(const acltdtDataItem *dataItem, int64_t *dims, size_t dimNum)
 {
-    ACL_REQUIRES_NOT_NULL(dataItem);
+    ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(dataItem);
     // check dims and dimNum
     if ((dims == nullptr && dimNum != 0) || (dims != nullptr && dimNum == 0)) {
         ACL_LOG_INNER_ERROR("[Check][Params]acltdtGetDimsFromItem failed, invalid dims and dimNum[%zu]", dimNum);

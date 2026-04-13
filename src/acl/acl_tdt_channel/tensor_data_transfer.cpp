@@ -933,7 +933,7 @@ size_t acltdtGetDatasetSize(const acltdtDataset *dataset)
 
 acltdtChannelHandle *acltdtCreateChannel(uint32_t deviceId, const char *name)
 {
-    ACL_REQUIRES_NOT_NULL_RET_NULL(name);
+    ACL_REQUIRES_NOT_NULL_RET_NULL_INPUT_REPORT(name);
     static TdtHostInitFunc tdtHostInit = (TdtHostInitFunc)GetFunction("TdtHostInit");
     if (tdtHostInit == nullptr) {
         return nullptr;

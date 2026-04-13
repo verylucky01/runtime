@@ -219,9 +219,23 @@ set(runtimeut_platform_list
 set(runtimeut_src_context_list
     ${TOP_DIR}/src/runtime/core/src/context/context.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_standard_soc.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/context_standard_soc_aclgraph.cc
     ${TOP_DIR}/src/runtime/feature/ffts/context_ffts_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_manage.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_protect.cc
+)
+
+set(runtimeut_src_aclgraph_list
+    ${TOP_DIR}/src/runtime/feature/aclgraph/api_decorator_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v100/api_impl_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v100/api_impl_capture_event.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/api_error_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/context_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/model_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/capture_model.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/capture_model_utils.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/event_capture.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/stream_capture.cc
 )
 
 set(runtimeut_common_src_stream_list
@@ -303,10 +317,12 @@ set(runtimeut_src_tiny_exclude_list
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_soma.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_david.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v200/api_impl_david_capture_event.cc
     ${TOP_DIR}/src/runtime/feature/xpu/api_error_xpu.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_error_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_standard_soc.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/context_standard_soc_aclgraph.cc
     ${TOP_DIR}/src/runtime/feature/ffts/context_ffts_standard_soc.cc
     ${TOP_DIR}/src/runtime/driver/npu_driver_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/engine/hwts/direct_hwts_engine.cc
@@ -347,6 +363,7 @@ set(runtimeut_src_tiny_include_list
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/v100/api_impl_v100.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_tiny_stub.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/tiny/context_tiny_stub_aclgraph.cc
     ${TOP_DIR}/src/runtime/feature/ffts/context_ffts_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/dfx/printf_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/dfx/kernel_dfx_info.cc
@@ -376,6 +393,7 @@ set(runtime_raw_device_adpt_david_list
 set(runtimeut_src_list
     ${runtimeut_src_task_list}
     ${runtimeut_src_api_list}
+    ${runtimeut_src_aclgraph_list}
     ${runtimeut_src_context_list}
     ${runtimeut_src_stream_list}
     ${runtimeut_src_profile_list}
@@ -416,10 +434,9 @@ set(runtimeut_src_list
     ${TOP_DIR}/src/runtime/driver/npu_driver_dcache_lock_common.cpp
     ${TOP_DIR}/src/runtime/core/src/model/model.cc
     ${TOP_DIR}/src/runtime/core/src/model/model_rebuild.cc
-    ${TOP_DIR}/src/runtime/core/src/model/capture_model.cc
-    ${TOP_DIR}/src/runtime/core/src/model/capture_model_utils.cc
     ${TOP_DIR}/src/runtime/core/src/model/v100/capture_adapt.cc
-    ${TOP_DIR}/src/runtime/core/src/model/v100/capture_model_adapt.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v100/capture_adapt_v100.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v100/capture_model_adapt_v100.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/args/args_handle_allocator.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/binary_loader.cc
@@ -527,6 +544,7 @@ set(runtime_xpu_src
 set(runtimeut_david_src_list
     ${runtimeut_david_src_task_list}
     ${runtimeut_src_api_list}
+    ${runtimeut_src_aclgraph_list}
     ${runtimeut_src_context_list}
     ${runtimeut_david_src_stream_list}
     ${runtimeut_src_profile_list}
@@ -543,6 +561,7 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_mbuf.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_david.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v200/api_impl_david_capture_event.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_creator.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/v200/api_impl_creator_c.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_standard_soc.cc
@@ -573,10 +592,9 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/driver/npu_driver_dcache_lock_common.cpp
     ${TOP_DIR}/src/runtime/core/src/model/model.cc
     ${TOP_DIR}/src/runtime/core/src/model/model_rebuild.cc
-    ${TOP_DIR}/src/runtime/core/src/model/capture_model.cc
-    ${TOP_DIR}/src/runtime/core/src/model/capture_model_utils.cc
     ${TOP_DIR}/src/runtime/core/src/model/v200/capture_adapt.cc
-    ${TOP_DIR}/src/runtime/core/src/model/v200/capture_model_adapt.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v200/capture_adapt_v200.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v200/capture_model_adapt_v200.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/args/args_handle_allocator.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/v200_base/kernel.cc
@@ -1340,6 +1358,7 @@ set(runtimeut_v201_src_task_list
 set(runtimeut_v201_src_list
     ${runtimeut_v201_src_task_list}
     ${runtimeut_src_api_list}
+    ${runtimeut_src_aclgraph_list}
     ${runtimeut_src_context_list}
     ${runtimeut_v201_src_stream_list}
     ${runtimeut_src_profile_list}
@@ -1356,6 +1375,7 @@ set(runtimeut_v201_src_list
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_mbuf.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_david.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v200/api_impl_david_capture_event.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_creator.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/v100/api_impl_v100.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/v201/api_impl_v201.cc
@@ -1386,10 +1406,9 @@ set(runtimeut_v201_src_list
     ${TOP_DIR}/src/runtime/driver/npu_driver_dcache_lock_common.cpp
     ${TOP_DIR}/src/runtime/core/src/model/model.cc
     ${TOP_DIR}/src/runtime/core/src/model/model_rebuild.cc
-    ${TOP_DIR}/src/runtime/core/src/model/capture_model.cc
-    ${TOP_DIR}/src/runtime/core/src/model/capture_model_utils.cc
     ${TOP_DIR}/src/runtime/core/src/model/v200/capture_adapt.cc
-    ${TOP_DIR}/src/runtime/core/src/model/v200/capture_model_adapt.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v200/capture_adapt_v200.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v200/capture_model_adapt_v200.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/args/args_handle_allocator.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/v200_base/kernel.cc

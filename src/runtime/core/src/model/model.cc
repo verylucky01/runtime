@@ -1871,67 +1871,6 @@ rtError_t Model::SendTaskToAicpu(const rtKernelLaunchNames_t * const launchNames
     return stm->Synchronize();
 }
 
-uint32_t Model::ModelGetNodes(void) const
-{
-    uint32_t nodeNum = 0U;
-    for (Stream * const stm : streams_) {
-        nodeNum += stm->GetDelayRecycleTaskSqeNum();
-    }
-
-    return nodeNum;
-}
-
-rtError_t Model::ModelDebugDotPrint(void) const
-{
-    const uint32_t deviceId = context_->Device_()->Id_();
-    RT_LOG(RT_LOG_EVENT, "model dot print begin, device_id=%u, model_id=%d.", deviceId, id_);
-
-    for (Stream * const stm : streams_) {
-        stm->DebugDotPrintForModelStm();
-    }
-
-    if (modelType_ == RT_MODEL_CAPTURE_MODEL) {
-        const CaptureModel * const captureMdl = dynamic_cast<CaptureModel const *>(this);
-        captureMdl->DebugDotPrintTaskGroups(deviceId);
-    }
-
-    RT_LOG(RT_LOG_EVENT, "model dot print end, device_id=%u, model_id=%d.", deviceId, id_);
-
-    return RT_ERROR_NONE;
-}
-
-rtError_t Model::ModelDebugJsonPrint(const char* path, const unsigned int flags) const
-{
-    (void)flags;
-    const uint32_t deviceId = context_->Device_()->Id_();
-    RT_LOG(RT_LOG_EVENT, "model json print begin, device_id=%u, model_id=%d.", deviceId, id_);
-
-    std::string realFilePath = RealPathForFileNotExists(path);
-    std::ofstream outputFile(realFilePath);
-    COND_RETURN_OUT_ERROR_MSG_CALL((!outputFile.is_open()), RT_ERROR_INVALID_VALUE,
-        "Invalid JSON file path or failed to open %s", path);
-    outputFile << "[\n";
-    uint32_t streamCnt = 0;
-    bool isLastStream = false;
-    for (Stream * const stm : streams_) {
-        streamCnt++;
-        isLastStream = (streamCnt == streams_.size()) ? true : false;
-        stm->DebugDotPrintForModelStm();
-        stm->DebugJsonPrintForModelStm(outputFile, Id_(), isLastStream);
-    }
-    outputFile << "]";
-    outputFile.close();
-
-    if (modelType_ == RT_MODEL_CAPTURE_MODEL) {
-        const CaptureModel * const captureMdl = dynamic_cast<CaptureModel const *>(this);
-        captureMdl->DebugDotPrintTaskGroups(deviceId);
-    }
-
-    RT_LOG(RT_LOG_EVENT, "model json print end, device_id=%u, model_id=%d.", deviceId, id_);
-
-    return RT_ERROR_NONE;
-}
-
 rtError_t Model::GetModelName(const uint32_t maxLen, char_t * const name) const
 {
     const errno_t error = memcpy_s(name, static_cast<size_t>(maxLen), name_.c_str(), name_.length() + 1U);

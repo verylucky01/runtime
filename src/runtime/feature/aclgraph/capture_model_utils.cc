@@ -7,13 +7,27 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 #include "capture_model_utils.hpp"
 #include "inner_thread_local.hpp"
 #include "raw_device.hpp"
 
 namespace cce {
 namespace runtime {
+
+rtError_t CheckCaptureStreamThreadIsMatch(const Stream * const stm)
+{
+    const rtStreamCaptureMode streamCaptureMode = stm->GetStreamCaptureMode();
+    const uint32_t threadId = stm->GetBeginCaptureThreadId();
+    if (threadId == runtime::GetCurrentTid()) {
+        return RT_ERROR_NONE;
+    }
+    if (streamCaptureMode != RT_STREAM_CAPTURE_MODE_RELAXED) {
+        RT_LOG(RT_LOG_ERROR, "end capture in the wrong thread.");
+        return RT_ERROR_STREAM_CAPTURE_WRONG_THREAD;
+    }
+    return RT_ERROR_NONE;
+}
+
 bool IsEventCapturing(const Event * const evt, const Stream * const stm)
 {
     if (evt->GetEventFlag() == RT_EVENT_EXTERNAL) {
@@ -39,7 +53,6 @@ bool IsEventCapturing(const Event * const evt, const Stream * const stm)
     }
     return false;
 }
-
 bool IsCrossCaptureModel(const Event * const evt, const Stream * const stm)
 {
     CaptureModel *evtMdl = nullptr;
@@ -51,7 +64,6 @@ bool IsCrossCaptureModel(const Event * const evt, const Stream * const stm)
     // stmMdl and evtMdl must not be nullptr at this time.
     return (stmMdl != evtMdl);
 }
-
 void TerminateCapture(const Event * const evt, const Stream * const stm)
 {
     CaptureModel *stmMdl = nullptr;
@@ -67,7 +79,6 @@ void TerminateCapture(const Event * const evt, const Stream * const stm)
         stmMdl->TerminateCapture();
     }
 }
-
 rtError_t GetCaptureStream(Context * const ctx, Stream * const stm, const Event * const evt, Stream ** const captureStm)
 {
     Stream *curStm = stm->GetCaptureStream();
@@ -107,26 +118,10 @@ rtError_t GetCaptureStream(Context * const ctx, Stream * const stm, const Event 
     *captureStm = curStm;
     return RT_ERROR_NONE;
 }
-
 bool IsCapturedTask(const Stream * const launchStm, const TaskInfo *submitTask)
 {
     return (launchStm != submitTask->stream);
 }
-
-rtError_t CheckCaptureStreamThreadIsMatch(const Stream * const stm)
-{
-    const rtStreamCaptureMode streamCaptureMode = stm->GetStreamCaptureMode();
-    const uint32_t threadId = stm->GetBeginCaptureThreadId();
-    if (threadId == runtime::GetCurrentTid()) {
-        return RT_ERROR_NONE;
-    }
-    if (streamCaptureMode != RT_STREAM_CAPTURE_MODE_RELAXED) {
-        RT_LOG(RT_LOG_ERROR, "end capture in the wrong thread.");
-        return RT_ERROR_STREAM_CAPTURE_WRONG_THREAD;
-    }
-    return RT_ERROR_NONE;
-}
-
 bool IsSoftwareSqCaptureModel(Model * const mdl)
 {
     if (mdl->GetModelType() != ModelType::RT_MODEL_CAPTURE_MODEL) {
@@ -135,7 +130,6 @@ bool IsSoftwareSqCaptureModel(Model * const mdl)
     CaptureModel *capMdl = dynamic_cast<CaptureModel *>(mdl);
     return capMdl != nullptr && capMdl->IsSoftwareSqEnable();
 }
-
 rtError_t CheckCaptureModelSupportSoftwareSq(Device* const dev)
 {
     NULL_PTR_RETURN(dev, RT_ERROR_DEVICE_NULL);
@@ -160,7 +154,6 @@ rtError_t CheckCaptureModelSupportSoftwareSq(Device* const dev)
 
     return RT_ERROR_NONE;
 }
-
 rtError_t CheckCaptureModelForUpdate(Stream* stm) {
     NULL_PTR_RETURN(stm, RT_ERROR_STREAM_NULL);
     Device* dev = stm->Device_();

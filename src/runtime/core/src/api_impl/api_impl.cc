@@ -1466,76 +1466,6 @@ rtError_t ApiImpl::StreamDestroy(Stream * const stm, bool flag)
     return error;
 }
 
-rtError_t ApiImpl::GetCaptureEvent(const Stream * const stm, Event * const evt, Event ** const captureEvt,
-    const bool isNewEvt)
-{
-    std::lock_guard<std::mutex> lock(evt->GetCaptureMutex());
-    Event *curEvent = evt->GetCaptureEvent();
-    if ((!isNewEvt) && (curEvent != nullptr)) {
-        RT_LOG(RT_LOG_INFO, "Capture event has been created, event_id=[%d->%d].",
-            evt->EventId_(), curEvent->EventId_());
-        *captureEvt = curEvent;
-        return RT_ERROR_NONE;
-    }
-    rtError_t error = RT_ERROR_NONE;
-    const int32_t eventId = (curEvent != nullptr) ? curEvent->EventId_() : INVALID_EVENT_ID;
-    Stream *captureStm = stm->GetCaptureStream();
-    COND_RETURN_ERROR_MSG_INNER((captureStm == nullptr), RT_ERROR_STREAM_NULL,
-        "Capture stream is invalid, stream_id=%d, event_id=[%d->%d].",
-        stm->Id_(), evt->EventId_(), eventId);
-
-    Model* mdl = captureStm->Model_();
-    COND_RETURN_ERROR_MSG_INNER((mdl == nullptr), RT_ERROR_MODEL_NULL,
-        "Capture model is invalid, stream_id=[%d->%d], event_id=[%d->%d].",
-        stm->Id_(), captureStm->Id_(), evt->EventId_(), eventId);
-
-    Event *newEvent = nullptr;
-    if (GlobalContainer::IsEventHardMode()) {
-        error = EventCreate(&newEvent, RT_EVENT_WITH_FLAG);
-    } else {
-        error = EventCreateEx(&newEvent, RT_EVENT_WITH_FLAG);
-    }
-
-    COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE || newEvent == nullptr), error,
-        "Create capture event failed, stream_id=[%d->%d], event_id=[%d->%d], error=%d.",
-        stm->Id_(), captureStm->Id_(), evt->EventId_(), eventId, error);
-
-    evt->SetCaptureEvent(newEvent);
-    CaptureModel *captureMdl = dynamic_cast<CaptureModel *>(mdl);
-    captureMdl->InsertSingleOperEvent(evt);
-    newEvent->SetCaptureStream(captureStm);
-    captureMdl->InsertCaptureEvent(newEvent);
-
-    RT_LOG(RT_LOG_INFO, "Capture event_id=[%d->%d], model_id=%u, isNewEvt=%d, stream_id=[%d->%d].",
-        ((curEvent != nullptr) ? eventId : evt->EventId_()), newEvent->EventId_(),
-        captureMdl->Id_(), isNewEvt, stm->Id_(), captureStm->Id_());
-    *captureEvt = newEvent;
-    return RT_ERROR_NONE;
-}
-
-rtError_t ApiImpl::CaptureEventWait(Context * const ctx, Stream * const stm, Event * const evt,
-    const uint32_t timeout)
-{
-    Stream *captureStm = nullptr;
-    rtError_t error = GetCaptureStream(ctx, stm, evt, &captureStm);
-    ERROR_RETURN_MSG_INNER(error, "Create capture stream failed, stream_id=%d, event_id=%d, error=%d.",
-        stm->Id_(), evt->EventId_(), error);
-    Event *captureEvt = nullptr;
-    error = GetCaptureEvent(stm, evt, &captureEvt);
-    ERROR_RETURN_MSG_INNER(error, "Create capture event failed, stream_id=%d, event_id=%d, error=%d.",
-        stm->Id_(), evt->EventId_(), error);
-    COND_RETURN_ERROR_MSG_INNER(IsCrossCaptureModel(captureEvt, captureStm),
-        RT_ERROR_STREAM_CAPTURE_CONFLICT, "Capture event and capture stream is cross-model.");
-
-    error = stm->WaitEvent(captureEvt, timeout);
-    ERROR_RETURN_MSG_INNER(error, "Capture stream wait event failed, stream_id=[%d->%d], error=%d.",
-        stm->Id_(), captureStm->Id_(), error);
-    captureEvt->InsertWaitTaskStream(captureStm);
-    RT_LOG(RT_LOG_DEBUG, "stream_id=[%d->%d], event_id=[%d->%d].",
-        stm->Id_(), captureStm->Id_(), evt->EventId_(), captureEvt->EventId_());
-    return RT_ERROR_NONE;
-}
-
 rtError_t ApiImpl::StreamWaitEvent(Stream * const stm, Event * const evt, const uint32_t timeout)
 {
     RT_LOG(RT_LOG_DEBUG, "Stream wait event, timeout=%us.", timeout);
@@ -2028,46 +1958,6 @@ rtError_t ApiImpl::EventDestroySync(Event *evt)
     return RT_ERROR_NONE;
 }
 
-rtError_t ApiImpl::CaptureEventRecord(Context * const ctx, Event * const evt, Stream * const stm)
-{
-    Stream *captureStm = nullptr;
-    rtError_t error = GetCaptureStream(ctx, stm, evt, &captureStm);
-    ERROR_RETURN_MSG_INNER(error, "Create capture stream failed, stream_id=%d, event_id=%d, error=%d.",
-            stm->Id_(), evt->EventId_(), error);
-
-    bool isNewEvt = false;
-    if (GlobalContainer::IsEventHardMode()) {
-        Event * const captureEvt = evt->GetCaptureEvent();
-        if ((captureEvt == nullptr) || (!(captureEvt->HasRecord()))) {
-            evt->InitEventAllocFlag(stm->Id_());
-        }
-        if ((captureEvt == nullptr) || (captureEvt->HasRecord())) {
-            isNewEvt = evt->IsIdAllocFromDrv();
-        }
-    } else {
-        isNewEvt = true;
-    }
-
-    Event *captureEvt = nullptr;
-    error = GetCaptureEvent(stm, evt, &captureEvt, isNewEvt);
-    ERROR_RETURN_MSG_INNER(error, "Create capture event failed, stream_id=%d, event_id=%d, error=%d.",
-        stm->Id_(), evt->EventId_(), error);
-
-    COND_RETURN_ERROR_MSG_INNER(IsCrossCaptureModel(captureEvt, captureStm),
-        RT_ERROR_STREAM_CAPTURE_CONFLICT, "Capture event and capture stream is cross-model.");
-
-    error = captureEvt->Record(stm, true);
-    if (error != RT_ERROR_NONE) {
-        RT_LOG(RT_LOG_ERROR,
-            "Stream record capture event failed, stream_id=[%d->%d], error=%d.",
-            stm->Id_(), captureStm->Id_(), error);
-    } else {
-        RT_LOG(RT_LOG_DEBUG, "stream_id=[%d->%d], event_id=[%d->%d].",
-            stm->Id_(), captureStm->Id_(), evt->EventId_(), captureEvt->EventId_());
-    }
-    return error;
-}
-
 rtError_t ApiImpl::EventRecord(Event * const evt, Stream * const stm)
 {
     RT_LOG(RT_LOG_DEBUG, "event record.");
@@ -2115,29 +2005,6 @@ rtError_t ApiImpl::EventRecord(Event * const evt, Stream * const stm)
 rtError_t ApiImpl::GetEventID(Event * const evt, uint32_t * const evtId)
 {
     return evt->GetEventID(evtId);
-}
-
-rtError_t ApiImpl::CaptureEventReset(const Event * const evt, Stream * const stm)
-{
-    Event * const captureEvt = evt->GetCaptureEvent();
-    NULL_PTR_RETURN_MSG(captureEvt, RT_ERROR_EVENT_NULL);
-
-    const Stream * const captureStm = stm->GetCaptureStream();
-    NULL_STREAM_PTR_RETURN_MSG(captureStm);
-
-    COND_RETURN_ERROR_MSG_INNER(IsCrossCaptureModel(captureEvt, captureStm),
-        RT_ERROR_STREAM_CAPTURE_CONFLICT, "Capture event and capture stream is cross-model.");
-
-    const rtError_t error = captureEvt->Reset(stm);
-    if (error != RT_ERROR_NONE) {
-        RT_LOG(RT_LOG_ERROR,
-            "Stream reset capture event failed, stream_id=[%d->%d], error=%d.",
-            stm->Id_(), captureStm->Id_(), error);
-    } else {
-        RT_LOG(RT_LOG_DEBUG, "stream_id=[%d->%d], event_id=[%d->%d].",
-            stm->Id_(), captureStm->Id_(), evt->EventId_(), captureEvt->EventId_());
-    }
-    return error;
 }
 
 rtError_t ApiImpl::EventReset(Event * const evt, Stream * const stm)
@@ -7801,77 +7668,6 @@ rtError_t ApiImpl::GetUserDevIdByLogicDevId(const int32_t logicDevId, int32_t * 
     return RT_ERROR_NONE;
 }
 
-rtError_t ApiImpl::StreamBeginCapture(Stream * const stm, const rtStreamCaptureMode mode)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    COND_RETURN_ERROR_MSG_INNER(stm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
-        "stream is not in current ctx, stream_id=%d.", stm->Id_());
-    COND_RETURN_ERROR_MSG_INNER(stm->Model_() != nullptr, RT_ERROR_STREAM_MODEL,
-        "stream is binded, stream_id=%d, model_id=%u.", stm->Id_(), stm->Model_()->Id_());
-    COND_RETURN_ERROR_MSG_INNER((stm == curCtx->DefaultStream_()), RT_ERROR_FEATURE_NOT_SUPPORT,
-        "the default stream cannot be captured.");
-
-    return curCtx->StreamBeginCapture(stm, mode);
-}
-
-rtError_t ApiImpl::StreamEndCapture(Stream * const stm, Model ** const captureMdl)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    COND_RETURN_ERROR_MSG_INNER(stm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
-        "stream is not in current ctx, stream_id=%d.", stm->Id_());
-    COND_RETURN_ERROR_MSG_INNER(stm->Model_() != nullptr, RT_ERROR_STREAM_MODEL,
-        "stream is binded, stream_id=%d, model_id=%u.", stm->Id_(), stm->Model_()->Id_());
-    COND_RETURN_ERROR_MSG_INNER((stm == curCtx->DefaultStream_()), RT_ERROR_FEATURE_NOT_SUPPORT,
-        "the default stream cannot be captured.");
-
-    return curCtx->StreamEndCapture(stm, captureMdl);
-}
-
-rtError_t ApiImpl::StreamBeginTaskUpdate(Stream * const stm, TaskGroup * handle)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    COND_RETURN_ERROR_MSG_INNER(stm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
-        "stream is not in current ctx, stream_id=%d.", stm->Id_());
-    return curCtx->StreamBeginTaskUpdate(stm, handle);
-}
-
-rtError_t ApiImpl::StreamEndTaskUpdate(Stream * const stm)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    COND_RETURN_ERROR_MSG_INNER(stm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
-        "stream is not in current ctx, stream_id=%d.", stm->Id_());
-    return curCtx->StreamEndTaskUpdate(stm);
-}
-
-rtError_t ApiImpl::StreamGetCaptureInfo(const Stream * const stm, rtStreamCaptureStatus * const status,
-                                        Model ** const captureMdl)
-{
-    Stream *captureStream = stm->GetCaptureStream();
-    const rtStreamCaptureStatus statusTmp = stm->GetCaptureStatus();
-    Model *mdlTmp = nullptr;
-
-    if ((statusTmp != RT_STREAM_CAPTURE_STATUS_NONE) && (captureStream != nullptr)) {
-        mdlTmp = captureStream->Model_();
-        if (mdlTmp == nullptr) {
-            RT_LOG(RT_LOG_WARNING, "stream is not in capture status, stream_id=%d.", stm->Id_());
-        }
-    }
-
-    if (status != nullptr) {
-        *status = statusTmp;
-    }
-
-    if (captureMdl != nullptr) {
-        *captureMdl = mdlTmp;
-    }
-
-    return RT_ERROR_NONE;
-}
-
 rtError_t ApiImpl::SetStreamCacheOpInfoSwitch(const Stream * const stm, uint32_t cacheOpInfoSwitch)
 {
     // The ctx is not checked for performance.
@@ -7898,52 +7694,6 @@ rtError_t ApiImpl::GetStreamCacheOpInfoSwitch(const Stream * const stm, uint32_t
     return RT_ERROR_NONE;
 }
 
-rtError_t ApiImpl::ModelGetNodes(const Model * const mdl, uint32_t * const num)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    COND_RETURN_ERROR_MSG_INNER(mdl->Context_() != curCtx, RT_ERROR_MODEL_CONTEXT,
-        "model context is not current ctx, model_id=%u.", mdl->Id_());
-
-    return curCtx->ModelGetNodes(mdl, num);
-}
-
-rtError_t ApiImpl::ModelDebugDotPrint(const Model * const mdl)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    COND_RETURN_ERROR_MSG_INNER(mdl->Context_() != curCtx, RT_ERROR_MODEL_CONTEXT,
-        "model context is not current ctx, model_id=%u.", mdl->Id_());
-
-    return curCtx->ModelDebugDotPrint(mdl);
-}
-
-rtError_t ApiImpl::ModelDebugJsonPrint(const Model * const mdl, const char* path, const uint32_t flags)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    COND_RETURN_ERROR_MSG_INNER(mdl->Context_() != curCtx, RT_ERROR_MODEL_CONTEXT,
-        "model context is not current ctx, model_id=%u.", mdl->Id_());
-
-    return curCtx->ModelDebugJsonPrint(mdl, path, flags);
-}
-
-rtError_t ApiImpl::StreamAddToModel(Stream * const stm, Model * const captureMdl)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-    COND_RETURN_ERROR_MSG_INNER(stm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
-        "stream is not in current ctx, stream_id=%d.", stm->Id_());
-    COND_RETURN_ERROR_MSG_INNER(stm->Model_() != nullptr, RT_ERROR_STREAM_MODEL,
-        "stream is binded, stream_id=%d, model_id=%u.", stm->Id_(), stm->Model_()->Id_());
-    COND_RETURN_ERROR_MSG_INNER(captureMdl->Context_() != curCtx, RT_ERROR_MODEL_CONTEXT,
-        "model context is not current ctx, model_id=%u.", captureMdl->Id_());
-    COND_RETURN_ERROR_MSG_INNER((stm == curCtx->DefaultStream_()), RT_ERROR_FEATURE_NOT_SUPPORT,
-        "the default stream cannot be captured.");
-
-    return curCtx->StreamAddToModel(stm, captureMdl);
-}
-
 rtError_t ApiImpl::ModelDestroyRegisterCallback(Model * const mdl, const rtCallback_t fn, void* ptr)
 {
     return mdl->ModelDestroyRegisterCallback(fn, ptr);
@@ -7952,34 +7702,6 @@ rtError_t ApiImpl::ModelDestroyRegisterCallback(Model * const mdl, const rtCallb
 rtError_t ApiImpl::ModelDestroyUnregisterCallback(Model * const mdl, const rtCallback_t fn)
 {
     return mdl->ModelDestroyUnregisterCallback(fn);
-}
-
-rtError_t ApiImpl::ThreadExchangeCaptureMode(rtStreamCaptureMode * const mode)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-
-    return curCtx->ThreadExchangeCaptureMode(mode);
-}
-
-rtError_t ApiImpl::StreamBeginTaskGrp(Stream * const stm)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-
-    COND_RETURN_ERROR_MSG_INNER(stm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
-        "stream is not in current ctx, stream_id=%d.", stm->Id_());
-    return curCtx->StreamBeginTaskGrp(stm);
-}
-
-rtError_t ApiImpl::StreamEndTaskGrp(Stream * const stm, TaskGroup ** const handle)
-{
-    Context * const curCtx = CurrentContext();
-    CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
-
-    COND_RETURN_ERROR_MSG_INNER(stm->Context_() != curCtx, RT_ERROR_STREAM_CONTEXT,
-        "stream is not in current ctx, stream_id=%d.", stm->Id_());
-    return curCtx->StreamEndTaskGrp(stm, handle);
 }
 
 rtError_t ApiImpl::ParseMallocCfg(const rtMallocConfig_t * const cfg, rtConfigValue_t *cfgVal) const

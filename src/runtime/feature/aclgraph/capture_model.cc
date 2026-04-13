@@ -7,7 +7,6 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 #include "capture_model.hpp"
 #include "context.hpp"
 #include "stream_sqcq_manage.hpp"
@@ -33,7 +32,6 @@ CaptureModel::CaptureModel(ModelType type) : Model(type)
 {
     beginCaptureTimeStamp_ = MsprofSysCycleTime();
 }
-
 CaptureModel::~CaptureModel() noexcept
 {
     // 清空capturestream和单算子流关系
@@ -81,7 +79,6 @@ CaptureModel::~CaptureModel() noexcept
     }
     argLoaderBackup_.clear();
 }
-
 rtError_t CaptureModel::SetNotifyBeforeExecute(Stream * const exeStm, CaptureModel* const captureMdl)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -114,7 +111,6 @@ rtError_t CaptureModel::SetNotifyBeforeExecute(Stream * const exeStm, CaptureMod
     }
     return error;
 }
-
 rtError_t CaptureModel::SetNotifyAfterExecute(Stream * const exeStm, CaptureModel* const captureMdl)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -147,7 +143,6 @@ rtError_t CaptureModel::SetNotifyAfterExecute(Stream * const exeStm, CaptureMode
     }
     return error;
 }
-
 bool CaptureModel::IsAddStream(const Stream *stm) const
 {
     for (auto& addStreams : addStreamMap_) {
@@ -159,7 +154,6 @@ bool CaptureModel::IsAddStream(const Stream *stm) const
     }
     return false;
 }
-
 void CaptureModel::ReportCacheTrackData()
 {
     if (trackDataReportFlag_) {
@@ -181,7 +175,6 @@ void CaptureModel::ReportCacheTrackData()
     ReportShapeInfoForProfiling();
     trackDataReportFlag_ = true;
 }
-
 rtError_t CaptureModel::ExecuteCommon(Stream * const stm, int32_t timeout, const uint8_t executeMode)
 {
     RT_LOG(RT_LOG_INFO, "capture model execute, model_id=%u!", Id_());
@@ -222,17 +215,14 @@ rtError_t CaptureModel::ExecuteCommon(Stream * const stm, int32_t timeout, const
         "after model execute set notify failed, stream_id=%d, model_id=%u", stm->Id_(), Id_());
     return RT_ERROR_NONE;
 }
-
 rtError_t CaptureModel::Execute(Stream * const stm, int32_t timeout)
 {
     return ExecuteCommon(stm, timeout, RT_MODEL_CAPTURE_EXECUTE_DEFAULT);
 }
-
 rtError_t CaptureModel::ExecuteAsync(Stream * const stm)
 {
     return ExecuteCommon(stm, -1, RT_MODEL_CAPTURE_EXECUTE_ASYNC);
 }
-
 rtError_t CaptureModel::TearDown()
 {
     Profiler *profilerPtr = Runtime::Instance()->Profiler_();
@@ -243,35 +233,6 @@ rtError_t CaptureModel::TearDown()
     }
     return Model::TearDown();
 }
-
-void CaptureModel::EnterCaptureNotify(const int32_t singleOperStmId, const int32_t captureStmId)
-{
-    SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_CAPTURE_ACTIVE);
-    InsertSingleOperStmIdAndCaptureStmId(singleOperStmId, captureStmId);
-}
-
-void CaptureModel::ExitCaptureNotify()
-{
-    SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_READY);
-
-    Device * const dev = Context_()->Device_();
-    for (const auto& iter: singleOperStmIdAndCaptureStmIdMap_) {
-        Stream *oriStm = nullptr;
-        (void)dev->GetStreamSqCqManage()->GetStreamById(static_cast<uint32_t>(iter.first), &oriStm);
-        if (oriStm != nullptr) {
-            oriStm->ResetCaptureInfo();
-        }
-    }
-
-    for (Stream * const streamObj : StreamList_()) {
-        (void)streamObj->ResetTaskGroup();
-    }
-    for (Event * const evt : singleOperEvents_) {
-        evt->SetCaptureEvent(nullptr);
-    }
-    singleOperEvents_.clear();
-}
-
 rtError_t CaptureModel::ResetCaptureEvents(Stream * const stm) const
 {
     return ResetCaptureEventsProc(this, stm);
@@ -302,6 +263,32 @@ rtError_t CaptureModel::AddStreamToCaptureModel(Stream * const stm)
     return RT_ERROR_NONE;
 }
 
+void CaptureModel::EnterCaptureNotify(const int32_t singleOperStmId, const int32_t captureStmId)
+{
+    SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_CAPTURE_ACTIVE);
+    InsertSingleOperStmIdAndCaptureStmId(singleOperStmId, captureStmId);
+}
+void CaptureModel::ExitCaptureNotify()
+{
+    SetCaptureModelStatus(RT_CAPTURE_MODEL_STATUS_READY);
+
+    Device * const dev = Context_()->Device_();
+    for (const auto& iter: singleOperStmIdAndCaptureStmIdMap_) {
+        Stream *oriStm = nullptr;
+        (void)dev->GetStreamSqCqManage()->GetStreamById(static_cast<uint32_t>(iter.first), &oriStm);
+        if (oriStm != nullptr) {
+            oriStm->ResetCaptureInfo();
+        }
+    }
+
+    for (Stream * const streamObj : StreamList_()) {
+        (void)streamObj->ResetTaskGroup();
+    }
+    for (Event * const evt : singleOperEvents_) {
+        evt->SetCaptureEvent(nullptr);
+    }
+    singleOperEvents_.clear();
+}
 const TaskGroup* CaptureModel::GetTaskGroup(uint16_t streamId, uint16_t taskId)
 {
     const std::unique_lock<std::mutex> lk(taskGroupListMutex_);
@@ -314,7 +301,6 @@ const TaskGroup* CaptureModel::GetTaskGroup(uint16_t streamId, uint16_t taskId)
     }
     return nullptr;
 }
-
 void CaptureModel::DebugDotPrintTaskGroups(const uint32_t deviceId) const
 {
     uint16_t taskGroupId = 0U;
@@ -356,8 +342,6 @@ void CaptureModel::DebugDotPrintTaskGroups(const uint32_t deviceId) const
         taskGroupId++;
     }
 }
-
-/* 上报capture stream和原始stream的关系*/
 void CaptureModel::ReportedStreamInfoForProfiling() const
 {
     MsprofCompactInfo compactInfo;
@@ -394,8 +378,6 @@ void CaptureModel::ReportedStreamInfoForProfiling() const
     }
     return;
 }
-
-/* 解除capture stream和原始stream的关系*/
 void CaptureModel::EraseStreamInfoForProfiling() const
 {
     MsprofCompactInfo compactInfo;
@@ -423,7 +405,6 @@ void CaptureModel::EraseStreamInfoForProfiling() const
             compactInfo.data.captureStreamInfo.deviceId);
     }
 }
-
 Stream* CaptureModel::GetOriginalCaptureStream(void) const
 {
     for (auto stm : StreamList_()) {
@@ -434,7 +415,6 @@ Stream* CaptureModel::GetOriginalCaptureStream(void) const
 
     return nullptr;
 }
-
 rtError_t CaptureModel::ReleaseNotifyId(void)
 {
     rtError_t error = RT_ERROR_NOTIFY_NOT_COMPLETE;
@@ -447,7 +427,6 @@ rtError_t CaptureModel::ReleaseNotifyId(void)
     }
     return error;
 }
-
 rtError_t CaptureModel::AllocSqCqProc(const uint32_t streamNum) const
 {
     rtError_t error = RT_ERROR_NONE;
@@ -471,7 +450,6 @@ rtError_t CaptureModel::AllocSqCqProc(const uint32_t streamNum) const
 
     return RT_ERROR_NONE;
 }
-
 rtError_t CaptureModel::UpdateNotifyId(Stream * const exeStream)
 {
     Stream *origCaptureStream = GetOriginalCaptureStream();
@@ -489,7 +467,6 @@ rtError_t CaptureModel::UpdateNotifyId(Stream * const exeStream)
     Context *context = origCaptureStream->Context_();
     return context->UpdateEndGraphTask(origCaptureStream, exeStream, ntf);
 }
-
 rtError_t CaptureModel::BuildSqCq(Stream * const exeStream)
 {
     COND_PROC(!IsSoftwareSqEnable(), return RT_ERROR_NONE);
@@ -587,7 +564,6 @@ rtError_t CaptureModel::BuildSqCq(Stream * const exeStream)
 
     return RT_ERROR_NONE;
 }
-
 void CaptureModel::DeconstructSqCq(void)
 {
     uint32_t releaseNum = 0U;
@@ -596,7 +572,6 @@ void CaptureModel::DeconstructSqCq(void)
     (void)ReleaseSqCq(releaseNum);
     return;
 }
-
 rtError_t CaptureModel::ReleaseSqCq(uint32_t &releaseNum)
 {
     releaseNum = 0U;
@@ -624,7 +599,6 @@ rtError_t CaptureModel::ReleaseSqCq(uint32_t &releaseNum)
 
     return RT_ERROR_NONE;
 }
-
 rtError_t CaptureModel::ConfigSqTail(void) const
 {
     rtError_t error = RT_ERROR_NONE;
@@ -638,7 +612,6 @@ rtError_t CaptureModel::ConfigSqTail(void) const
     }
     return error;
 }
-
 rtError_t CaptureModel::BindStreamToModel(void)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -652,7 +625,6 @@ rtError_t CaptureModel::BindStreamToModel(void)
     }
     return error;
 }
-
 rtError_t CaptureModel::BindSqCq(void)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -703,7 +675,6 @@ rtError_t CaptureModel::BindSqCq(void)
 
     return error;
 }
-
 rtError_t CaptureModel::UnBindSqCq(void)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -741,7 +712,6 @@ rtError_t CaptureModel::UnBindSqCq(void)
 
     return error;
 }
-
 rtError_t CaptureModel::MarkStreamActiveTask(TaskInfo *streamActiveTask)
 {
     const std::unique_lock<std::mutex> lk(streamActiveTaskListMutex_);
@@ -749,7 +719,6 @@ rtError_t CaptureModel::MarkStreamActiveTask(TaskInfo *streamActiveTask)
 
     return RT_ERROR_NONE;
 }
-
 rtError_t CaptureModel::UpdateStreamActiveTaskFuncCallMem(void)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -779,13 +748,11 @@ rtError_t CaptureModel::UpdateStreamActiveTaskFuncCallMem(void)
 
     return error;
 }
-
 void CaptureModel::ClearStreamActiveTask(void)
 {
     const std::unique_lock<std::mutex> lk(streamActiveTaskListMutex_);
     streamActiveTaskList_.clear();
 }
-
 void CaptureModel::CaptureModelExecuteFinish(void)
 {
     const std::unique_lock<std::mutex> lk(sqBindMutex_);
@@ -794,7 +761,6 @@ void CaptureModel::CaptureModelExecuteFinish(void)
 
     return;
 }
-
 rtError_t CaptureModel::AllocSqAddr(void) const
 {
     const uint32_t deviceId = Context_()->Device_()->Id_();
@@ -807,7 +773,6 @@ rtError_t CaptureModel::AllocSqAddr(void) const
 
     return RT_ERROR_NONE;
 }
-
 rtError_t CaptureModel::SendSqe(void)
 {
     COND_PROC((isSqeSendFinish_ == true), return RT_ERROR_NONE);
@@ -831,7 +796,6 @@ rtError_t CaptureModel::SendSqe(void)
     isSqeSendFinish_ = true;
     return RT_ERROR_NONE;
 }
-
 void CaptureModel::BackupArgHandle(const uint16_t streamId, const uint16_t taskId)
 {
     void* argHandle = GetAndEraseArgHandle(streamId, taskId);
@@ -839,7 +803,6 @@ void CaptureModel::BackupArgHandle(const uint16_t streamId, const uint16_t taskI
         argLoaderBackup_.insert(argHandle);
     }
 }
-
 rtError_t CaptureModel::Update(void)
 {
     uint32_t releaseNum = 0U;
@@ -863,7 +826,6 @@ rtError_t CaptureModel::Update(void)
     RT_LOG(RT_LOG_INFO, "update finish, model_id=%u, releaseNum=%u.", Id_(), releaseNum);
     return RT_ERROR_NONE;
 }
-
 void CaptureModel::SetModelCacheOpInfoSwitch(const uint32_t status) const {
     RT_LOG(RT_LOG_INFO, "Set model cache op info switch status, model_id=%u, status=(%u -> %u).", Id_(),
         cacheOpInfoSwitch_, status);
@@ -880,7 +842,6 @@ void CaptureModel::SetModelCacheOpInfoSwitch(const uint32_t status) const {
         }
     }
 }
-
 void CaptureModel::ClearShapeInfo(const int32_t streamId, const uint32_t taskId)
 {
     const auto &it = shapeInfos_.find(streamId);
@@ -891,29 +852,8 @@ void CaptureModel::ClearShapeInfo(const int32_t streamId, const uint32_t taskId)
         }
     }
 }
-
-void* CaptureModel::GetShapeInfo(const int32_t streamId, const uint32_t taskId, size_t &infoSize) const
-{
-    void *infoPtr = nullptr;
-    infoSize = 0;
-    const auto &it = shapeInfos_.find(streamId);
-    if (it != shapeInfos_.end()) {
-        const auto &it2 = it->second.find(taskId);
-        if (it2 != it->second.end()) {
-            MsprofShapeInfo *shapeInfo = RtPtrToPtr<MsprofShapeInfo *, uint8_t *>(it2->second.get());
-            if (shapeInfo != nullptr) {
-                uint8_t *headerCursor = shapeInfo->data;
-                infoPtr = RtPtrToPtr<void *, uint8_t *>(headerCursor + MS_PROF_SHAPE_HEADER_SIZE);
-                infoSize = static_cast<size_t>(shapeInfo->dataLen - MS_PROF_SHAPE_HEADER_SIZE);
-            }
-        }
-    }
-
-    return infoPtr;
-}
-
 rtError_t CaptureModel::SetShapeInfo(const Stream* const stm, const uint32_t taskId, const void * const infoPtr,
-                                     const size_t infoSize)
+    const size_t infoSize)
 {
     const size_t totalSize = MS_PROF_SHAPE_INFO_SIZE + MS_PROF_SHAPE_HEADER_SIZE + infoSize;
     auto rawMemPtr = std::make_unique<uint8_t []>(totalSize);
@@ -956,7 +896,25 @@ rtError_t CaptureModel::SetShapeInfo(const Stream* const stm, const uint32_t tas
     shapeInfos_[stm->Id_()][taskId] = std::move(rawMemPtr);
     return RT_ERROR_NONE;
 }
+void* CaptureModel::GetShapeInfo(const int32_t streamId, const uint32_t taskId, size_t &infoSize) const
+{
+    void *infoPtr = nullptr;
+    infoSize = 0;
+    const auto &it = shapeInfos_.find(streamId);
+    if (it != shapeInfos_.end()) {
+        const auto &it2 = it->second.find(taskId);
+        if (it2 != it->second.end()) {
+            MsprofShapeInfo *shapeInfo = RtPtrToPtr<MsprofShapeInfo *, uint8_t *>(it2->second.get());
+            if (shapeInfo != nullptr) {
+                uint8_t *headerCursor = shapeInfo->data;
+                infoPtr = RtPtrToPtr<void *, uint8_t *>(headerCursor + MS_PROF_SHAPE_HEADER_SIZE);
+                infoSize = static_cast<size_t>(shapeInfo->dataLen - MS_PROF_SHAPE_HEADER_SIZE);
+            }
+        }
+    }
 
+    return infoPtr;
+}
 rtError_t CaptureModel::CacheLastTaskOpInfo(const void * const infoPtr, const size_t infoSize, const Stream * const stm)
 {
     if (GetModelCacheOpInfoSwitch() == 0U) {
@@ -969,7 +927,6 @@ rtError_t CaptureModel::CacheLastTaskOpInfo(const void * const infoPtr, const si
     ERROR_RETURN(ret, "SetShapeInfo failed, streamId=%d, taskId=%u.", stm->Id_(), lastTaskId);
     return RT_ERROR_NONE;
 }
-
 void CaptureModel::ReportShapeInfoForProfiling() const
 {
     for (const auto &it1 : shapeInfos_) {
@@ -1008,7 +965,6 @@ void CaptureModel::ReportShapeInfoForProfiling() const
         }
     }
 }
-
 rtError_t CaptureModel::RestoreForSoftwareSq(Device * const dev)
 {
     RT_LOG(RT_LOG_INFO, "Begin restore capture model, modelId=%u, deviceId=%u.", Id_(), dev->Id_());

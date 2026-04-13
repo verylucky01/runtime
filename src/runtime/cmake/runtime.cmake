@@ -94,6 +94,7 @@ set(common_src_files
 
 set(libruntime_context_src_files
     ${RUNTIME_CORE_DIR}/src/context/context.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/context_aclgraph.cc
     ${RUNTIME_CORE_DIR}/src/context/context_manage.cc
     ${RUNTIME_CORE_DIR}/src/context/context_protect.cc
 )
@@ -102,6 +103,7 @@ set(libruntime_stream_common_src_files
     ${RUNTIME_CORE_DIR}/src/stream/stream_sqcq_manage.cc
     ${RUNTIME_CORE_DIR}/src/stream/engine_stream_observer.cc
     ${RUNTIME_CORE_DIR}/src/stream/stream.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/stream_capture.cc
     ${RUNTIME_CORE_DIR}/src/stream/ctrl_stream.cc
     ${RUNTIME_CORE_DIR}/src/stream/coprocessor_stream.cc
     ${RUNTIME_CORE_DIR}/src/stream/tsch_stream.cc
@@ -141,6 +143,7 @@ set(libruntime_src_files_optional
     ${RUNTIME_CORE_DIR}/src/api_impl/api_error_uvm.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_uvm.cc
     ${RUNTIME_CORE_DIR}/src/context/context_standard_soc.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/context_standard_soc_aclgraph.cc
     ${RUNTIME_FEATURE_DIR}/ffts/context_ffts_standard_soc.cc
     ${RUNTIME_CORE_DIR}/src/dfx/fp16_t.cpp
     ${RUNTIME_CORE_DIR}/src/dfx/hifloat.cpp
@@ -185,9 +188,13 @@ set(xpu_tprt_api_file
 set(libruntime_v100_src_files
     ${RUNTIME_CORE_DIR}/src/common/inner_thread_local.cpp
     ${RUNTIME_CORE_DIR}/src/api_impl/api_decorator.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/api_decorator_aclgraph.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v100/api_impl_aclgraph.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v100/api_impl_capture_event.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_mbuf.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_error.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/api_error_aclgraph.cc
     ${RUNTIME_CORE_DIR}/src/uvm/uvm_callback.cc
 
     # for V100
@@ -213,11 +220,13 @@ set(libruntime_v100_src_files
     ${RUNTIME_CORE_DIR}/src/pool/memory_pool.cc
     ${RUNTIME_CORE_DIR}/src/pool/memory_pool_manager.cc
     ${RUNTIME_CORE_DIR}/src/model/model.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/model_aclgraph.cc
     ${RUNTIME_CORE_DIR}/src/model/model_rebuild.cc
     ${RUNTIME_CORE_DIR}/src/model/v100/capture_adapt.cc
-    ${RUNTIME_CORE_DIR}/src/model/v100/capture_model_adapt.cc
-    ${RUNTIME_CORE_DIR}/src/model/capture_model.cc
-    ${RUNTIME_CORE_DIR}/src/model/capture_model_utils.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v100/capture_adapt_v100.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v100/capture_model_adapt_v100.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/capture_model.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/capture_model_utils.cc
     ${RUNTIME_CORE_DIR}/src/kernel/args/args_handle_allocator.cc
     ${RUNTIME_CORE_DIR}/src/kernel/args/para_convertor.cc
     ${RUNTIME_CORE_DIR}/src/kernel/v100/kernel.cc
@@ -240,6 +249,7 @@ set(libruntime_v100_src_files
     ${RUNTIME_CORE_DIR}/src/launch/aicpu_stars.cc
     ${RUNTIME_CORE_DIR}/src/launch/dvpp_stars.cc
     ${RUNTIME_CORE_DIR}/src/event/event.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/event_capture.cc
     ${RUNTIME_CORE_DIR}/src/notify/notify.cc
     ${RUNTIME_CORE_DIR}/src/engine/logger.cc
     ${RUNTIME_CORE_DIR}/src/runtime.cc

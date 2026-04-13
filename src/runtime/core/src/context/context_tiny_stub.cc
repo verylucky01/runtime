@@ -23,15 +23,6 @@ void Context::GetModelList(ModelList_t *mdlList)
     return;
 }
 
-rtError_t Context::TryRecycleCaptureModelResource(const uint32_t allocSqNum, const uint32_t ntfCnt,
-    const CaptureModel * const excludeMdl)
-{
-    UNUSED(allocSqNum);
-    UNUSED(ntfCnt);
-    UNUSED(excludeMdl);
-    return RT_ERROR_FEATURE_NOT_SUPPORT;
-}
-
 rtError_t Context::RDMASend(const uint32_t sqIndex, const uint32_t wqeIndex, Stream * const stm)
 {
     UNUSED(sqIndex);

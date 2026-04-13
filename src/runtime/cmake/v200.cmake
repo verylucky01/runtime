@@ -126,6 +126,7 @@ set(libruntime_v201_task_src_files
 
 set(libruntime_v200_context_src_files
     ${RUNTIME_CORE_DIR}/src/context/context.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/context_aclgraph.cc
     ${RUNTIME_CORE_DIR}/src/context/context_manage.cc
     ${RUNTIME_CORE_DIR}/src/context/context_protect.cc
 )
@@ -134,6 +135,7 @@ set(libruntime_v200_stream_common_src_files
     ${RUNTIME_CORE_DIR}/src/stream/stream_sqcq_manage.cc
     ${RUNTIME_CORE_DIR}/src/stream/engine_stream_observer.cc
     ${RUNTIME_CORE_DIR}/src/stream/stream.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/stream_capture.cc
     ${RUNTIME_CORE_DIR}/src/stream/ctrl_stream.cc
     ${RUNTIME_CORE_DIR}/src/stream/coprocessor_stream.cc
     ${RUNTIME_CORE_DIR}/src/stream/tsch_stream.cc
@@ -187,7 +189,9 @@ set(libruntime_v200_src_files_exclude_for_tiny
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_soma.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_error_uvm.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_uvm.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v200/api_impl_david_capture_event.cc
     ${RUNTIME_CORE_DIR}/src/context/context_standard_soc.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/context_standard_soc_aclgraph.cc
     ${RUNTIME_FEATURE_DIR}/ffts/context_ffts_standard_soc.cc
     ${RUNTIME_CORE_DIR}/src/dfx/fp16_t.cpp
     ${RUNTIME_CORE_DIR}/src/dfx/hifloat.cpp
@@ -217,9 +221,14 @@ set(libruntime_v200_src_files_exclude_for_tiny
 set(libruntime_v200_v201_common_src_files
     ${RUNTIME_CORE_DIR}/src/common/inner_thread_local.cpp
     ${RUNTIME_CORE_DIR}/src/api_impl/api_decorator.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/api_decorator_aclgraph.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_error.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/api_error_aclgraph.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_david.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v200/api_impl_david_capture_event.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v100/api_impl_aclgraph.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v100/api_impl_capture_event.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_mbuf.cc
     ${RUNTIME_CORE_DIR}/src/uvm/uvm_callback.cc
     ${RUNTIME_CORE_DIR}/src/config.cc
@@ -242,11 +251,13 @@ set(libruntime_v200_v201_common_src_files
     ${RUNTIME_CORE_DIR}/src/pool/memory_pool_manager.cc
     ${RUNTIME_DIR}/src/runtime/driver/driver.cc
     ${RUNTIME_CORE_DIR}/src/model/model.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/model_aclgraph.cc
     ${RUNTIME_CORE_DIR}/src/model/model_rebuild.cc
     ${RUNTIME_CORE_DIR}/src/model/v200/capture_adapt.cc
-    ${RUNTIME_CORE_DIR}/src/model/v200/capture_model_adapt.cc
-    ${RUNTIME_CORE_DIR}/src/model/capture_model.cc
-    ${RUNTIME_CORE_DIR}/src/model/capture_model_utils.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v200/capture_adapt_v200.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/v200/capture_model_adapt_v200.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/capture_model.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/capture_model_utils.cc
     ${RUNTIME_CORE_DIR}/src/kernel/arg_loader/arg_loader_ub.cc
     ${RUNTIME_CORE_DIR}/src/kernel/arg_loader/arg_manage_david.cc
     ${RUNTIME_CORE_DIR}/src/kernel/arg_loader/arg_manage_pcie.cc
@@ -264,6 +275,7 @@ set(libruntime_v200_v201_common_src_files
     ${RUNTIME_FEATURE_DIR}/soma/stream_mem_pool.cc
     ${RUNTIME_CORE_DIR}/src/launch/label.cc
     ${RUNTIME_CORE_DIR}/src/event/event.cc
+    ${RUNTIME_FEATURE_DIR}/aclgraph/event_capture.cc
     ${RUNTIME_CORE_DIR}/src/event/event_david.cc
     ${RUNTIME_CORE_DIR}/src/notify/notify.cc
     ${RUNTIME_CORE_DIR}/src/engine/logger.cc

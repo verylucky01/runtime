@@ -74,50 +74,6 @@ void Context::GetModelList(ModelList_t *mdlList)
     modelLock_.Unlock();
 }
 
-rtError_t Context::TryRecycleCaptureModelResource(const uint32_t allocSqNum, const uint32_t ntfCnt,
-    const CaptureModel * const excludeMdl)
-{
-    rtError_t error = RT_ERROR_NONE;
-    uint32_t releaseSqNum = 0U;
-    uint32_t totalReleaseSqNum = 0U;
-    uint32_t totalReleaseNtfNum = 0U;
-
-    modelLock_.Lock();
-    for (Model *model : models_) {
-        if ((model != nullptr) && (model->GetModelType() == RT_MODEL_CAPTURE_MODEL)) {
-            CaptureModel *captureMdl = dynamic_cast<CaptureModel *>(model);
-
-            if (allocSqNum <= totalReleaseSqNum && ntfCnt <= totalReleaseNtfNum) break;
-
-            if (!captureMdl->IsSoftwareSqEnable() || (captureMdl == excludeMdl)) {
-                continue;
-            }
-
-            if (allocSqNum > totalReleaseSqNum) {
-                if (captureMdl->ModelSqOperTryLock()) {
-                    releaseSqNum = 0U;
-                    error = captureMdl->ReleaseSqCq(releaseSqNum);
-                    captureMdl->ModelSqOperUnLock();
-                    COND_PROC(error != RT_ERROR_NONE, break);
-                    totalReleaseSqNum += releaseSqNum;
-                }
-            }
-
-            if (ntfCnt > totalReleaseNtfNum) {
-                if (captureMdl->ModelSqOperTryLock()) {
-                    error = captureMdl->ReleaseNotifyId();
-                    captureMdl->ModelSqOperUnLock();
-                    COND_PROC(error != RT_ERROR_NONE, continue);
-                    totalReleaseNtfNum++;
-                }
-            }
-        }
-    }
-    modelLock_.Unlock();
-
-    return error;
-}
-
 rtError_t Context::RDMASend(const uint32_t sqIndex, const uint32_t wqeIndex, Stream * const stm)
 {
     rtError_t error;

@@ -2181,22 +2181,6 @@ rtError_t ApiDecorator::GetDeviceUuid(const int32_t devId, rtUuid_t *uuid)
     return impl_->GetDeviceUuid(devId, uuid);
 }
 
-rtError_t ApiDecorator::StreamBeginCapture(Stream * const stm, const rtStreamCaptureMode mode)
-{
-    return impl_->StreamBeginCapture(stm, mode);
-}
-
-rtError_t ApiDecorator::StreamEndCapture(Stream * const stm, Model ** const captureMdl)
-{
-    return impl_->StreamEndCapture(stm, captureMdl);
-}
-
-rtError_t ApiDecorator::StreamGetCaptureInfo(const Stream * const stm, rtStreamCaptureStatus * const status,
-                                             Model ** const captureMdl)
-{
-    return impl_->StreamGetCaptureInfo(stm, status, captureMdl);
-}
-
 rtError_t ApiDecorator::SetStreamCacheOpInfoSwitch(const Stream * const stm, uint32_t cacheOpInfoSwitch)
 {
     return impl_->SetStreamCacheOpInfoSwitch(stm, cacheOpInfoSwitch);
@@ -2205,36 +2189,6 @@ rtError_t ApiDecorator::SetStreamCacheOpInfoSwitch(const Stream * const stm, uin
 rtError_t ApiDecorator::GetStreamCacheOpInfoSwitch(const Stream * const stm, uint32_t * const cacheOpInfoSwitch)
 {
     return impl_->GetStreamCacheOpInfoSwitch(stm, cacheOpInfoSwitch);
-}
-
-rtError_t ApiDecorator::StreamBeginTaskUpdate(Stream * const stm, TaskGroup * handle)
-{
-    return impl_->StreamBeginTaskUpdate(stm, handle);
-}
-
-rtError_t ApiDecorator::StreamEndTaskUpdate(Stream * const stm)
-{
-    return impl_->StreamEndTaskUpdate(stm);
-}
-
-rtError_t ApiDecorator::ModelGetNodes(const Model * const mdl, uint32_t * const num)
-{
-    return impl_->ModelGetNodes(mdl, num);
-}
-
-rtError_t ApiDecorator::ModelDebugDotPrint(const Model * const mdl)
-{
-    return impl_->ModelDebugDotPrint(mdl);
-}
-
-rtError_t ApiDecorator::ModelDebugJsonPrint(const Model * const mdl, const char* path, const uint32_t flags)
-{
-    return impl_->ModelDebugJsonPrint(mdl, path, flags);
-}
-
-rtError_t ApiDecorator::StreamAddToModel(Stream * const stm, Model * const captureMdl)
-{
-    return impl_->StreamAddToModel(stm, captureMdl);
 }
 
 rtError_t ApiDecorator::ModelUpdate(Model* mdl)
@@ -2252,25 +2206,10 @@ rtError_t ApiDecorator::ModelDestroyUnregisterCallback(Model * const mdl, const 
     return impl_->ModelDestroyUnregisterCallback(mdl, fn);
 }
 
-rtError_t ApiDecorator::ThreadExchangeCaptureMode(rtStreamCaptureMode * const mode)
-{
-    return impl_->ThreadExchangeCaptureMode(mode);
-}
-
 rtError_t ApiDecorator::DevMalloc(void ** const devPtr, const uint64_t size, rtMallocPolicy policy, rtMallocAdvise advise, const rtMallocConfig_t * const cfg)
 {
     return impl_->DevMalloc(devPtr, size, policy, advise, cfg);
 }
-rtError_t ApiDecorator::StreamBeginTaskGrp(Stream * const stm)
-{
-    return impl_->StreamBeginTaskGrp(stm);
-}
-
-rtError_t ApiDecorator::StreamEndTaskGrp(Stream * const stm, TaskGroup ** const handle)
-{
-    return impl_->StreamEndTaskGrp(stm, handle);
-}
-
 rtError_t ApiDecorator::MemReserveAddress(void** virPtr, size_t size, rtMallocPolicy policy, void *expectAddr, rtMallocConfig_t *cfg)
 {
     return impl_->MemReserveAddress(virPtr, size, policy, expectAddr, cfg);

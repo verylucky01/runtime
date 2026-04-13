@@ -87,9 +87,23 @@ set(runtimeut_src_api_list
 set(runtimeut_src_context_list
     ${TOP_DIR}/src/runtime/core/src/context/context.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_standard_soc.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/context_standard_soc_aclgraph.cc
     ${TOP_DIR}/src/runtime/feature/ffts/context_ffts_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_manage.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_protect.cc
+)
+
+set(runtimeut_src_aclgraph_list
+    ${TOP_DIR}/src/runtime/feature/aclgraph/api_decorator_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v100/api_impl_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v100/api_impl_capture_event.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/api_error_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/context_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/model_aclgraph.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/capture_model.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/capture_model_utils.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/event_capture.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/stream_capture.cc
 )
 
 set(runtimeut_common_src_stream_list
@@ -202,6 +216,7 @@ set(runtimeut_platform_list
 set(runtimeut_910b_src_list
     ${runtimeut_src_task_list}
     ${runtimeut_src_api_list}
+    ${runtimeut_src_aclgraph_list}
     ${runtimeut_src_context_list}
     ${runtimeut_src_stream_list}
     ${runtimeut_src_profile_list}
@@ -236,10 +251,9 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/driver/npu_driver_dcache_lock_common.cpp
     ${TOP_DIR}/src/runtime/core/src/model/model.cc
     ${TOP_DIR}/src/runtime/core/src/model/model_rebuild.cc
-    ${TOP_DIR}/src/runtime/core/src/model/capture_model.cc
-    ${TOP_DIR}/src/runtime/core/src/model/capture_model_utils.cc
     ${TOP_DIR}/src/runtime/core/src/model/v100/capture_adapt.cc
-    ${TOP_DIR}/src/runtime/core/src/model/v100/capture_model_adapt.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v100/capture_adapt_v100.cc
+    ${TOP_DIR}/src/runtime/feature/aclgraph/v100/capture_model_adapt_v100.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/args/args_handle_allocator.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/args/para_convertor.cc
     ${TOP_DIR}/src/runtime/core/src/kernel/binary_loader.cc

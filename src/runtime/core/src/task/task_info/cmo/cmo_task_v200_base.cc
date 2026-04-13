@@ -46,10 +46,11 @@ void ConstructDavidCmoSqe(TaskInfo * const taskInfo, rtDavidSqe_t *const davidSq
     sqe->stride = 0U;
     sqe->compEn = 0U;
     sqe->pmg = cmoTsk->cmoSqeInfo.pmg;
-    RT_LOG(RT_LOG_INFO, "ptrMode=%u, lengthInner=%u, opcode=0x%x, deviceId=%u, streamId=%d, taskId=%hu cmoId=%u.",
+    RT_LOG(RT_LOG_INFO, "ptr_mode=%u, length_inner=%u, op_code=0x%x, device_id=%u, stream_id=%d, task_id=%hu, "
+        "task_sn=%u, cmo_id=%u.",
         static_cast<uint32_t>(sqe->header.ptrMode), static_cast<uint32_t>(sqe->u.strideMode2.lengthInner),
         static_cast<uint32_t>(sqe->opcode), taskInfo->stream->Device_()->Id_(), taskInfo->stream->Id_(),
-        taskInfo->id, sqe->cmoId);
+        taskInfo->id, taskInfo->taskSn, sqe->cmoId);
     PrintDavidSqe(davidSqe, "CmoTask");
 }
 
@@ -67,8 +68,8 @@ void ConstructDavidCmoAddrSqe(TaskInfo * const taskInfo, rtDavidSqe_t *const dav
     sqe->sdmaSqeBaseAddrLow = static_cast<uint32_t>(RtPtrToValue(cmoAddrInfo->cmoAddrInfo) & 0x00000000FFFFFFFFU);
     sqe->sdmaSqeBaseAddrHigh =
         static_cast<uint32_t>((RtPtrToValue(cmoAddrInfo->cmoAddrInfo) & 0x0001FFFF00000000U) >> UINT32_BIT_NUM);
-    RT_LOG(RT_LOG_INFO, "ConstructCmoAddrSqe, cmoAddrTaskInfo=%p, deviceId=%u, streamId=%d, taskId=%hu.",
-        cmoAddrInfo->cmoAddrInfo, stream->Device_()->Id_(), taskInfo->stream->Id_(), taskInfo->id);
+    RT_LOG(RT_LOG_INFO, "ConstructCmoAddrSqe, device_id=%u, stream_id=%d, task_id=%hu, task_sn=%u.",
+        stream->Device_()->Id_(), taskInfo->stream->Id_(), taskInfo->id, taskInfo->taskSn);
     PrintDavidSqe(davidSqe, "CmoAddrTask");
 }
 
@@ -100,9 +101,11 @@ void ConstructDavidCmoSdmaSqe(TaskInfo * const taskInfo, rtDavidSqe_t *const dav
     sqe->stride = 0U;
     sqe->compEn = 0U;
     sqe->pmg = cmoTsk->cmoSqeInfo.pmg;
-    RT_LOG(RT_LOG_INFO, "ptrMode=%u, lengthInner=%u, opcode=0x%x, deviceId=%u, streamId=%d, taskId=%hu.",
+    RT_LOG(RT_LOG_INFO, "ptr_mode=%u, length_inner=%u, op_code=0x%x, device_id=%u, stream_id=%d, task_id=%hu, "
+        "task_sn=%u.",
         static_cast<uint32_t>(sqe->header.ptrMode), static_cast<uint32_t>(sqe->u.strideMode2.lengthInner),
-        static_cast<uint32_t>(sqe->opcode), taskInfo->stream->Device_()->Id_(), taskInfo->stream->Id_(), taskInfo->id);
+        static_cast<uint32_t>(sqe->opcode), taskInfo->stream->Device_()->Id_(), taskInfo->stream->Id_(), taskInfo->id,
+        taskInfo->taskSn);
     PrintDavidSqe(davidSqe, "CmoTask");
 }
 
@@ -128,7 +131,7 @@ void PrintErrorInfoForDavidCmoTask(TaskInfo* taskInfo, const uint32_t devId)
     }
 
     RT_LOG(RT_LOG_ERROR, "Sdma for CmoAddrTask in model stream execute failed, device_id=%u, stream_id=%d, task_id=%u,"
-           "cmoAddrInfo=0x%llx.", devId, streamId, taskId, RtPtrToValue(cmoAddrTaskInfo->cmoAddrInfo));
+        "cmoAddrInfo=0x%llx.", devId, streamId, taskId, RtPtrToValue(cmoAddrTaskInfo->cmoAddrInfo));
     for (size_t i = 0UL; i < cmoInfoSize; i += 8U) {
         RT_LOG(RT_LOG_ERROR, "%s: %08x %08x %08x %08x %08x %08x %08x %08x", "rtCmoAddrInfo",
             cmoInfo[i], cmoInfo[i + 1U], cmoInfo[i + 2U], cmoInfo[i + 3U], cmoInfo[i + 4U], cmoInfo[i + 5U],

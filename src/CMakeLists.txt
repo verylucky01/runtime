@@ -32,12 +32,6 @@ add_subdirectory(acl/acl_tdt_channel)
 add_subdirectory(../stub stub)
 add_subdirectory(tprt)
 
-include(${RUNTIME_DIR}/version.cmake)
-if(TOPLEVEL_PROJECT)
-    check_pkg_build_deps("npu-runtime")
-endif()
-add_version_info_targets()
-
 if(NOT ENABLE_COV AND NOT ENABLE_UT)
     add_dependencies(mmpa c_sec)
     add_dependencies(static_mmpa c_sec)

@@ -377,166 +377,17 @@ function(sign_file)
     endif()
 endfunction()
 
-macro(replace_cur_major_minor_ver)
-    string(REPLACE CUR_MAJOR_MINOR_VER "${CANN_VERSION_${CANN_VERSION_CURRENT_PACKAGE}_VERSION_MAJOR_MINOR}" depend "${depend}")
-endmacro()
-
-# 设置包和版本号
-function(set_package name)
-    cmake_parse_arguments(VERSION "" "VERSION" "" ${ARGN})
-    set(VERSION "${VERSION_VERSION}")
-    if(NOT name)
-        message(FATAL_ERROR "The name parameter is not set in set_package.")
-    endif()
-    if(NOT VERSION)
-        message(FATAL_ERROR "The VERSION parameter is not set in set_package(${name}).")
-    endif()
-    string(REGEX MATCH "^([0-9]+\\.[0-9]+)" VERSION_MAJOR_MINOR "${VERSION}")
-    list(APPEND CANN_VERSION_PACKAGES "${name}")
-    set(CANN_VERSION_PACKAGES "${CANN_VERSION_PACKAGES}" PARENT_SCOPE)
-    set(CANN_VERSION_CURRENT_PACKAGE "${name}" PARENT_SCOPE)
-    set(CANN_VERSION_${name}_VERSION "${VERSION}" PARENT_SCOPE)
-    set(CANN_VERSION_${name}_VERSION_MAJOR_MINOR "${VERSION_MAJOR_MINOR}" PARENT_SCOPE)
-    set(CANN_VERSION_${name}_BUILD_DEPS PARENT_SCOPE)
-    set(CANN_VERSION_${name}_RUN_DEPS PARENT_SCOPE)
-endfunction()
-
-# 设置构建依赖
-function(set_build_dependencies pkg_name depend)
-    if(NOT CANN_VERSION_CURRENT_PACKAGE)
-        message(FATAL_ERROR "The set_package must be invoked first.")
-    endif()
-    if(NOT pkg_name)
-        message(FATAL_ERROR "The pkg_name parameter is not set in set_build_dependencies.")
-    endif()
-    if(NOT depend)
-        message(FATAL_ERROR "The depend parameter is not set in set_build_dependencies.")
-    endif()
-    replace_cur_major_minor_ver()
-    list(APPEND CANN_VERSION_${CANN_VERSION_CURRENT_PACKAGE}_BUILD_DEPS "${pkg_name}" "${depend}")
-    set(CANN_VERSION_${CANN_VERSION_CURRENT_PACKAGE}_BUILD_DEPS "${CANN_VERSION_${CANN_VERSION_CURRENT_PACKAGE}_BUILD_DEPS}" PARENT_SCOPE)
-endfunction()
-
-# 设置运行依赖
-function(set_run_dependencies pkg_name depend)
-    if(NOT CANN_VERSION_CURRENT_PACKAGE)
-        message(FATAL_ERROR "The set_package must be invoked first.")
-    endif()
-    if(NOT pkg_name)
-        message(FATAL_ERROR "The pkg_name parameter is not set in set_run_dependencies.")
-    endif()
-    if(NOT depend)
-        message(FATAL_ERROR "The depend parameter is not set in set_run_dependencies.")
-    endif()
-    replace_cur_major_minor_ver()
-    list(APPEND CANN_VERSION_${CANN_VERSION_CURRENT_PACKAGE}_RUN_DEPS "${pkg_name}" "${depend}")
-    set(CANN_VERSION_${CANN_VERSION_CURRENT_PACKAGE}_RUN_DEPS "${CANN_VERSION_${CANN_VERSION_CURRENT_PACKAGE}_RUN_DEPS}" PARENT_SCOPE)
-endfunction()
-
-# 检查构建依赖
-function(check_pkg_build_deps pkg_name)
-    execute_process(
-        COMMAND python3 ${PROJECT_BASE_DIR}/scripts/check_build_dependencies.py "${ASCEND_INSTALL_PATH}" ${CANN_VERSION_${pkg_name}_BUILD_DEPS}
-        RESULT_VARIABLE result
-    )
-    if(result)
-        message(FATAL_ERROR "Check ${pkg_name} build dependencies failed!")
-    endif()
-endfunction()
-
-# 添加生成version.info的目标
-# 目标名格式为：version_${包名}_info
-function(add_version_info_targets)
-    foreach(pkg_name ${CANN_VERSION_PACKAGES})
-        add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/version.${pkg_name}.info
-            COMMAND python3 ${PROJECT_BASE_DIR}/scripts/generate_version_info.py --output ${CMAKE_BINARY_DIR}/version.${pkg_name}.info
-                    "${CANN_VERSION_${pkg_name}_VERSION}" ${CANN_VERSION_${pkg_name}_RUN_DEPS}
-            DEPENDS ${PROJECT_BASE_DIR}/version.cmake ${PROJECT_BASE_DIR}/scripts/generate_version_info.py
-            VERBATIM
-        )
-        add_custom_target(version_${pkg_name}_info ALL DEPENDS ${CMAKE_BINARY_DIR}/version.${pkg_name}.info)
-    endforeach()
-endfunction()
-
 # 设置rts参数
 macro(set_runtime_params base_dir)
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-    set(CMAKE_CXX_STANDARD 17)
-
-    if(CMAKE_GENERATOR STREQUAL "Unix Makefiles")
-        set(CMAKE_CXX_COMPILE_OBJECT
-            "<CMAKE_CXX_COMPILER> <DEFINES> -D__FILE__='\"$(notdir $(abspath <SOURCE>))\"' -Wno-builtin-macro-redefined <INCLUDES> <FLAGS> -o <OBJECT> -c <SOURCE>"
-        )
-        set(CMAKE_C_COMPILE_OBJECT
-            "<CMAKE_C_COMPILER> <DEFINES> -D__FILE__='\"$(notdir $(abspath <SOURCE>))\"' -Wno-builtin-macro-redefined <INCLUDES> <FLAGS> -o <OBJECT> -c <SOURCE>"
-        )
-    endif()
-    set(TARGET_SYSTEM_NAME Linux)
-
-    find_program(CCACHE_PROGRAM ccache)
-    if (CCACHE_PROGRAM)
-        message(STATUS "Enable ccache.")
-        set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
-        set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
-    endif()
-
     include(${base_dir}/cmake/intf_pub_linux.cmake)
-
-    set(INSTALL_LIBRARY_DIR lib)
-    set(INSTALL_RUNTIME_DIR bin)
-    set(INSTALL_INCLUDE_DIR include)
-    set(INSTALL_CONFIG_DIR cmake)
-
-    if(ENABLE_OPEN_SRC)
-        # install时不添加OPTIONAL选项，以保证打包产物完整
-        set(INSTALL_OPTIONAL)
-    endif()
 
     set(PROJECT_BASE_DIR "${base_dir}")  # 工程根目录，仅在func.cmake中使用
 
-    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _ARCH_LOW)
-    if (_ARCH_LOW MATCHES "x86_64|amd64")
-        message(STATUS "Detected architecture: x86_64")
-        set(TARGET_ARCH x86_64)
-    elseif (_ARCH_LOW MATCHES "aarch64|arm64|arm")
-        message(STATUS "Detected architecture: aarch64")
-        set(TARGET_ARCH aarch64)
-    else ()
-        message(WARNING "Unknown architecture: ${CMAKE_SYSTEM_PROCESSOR}")
-    endif ()
-
     if(NOT ENABLE_COV AND NOT ENABLE_UT)
         set(CMAKE_SKIP_RPATH TRUE)
-    endif()
-
-    if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-        # 单仓编译
-        set(TOPLEVEL_PROJECT ON)
-    else()
-        # 多仓联编
-        set(TOPLEVEL_PROJECT OFF)
     endif()
 
     set(BASE_DIR ${RUNTIME_DIR})
     set(RUNTIME_PYTHON "python3" CACHE PATH "Python Path")
     set(DEVICE_LIBRARY_PATH "${CMAKE_HOST_SYSTEM_PROCESSOR}-linux/devlib/device")
 endmacro()
-
-# 通过相对父目录方式添加子目录
-function(add_subdirectories_relative base_dir)
-    foreach(source_dir ${ARGN})
-        file(RELATIVE_PATH relative_dir "${base_dir}" "${source_dir}")
-        add_subdirectory("${source_dir}" "${relative_dir}")
-    endforeach()
-endfunction()
-
-# 设置子工程打包
-function(set_subprj_package)
-    get_cmake_property(CPACK_COMPONENTS_ALL COMPONENTS)
-    list(REMOVE_ITEM CPACK_COMPONENTS_ALL "Unspecified")
-
-    set(CPACK_GENERATOR TGZ)
-    set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-    set(CPACK_ARCHIVE_FILE_NAME "${PRODUCT_SIDE}")
-    include(CPack)
-endfunction()

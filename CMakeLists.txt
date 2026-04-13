@@ -9,11 +9,10 @@
 # -----------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.14)
+include(cmake/fetch_cann_cmake.cmake)
 project (rts)
 
-if(POLICY CMP0135)
-    cmake_policy(SET CMP0135 NEW)
-endif()
+init_cann_project()
 
 set(RUNTIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Project top directory")
 include(cmake/func.cmake)
@@ -43,6 +42,10 @@ include(${RUNTIME_DIR}/cmake/third_party/protobuf.cmake)
 include(${RUNTIME_DIR}/cmake/third_party/json.cmake)
 include(${RUNTIME_DIR}/cmake/third_party/acl_compat.cmake)
 include(${RUNTIME_DIR}/cmake/third_party/csec.cmake)
+
+include(version.cmake)
+check_cann_pkg_build_deps("npu-runtime")
+add_cann_version_info_targets()
 
 add_subdirectory(src)
 

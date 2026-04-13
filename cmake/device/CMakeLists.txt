@@ -9,7 +9,10 @@
 # -----------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.14)
+include(../fetch_cann_cmake.cmake)
 project (device_rts)
+
+init_cann_project()
 
 set(RUNTIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../" CACHE PATH "Project top directory")
 set(PRODUCT_SIDE device)
@@ -23,7 +26,7 @@ include(${RUNTIME_DIR}/cmake/third_party/csec.cmake)
 include(${RUNTIME_DIR}/cmake/third_party/json.cmake)
 include(${RUNTIME_DIR}/cmake/third_party/acl_compat.cmake)
 
-add_subdirectories_relative(${RUNTIME_DIR}
+add_cann_subdirectories_relative(${RUNTIME_DIR}
     ${RUNTIME_DIR}/src/mmpa
     ${RUNTIME_DIR}/src/dfx/log/liblog
     ${RUNTIME_DIR}/src/platform
@@ -67,5 +70,5 @@ install(FILES
 )
 
 if(TOPLEVEL_PROJECT)
-  set_subprj_package()
+  set_cann_subprj_package()
 endif()

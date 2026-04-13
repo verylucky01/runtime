@@ -106,7 +106,8 @@ rtError_t ContextManage::DeviceQuery(const int32_t devId, const uint32_t step, c
     const uint64_t startTime = (static_cast<uint64_t>(startTv.tv_sec) * RT_MS_PER_S) +
                                (static_cast<uint64_t>(startTv.tv_usec) / RT_US_TO_MS);
     rtError_t error = RT_ERROR_CONTEXT_NULL;
-    const ReadProtect wp(&g_ctxMan.GetSetRwLock());
+    const ReadProtect rp(&g_ctxMan.GetSetRwLock());
+    COND_RETURN_WITH_NOLOG(g_ctxMan.GetSetObj().empty(), RT_ERROR_NONE);
     bool flag = true;
     while (flag) {
         uint32_t status;

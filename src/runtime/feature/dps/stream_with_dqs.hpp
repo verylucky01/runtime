@@ -66,12 +66,13 @@ public:
 
 private:
     rtError_t CreateDqsCtrlSpace(void);
-    rtError_t DestroyDqsCtrlSpace(void);
+    rtError_t CreateDqsInterChipSpace(void);
+    void DestroyDqsCtrlSpace(void);
+    void DestroyDqsInterChipSpace(void);
     rtError_t DestroyAccSubInfo(void);
     rtError_t SetStreamCtrlSpaceInfo(const rtDqsSchedCfg_t * const dqsSchedCfg);
     rtError_t SetCtrlSpaceInputQueInfo(const rtDqsSchedCfg_t * const dqsSchedCfg);
     rtError_t SetCtrlSpaceOutputQueInfo(const rtDqsSchedCfg_t * const dqsSchedCfg);
-    rtError_t InitDqsInterChipSpace(void);
     void InitCtrlSpaceMbufHandleInfo(void) const;
 
     void SetDqsCtrlSpace(stars_dqs_ctrl_space_t *ctrlSpace)

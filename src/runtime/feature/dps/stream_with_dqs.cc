@@ -15,7 +15,8 @@ namespace cce {
 namespace runtime {
 StreamWithDqs::~StreamWithDqs()
 {
-    (void)DestroyDqsCtrlSpace();
+    DestroyDqsCtrlSpace();
+    DestroyDqsInterChipSpace();
     (void)DestroyAccSubInfo();
 
     DELETE_O(dqsNotify_);
@@ -35,7 +36,7 @@ rtError_t StreamWithDqs::SetupByFlagAndCheck(void)
     if ((flags_ & RT_STREAM_DQS_INTER_CHIP) != 0U) {
         COND_RETURN_ERROR(Device_()->DevGetTsId() == RT_TSC_ID, RT_ERROR_INVALID_VALUE,
             "Cannot create dqs inter chip stream with ts_id(%u), should use ts_id(%u)", RT_TSC_ID, RT_TSV_ID);
-        error = InitDqsInterChipSpace();
+        error = CreateDqsInterChipSpace();
         ERROR_RETURN(error, "Failed to init dqs inter chip space, retCode=%#x.", static_cast<uint32_t>(error));
     }
 
@@ -69,12 +70,13 @@ rtError_t StreamWithDqs::TearDown(const bool terminal, bool flag)
     return DavidStream::TearDown(terminal, flag);
 }
 
-rtError_t StreamWithDqs::CreateDqsCtrlSpace()
+static rtError_t InvokeCreateDqsCtrlSpace(const bool isInterChip, const int32_t streamId, const uint32_t tsId,
+                                          void* &ctrlSpacePtr)
 {
     stars_ioctl_cmd_args_t args = {};
     stars_dqs_ctrl_space_param_t param = {};
-    param.stream_id = streamId_;
-    param.ts_id = Device_()->DevGetTsId();
+    param.stream_id = static_cast<uint8_t>(streamId);
+    param.ts_id = static_cast<uint8_t>(tsId);
     param.op_type = 0U;  // create
     stars_dqs_ctrl_space_result_t res = {};
     args.input_ptr = &param;
@@ -82,15 +84,35 @@ rtError_t StreamWithDqs::CreateDqsCtrlSpace()
     args.output_ptr = &res;
     args.output_len = sizeof(stars_dqs_ctrl_space_result_t);
 
-    const rtError_t error = IoctlUtil::GetInstance().IoctlByCmd(STARS_IOCTL_CMD_DQS_CONTROL_SPACE, &args);
+    const auto cmd = isInterChip ? STARS_IOCTL_CMD_DQS_INTER_CHIP_SPACE : STARS_IOCTL_CMD_DQS_CONTROL_SPACE;
+    const rtError_t error = IoctlUtil::GetInstance().IoctlByCmd(cmd, &args);
     COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "ioctl failed, retCode=%#x", static_cast<uint32_t>(error));
 
     COND_RETURN_ERROR((res.cs_va == nullptr) || (res.status != 0U), RT_ERROR_DRV_IOCTRL, "ioctl failed, retCode=%#x",
         static_cast<uint32_t>(RT_ERROR_DRV_IOCTRL));
 
-    RT_LOG(RT_LOG_INFO, "ioctl success, ctrl space va=%p, status=%u, stream_id=%d", res.cs_va, res.status, streamId_);
+    ctrlSpacePtr = res.cs_va;
+    RT_LOG(RT_LOG_INFO, "ioctl success, status=%u, stream_id=%u, isInterChip=%d", res.status, streamId, isInterChip);
+    return RT_ERROR_NONE;
+}
 
-    SetDqsCtrlSpace(RtPtrToPtr<stars_dqs_ctrl_space_t *>(res.cs_va));
+rtError_t StreamWithDqs::CreateDqsCtrlSpace(void)
+{
+    void *ctrlSpacePtr = nullptr;
+    const auto ret = InvokeCreateDqsCtrlSpace(false, streamId_, Device_()->DevGetTsId(), ctrlSpacePtr);
+    COND_RETURN_WITH_NOLOG((ret != RT_ERROR_NONE), ret);
+
+    SetDqsCtrlSpace(RtPtrToPtr<stars_dqs_ctrl_space_t *>(ctrlSpacePtr));
+    return RT_ERROR_NONE;
+}
+
+rtError_t StreamWithDqs::CreateDqsInterChipSpace(void)
+{
+    void *ctrlSpacePtr = nullptr;
+    const auto ret = InvokeCreateDqsCtrlSpace(true, streamId_, Device_()->DevGetTsId(), ctrlSpacePtr);
+    COND_RETURN_WITH_NOLOG((ret != RT_ERROR_NONE), ret);
+
+    SetDqsInterChipSpace(RtPtrToPtr<stars_dqs_inter_chip_space_t *>(ctrlSpacePtr));
     return RT_ERROR_NONE;
 }
 
@@ -115,14 +137,12 @@ rtError_t StreamWithDqs::DestroyAccSubInfo()
     return RT_ERROR_NONE;
 }
 
-rtError_t StreamWithDqs::DestroyDqsCtrlSpace()
+static void InvokeDestroyDqsCtrlSpace(const bool isInterChip, const int32_t streamId, const uint32_t tsId)
 {
-    COND_RETURN_WITH_NOLOG(dqsCtrlSpace_ == nullptr, RT_ERROR_NONE);
-
     stars_ioctl_cmd_args_t args = {};
     stars_dqs_ctrl_space_param_t param = {};
-    param.stream_id = streamId_;
-    param.ts_id = Device_()->DevGetTsId();
+    param.stream_id = static_cast<uint8_t>(streamId);
+    param.ts_id = static_cast<uint8_t>(tsId);
     param.op_type = 1U;  // destroy
     stars_dqs_ctrl_space_result_t res = {};
     args.input_ptr = &param;
@@ -130,11 +150,26 @@ rtError_t StreamWithDqs::DestroyDqsCtrlSpace()
     args.output_ptr = &res;
     args.output_len = sizeof(stars_dqs_ctrl_space_result_t);
 
-    const rtError_t error = IoctlUtil::GetInstance().IoctlByCmd(STARS_IOCTL_CMD_DQS_CONTROL_SPACE, &args);
-    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "ioctl failed, retCode=%#x", static_cast<uint32_t>(error));
-    dqsCtrlSpace_ = nullptr;
+    const stars_ioctl_cmd_t cmd = isInterChip ?
+        STARS_IOCTL_CMD_DQS_INTER_CHIP_SPACE : STARS_IOCTL_CMD_DQS_CONTROL_SPACE;
+    const rtError_t error = IoctlUtil::GetInstance().IoctlByCmd(cmd, &args);
+    COND_LOG_ERROR((error != RT_ERROR_NONE), "ioctl failed, retCode=%#x", static_cast<uint32_t>(error))
+}
 
-    return RT_ERROR_NONE;
+void StreamWithDqs::DestroyDqsCtrlSpace(void)
+{
+    if (dqsCtrlSpace_ != nullptr) {
+        InvokeDestroyDqsCtrlSpace(false, streamId_, Device_()->DevGetTsId());
+        dqsCtrlSpace_ = nullptr;
+    }
+}
+
+void StreamWithDqs::DestroyDqsInterChipSpace(void)
+{
+    if (dqsInterChipSpace_ != nullptr) {
+        InvokeDestroyDqsCtrlSpace(true, streamId_, Device_()->DevGetTsId());
+        dqsInterChipSpace_ = nullptr;
+    }
 }
 
 static rtError_t UpdateCtrlSpaceFrameAlignInfo(const uint8_t inputQueNum, const int32_t streamId, const uint32_t tsId)
@@ -309,26 +344,6 @@ rtError_t StreamWithDqs::SetDqsSchedCfg(const rtDqsSchedCfg_t * const cfg)
 
     RT_LOG(RT_LOG_INFO, "set dqs cfg and ctrl space info success");
 
-    return RT_ERROR_NONE;
-}
-
-rtError_t StreamWithDqs::InitDqsInterChipSpace(void)
-{
-    stars_ioctl_cmd_args_t args = {};
-    stars_dqs_inter_chip_space_result_t res = {};
-    args.output_ptr = &res;
-    args.output_len = sizeof(stars_dqs_inter_chip_space_result_t);
-
-    const rtError_t error = IoctlUtil::GetInstance().IoctlByCmd(STARS_IOCTL_CMD_DQS_INTER_CHIP_SPACE, &args);
-    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "ioctl failed, retCode=%#x", static_cast<uint32_t>(error));
-
-    if (res.inter_chip_space_va == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "ctrl space va is invalid, stream_id=%d", streamId_);
-        return RT_ERROR_DRV_IOCTRL;
-    }
-
-    SetDqsInterChipSpace(RtPtrToPtr<stars_dqs_inter_chip_space_t *>(res.inter_chip_space_va));
-    RT_LOG(RT_LOG_INFO, "ioctl success, dqs inter chip space va=%p, stream_id=%d", res.inter_chip_space_va, streamId_);
     return RT_ERROR_NONE;
 }
 

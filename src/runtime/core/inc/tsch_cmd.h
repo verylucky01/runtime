@@ -138,12 +138,14 @@ typedef enum {
 } stars_queue_bind_op_type_t;
 
 typedef struct {
+    uint16_t stream_id;                         // 跨片调度stream_id
     /* 本片 */
     uint16_t src_chip_sub_qid;                  // 本片消费者队列qid，用于订阅本片生产者队列入队数据
     uint16_t src_mbuf_pool_id;                  // pool id
     uint32_t src_mbuf_data_pool_blk_size;       // 实际分配对齐后的blksize，非原始的blksize
     uint32_t src_mbuf_data_pool_blk_real_size;  // 原始的blksize
     uint32_t src_mbuf_head_pool_blk_size;       // 实际分配对齐后的blksize，非原始的blksize
+    uint32_t src_mbuf_head_pool_blk_real_size;  // 原始的head池blksize
     uint32_t src_mbuf_data_pool_offset;         // mbuf的data block的偏移
     uint32_t src_mbuf_head_pool_offset;         // mbuf的head block的偏移
     uint64_t src_mbuf_data_pool_base_addr;      // data pool池的基地址
@@ -155,6 +157,7 @@ typedef struct {
     uint32_t dst_mbuf_data_pool_blk_size;       // 实际分配对齐后的blksize，非原始的blksize
     uint32_t dst_mbuf_data_pool_blk_real_size;  // 原始的blksize
     uint32_t dst_mbuf_head_pool_blk_size;       // 实际分配对齐后的blksize，非原始的blksize
+    uint32_t dst_mbuf_head_pool_blk_real_size;  // 原始的head池blksize
     uint32_t dst_mbuf_data_pool_offset;         // mbuf的data block的偏移
     uint32_t dst_mbuf_head_pool_offset;         // mbuf的head block的偏移
     uint64_t dst_mbuf_data_pool_base_addr;      // data pool池的基地址
@@ -303,10 +306,6 @@ typedef struct {
     uint32_t reserve;  // 预留字段
     void *cs_va;       // control space user va
 } stars_dqs_ctrl_space_result_t;
-
-typedef struct {
-    void *inter_chip_space_va;
-} stars_dqs_inter_chip_space_result_t;
 
 /* sdma ptr_mode sqe中SDMA_SQE_BASE_ADDR所指向的数据结构，与stars sdma sqe保持一致，仅word4~15为有效位 */
 typedef struct {

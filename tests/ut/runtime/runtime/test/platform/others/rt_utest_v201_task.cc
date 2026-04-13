@@ -1196,8 +1196,8 @@ TEST_F(TaskTestV201, Test_GetIpcSqeWriteAddrForNotifyRecordTask)
 rtError_t IoctlByCmdMock(IoctlUtil *that, const stars_ioctl_cmd_t cmd, const stars_ioctl_cmd_args_t *args)
 {
     static stars_dqs_inter_chip_space_t space = {};
-    stars_dqs_inter_chip_space_result_t *result = (stars_dqs_inter_chip_space_result_t *)args->output_ptr;
-    result->inter_chip_space_va = &space;
+    stars_dqs_ctrl_space_result_t *result = (stars_dqs_ctrl_space_result_t *)args->output_ptr;
+    result->cs_va = &space;
     return RT_ERROR_NONE;
 }
 

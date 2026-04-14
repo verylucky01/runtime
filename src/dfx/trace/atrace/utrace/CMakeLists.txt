@@ -147,7 +147,9 @@ target_link_libraries(atrace_share
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:mmpa_headers>
         # $<BUILD_INTERFACE:adcore_headers>
-        $<$<STREQUAL:${PRODUCT_SIDE},device>:ascend_hal_stub>
+        $<$<STREQUAL:${PRODUCT_SIDE},host>:ascend_hal_stub>
+        $<$<AND:$<STREQUAL:${PRODUCT_SIDE},device>,$<STREQUAL:${PRODUCT},pegasus>>:ascend_hal_stub>
+        $<$<AND:$<STREQUAL:${PRODUCT_SIDE},device>,$<NOT:$<STREQUAL:${PRODUCT},pegasus>>>:ascend_hal>
         adcore
         mmpa
         unified_dlog
@@ -235,6 +237,9 @@ target_link_libraries(utrace_share
         $<BUILD_INTERFACE:slog_headers>
         $<BUILD_INTERFACE:mmpa_headers>
         # $<BUILD_INTERFACE:adcore_headers>
+        $<$<STREQUAL:${PRODUCT_SIDE},host>:ascend_hal_stub>
+        $<$<AND:$<STREQUAL:${PRODUCT_SIDE},device>,$<STREQUAL:${PRODUCT},pegasus>>:ascend_hal_stub>
+        $<$<AND:$<STREQUAL:${PRODUCT_SIDE},device>,$<NOT:$<STREQUAL:${PRODUCT},pegasus>>>:ascend_hal>
         adcore
         mmpa
         unified_dlog

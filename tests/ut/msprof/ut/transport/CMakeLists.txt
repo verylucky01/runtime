@@ -120,8 +120,8 @@ target_include_directories(transport PRIVATE
     ${TOP_DIR}/inc/driver
     ../stub/
     ${TOP_DIR}/llt/abl/msprof/st/stub
-    ${TOP_DIR}/abl/adump
-    ${TOP_DIR}/abl/adump/external
+    ${TOP_DIR}/runtime/src/dfx/adump
+    ${TOP_DIR}/runtime/src/dfx/adump/external
     ${TOP_DIR}/ace/npuruntime/inc
     ${TOP_DIR}/ace/npuruntime/inc/external/
     ${TOP_DIR}/abl/msprof/inc

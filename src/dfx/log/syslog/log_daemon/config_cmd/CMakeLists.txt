@@ -37,7 +37,7 @@ set(libhdclogDeviceDir
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/config_cmd
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/server_mgr
     ${TOOLAHCIN_LOG_DIR}/syslog/msnpureport
-    ${RUNTIME_DIR}/abl/adump/external
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/external
     ${RUNTIME_DIR}/ace/csruntime/inc/tsch
 )
 

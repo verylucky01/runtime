@@ -33,8 +33,8 @@ set(libutraceserverHeaderDir
     ${CMAKE_CURRENT_SOURCE_DIR}/../../inc/trace_server
     ${ATRACE_DIR}/common
     ${RUNTIME_DIR}/inc/driver
-    ${RUNTIME_DIR}/abl/adump/inc/adump
-    ${RUNTIME_DIR}/abl/adump/external
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/inc/adump
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/external
 )
 
 add_library(utrace_server_share

@@ -72,7 +72,7 @@ set(libmsprofHeaderDir
 
 target_include_directories(streamio_common_utest PRIVATE
     ${libmsprofHeaderDir}
-    ${TOP_DIR}/abl/adump/inc/adump
+    ${TOP_DIR}/runtime/src/dfx/adump/inc/adump
     ${TOP_DIR}/abl/libc_sec/include
     ${TOP_DIR}/inc/driver
     ${TOP_DIR}/inc/external/acl

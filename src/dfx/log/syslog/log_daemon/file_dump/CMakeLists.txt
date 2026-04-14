@@ -17,8 +17,8 @@ set(fileDumpSrcList
 )
 
 set(fileDumpHeaderDir
-    ${RUNTIME_DIR}/abl/adump/inc/adump
-    ${RUNTIME_DIR}/abl/adump/external
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/inc/adump
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/external
     ${TOOLAHCIN_LOG_DIR}/utils
     ${TOOLAHCIN_LOG_DIR}/shared
     ${TOOLAHCIN_LOG_DIR}/../../include/log/msnpureport

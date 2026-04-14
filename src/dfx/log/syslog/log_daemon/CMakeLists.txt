@@ -62,8 +62,8 @@ set(logDaemonHeaderDir
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/server_mgr
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/cpu_detect
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/include
-    ${RUNTIME_DIR}/abl/adump
-    ${RUNTIME_DIR}/abl/adump/external
+    ${RUNTIME_DIR}/runtime/src/dfx/adump
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/external
 )
 
 set(logDaemonRcSrcFiles
@@ -102,8 +102,8 @@ set(logDaemonRcHeaderDir
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/stackcore
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/event_process
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/file_monitor
-    ${RUNTIME_DIR}/abl/adump
-    ${RUNTIME_DIR}/abl/adump/external
+    ${RUNTIME_DIR}/runtime/src/dfx/adump
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/external
 )
 
 ###################################################################

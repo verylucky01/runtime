@@ -8,7 +8,7 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 #  cmakelist for adx st
-set(SRC_CODE_ROOT_PATH ${TOP_DIR}/abl/adump)
+set(SRC_CODE_ROOT_PATH ${TOP_DIR}/runtime/src/dfx/adump)
 set(LLT_CODE_ROOT_PATH ${TOP_DIR}/tests/ut/adump/ut)
 
 set(adxSrcList

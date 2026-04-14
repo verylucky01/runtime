@@ -8,8 +8,8 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 ############ adump utest ###########
-set(SRC_CODE_ROOT_PATH ${TOP_DIR}/abl/adump)
-set(LLT_CODE_ROOT_PATH ${TOP_DIR}/llt/abl/adump)
+set(SRC_CODE_ROOT_PATH ${TOP_DIR}/runtime/src/dfx/adump)
+set(LLT_CODE_ROOT_PATH ${TOP_DIR}/llt/runtime/src/dfx/adump)
 
 set(adumpBaseDupUtestSrc
     ${SRC_CODE_ROOT_PATH}/adcore/common/memory_utils.cpp

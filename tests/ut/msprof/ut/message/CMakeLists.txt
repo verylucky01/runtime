@@ -60,7 +60,7 @@ target_include_directories(message_utest PRIVATE
     ${libmsprofHeaderDir}
     ${TOP_DIR}/abl/libc_sec/include
     ${TOP_DIR}/inc/driver
-    ${TOP_DIR}/abl/adump
+    ${TOP_DIR}/runtime/src/dfx/adump
     ${TOP_DIR}/ace/npuruntime/inc
     ${TOP_DIR}/abl/msprof/inc
     ${TOP_DIR}/metadef/inc

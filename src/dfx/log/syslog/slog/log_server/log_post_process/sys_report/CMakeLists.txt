@@ -30,7 +30,7 @@ set(libsysDeviceDir
     ${TOOLAHCIN_LOG_DIR}/syslog/slog/log_server/log_mgr/file_mgr
     ${TOOLAHCIN_LOG_DIR}/syslog/slog/log_server/log_mgr/buffer_mgr
     ${TOOLAHCIN_LOG_DIR}/syslog/slog/log_server/log_pre_process
-    ${RUNTIME_DIR}/abl/adump/external
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/external
     ${CMAKE_CURRENT_SOURCE_DIR}/../app_report
     ${CMAKE_CURRENT_SOURCE_DIR}/../session_mgr
 )

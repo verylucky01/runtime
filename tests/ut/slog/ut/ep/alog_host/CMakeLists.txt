@@ -55,7 +55,7 @@ set(libAlogSrc
 set(libAlogInc
     ${TOP_DIR}/abl/libc_sec/include
     ${TOP_DIR}/inc/driver
-    ${TOP_DIR}/abl/adump/inc/adump
+    ${TOP_DIR}/runtime/src/dfx/adump/inc/adump
     ${LOG_SOURCE_PATH}/liblog/slog
     ${LOG_SOURCE_PATH}/liblog/slog/plog
     ${LOG_SOURCE_PATH}/liblog/slog/dlog_communication

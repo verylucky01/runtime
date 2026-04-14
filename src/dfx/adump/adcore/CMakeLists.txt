@@ -91,6 +91,7 @@ target_compile_definitions(adcore PRIVATE
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>>:OS_TYPE=0>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:OS_TYPE=1>
     $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:SECUREC_USING_STD_SECURE_LIB=0>
+    $<$<STREQUAL:${PRODUCT},ascend031>:TINY_COMPILE>
 )
 
 if(${TARGET_SYSTEM_NAME} STREQUAL "Windows")
@@ -117,7 +118,9 @@ target_link_libraries(adcore PRIVATE
     c_sec
     mmpa
     -Wl,--as-needed
-    ascend_hal_stub
+    $<$<STREQUAL:${PRODUCT_SIDE},host>:ascend_hal_stub>
+    $<$<AND:$<STREQUAL:${PRODUCT_SIDE},device>,$<STREQUAL:${PRODUCT},pegasus>>:ascend_hal_stub>
+    $<$<AND:$<STREQUAL:${PRODUCT_SIDE},device>,$<NOT:$<STREQUAL:${PRODUCT},pegasus>>>:ascend_hal>
     $<$<STREQUAL:${PRODUCT_SIDE},device>:unified_dlog>
     $<$<AND:$<NOT:$<BOOL:${PRODUCT}>>,$<STREQUAL:${PRODUCT_SIDE},host>>:unified_dlog>
 )

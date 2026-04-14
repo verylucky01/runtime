@@ -97,8 +97,8 @@ target_include_directories(transport_stest PRIVATE
     ${TOP_DIR}/inc/external
     ../stub/
     ${TOP_DIR}/llt/abl/msprof/st/stub
-    ${TOP_DIR}/abl/adump
-    ${TOP_DIR}/abl/adump/external
+    ${TOP_DIR}/runtime/src/dfx/adump
+    ${TOP_DIR}/runtime/src/dfx/adump/external
     ${TOP_DIR}/ace/npuruntime/inc
     ${TOP_DIR}/ace/npuruntime/inc/external/
     ${TOP_DIR}/abl/msprof/inc

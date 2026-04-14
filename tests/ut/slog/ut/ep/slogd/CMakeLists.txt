@@ -113,8 +113,8 @@ set(testSrc
 set(libSlogdInc
     ${TOP_DIR}/inc/driver
     ${TOP_DIR}/abl/libc_sec/include
-    ${TOP_DIR}/abl/adump/external
-    ${TOP_DIR}/abl/adump/inc/adump
+    ${TOP_DIR}/runtime/src/dfx/adump/external
+    ${TOP_DIR}/runtime/src/dfx/adump/inc/adump
     ${TOP_DIR}/abl/atrace/inc/trace_server
     ${TOP_DIR}/abl/atrace/inc/utrace
     ${LOG_SOURCE_PATH}/syslog/slog

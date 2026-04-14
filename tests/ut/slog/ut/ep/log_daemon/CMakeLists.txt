@@ -85,8 +85,8 @@ set(logDaemonSrc
 
 set(logDaemonInc
     ${TOP_DIR}/inc/driver
-    ${TOP_DIR}/abl/adump/external
-    ${TOP_DIR}/abl/adump/inc/adump
+    ${TOP_DIR}/runtime/src/dfx/adump/external
+    ${TOP_DIR}/runtime/src/dfx/adump/inc/adump
     ${TOP_DIR}/abl/libc_sec/include
     ${TOP_DIR}/ace/csruntime/inc/tsch
     ${LOG_SOURCE_PATH}/shared

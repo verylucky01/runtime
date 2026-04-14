@@ -16,7 +16,7 @@ set(libcpuDeviceDir
     ${RUNTIME_DIR}/abl/libc_sec/include
     ${TOOLAHCIN_LOG_DIR}/utils
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/cpu_detect
-    ${RUNTIME_DIR}/abl/adump/external
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/external
 )
 
 ###################################################################

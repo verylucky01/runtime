@@ -378,7 +378,7 @@ TEST_F(OperatorDumpStest, Test_AdumpSetDumpConfig_Milan)
     // unsupported
     EXPECT_EQ(AdumpSetDumpConfig(DumpType::OPERATOR, dumpConf), ADUMP_SUCCESS);
 
-    std::string path = "./llt/abl/adump/st/adump_base/stub/data/simulated_data.txt";
+    std::string path = "./llt/runtime/src/dfx/adump/st/adump_base/stub/data/simulated_data.txt";
     MOCKER_CPP(&Path::Concat).stubs().will(returnValue(Adx::Path(path)));
 
     // first init

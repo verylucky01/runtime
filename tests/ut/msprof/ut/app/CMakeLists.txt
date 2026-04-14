@@ -76,8 +76,8 @@ target_include_directories(application_utest PRIVATE
     ${TOP_DIR}/inc/driver
     ${TOP_DIR}/inc/tsch
     ${TOP_DIR}/inc/external/acl
-    ${TOP_DIR}/abl/adump
-    ${TOP_DIR}/abl/adump/external
+    ${TOP_DIR}/runtime/src/dfx/adump
+    ${TOP_DIR}/runtime/src/dfx/adump/external
     ${TOP_DIR}/ace/npuruntime/inc
     ${TOP_DIR}/abl/msprof/inc
     ${TOP_DIR}/metadef/inc

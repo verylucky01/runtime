@@ -31,7 +31,7 @@ set(libhbmDeviceDir
     ${TOOLAHCIN_LOG_DIR}/syslog/common/driver
     ${TOOLAHCIN_LOG_DIR}/syslog/common/config
     ${TOOLAHCIN_LOG_DIR}/syslog/log_daemon/hbm_detect
-    ${RUNTIME_DIR}/abl/adump/external
+    ${RUNTIME_DIR}/runtime/src/dfx/adump/external
 )
 
 ###################################################################

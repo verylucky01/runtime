@@ -75,7 +75,7 @@ TEST_F(OperatorPreliminaryUtest, Test_Operator_Failed_BinLoad)
         if (opIniter == nullptr) {
             break;
         }
-        std::string path = "./llt/abl/adump/ut/adump_base/stub/data/";
+        std::string path = "./llt/runtime/src/dfx/adump/ut/adump_base/stub/data/";
         MOCKER_CPP(&LibPath::GetInstallPath).stubs().will(returnValue(Adx::Path(path)));
 
         EXPECT_EQ(opIniter->OperatorInit(), ADUMP_FAILED);

@@ -52,7 +52,7 @@ add_executable(streamio_common_open_utest
 )
 
 target_include_directories(streamio_common_open_utest PRIVATE
-    ${TOP_DIR}/abl/adump/inc/adump
+    ${TOP_DIR}/runtime/src/dfx/adump/inc/adump
     ${TOP_DIR}/abl/libc_sec/include
     ${TOP_DIR}/inc/driver
     ${TOP_DIR}/inc/external/acl

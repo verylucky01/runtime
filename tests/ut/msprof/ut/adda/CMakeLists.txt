@@ -7,7 +7,7 @@
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
-set(ADUMP_SOURCE_DIR ${TOP_DIR}/abl/adump)
+set(ADUMP_SOURCE_DIR ${TOP_DIR}/runtime/src/dfx/adump)
 set(MSPROF_SOURCE_DIR ${TOP_DIR}/abl/msprof/collector)
 
 set(profilerSrcFiles

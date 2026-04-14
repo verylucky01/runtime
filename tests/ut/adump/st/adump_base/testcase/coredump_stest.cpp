@@ -396,8 +396,8 @@ TEST_F(CoredumpStest, Test_Dump_Core_With_Dfx_Static) {
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.elfDataFlag = 1;
 
     // test collect kernel .o .json file
-    (void)setenv("ASCEND_CACHE_PATH", "./llt/abl/adump/st/", 1);
-    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/abl/adump:/llt/abl/adump:", 1);
+    (void)setenv("ASCEND_CACHE_PATH", "./llt/runtime/src/dfx/adump/st/", 1);
+    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/runtime/src/dfx/adump:/llt/runtime/src/dfx/adump:", 1);
     char kernelBin[] = "kernel bin";
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.bin = static_cast<rtBinHandle>(kernelBin);
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.binSize = sizeof(kernelBin);
@@ -623,8 +623,8 @@ TEST_F(CoredumpStest, TEST_CORE_DUMP_FUNC_FAILED) {
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.elfDataFlag = 1;
 
     // test collect kernel .o .json file
-    (void)setenv("ASCEND_CACHE_PATH", "./llt/abl/adump/ut/", 1);
-    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/abl/adump:/llt/abl/adump:", 1);
+    (void)setenv("ASCEND_CACHE_PATH", "./llt/runtime/src/dfx/adump/ut/", 1);
+    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/runtime/src/dfx/adump:/llt/runtime/src/dfx/adump:", 1);
     char binData[] = "BIN_DATA";
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.bin = static_cast<rtBinHandle>(binData);
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.binSize = sizeof(binData);
@@ -832,8 +832,8 @@ TEST_F(CoredumpStest, TEST_CORE_DUMP_SWITCH_TO_L0_DUMP)
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.dfxSize = dfxInfo.size();
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.elfDataFlag = 1;
      // test collect kernel .o .json file
-    (void)setenv("ASCEND_CACHE_PATH", "./llt/abl/adump/ut/", 1);
-    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/abl/adump:/llt/abl/adump:", 1);
+    (void)setenv("ASCEND_CACHE_PATH", "./llt/runtime/src/dfx/adump/ut/", 1);
+    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/runtime/src/dfx/adump:/llt/runtime/src/dfx/adump:", 1);
     char binData[] = "BIN_DATA";
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.bin = static_cast<rtBinHandle>(binData);
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.binSize = sizeof(binData);
@@ -1117,8 +1117,8 @@ TEST_F(CoredumpStest, Test_Dump_Core_David) {
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.elfDataFlag = 1;
 
     // test collect kernel .o .json file
-    (void)setenv("ASCEND_CACHE_PATH", "./llt/abl/adump/st/", 1);
-    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/abl/adump:/llt/abl/adump:", 1);
+    (void)setenv("ASCEND_CACHE_PATH", "./llt/runtime/src/dfx/adump/st/", 1);
+    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/runtime/src/dfx/adump:/llt/runtime/src/dfx/adump:", 1);
     char kernelBin[] = "kernel bin";
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.bin = static_cast<rtBinHandle>(kernelBin);
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.binSize = sizeof(kernelBin);

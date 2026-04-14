@@ -179,8 +179,8 @@ TEST_F(DumpArgsStest, Test_EnableArgsDump)
     InvokeException(exceptionInfo);
 
     // test collect kernel .o .json file
-    (void)setenv("ASCEND_CACHE_PATH", "./llt/abl/adump/st/", 1);
-    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/abl/adump:/llt/abl/adump:", 1);
+    (void)setenv("ASCEND_CACHE_PATH", "./llt/runtime/src/dfx/adump/st/", 1);
+    (void)setenv("ASCEND_CUSTOM_OPP_PATH", "/runtime/src/dfx/adump:/llt/runtime/src/dfx/adump:", 1);
     std::string kernelName = "AddCustom_3ee04b5d550e4239498c29151be6bb5c_mix_aic";
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.kernelName = kernelName.data();
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.kernelNameSize = kernelName.size();
@@ -321,8 +321,8 @@ TEST_F(DumpArgsStest, Test_EnableArgsDump_OPP_Path)
     InvokeException(exceptionInfo);
 
     // test collect kernel .o .json file
-    (void)setenv("ASCEND_OPP_PATH", "./llt/abl/adump/st/", 1);
-    (void)setenv("ASCEND_WORK_PATH", "./llt/abl/adump/ut/ASCEND_WORK_PATH", 1);
+    (void)setenv("ASCEND_OPP_PATH", "./llt/runtime/src/dfx/adump/st/", 1);
+    (void)setenv("ASCEND_WORK_PATH", "./llt/runtime/src/dfx/adump/ut/ASCEND_WORK_PATH", 1);
     std::string kernelName = "AddCustom_3ee04b5d550e4239498c29151be6bb5c_mix_aic";
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.kernelName = kernelName.data();
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.kernelNameSize = kernelName.size();
@@ -1189,7 +1189,7 @@ static HcclCombinOpParam g_combinOpParam;
 
 TEST_F(DumpArgsStest, Test_Dump_Args_With_Dfx_Tik_Dynamic)
 {
-    std::string currPath = "./llt/abl/adump/st/adump_base/stub/plugin/adump";
+    std::string currPath = "./llt/runtime/src/dfx/adump/st/adump_base/stub/plugin/adump";
     MOCKER_CPP(&LibPath::GetTargetPath).stubs().will(returnValue(currPath));
     MOCKER(dlopen).stubs().will(invoke(mmDlopen));
     MOCKER(dlsym).stubs().will(invoke(mmDlsym));
@@ -2055,7 +2055,7 @@ TEST_F(DumpArgsStest, Test_DumpArgsMultiThread)
 
 TEST_F(DumpArgsStest, Test_Dump_Args_For_L2_Shape)
 {
-    std::string currPath = "./llt/abl/adump/ut/adump_base/stub/plugin/adump";
+    std::string currPath = "./llt/runtime/src/dfx/adump/ut/adump_base/stub/plugin/adump";
     MOCKER_CPP(&LibPath::GetTargetPath).stubs().will(returnValue(currPath));
     MOCKER(dlopen).stubs().will(invoke(mmDlopen));
     MOCKER(dlsym).stubs().will(invoke(mmDlsym));

@@ -84,12 +84,19 @@ int32_t AdxRegisterComponentFunc(drvHdcServiceType serverType, std::unique_ptr<A
 
 int32_t AdxComponentServerStartup(ServerInitInfo info)
 {
-    IDE_LOGI("Start to startup, serverType:%d", static_cast<int32_t>(info.serverType));
+    int32_t serverType = static_cast<int32_t>(info.serverType);
+    IDE_LOGI("Start to startup, serverType:%d", serverType);
+    mmUserBlock_t funcBlock;
+#ifdef TINY_COMPILE
     static ServerInitInfo serverInfo{0, 0, 0};
     serverInfo = info;
-    mmUserBlock_t funcBlock;
-    funcBlock.procFunc = AdxServerProcess;
     funcBlock.pulArg = static_cast<IdeThreadArg>(&serverInfo);
+#else
+    static std::map<int32_t, ServerInitInfo> serverInfos;
+    serverInfos[serverType] = info;
+    funcBlock.pulArg = static_cast<IdeThreadArg>(&serverInfos[serverType]);
+#endif
+    funcBlock.procFunc = AdxServerProcess;
     mmThread tid = 0;
     int32_t ret = Thread::CreateDetachTaskWithDefaultAttr(tid, funcBlock);
     return (ret != EN_OK) ? IDE_DAEMON_ERROR : IDE_DAEMON_OK;

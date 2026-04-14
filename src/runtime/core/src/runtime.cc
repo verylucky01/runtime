@@ -776,8 +776,8 @@ rtError_t Runtime::InitChipTypeAndSocVersion()
     ERROR_RETURN_MSG_INNER(ret, "init chip properties fail, retCode=%#x", static_cast<uint32_t>(ret));
     ret = GET_DEV_PROPERTIES(chipType_, curChipProperties_);
     ERROR_RETURN_MSG_INNER(ret, "init chip:%d properties fail, retCode=%#x", chipType_, static_cast<uint32_t>(ret));
-    RT_LOG(RT_LOG_INFO, "Runtime init: device type=%d, soc version=%d, have device=%d",
-           chipType_, socVersion_, isHaveDevice_);
+    RT_LOG(RT_LOG_INFO, "Runtime init: device type=%d, soc version=%s, have device=%d",
+           chipType_, socVersion_.c_str(), isHaveDevice_);
     return RT_ERROR_NONE;
 }
 

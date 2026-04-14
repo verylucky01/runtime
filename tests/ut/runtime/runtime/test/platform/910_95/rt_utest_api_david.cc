@@ -44,7 +44,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "thread_local_container.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "task_res.hpp"
 #include "task_david.hpp"
 #include "task_recycle.hpp"
@@ -3941,8 +3941,9 @@ protected:
                 .will(returnValue(RT_ERROR_NONE));
         rtSetDevice(0);
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         device_ = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
-        device_->SetPlatformType(PLATFORM_DAVID_950PR_9599);
+        device_->SetChipType(CHIP_DAVID);
         engine_ = ((RawDevice *)device_)->engine_;
 
         rtError_t res = rtStreamCreateWithFlags(&streamHandle_, 0, 0);
@@ -3988,6 +3989,7 @@ protected:
         stream_ = nullptr;
         engine_ = nullptr;
         ((Runtime *)Runtime::Instance())->DeviceRelease(device_);
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 
         MOCKER_CPP_VIRTUAL(driver, &Driver::GetRunMode)
                         .stubs()
@@ -7150,30 +7152,6 @@ TEST_F(ApiDavidTest, test_StreamSwitchN)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(trueStreamPtr);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-}
-
-TEST_F(ApiDavidTest, test_GetHardVerBySocVer)
-{
-    int64_t hardwareVersion = 0;
-    rtError_t ret = GetHardVerBySocVer(0, hardwareVersion);
-    EXPECT_EQ(hardwareVersion, PLATFORMCONFIG_DAVID_950PR_9599);
-    GlobalMockObject::verify();
-    char *socVer = "Ascend950PR_950z";
-    MOCKER(halGetSocVersion).stubs().with(mockcpp::any(), outBoundP(socVer, strlen("Ascend950PR_950z")), mockcpp::any()).will(returnValue(DRV_ERROR_NONE));
-    hardwareVersion = 0;
-    ret = GetHardVerBySocVer(0, hardwareVersion);
-    EXPECT_EQ(hardwareVersion, PLATFORMCONFIG_DAVID_950PR_950Z);
-    GlobalMockObject::verify();
-    MOCKER(halGetDeviceInfo).stubs().will(invoke(stubDavidGetDeviceInfo));
-    MOCKER(halGetSocVersion).stubs().will(returnValue(DRV_ERROR_NOT_SUPPORT));
-    hardwareVersion = 0;
-    ret = GetHardVerBySocVer(0, hardwareVersion);
-    EXPECT_EQ(hardwareVersion, PLATFORMCONFIG_DAVID_950PR_9599);
-    GlobalMockObject::verify();
-    MOCKER(halGetSocVersion).stubs().will(returnValue(DRV_ERROR_NO_PROCESS));
-    hardwareVersion = 0;
-    ret = GetHardVerBySocVer(0, hardwareVersion);
-    EXPECT_EQ(hardwareVersion, 0);
 }
 
 TEST_F(ApiDavidTest, rtsGetErrorVerbosefaulterror)

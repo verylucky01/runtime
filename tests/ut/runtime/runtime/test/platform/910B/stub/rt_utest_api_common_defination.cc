@@ -402,19 +402,19 @@ void initUpdateDsaSqe(uint32_t *hostAddr, rtStarsDsaSqe_t* dsaSqe)
     }
 }
 
-rtSocType_t g_StubSocType = SOC_BEGIN;
+std::string g_StubSocType;
 
 struct RtUtestStubHardwareInfo {
-    int32_t socType;
+    std::string socVersion;
     int32_t aicoreNum;
     int32_t aicoreFreq;
     int32_t tsNum;
     int64_t hardwareVersion;
 };
 
-void drvStubInit(rtSocType_t socType)
+void drvStubInit(const std::string& socVersion)
 {
-    g_StubSocType = socType;
+    g_StubSocType = socVersion;
 }
 rtStream_t ApiTest::stream_ = NULL;
 rtEvent_t ApiTest::event_ = NULL;

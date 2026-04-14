@@ -371,13 +371,12 @@ rtError_t ApiImpl::GetDeviceInfoFromPlatformInfo(const uint32_t deviceId, const 
     const std::string &key, int64_t * const value)
 {
     Runtime *const rt = Runtime::Instance();
-    const rtSocType_t socType = rt->GetSocType();
-    const std::string socVersion = GetSocVersionStrByType(socType);
+    const std::string socVersion = rt->GetSocVersion();
     uint32_t platformRet = fe::PlatformInfoManager::GeInstance().InitRuntimePlatformInfos(socVersion);
     if (platformRet != 0U) {
         RT_LOG(RT_LOG_ERROR,
-            "InitRuntime PlatformInfos failed, devId=%u, socType=%d, socVersion=%s, platformRet=%u",
-            deviceId, socType, socVersion.c_str(), platformRet);
+            "InitRuntime PlatformInfos failed, devId=%u, socVersion=%s, platformRet=%u",
+            deviceId, socVersion.c_str(), platformRet);
         return RT_ERROR_INVALID_VALUE;
     }
 

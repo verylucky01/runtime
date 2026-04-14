@@ -791,7 +791,6 @@ rtError_t DeviceErrorProc::ProcRingBufferTask(const void * const devMem, const b
         tsk = factory->Alloc(stm, TS_TASK_TYPE_DEVICE_RINGBUFFER_CONTROL, error);
         NULL_PTR_RETURN(tsk, error);
     }
-
     error = RingBufferMaintainTaskInit(tsk, devMem, delFlag, len);
     ERROR_GOTO(error, ERROR_TASK, "Failed to init create ringbuffer task.");
 

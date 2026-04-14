@@ -126,8 +126,52 @@ PlatformManagerV2 &PlatformManagerV2::Instance() {
   return platform_info;
 }
 
-int32_t PlatformManagerV2::GetSocSpec(const std::string &soc_version, const std::string &label,
-    const std::string &key, std::string &value)
+int32_t stubPlatformManagerV2GetSocSpec(
+    const std::string& soc_version, const std::string& label, const std::string& key, std::string& value)
+{
+    if (soc_version == "LLT_ParseIniFile_Success" && label == "SoCInfo") {
+        if (key == "normal_stream_num") {
+            value = "64";
+        } else if (key == "normal_stream_depth") {
+            value = "8192";
+        } else if (key == "huge_stream_num") {
+            value = "16";
+        } else if (key == "huge_stream_depth") {
+            value = "4096";
+        }
+        return RT_ERROR_NONE;
+    } else if (soc_version == "LLT_ParseIniFile_Mixed" && label == "SoCInfo") {
+        if (key == "normal_stream_num") {
+            return cce::runtime::RT_ERROR_NOT_FOUND;
+        }
+        if (key == "normal_stream_depth") {
+            value = "invalid";
+            return 0U;
+        }
+        if (key == "huge_stream_num") {
+            value = "4294967296";
+            return 0U;
+        }
+        if (key == "huge_stream_depth") {
+            value = "256";
+            return 0U;
+        }
+    } else if (soc_version == "LLT_ParseIniFile_QueryError" && label == "SoCInfo") {
+        if (key == "normal_stream_num") {
+            return cce::runtime::RT_ERROR_INVALID_VALUE;
+        }
+        value = "1024";
+        return 0U;
+    } else if (label == "SoCInfo") {
+        return cce::runtime::RT_ERROR_NOT_FOUND;
+    } else {
+        value = "test";
+        return 0U;
+    }
+}
+
+int32_t PlatformManagerV2::GetSocSpec(
+    const std::string& soc_version, const std::string& label, const std::string& key, std::string& value)
 {
   if (soc_version == "Ascend910B1" && label == "version" && key == "NpuArch") {
     value = "2201";
@@ -141,43 +185,13 @@ int32_t PlatformManagerV2::GetSocSpec(const std::string &soc_version, const std:
   } else if (soc_version == "Ascend910A" && label == "version" && key == "NpuArch") {
     value = "1001";
     return 0U;
-  } else if (soc_version == "LLT_ParseIniFile_Success" && label == "SoCInfo") {
-    if (key == "normal_stream_num") {
-      value = "64";
-    } else if (key == "normal_stream_depth") {
-      value = "8192";
-    } else if (key == "huge_stream_num") {
-      value = "16";
-    } else if (key == "huge_stream_depth") {
-      value = "4096";
-    }
-    return RT_ERROR_NONE;
-  } else if (soc_version == "LLT_ParseIniFile_Mixed" && label == "SoCInfo") {
-    if (key == "normal_stream_num") {
-      return cce::runtime::RT_ERROR_NOT_FOUND;
-    }
-    if (key == "normal_stream_depth") {
-      value = "invalid";
+  } else if (soc_version == "Ascend950PR_9599" && label == "SoCInfo" && key == "ai_core_cnt") {
+      value = "36";
       return 0U;
-    }
-    if (key == "huge_stream_num") {
-      value = "4294967296";
+  } else if (soc_version == "Ascend950PR_9599" && label == "SoCInfo" && key == "ai_cpu_cnt") {
+      value = "8";
       return 0U;
-    }
-    if (key == "huge_stream_depth") {
-      value = "256";
-      return 0U;
-    }
-  } else if (soc_version == "LLT_ParseIniFile_QueryError" && label == "SoCInfo") {
-    if (key == "normal_stream_num") {
-      return cce::runtime::RT_ERROR_INVALID_VALUE;
-    }
-    value = "1024";
-    return 0U;
-  } else if (label == "SoCInfo") {
-    return cce::runtime::RT_ERROR_NOT_FOUND;
   } else {
-    value = "test";
-    return 0U;
+    return stubPlatformManagerV2GetSocSpec(soc_version, label, key, value);
   }
 }

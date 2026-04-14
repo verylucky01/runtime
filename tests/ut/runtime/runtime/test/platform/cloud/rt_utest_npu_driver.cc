@@ -19,7 +19,6 @@
 #include "runtime/mem.h"
 #include "npu_driver.hpp"
 #include "runtime.hpp"
-#include "config.hpp"
 #include "cmodel_driver.h"
 #include "raw_device.hpp"
 #include "thread_local_container.hpp"

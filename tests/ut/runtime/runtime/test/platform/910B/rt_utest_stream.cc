@@ -66,7 +66,7 @@ protected:
         Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
         EXPECT_NE(rtInstance, nullptr);
 
-        GlobalContainer::SetHardwareChipType(CHIP_END);
+        GlobalContainer::SetHardwareSocVersion("");
         std::cout<<"ut test start."<<std::endl;
     }
 
@@ -252,14 +252,14 @@ TEST_F(CloudV2StreamTest, Query_test)
     std::unique_ptr<Stream> stream = std::make_unique<Stream>(device.get(), 0);
 
     Runtime::Instance()->SetDisableThread(true);
-    rtPlatformType_t oldPlatForm = device->platformType_;
+    rtChipType_t oldChipType = device->chipType_;
     uint16_t sqHead = 0U;
     uint16_t sqTail = 1U;
-    device->platformType_ = PLATFORM_CLOUD_V2;
+    device->chipType_ = CHIP_910_B_93;
     rtError_t ret = stream->Query();
     EXPECT_NE(ret, RT_ERROR_NONE);
 
-    device->platformType_ = oldPlatForm;
+    device->chipType_ = oldChipType;
     Runtime::Instance()->SetDisableThread(olgFlag);
     GlobalMockObject::verify();
 }

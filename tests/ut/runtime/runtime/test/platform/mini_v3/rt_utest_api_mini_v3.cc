@@ -77,8 +77,8 @@ protected:
     static void TearDownTestCase()
     {
         rtDeviceReset(0);
-        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 
     virtual void SetUp()

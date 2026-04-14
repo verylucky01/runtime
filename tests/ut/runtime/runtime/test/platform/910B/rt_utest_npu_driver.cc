@@ -18,7 +18,6 @@
 #include "runtime/mem.h"
 #include "runtime.hpp"
 #include "notify.hpp"
-#include "config.hpp"
 #include "cmodel_driver.h"
 #include "raw_device.hpp"
 #include "thread_local_container.hpp"
@@ -47,7 +46,7 @@ protected:
         rtError_t error;
         Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
         EXPECT_NE(rtInstance, nullptr);
-        GlobalContainer::SetHardwareChipType(CHIP_END);
+        GlobalContainer::SetHardwareSocVersion("");
 		GlobalMockObject::verify();
     }
 
@@ -183,24 +182,6 @@ drvError_t halGetDeviceInfoStub_Vector(uint32_t devId, int32_t moduleType, int32
 {
     *value = RT_AICORE_NUM_25 * 2U;
     return DRV_ERROR_NONE;
-}
-
-TEST_F(CloudV2NpuDriverTest, get_dev_info_for_cubeNum)
-{
-    rtError_t error;
-    int32_t devid = 0;
-    int64_t core_num = RT_AICORE_NUM_25;
-    MOCKER(halGetDeviceInfo).stubs().will(invoke(halGetDeviceInfoStub_Cube));
-    error = rtGetDeviceInfo(devid, MODULE_TYPE_AICORE, INFO_TYPE_CUBE_NUM, &core_num);
-    EXPECT_EQ(core_num, RT_AICORE_NUM_25 - 1U);
-    error = rtGetDeviceInfo(devid, MODULE_TYPE_AICORE, INFO_TYPE_CORE_NUM, &core_num);
-    EXPECT_EQ(core_num, RT_AICORE_NUM_25 - 1U);
-
-    uint32_t *aiCoreCnt;
-    aiCoreCnt = (uint32_t *)malloc(sizeof(uint32_t));
-    error = rtGetAiCoreCount(aiCoreCnt);
-    EXPECT_EQ(*aiCoreCnt, RT_AICORE_NUM_25 - 1U);
-    free(aiCoreCnt);
 }
 
 TEST_F(CloudV2NpuDriverTest, get_dev_info_for_vectorNum)

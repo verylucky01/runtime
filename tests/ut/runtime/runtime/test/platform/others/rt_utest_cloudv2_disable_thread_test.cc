@@ -67,6 +67,7 @@ protected:
     static void SetUpTestCase()
     {
         (void)rtSetSocVersion("Ascend910B");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(true);
         originType_ = Runtime::Instance()->GetChipType();
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
@@ -129,6 +130,7 @@ protected:
         (void)rtSetSocVersion("");
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(originType_);
+        rtInstance->SetIsUserSetSocVersion(false);
         GlobalContainer::SetRtChipType(originType_);
         rtInstance->SetDisableThread(false);      // Recover.
     }

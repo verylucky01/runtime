@@ -16,7 +16,7 @@ namespace cce {
 namespace runtime {
 
 static constexpr rtSocInfo_t CHIP_5612_SOC_INFO[] = {
-    {SOC_ASCEND320T, CHIP_ASCEND_031, ARCH_T300, "Ascend031"},
+    {CHIP_ASCEND_031, "Ascend031"},
 };
 
 BATCH_REGISTER_SOC_INFO(CHIP_5612_SOC_INFO, sizeof(CHIP_5612_SOC_INFO) / sizeof(rtSocInfo_t));
@@ -66,6 +66,7 @@ static constexpr uint32_t TINY_ARG_MAX_ENTRY_INIT_NUM = 4U;
 static const DevProperties CHIP_5612_PROPERTIES = {
     .engineType = "STARS",
     .isStars = true,
+    .isStarsV2 = false,
     .pthreadStackSize = PTHREAD_STACK_SIZE,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_CONFIG,
     .tsCount = 1U,

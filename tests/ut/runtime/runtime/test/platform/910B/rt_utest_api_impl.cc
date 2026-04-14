@@ -46,7 +46,7 @@
 #include "task_info.hpp"
 #include "platform/platform_info.h"
 #include "soc_info.h"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "thread_local_container.hpp"
 #include "rts.h"
 
@@ -1176,7 +1176,6 @@ TEST_F(CloudV2ApiImplTest, ModelExecutorSet_test)
 TEST_F(CloudV2ApiImplTest, rtGetSocVersionFromDrvApi)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
-    rtArchType_t archType = rtInstance->GetArchType();
 
     char *socVer = "Ascend610Lite";
     // get socversion from halGetSocVersion
@@ -1185,36 +1184,31 @@ TEST_F(CloudV2ApiImplTest, rtGetSocVersionFromDrvApi)
     char res[128] = {0};
     rtError_t error = rtGetSocVersion(res, 128);
     EXPECT_EQ(error, RT_ERROR_NONE);
-
-    rtInstance->SetArchType(archType);
 }
 
 TEST_F(CloudV2ApiImplTest, rtSetSocVersionFeInitFailed)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
-    rtArchType_t archType = rtInstance->GetArchType();
 
     MOCKER_CPP(&fe::PlatformInfoManager::InitializePlatformInfo).stubs().will(returnValue(0xF));
     rtError_t error = rtSetSocVersion("Ascend610Lite");
     EXPECT_NE(error, RT_ERROR_NONE);
-    rtInstance->SetArchType(archType);
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 }
 
 TEST_F(CloudV2ApiImplTest, rtSetSocVersionFeGetPlatformInfoFailed)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
-    rtArchType_t archType = rtInstance->GetArchType();
     MOCKER_CPP(&fe::PlatformInfoManager::InitializePlatformInfo).stubs().will(returnValue(0U));
     MOCKER_CPP(&fe::PlatformInfoManager::GetPlatformInfo).stubs().will(returnValue(0xF));
     rtError_t error = rtSetSocVersion("Ascend610Lite");
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     EXPECT_NE(error, RT_ERROR_NONE);
-    rtInstance->SetArchType(archType);
 }
 
 TEST_F(CloudV2ApiImplTest, rtSetSocVersionFeGetPlatformInfoSuccess)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
-    rtArchType_t archType = rtInstance->GetArchType();
     fe::PlatformInfo platInfo;
     platInfo.soc_info.arch_type = ARCH_C100;
     MOCKER_CPP(&fe::PlatformInfoManager::InitializePlatformInfo).stubs().will(returnValue(0U));
@@ -1222,13 +1216,12 @@ TEST_F(CloudV2ApiImplTest, rtSetSocVersionFeGetPlatformInfoSuccess)
         .will(returnValue(0U));
     rtError_t error = rtSetSocVersion("Ascend910");
     EXPECT_NE(error, RT_ERROR_NONE);
-    rtInstance->SetArchType(archType);
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 }
 
 TEST_F(CloudV2ApiImplTest, rtSetSocVersionFeGetPlatInfoInvalidChip)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
-    rtArchType_t archType = rtInstance->GetArchType();
     fe::PlatformInfo platInfo;
     platInfo.soc_info.arch_type = -1;
     platInfo.soc_info.chip_type = -1;
@@ -1237,13 +1230,12 @@ TEST_F(CloudV2ApiImplTest, rtSetSocVersionFeGetPlatInfoInvalidChip)
         .will(returnValue(0U));
     rtError_t error = rtSetSocVersion("Ascend910");
     EXPECT_NE(error, RT_ERROR_NONE);
-    rtInstance->SetArchType(archType);
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 }
 
 TEST_F(CloudV2ApiImplTest, rtSetSocVersionFeGetPlatInfoInvalidArch)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
-    rtArchType_t archType = rtInstance->GetArchType();
     fe::PlatformInfo platInfo;
     platInfo.soc_info.arch_type = ARCH_V100;
     MOCKER_CPP(&fe::PlatformInfoManager::InitializePlatformInfo).stubs().will(returnValue(0U));
@@ -1251,15 +1243,7 @@ TEST_F(CloudV2ApiImplTest, rtSetSocVersionFeGetPlatInfoInvalidArch)
         .will(returnValue(0U));
     rtError_t error = rtSetSocVersion("BS9SX1AA");
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
-    rtInstance->SetArchType(archType);
-}
-
-TEST_F(CloudV2ApiImplTest, ut_GetSocVersionStrEx_null)
-{
-    rtError_t error = -1;
-    rtSocType_t socType = SOC_END;
-    const std::string ret = GetSocVersionStrByType(socType);
-    EXPECT_EQ(ret == std::string(), true);
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 }
 
 TEST_F(CloudV2ApiImplTest, SetIpcMemPid_01)

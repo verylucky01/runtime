@@ -16,7 +16,7 @@
 #include "npu_driver.hpp"
 #include "event.hpp"
 #include "subscribe.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "task_res.hpp"
 #include "task_recycle.hpp"
 #include "raw_device.hpp"
@@ -30,7 +30,6 @@
 #include "stream.hpp"
 #include "stream_david.hpp"
 #include "runtime.hpp"
-#include "config.hpp"
 #include "mockcpp/mockcpp.hpp"
 #include "driver/ascend_hal.h"
 #include "osal.hpp"
@@ -669,7 +668,7 @@ TEST_F(DavidTaskRecycleTest, TaskReclaimByStreamV2)
 TEST_F(DavidTaskRecycleTest, TryReclaimToTask)
 {
     Device *device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
-    ((RawDevice *)device)->platformType_ = PLATFORM_DAVID_950PR_9599;
+    ((RawDevice *)device)->chipType_ = CHIP_DAVID;
     uint32_t support = RT_CAPABILITY_SUPPORT;
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::CheckSupportPcieBarCopy)
         .stubs()
@@ -1444,7 +1443,7 @@ TEST_F(DavidTaskRecycleTest, DavidTaskRecycleTest2) {
 
 TEST_F(DavidTaskRecycleTest, TryReclaimToTask_DelWorkTaskIsNull) {
     Device *device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
-    ((RawDevice *)device)->platformType_ = PLATFORM_DAVID_950PR_9599;
+    ((RawDevice *)device)->chipType_ = CHIP_DAVID;
     uint32_t support = RT_CAPABILITY_SUPPORT;
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::CheckSupportPcieBarCopy)
         .stubs()
@@ -1482,7 +1481,7 @@ TEST_F(DavidTaskRecycleTest, TryReclaimToTask_DelWorkTaskIsNull) {
 
 TEST_F(DavidTaskRecycleTest, TryReclaimToTask_EarlyBreak) {
     Device *device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
-    ((RawDevice *)device)->platformType_ = PLATFORM_DAVID_950PR_9599;
+    ((RawDevice *)device)->chipType_ = CHIP_DAVID;
     uint32_t support = RT_CAPABILITY_SUPPORT;
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::CheckSupportPcieBarCopy)
         .stubs()

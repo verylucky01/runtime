@@ -67,8 +67,7 @@ RawDevice::RawDevice(const uint32_t devId)
       SSID_(0U),
       TCR_(0U),
       l2buffer_(nullptr),
-      platformConfig_(0U),
-      platformType_(PLATFORM_END),
+      chipType_(CHIP_END),
       onProfEnable_(false),
       tsId_(0U),
       taskFactory_(nullptr),
@@ -571,19 +570,10 @@ rtError_t RawDevice::Init()
     // get runMode to runMode_
     uint32_t runMode = driver_->GetRunMode();
     SetRunMode(runMode);
-    
-    int64_t hardwareVersion = 0;
-    error = GetHardVerBySocVer(deviceId_, hardwareVersion);
-    ERROR_GOTO_MSG_INNER(error, L2_FREE, "Failed to get device info, device id=%u.", deviceId_);
-    RT_LOG(RT_LOG_INFO, "GetDevInfo, device_id=%u, hardwareVersion=%#x.", deviceId_, hardwareVersion);
     driver_->SetAllocNumaTsSupported();
-
-    platformConfig_ = static_cast<uint32_t>(hardwareVersion);
-    platformType_ = Runtime::Instance()->Config_()->GetPlatformTypeByConfig(platformConfig_);
-    if (platformType_ == PLATFORM_END) {
-        RT_LOG(RT_LOG_WARNING, "fail to get platform type, platformConfig_ = 0x%x", platformConfig_);
-    }
-    GlobalContainer::SetHardwareChipType(GetChipType());
+    chipType_ = chipType;
+    socVersion_ = Runtime::Instance()->GetSocVersion();
+    GlobalContainer::SetHardwareSocVersion(Runtime::Instance()->GetRawSocVersion());
     halCapabilityInfo capabilityInfo;
     error = driver_->GetChipCapability(deviceId_, &capabilityInfo);
     ERROR_GOTO_MSG_INNER(error, L2_FREE, "Failed to init dev capability, retCode=%#x, deviceId=%u.",

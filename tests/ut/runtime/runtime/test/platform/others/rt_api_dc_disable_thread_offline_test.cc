@@ -37,6 +37,7 @@ protected:
     {
         MOCKER(drvGetPlatformInfo).stubs().will(invoke(drvGetPlatformInfo_3));
         (void)rtSetSocVersion("Ascend310P");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         flag = ((Runtime *)Runtime::Instance())->GetDisableThread();
         ((Runtime *)Runtime::Instance())->SetDisableThread(true);
         originType_ = Runtime::Instance()->GetChipType();
@@ -85,9 +86,10 @@ protected:
         rtError_t error2 = rtEventDestroy(event_);
         rtError_t error3 = rtDevBinaryUnRegister(binHandle_);
         std::cout<<"api test start end : "<<error1<<", "<<error2<<", "<<error3<<std::endl;
+        Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
-        Runtime *rtInstance = (Runtime *)Runtime::Instance();
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rtInstance->SetChipType(originType_);
         GlobalContainer::SetRtChipType(originType_);
         rtInstance->SetDisableThread(flag);      // Recover.

@@ -12,7 +12,6 @@
 #include "api.hpp"
 #include "base.hpp"
 #include "prof_ctrl_callback_manager.hpp"
-#include "config.hpp"
 #include "error_message_manage.hpp"
 #include "errcode_manage.hpp"
 #include "error_code.h"
@@ -3609,26 +3608,16 @@ RTS_API rtError_t rtEschedQueryInfo(const uint32_t devId, const rtEschedQueryTyp
 VISIBILITY_DEFAULT
 RTS_API rtError_t rtModelCheckCompatibility(const char_t *omSocVersion, const char_t *omArchVersion)
 {
+    UNUSED(omArchVersion);
     const Runtime * const rtInstance = Runtime::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     PARAM_NULL_RETURN_ERROR_WITH_EXT_ERRCODE(omSocVersion, RT_ERROR_INVALID_VALUE);
-    if (omSocVersion[0U] == '\0') {
-        RT_LOG(RT_LOG_WARNING, "Input omSocVersion is null, please check.");
-    }
 
-    const rtArchType_t archType = rtInstance->GetArchType();
-    const rtError_t error = apiInstance->ModelCheckArchVersion(omArchVersion, archType);
+    const rtError_t error = apiInstance->ModelCheckArchVersion(omSocVersion);
     if (error != RT_ERROR_NONE) {
-        char_t socType[SOC_VERSION_LEN] = {0};
-        const rtError_t rtRet = rtGetSocVersion(socType, SOC_VERSION_LEN);
-        if (rtRet != RT_ERROR_NONE) {
-            RT_LOG(RT_LOG_ERROR, "rtGetSocVersion failed, retCode=%#x", rtRet);
-            return ACL_ERROR_RT_INTERNAL_ERROR;
-        } else {
-            RT_LOG_OUTER_MSG_INVALID_PARAM(omSocVersion, socType);
-        }
+        RT_LOG_OUTER_MSG_INVALID_PARAM(omSocVersion);
     }
 
     ERROR_RETURN_WITH_EXT_ERRCODE(error);

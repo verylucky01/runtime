@@ -17,16 +17,16 @@ namespace cce {
 namespace runtime {
 
 static constexpr rtSocInfo_t SOC_INFO_KIRIN9030[] = {
-    {SOC_KIRIN9030, CHIP_9030, ARCH_L311, "Kirin9030"}
+    {CHIP_9030, "Kirin9030"}
 };
 
 BATCH_REGISTER_SOC_INFO(SOC_INFO_KIRIN9030, sizeof(SOC_INFO_KIRIN9030) / sizeof(rtSocInfo_t));
 
-constexpr RtDevInfo DEV_INFO_KIRIN9030[] = {
-    {CHIP_9030, ARCH_L311, PG_VER_BIN1, "Kirin9030"},
+constexpr rtSocInfo_t DEV_INFO_KIRIN9030[] = {
+    {CHIP_9030, "Kirin9030"},
 };
 
-BATCH_REGISTER_DEV_INFO(DEV_INFO_KIRIN9030, sizeof(DEV_INFO_KIRIN9030) / sizeof(RtDevInfo));
+BATCH_REGISTER_DEV_INFO(DEV_INFO_KIRIN9030, sizeof(DEV_INFO_KIRIN9030) / sizeof(rtSocInfo_t));
 
 REGISTER_PLATFORM_LIB_INFO(CHIP_9030, "libruntime_v100.so");
 
@@ -44,6 +44,7 @@ static constexpr float64_t RT_STARS_TASK_KERNEL_CREDIT_SCALE_MIN = 0.001F;  // 0
 static const DevProperties CHIP_KIRIN9030_PROPERTIES = {
     .engineType = "STARS",
     .isStars = true,
+    .isStarsV2 = false,
     .pthreadStackSize = 0U,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_CONFIG,
     .tsCount = 1U,

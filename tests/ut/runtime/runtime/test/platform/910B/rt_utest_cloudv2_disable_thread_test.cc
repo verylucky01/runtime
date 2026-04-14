@@ -67,6 +67,7 @@ protected:
     static void SetUpTestCase()
     {
         (void)rtSetSocVersion("Ascend910B");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(true);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
 
@@ -118,6 +119,7 @@ protected:
         (void)rtSetSocVersion("");
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetDisableThread(false);      // Recover.
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 
     virtual void SetUp()

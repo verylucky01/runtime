@@ -40,8 +40,7 @@ const std::string GetSocVersionStr(const int32_t isHeterogenous)
     }
 
     const Runtime * const rtInstance = Runtime::Instance();
-    const rtSocType_t socType = (isHeterogenous == 1) ? GlobalContainer::GetSocType() : rtInstance->GetSocType();
-    return GetSocVersionStrByType(socType);
+    return (isHeterogenous == 1) ? GlobalContainer::GetSocVersion() : rtInstance->GetSocVersion();
 }
 }
 
@@ -80,30 +79,29 @@ VISIBILITY_DEFAULT
 rtError_t rtSetSocVersion(const char_t *ver)
 {
     PARAM_NULL_RETURN_ERROR_WITH_EXT_ERRCODE(ver, RT_ERROR_INVALID_VALUE);
-    rtSocInfo_t socInfo = {SOC_END, CHIP_END, ARCH_END, nullptr};
-    const rtError_t ret = GetSocInfoByName(ver, socInfo);
+    rtSocInfo_t socInfo = {CHIP_END, nullptr};
+    const rtError_t ret = GetSocInfoFromRuntimeByName(ver, socInfo);
     if (ret != RT_ERROR_NONE) {
         RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "SoC version [%s] is invalid.", ver);
         return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_INVALID_VALUE);
     }
-    if (GlobalContainer::GetHardwareChipType() != CHIP_END &&
-        GlobalContainer::GetHardwareChipType() != socInfo.chipType) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "The device has been set to real chip type %d, "
-            "and a different chip type %d cannot be set."
+    if (!GlobalContainer::GetHardwareSocVersion().empty() &&
+        (strcmp(GlobalContainer::GetHardwareSocVersion().c_str(), socInfo.socName)) != 0) {
+        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "The device has been set to real soc version %s, "
+            "and a different soc version %s cannot be set."
             "The currently input SoC version (%s) does not match the NPU type.",
-            GlobalContainer::GetHardwareChipType(), socInfo.chipType, ver);
+            GlobalContainer::GetHardwareSocVersion().c_str(), socInfo.socName, ver);
         return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_INVALID_VALUE);
     }
     GlobalContainer::SetRtChipType(socInfo.chipType);
-    GlobalContainer::SetSocType(socInfo.socType);
-    GlobalContainer::SetArchType(socInfo.archType);
     const std::string inputSocVersion = std::string(ver);
     GlobalContainer::SetUserSocVersion(inputSocVersion);
+    GlobalContainer::SetSocVersion(inputSocVersion);
     const auto rtInstance = Runtime::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
     rtInstance->SetIsUserSetSocVersion(true);
     rtInstance->UpdateDevProperties(socInfo.chipType, inputSocVersion);
-    RT_LOG(RT_LOG_EVENT, "soc version is %s, type=%d, soc type=%d", ver, socInfo.chipType, socInfo.socType);
+    RT_LOG(RT_LOG_EVENT, "soc version is %s, type=%d", ver, socInfo.chipType);
     return ACL_RT_SUCCESS;
 }
 

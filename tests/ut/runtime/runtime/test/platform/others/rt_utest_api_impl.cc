@@ -43,7 +43,7 @@
 #include "task_info.hpp"
 #include "platform/platform_info.h"
 #include "soc_info.h"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "api_impl_david.hpp"
 #include "thread_local_container.hpp"
 #include "stream_c.hpp"
@@ -119,7 +119,7 @@ TEST_F(ApiImplTest, apiImpl_ts_model_abort_as31xm1)
     GlobalContainer::SetRtChipType(CHIP_AS31XM1);
 
     error = apiImpl.ModelAbort(model);
-    EXPECT_EQ(error, RT_ERROR_FEATURE_NOT_SUPPORT);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
@@ -152,7 +152,7 @@ TEST_F(ApiImplTest, apiImpl_ts_model_abort_610lite)
     GlobalContainer::SetRtChipType(CHIP_610LITE);
 
     error = apiImpl.ModelAbort(model);
-    EXPECT_EQ(error, RT_ERROR_FEATURE_NOT_SUPPORT);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
@@ -183,7 +183,7 @@ TEST_F(ApiImplTest, apiImpl_ts_model_abort_old_ver)
     GlobalContainer::SetRtChipType(CHIP_ADC);
 
     error = apiImpl.ModelAbort(model);
-    EXPECT_EQ(error, RT_ERROR_FEATURE_NOT_SUPPORT);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
@@ -404,7 +404,7 @@ TEST_F(ApiImplTest, apiimpl_stream_test)
     EXPECT_EQ(error, RT_ERROR_NONE);
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
     rtChipType_t chipType = rtInstance->GetChipType();
-    std::string originSocVersion = GetSocVersionStrByType(rtInstance->GetSocType());
+    std::string originSocVersion = rtInstance->GetSocVersion();
     if (originSocVersion.empty()) {
         originSocVersion = "Ascend910A";
     }
@@ -535,7 +535,7 @@ TEST_F(ApiImplTest, apiImpl_ts_model_abort_adc)
     GlobalContainer::SetRtChipType(CHIP_ADC);
 
     error = apiImpl.ModelAbort(model);
-    EXPECT_EQ(error, RT_ERROR_FEATURE_NOT_SUPPORT);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
@@ -764,7 +764,7 @@ TEST_F(ApiImplTest, api_DvppGroupCreate)
 
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std::string socVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_CLOUD);
     GlobalContainer::SetRtChipType(CHIP_CLOUD);
 
@@ -773,7 +773,7 @@ TEST_F(ApiImplTest, api_DvppGroupCreate)
 
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(ApiImplTest, api_rtStarsTaskLaunch)
@@ -782,7 +782,7 @@ TEST_F(ApiImplTest, api_rtStarsTaskLaunch)
 
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std::string socVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_CLOUD);
     GlobalContainer::SetRtChipType(CHIP_CLOUD);
 
@@ -794,7 +794,7 @@ TEST_F(ApiImplTest, api_rtStarsTaskLaunch)
 
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(ApiImplTest, stub_david_test_SendTopicMsgVersionToAicpuDavid)

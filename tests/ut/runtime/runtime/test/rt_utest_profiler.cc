@@ -14,7 +14,6 @@
 #define private public
 #define protected public
 #include "runtime.hpp"
-#include "config.hpp"
 #include "profiler.hpp"
 #include "api_profile_decorator.hpp"
 #include "api_profile_log_decorator.hpp"

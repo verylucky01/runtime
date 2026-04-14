@@ -68,8 +68,7 @@ public:
     virtual rtError_t GetKernelBin(const char_t *const binFileName, char_t **const buffer, uint32_t *length) const = 0;
     virtual rtError_t FreeKernelBin(char_t * const buffer) const = 0;
     virtual bool ChipIsHaveStars() const = 0;
-    virtual rtSocType_t GetSocType() const = 0;
-    virtual rtArchType_t GetArchType() const = 0;
+    virtual std::string GetSocVersion() const = 0;
     virtual int64_t GetAicpuCnt() const = 0;
     virtual bool GetDisableThread() const = 0;
     virtual bool GetSentinelMode() const = 0;

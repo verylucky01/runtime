@@ -23,6 +23,7 @@
 #include "soc_info.h"
 #include "dev_info_manage.h"
 #include "thread_local_container.hpp"
+#include "../../rt_utest_config_define.hpp"
 
 #undef private
 
@@ -259,17 +260,17 @@ TEST_F(ChipRuntimeTest, ParseIniFile_QueryError_SkipRemainingFields)
 TEST_F(ChipRuntimeTest, AicpuCntInitTest_02)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
+    std::string socVersion = rtInstance->GetSocVersion();
     rtChipType_t chipType = rtInstance->GetChipType();
     rtInstance->SetChipType(CHIP_CLOUD);
     GlobalContainer::SetRtChipType(CHIP_CLOUD);
-    rtInstance->SetSocType(SOC_AS31XM1X);
+    rtInstance->SetSocVersion("AS31XM1X");
     rtInstance->SetChipType(CHIP_ADC);
     GlobalContainer::SetRtChipType(CHIP_ADC);
     MOCKER(halGetDeviceInfo).stubs().will(returnValue(DRV_ERROR_INVALID_DEVICE));
     rtError_t error  = rtInstance->InitAiCpuCnt();
     EXPECT_EQ(error, RT_ERROR_DRV_INVALID_DEVICE);
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
 }
@@ -277,75 +278,75 @@ TEST_F(ChipRuntimeTest, AicpuCntInitTest_02)
 TEST_F(ChipRuntimeTest, AicpuCntInitTest_03)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
+    std::string socVersion = rtInstance->GetSocVersion();
     rtChipType_t chipType = rtInstance->GetChipType();
     rtInstance->SetChipType(CHIP_CLOUD);
     GlobalContainer::SetRtChipType(CHIP_CLOUD);
-    rtInstance->SetSocType(SOC_AS31XM1X);
+    rtInstance->SetSocVersion("AS31XM1X");
     rtInstance->SetChipType(CHIP_ADC);
     GlobalContainer::SetRtChipType(CHIP_ADC);
     rtError_t error  = rtInstance->InitAiCpuCnt();
     EXPECT_EQ(error, RT_ERROR_NONE);
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
 }
 
-TEST_F(ChipRuntimeTest, ut_SetSocTypeByChipType)
+TEST_F(ChipRuntimeTest, ut_GetSocVersionByHardwareVer)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std::string oriSocVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_ADC);
     GlobalContainer::SetRtChipType(CHIP_ADC);
-    rtError_t ret = rtInstance->SetSocTypeByChipType(PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_LITE), 0, 0);
+    rtError_t ret = rtInstance->GetSocVersionByHardwareVer(PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_LITE), 0, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(oriSocVersion);
 }
 
-TEST_F(ChipRuntimeTest, ut_SetSocTypeByChipType_as31xm1)
+TEST_F(ChipRuntimeTest, ut_GetSocVersionByHardwareVer_as31xm1)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std::string oriSocVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_AS31XM1);
     GlobalContainer::SetRtChipType(CHIP_AS31XM1);
-    rtError_t ret = rtInstance->SetSocTypeByChipType(PLAT_COMBINE(ARCH_M300, CHIP_AS31XM1, VER_NA), 0, 0);
+    rtError_t ret = rtInstance->GetSocVersionByHardwareVer(PLAT_COMBINE(ARCH_M300, CHIP_AS31XM1, VER_NA), 0, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(oriSocVersion);
 }
 
 
-TEST_F(ChipRuntimeTest, ut_SetSocTypeByChipType_610lite)
+TEST_F(ChipRuntimeTest, ut_GetSocVersionByHardwareVer_610lite)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std::string oriSocVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_610LITE);
     GlobalContainer::SetRtChipType(CHIP_610LITE);
-    rtError_t ret = rtInstance->SetSocTypeByChipType(PLAT_COMBINE(ARCH_M310, CHIP_610LITE, VER_NA), 0, 0);
+    rtError_t ret = rtInstance->GetSocVersionByHardwareVer(PLAT_COMBINE(ARCH_M310, CHIP_610LITE, VER_NA), 0, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(oriSocVersion);
 }
 
-TEST_F(ChipRuntimeTest, ut_SetSocTypeByChipType02)
+TEST_F(ChipRuntimeTest, ut_GetSocVersionByHardwareVer02)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std::string oriSocVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_ADC);
     GlobalContainer::SetRtChipType(CHIP_ADC);
-    rtError_t ret = rtInstance->SetSocTypeByChipType(PLAT_COMBINE(ARCH_V300, CHIP_ADC, VER_310M1), 0, 0);
+    rtError_t ret = rtInstance->GetSocVersionByHardwareVer(PLAT_COMBINE(ARCH_V300, CHIP_ADC, VER_310M1), 0, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(oriSocVersion);
 }
 
 
@@ -355,30 +356,6 @@ TEST_F(ChipRuntimeTest, ut_InitSocTypeFromVersion)
     EXPECT_NE(rtInstance, nullptr);
     rtInstance->InitSocTypeFrom310BVersion((PLAT_COMBINE(ARCH_V300, CHIP_MINI_V3, RT_VER_BIN4)));
     rtInstance->InitSocTypeFrom310BVersion((PLAT_COMBINE(ARCH_END, CHIP_END, RT_VER_END)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN0)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN1)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN2)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN3)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN4)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN5)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN6)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN7)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN11)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN12)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN13)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN14)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN15)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN16)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN17)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN18)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN19)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN20)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN21)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN22)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN23)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN24)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN34)));
-    rtInstance->InitSocTypeFrom910Version((PLAT_COMBINE(ARCH_V100, CHIP_DAVID, PG_VER_BIN35)));
 }
 
 

@@ -55,7 +55,7 @@ protected:
         rtError_t error;
         Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
         EXPECT_NE(rtInstance, nullptr);
-        GlobalContainer::SetHardwareChipType(CHIP_END);
+        GlobalContainer::SetHardwareSocVersion("");
     }
 
     virtual void TearDown()
@@ -490,11 +490,11 @@ TEST_F(CloudV2RuntimeTest, SocTypeInit)
 TEST_F(CloudV2RuntimeTest, AicpuCntInitTest_03)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_AS31XM1X);
+    std::string socVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("AS31XM1X");
     rtError_t error  = rtInstance->InitAiCpuCnt();
     EXPECT_EQ(error, RT_ERROR_NONE);
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(CloudV2RuntimeTest, ut_HwtsLogDynamicProfilerStartStopSTTest)

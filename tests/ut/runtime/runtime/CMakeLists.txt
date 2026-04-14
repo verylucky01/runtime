@@ -406,7 +406,6 @@ set(runtimeut_src_list
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_error_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/uvm/uvm_callback.cc
-    ${TOP_DIR}/src/runtime/core/src/config.cc
     ${TOP_DIR}/src/runtime/core/src/context/context.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/device/device.cc
@@ -564,7 +563,6 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_error_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/uvm/uvm_callback.cc
-    ${TOP_DIR}/src/runtime/core/src/config.cc
     ${TOP_DIR}/src/runtime/core/src/context/context.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/device/device.cc
@@ -1380,7 +1378,6 @@ set(runtimeut_v201_src_list
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_error_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_uvm.cc
     ${TOP_DIR}/src/runtime/core/src/uvm/uvm_callback.cc
-    ${TOP_DIR}/src/runtime/core/src/config.cc
     ${TOP_DIR}/src/runtime/core/src/context/context.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_standard_soc.cc
     ${TOP_DIR}/src/runtime/core/src/device/device.cc

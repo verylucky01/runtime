@@ -20,7 +20,6 @@
 #include "base.hpp"
 #include "engine.hpp"
 #include "reference.hpp"
-#include "config.hpp"
 #include "aicpu_scheduler_agent.hpp"
 #include "atrace_log.hpp"
 #include "engine_factory.hpp"
@@ -224,8 +223,8 @@ public:
     virtual rtError_t AllocExpandingPoolEvent(void ** const eventAddr, int32_t *eventId) = 0;
     virtual void FreeExpandingPoolEvent(const int32_t eventId) = 0;
     virtual rtChipType_t GetChipType() const = 0;
-    virtual rtPlatformType_t GetPlatformType() const = 0;
-    virtual void SetPlatformType(rtPlatformType_t platformType) = 0;
+    virtual void SetChipType(const rtChipType_t& chipType) = 0;
+    virtual std::string GetSocVersion() const = 0;
     virtual CtrlResEntry *GetCtrlResEntry(void) = 0;
     virtual rtError_t WriteDevValue(void * const dest, const size_t size, const void * const data) = 0;
     virtual rtError_t WriteDevString(void * const dest, const size_t max, const char_t * const str) = 0;
@@ -248,25 +247,7 @@ public:
 
     bool IsDavidPlatform() const
     {
-        const rtPlatformType_t platformType = GetPlatformType();
-        return ((platformType == PLATFORM_DAVID_950PR_9599) || (platformType == PLATFORM_SOLOMON) ||
- 	            (platformType == PLATFORM_DAVID_950PR_9589) || (platformType == PLATFORM_DAVID_950PR_958A) ||
- 	            (platformType == PLATFORM_DAVID_950PR_958B) || (platformType == PLATFORM_DAVID_950PR_957B) ||
- 	            (platformType == PLATFORM_DAVID_950PR_957D) || (platformType == PLATFORM_DAVID_950PR_950Z) ||
- 	            (platformType == PLATFORM_DAVID_950PR_9579) || (platformType == PLATFORM_MC62CM12A) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9591) || (platformType == PLATFORM_DAVID_950DT_9592) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9581) || (platformType == PLATFORM_DAVID_950DT_9582) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9584) || (platformType == PLATFORM_DAVID_950DT_9587) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9588) || (platformType == PLATFORM_DAVID_950DT_9572) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9575) || (platformType == PLATFORM_DAVID_950DT_9576) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9574) || (platformType == PLATFORM_DAVID_950DT_9577) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9578) || (platformType == PLATFORM_DAVID_950PR_957C) ||
- 	            (platformType == PLATFORM_DAVID_950DT_95A1) || (platformType == PLATFORM_DAVID_950DT_95A2) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9595) || (platformType == PLATFORM_DAVID_950DT_9596) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9585) || (platformType == PLATFORM_DAVID_950DT_9586) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9583) || (platformType == PLATFORM_DAVID_950DT_9571) ||
- 	            (platformType == PLATFORM_DAVID_950DT_9573) || (platformType == PLATFORM_DAVID_950DT_950X) ||
- 	  	        (platformType == PLATFORM_DAVID_950DT_950Y));
+        return GetDevProperties().isStarsV2;
     }
 
     void SetDevType(bool isAddrFlatDev) const

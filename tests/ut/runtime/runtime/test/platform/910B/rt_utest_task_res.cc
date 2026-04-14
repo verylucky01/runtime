@@ -16,7 +16,7 @@
 #include "npu_driver.hpp"
 #include "event.hpp"
 #include "subscribe.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "task_res.hpp"
 #include "raw_device.hpp"
 #include "stars_engine.hpp"
@@ -24,7 +24,6 @@
 #include <chrono>
 #include "stream.hpp"
 #include "runtime.hpp"
-#include "config.hpp"
 #include "mockcpp/mockcpp.hpp"
 #include "driver/ascend_hal.h"
 #include "osal.hpp"

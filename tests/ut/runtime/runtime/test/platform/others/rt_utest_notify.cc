@@ -43,7 +43,8 @@ protected:
 
     virtual void SetUp()
     {
-        (void)rtSetSocVersion("Ascend910");
+        (void)rtSetSocVersion("Ascend910B1");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(CHIP_CLOUD);
     GlobalContainer::SetRtChipType(CHIP_CLOUD);
@@ -55,6 +56,7 @@ protected:
         GlobalMockObject::verify();
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 };
 

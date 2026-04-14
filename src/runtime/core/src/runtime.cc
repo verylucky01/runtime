@@ -103,26 +103,6 @@ static const char_t* GetSnapShotStageString(rtSnapShotStage stage)
 TIMESTAMP_EXTERN(rtBinaryLoad_DevMemAlloc);
 TIMESTAMP_EXTERN(rtBinaryLoad_MemCopySync);
 
-static const std::unordered_map<std::string, rtArchType_t> archMap_ = {
-    {"ARCH_BEGIN", ARCH_BEGIN},
-    {"0", ARCH_V100},
-    {"1", ARCH_V200},
-    {"2", ARCH_V300},
-    {"3", ARCH_C100},
-    {"4", ARCH_C220},
-    {"5", ARCH_M100},
-    {"6", ARCH_M200},
-    {"7", ARCH_M201},
-    {"8", ARCH_T300},
-    {"9", ARCH_N350},
-    {"10", ARCH_M300},
-    {"11", ARCH_M310},
-    {"12", ARCH_S200},
-    {"13", ARCH_S202},
-    {"14", ARCH_M510},
-    {"15", ARCH_END}
-};
-
 uint32_t Runtime::starsPendingMax_ = 0U;
 uint32_t Runtime::maxProgramNum_ = 0U;
 
@@ -145,8 +125,6 @@ Runtime::Runtime() : RuntimeIntf()
     threadGuard_ = nullptr;
 
     SetChipType(CHIP_BEGIN);
-    socType_ = SOC_BEGIN;
-    archType_ = ARCH_BEGIN;
     tsNum_ = 1U;
     apiProfilingType_ = 0U;
     trackProfilingType_ = 0U;
@@ -201,41 +179,46 @@ void Runtime::SocTypeInit(const int64_t aicoreNumLevel, const int64_t aicoreFreq
     switch (aicoreNumLevel) {
         case AICORE_NUM_LEVEL_AG:
             if (aicoreFreqLevel == AICORE_FREQ_LEVEL_BASE) {
-                socType_ = SOC_ASCEND910A;
+                socVersion_ = "Ascend910A";
             } else if (aicoreFreqLevel == AICORE_FREQ_LEVEL_PRO) {
-                socType_ = SOC_ASCEND910ProA;
+                socVersion_ = "Ascend910ProA";
             } else if (aicoreFreqLevel == AICORE_FREQ_LEVEL_PREMIUM) {
-                socType_ = SOC_ASCEND910PremiumA;
+                socVersion_ = "Ascend910PremiumA";
             } else {
-                socType_ = SOC_END;
+                socVersion_ = "";
             }
             break;
         case AICORE_NUM_LEVEL_PG:
             if (aicoreFreqLevel == AICORE_FREQ_LEVEL_BASE) {
-                socType_ = SOC_ASCEND910B;
+                socVersion_ = "Ascend910B";
             } else if (aicoreFreqLevel == AICORE_FREQ_LEVEL_PRO) {
-                socType_ = SOC_ASCEND910ProB;
+                socVersion_ = "Ascend910ProB";
             } else {
-                socType_ = SOC_END;
+                socVersion_ = "";
             }
             break;
         default:
-            socType_ = SOC_END;
+            socVersion_ = "";
             break;
     }
 }
 
-rtSocType_t Runtime::GetSocType() const
+std::string Runtime::GetSocVersion() const
 {
-    if (GlobalContainer::GetSocType() != SOC_BEGIN) {
-        return GlobalContainer::GetSocType();
+    if (!GlobalContainer::GetSocVersion().empty()) {
+        return GlobalContainer::GetSocVersion();
     }
-    return socType_;
+    return socVersion_;
+}
+
+std::string Runtime::GetRawSocVersion() const
+{
+    return socVersion_;
 }
 
 rtChipType_t Runtime::GetChipType() const
 {
-    if (GlobalContainer::GetSocType() != SOC_BEGIN) {
+    if (GlobalContainer::GetRtChipType() != CHIP_END) {
         return GlobalContainer::GetRtChipType();
     }
     return chipType_;
@@ -320,6 +303,7 @@ void Runtime::UpdateDevProperties(const rtChipType_t chipTypeValue, const std::s
             npuDrv->RefreshDevProperties(finalProps);
         }
     }
+    return;
 }
 
 void Runtime::TsdClientInit()
@@ -509,126 +493,17 @@ void Runtime::CheckVirtualMachineMode(uint32_t &aicoreNum, int64_t &vmAicoreNum)
     }
 }
 
-void Runtime::InitSocTypeFrom910Version(const int64_t hardwareVersion)
-{
-    const RtPGVersion pgVer = static_cast<RtPGVersion>(PLAT_GET_VER(static_cast<uint64_t>(hardwareVersion)));
-    switch (pgVer) {
-        case PG_VER_BIN0:
- 	        socType_ = SOC_ASCEND950PR_9599;
- 	        break;
- 	    case PG_VER_BIN1:
- 	        socType_ = SOC_ASCEND950PR_9589;
- 	        break;
- 	    case PG_VER_BIN2:
- 	        socType_ = SOC_ASCEND950PR_958A;
- 	        break;
- 	    case PG_VER_BIN3:
- 	        socType_ = SOC_ASCEND950PR_958B;
- 	        break;
- 	    case PG_VER_BIN4:
- 	        socType_ = SOC_ASCEND950PR_957B;
- 	        break;
- 	    case PG_VER_BIN5:
- 	        socType_ = SOC_ASCEND950PR_957D;
- 	        break;
- 	    case PG_VER_BIN6:
- 	        socType_ = SOC_ASCEND950PR_950Z;
- 	        break;
- 	    case PG_VER_BIN7:
- 	        socType_ = SOC_ASCEND950PR_9579;
- 	        break;
- 	    case PG_VER_BIN11:
- 	        socType_ = SOC_ASCEND950DT_9591;
- 	        break;
- 	    case PG_VER_BIN12:
- 	        socType_ = SOC_ASCEND950DT_9592;
- 	        break;
- 	    case PG_VER_BIN13:
- 	        socType_ = SOC_ASCEND950DT_9581;
- 	        break;
- 	    case PG_VER_BIN14:
- 	        socType_ = SOC_ASCEND950DT_9582;
- 	        break;
- 	    case PG_VER_BIN15:
- 	        socType_ = SOC_ASCEND950DT_9584;
- 	        break;
- 	    case PG_VER_BIN16:
- 	        socType_ = SOC_ASCEND950DT_9587;
- 	        break;
- 	    case PG_VER_BIN17:
- 	        socType_ = SOC_ASCEND950DT_9588;
- 	        break;
- 	    case PG_VER_BIN18:
- 	        socType_ = SOC_ASCEND950DT_9572;
- 	        break;
- 	    case PG_VER_BIN19:
- 	        socType_ = SOC_ASCEND950DT_9575;
- 	        break;
- 	    case PG_VER_BIN20:
- 	        socType_ = SOC_ASCEND950DT_9576;
- 	        break;
- 	    case PG_VER_BIN21:
- 	        socType_ = SOC_ASCEND950DT_9574;
- 	        break;
- 	    case PG_VER_BIN22:
- 	        socType_ = SOC_ASCEND950DT_9577;
- 	        break;
- 	    case PG_VER_BIN23:
- 	        socType_ = SOC_ASCEND950DT_9578;
- 	        break;
- 	    case PG_VER_BIN24:
- 	        socType_ = SOC_ASCEND950PR_957C;
- 	        break;
- 	    case PG_VER_BIN25:
- 	        socType_ = SOC_ASCEND950DT_95A1;
- 	        break;
- 	    case PG_VER_BIN26:
- 	        socType_ = SOC_ASCEND950DT_95A2;
- 	        break;
- 	    case PG_VER_BIN27:
- 	        socType_ = SOC_ASCEND950DT_9595;
- 	        break;
- 	    case PG_VER_BIN28:
- 	        socType_ = SOC_ASCEND950DT_9596;
- 	        break;
- 	    case PG_VER_BIN29:
- 	        socType_ = SOC_ASCEND950DT_9585;
- 	        break;
- 	    case PG_VER_BIN30:
- 	        socType_ = SOC_ASCEND950DT_9586;
- 	        break;
- 	    case PG_VER_BIN31:
- 	        socType_ = SOC_ASCEND950DT_9583;
- 	        break;
- 	    case PG_VER_BIN32:
- 	        socType_ = SOC_ASCEND950DT_9571;
- 	        break;
- 	    case PG_VER_BIN33:
- 	        socType_ = SOC_ASCEND950DT_9573;
- 	        break;
- 	    case PG_VER_BIN34:
- 	        socType_ = SOC_ASCEND950DT_950X;
- 	        break;
- 	    case PG_VER_BIN35:
- 	        socType_ = SOC_ASCEND950DT_950Y;
-            break;
-        default:
-            socType_ = SOC_END;
-            break;
-    }
-}
-
 void Runtime::InitSocTypeFrom310BVersion(const int64_t hardwareVersion)
 {
     const rtPGVersion_t pgVer = static_cast<rtPGVersion_t>(PLAT_GET_VER(static_cast<uint64_t>(hardwareVersion)));
     if ((pgVer == RT_VER_BIN1) || (pgVer == RT_VER_NA)) {
-        socType_ = SOC_ASCEND310B1;
+        socVersion_ = "Ascend310B1";
     } else if (pgVer == RT_VER_BIN2) {
-        socType_ = SOC_ASCEND310B2;
+        socVersion_ = "Ascend310B2";
     } else if (pgVer == RT_VER_BIN3) {
-        socType_ = SOC_ASCEND310B3;
+        socVersion_ = "Ascend310B3";
     } else if (pgVer == RT_VER_BIN4) {
-        socType_ = SOC_ASCEND310B4;
+        socVersion_ = "Ascend310B4";
     } else {
         RT_LOG_CALL_MSG(ERR_MODULE_GE, "faultVersion(%#" PRIx64 ") from driver", static_cast<uint64_t>(hardwareVersion));
     }
@@ -638,17 +513,17 @@ void Runtime::InitSocTypeFrom910BVersion(int64_t hardwareVersion)
 {
     const rtPGVersion_t pgVer = static_cast<rtPGVersion_t>(PLAT_GET_VER(static_cast<uint64_t>(hardwareVersion)));
     if (pgVer == RT_VER_NA) {
-        socType_ = SOC_ASCEND910B4;
+        socVersion_ = "Ascend910B4";
     } else if (pgVer == RT_VER_BIN1) {
-        socType_ = SOC_ASCEND910B1;
+        socVersion_ = "Ascend910B1";
     } else if (pgVer == RT_VER_BIN2) {
-        socType_ = SOC_ASCEND910B2;
+        socVersion_ = "Ascend910B2";
     } else if (pgVer == RT_VER_BIN3) {
-        socType_ = SOC_ASCEND910B3;
+        socVersion_ = "Ascend910B3";
     } else if (pgVer == RT_VER_BIN8) {
-        socType_ = SOC_ASCEND910B2C;
+        socVersion_ = "Ascend910B2C";
     } else if (pgVer == RT_VER_BIN10) {
-        socType_ = SOC_ASCEND910B4_1;
+        socVersion_ = "Ascend910B4-1";
     } else {
         RT_LOG_CALL_MSG(ERR_MODULE_GE, "faultVersion(%#" PRIx64 ") from driver, cann and hdk may not compatible", static_cast<uint64_t>(hardwareVersion));
     }
@@ -660,7 +535,7 @@ void Runtime::InitSocTypeFromBS9SX1AXVersion()
     int64_t aivNum = 0;
     drvError_t drvRet = DRV_ERROR_NONE;
 
-    socType_ = SOC_BS9SX1AA;
+    socVersion_ = "BS9SX1AA";
     drvRet = halGetDeviceInfo(RT_DEV_ZERO, MODULE_TYPE_AICORE, INFO_TYPE_CORE_NUM, &aicNum);
     if (drvRet != DRV_ERROR_NONE) {
         DRV_ERROR_PROCESS(drvRet, "Call halGetDeviceInfo failed: drvRetCode=%u, module type=%d, info type=%d.",
@@ -679,11 +554,11 @@ void Runtime::InitSocTypeFromBS9SX1AXVersion()
 
     if (((aicNum == RT_BS9SX1AA_AICORE_NUM_AG) && (aivNum == RT_BS9SX1AA_AIVECTOR_NUM_AG)) ||
         ((aicNum == RT_BS9SX1AA_AICORE_NUM) && (aivNum == RT_BS9SX1AA_AIVECTOR_NUM))) {
-        socType_ = SOC_BS9SX1AA;
+        socVersion_ = "BS9SX1AA";
     } else if ((aicNum == RT_BS9SX1AB_AICORE_NUM) && (aivNum == RT_BS9SX1AB_AIVECTOR_NUM)) {
-        socType_ = SOC_BS9SX1AB;
+        socVersion_ = "BS9SX1AB";
     } else if ((aicNum == RT_BS9SX1AC_AICORE_NUM) && (aivNum == RT_BS9SX1AC_AIVECTOR_NUM)) {
-        socType_ = SOC_BS9SX1AC;
+        socVersion_ = "BS9SX1AC";
     } else {
         RT_LOG(RT_LOG_DEBUG, "other version.");
     }
@@ -692,7 +567,7 @@ void Runtime::InitSocTypeFromBS9SX1AXVersion()
 void Runtime::InitSocTypeFromADCVersion(const rtVersion_t ver, const int64_t hardwareVersion)
 {
     UNUSED(hardwareVersion);
-    socType_ = SOC_ASCEND610;
+    socVersion_ = "Ascend610";
     if (ver == VER_CS) {
         InitSocTypeFromBS9SX1AXVersion();
     } else {
@@ -703,10 +578,10 @@ void Runtime::InitSocTypeFromADCVersion(const rtVersion_t ver, const int64_t har
 void Runtime::Init310PSocType(const int64_t vmAicoreNum)
 {
     if (static_cast<uint32_t>(vmAicoreNum) == RT_AICORE_NUM_10) {
-        socType_ = SOC_ASCEND310P1;
+        socVersion_ = "Ascend310P1";
         return;
     }
-    socType_ = SOC_ASCEND310P3;
+    socVersion_ = "Ascend310P3";
 #ifndef CFG_DEV_PLATFORM_PC
     halChipInfo chipInfo;
     const drvError_t drvRet = halGetChipInfo(workingDev_, &chipInfo);
@@ -717,45 +592,43 @@ void Runtime::Init310PSocType(const int64_t vmAicoreNum)
     const char* chipName = RtPtrToPtr<const char*>(chipInfo.name);
     RT_LOG(RT_LOG_DEBUG, "device %u get chipName is %s.", workingDev_, chipName);
     if (strncmp(chipName, "310P5", strlen("310P5")) == 0) {
-        socType_ = SOC_ASCEND310P5;
+        socVersion_ = "Ascend310P5";
     } else if (strncmp(chipName, "310P7", strlen("310P7")) == 0) {
-        socType_ = SOC_ASCEND310P7;
+        socVersion_ = "Ascend310P7";
     } else {
         // do nothing
     }
 #endif
 }
 
-rtError_t Runtime::SetSocTypeByChipType(int64_t hardwareVersion, int64_t aicoreNumLevel, int64_t vmAicoreNum)
+void Runtime::InitSocTypeFromCloudVersion(const int64_t aicoreNumLevel)
 {
     int64_t aicoreFreqLevel = 0;
-    drvError_t drvRet = DRV_ERROR_NONE;
+    drvError_t drvRet = halGetDeviceInfo(workingDev_, MODULE_TYPE_AICORE, INFO_TYPE_FREQUE_LEVEL, &aicoreFreqLevel);
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "Call halGetDeviceInfo failed: drvRetCode=%u, module type=%d, info type=%d.",
+            static_cast<uint32_t>(drvRet), MODULE_TYPE_AICORE, INFO_TYPE_FREQUE_LEVEL);
+        return;
+    }
+    SocTypeInit(aicoreNumLevel, aicoreFreqLevel);
+    RT_LOG(RT_LOG_INFO, "aicore freq level=%" PRId64, aicoreFreqLevel);
+}
+
+rtError_t Runtime::GetSocVersionByHardwareVer(int64_t hardwareVersion, int64_t aicoreNumLevel, int64_t vmAicoreNum)
+{
     const rtVersion_t ver = static_cast<rtVersion_t>(PLAT_GET_VER(static_cast<uint64_t>(hardwareVersion)));
     switch (chipType_) {
         case CHIP_910_B_93:
             InitSocTypeFrom910BVersion(hardwareVersion);
             break;
-        case CHIP_DAVID:
-            InitSocTypeFrom910Version(hardwareVersion);
-            break;
-        case CHIP_CLOUD_V5:
-            socType_ = SOC_ASCEND910_5591;
-            break;
         case CHIP_MINI_V3:
             InitSocTypeFrom310BVersion(hardwareVersion);
             break;
         case CHIP_ASCEND_031:
-            socType_ = SOC_ASCEND320T;
+            socVersion_ = "Ascend031";
             break;
         case CHIP_CLOUD:
-            drvRet = halGetDeviceInfo(workingDev_, MODULE_TYPE_AICORE, INFO_TYPE_FREQUE_LEVEL, &aicoreFreqLevel);
-            if (drvRet != DRV_ERROR_NONE) {
-                DRV_ERROR_PROCESS(drvRet, "Call halGetDeviceInfo failed: drvRetCode=%u, module type=%d, info type=%d.",
-                    static_cast<uint32_t>(drvRet), MODULE_TYPE_AICORE, INFO_TYPE_FREQUE_LEVEL);
-                return RT_GET_DRV_ERRCODE(drvRet);
-            }
-            SocTypeInit(aicoreNumLevel, aicoreFreqLevel);
-            RT_LOG(RT_LOG_INFO, "aicore freq level=%" PRId64, aicoreFreqLevel);
+            InitSocTypeFromCloudVersion(aicoreNumLevel);
             break;
         case CHIP_ADC:
             InitSocTypeFromADCVersion(ver, hardwareVersion);
@@ -764,42 +637,34 @@ rtError_t Runtime::SetSocTypeByChipType(int64_t hardwareVersion, int64_t aicoreN
             Init310PSocType(vmAicoreNum);
             break;
         case CHIP_AS31XM1:
-            socType_ = SOC_AS31XM1X;
+            socVersion_ = "AS31XM1X";
             break;
         case CHIP_610LITE:
-            socType_ = SOC_ASCEND610Lite;
+            socVersion_ = "Ascend610Lite";
             break;
         case CHIP_MC62CM12A:
-            socType_ = SOC_MC62CM12A;
+            socVersion_ = "MC62CM12AA";
             break;
         case CHIP_MC32DM11A:
-            socType_ = SOC_MC62CM12A;
+            socVersion_ = "MC32DM11AA";
             break;
         case CHIP_X90:
-            socType_ = SOC_KIRINX90;
+            socVersion_ = "KirinX90";
             break;
         case CHIP_9030:
-            socType_ = SOC_KIRIN9030;
+            socVersion_ = "Kirin9030";
+            break;
+        case CHIP_MINI:
+            socVersion_ = "Ascend310";
             break;
         default:
-            socType_ = SOC_END;
+            socVersion_ = "";
             break;
     }
-
-    if (GlobalContainer::GetSocType() == SOC_BEGIN) {
-        GlobalContainer::SetRtChipType(chipType_);
-        GlobalContainer::SetSocType(socType_);
-        GlobalContainer::SetArchType(archType_);
-    } else {
-        RT_LOG(RT_LOG_DEBUG, "GlobalContainer socType_ = %u, chipType_ = %u, archType_ = %u",
-               GlobalContainer::GetSocType(), GlobalContainer::GetRtChipType(),
-               GlobalContainer::GetArchType());
-    }
-
     return RT_ERROR_NONE;
 }
 
-rtError_t GetHardVerBySocVer(const uint32_t deviceId, int64_t &hardwareVersion)
+rtError_t Runtime::InitSocVersionAndChipType(const uint32_t deviceId)
 {
     drvError_t drvRet = DRV_ERROR_NONE;
     if (&halGetSocVersion != nullptr) {
@@ -811,66 +676,27 @@ rtError_t GetHardVerBySocVer(const uint32_t deviceId, int64_t &hardwareVersion)
         }
 
         if (drvRet == DRV_ERROR_NONE) {
-            RtDevInfo info = {CHIP_END, ARCH_END, PG_VER_END, nullptr};
+            rtSocInfo_t info = {CHIP_END, nullptr};
             const rtError_t ret = DevInfoManage::Instance().GetDevInfo(socVersion, info);
             if (ret == RT_ERROR_NONE) {
-                const rtChipType_t chipType = info.chipType;
-                const rtArchType_t archType = info.archType;
-                const uint32_t pgType = static_cast<uint32_t>(info.pgType);
-                hardwareVersion = static_cast<int64_t>(
-                    (static_cast<uint32_t>(archType) << 16U) | (static_cast<uint32_t>(chipType) << 8U) | pgType);
-                RT_LOG(RT_LOG_INFO,
-                    "socVersion=%s, chipType=%d, archType=%d, pgType=%u, hardwareVersion=%#" PRIx64,
-                    socVersion, chipType, archType, pgType, hardwareVersion);
+                chipType_ = info.chipType;
+                socVersion_ = socVersion;
+                RT_LOG(RT_LOG_INFO, "socVersion=%s, chipType=%d", socVersion_.c_str(), chipType_);
                 return RT_ERROR_NONE;
             }
             RT_LOG(RT_LOG_INFO, "not find socVersion=%s in DEV_INFO", socVersion);
         }
     }
-
     RT_LOG(RT_LOG_INFO, "drv_ret=%d", drvRet);
+
+    int64_t hardwareVersion = 0;
     drvRet = halGetDeviceInfo(deviceId, MODULE_TYPE_SYSTEM, INFO_TYPE_VERSION, &hardwareVersion);
     if (drvRet != DRV_ERROR_NONE) {
         RT_LOG(RT_LOG_ERROR, "[drv api] halGetDeviceInfo failed, device_id=%u, drv_ret=%d", deviceId, drvRet);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
-    return RT_ERROR_NONE;
-}
-
-rtError_t Runtime::InitSocType()
-{
-    int64_t hardwareVersion = 0;
-    rtError_t error = GetHardVerBySocVer(workingDev_, hardwareVersion);
-    if (error != RT_ERROR_NONE) {
-        RT_LOG(RT_LOG_ERROR, "Get hardwareVersion failed.");
-        return error;
-    }
-    if (static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(hardwareVersion))) == CHIP_NO_DEVICE) {
-        return RT_ERROR_NONE;
-    }
-
-    drvError_t drvRet;
     chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(hardwareVersion)));
-    archType_ = static_cast<rtArchType_t>(PLAT_GET_ARCH(static_cast<uint64_t>(hardwareVersion)));
-
-    error = GetConnectUbFlagFromDrv(workingDev_, connectUbFlag_);
-    if (error != RT_ERROR_NONE) {
-        return error;
-    }
-
-    int64_t tsNumber = 0;
-    drvRet = halGetDeviceInfo(workingDev_, MODULE_TYPE_SYSTEM, INFO_TYPE_CORE_NUM, &tsNumber);
-    if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "Call halGetDeviceInfo failed: drvRetCode=%u, module type=%d, info type=%d.",
-            static_cast<uint32_t>(drvRet), MODULE_TYPE_SYSTEM, INFO_TYPE_CORE_NUM);
-        return RT_GET_DRV_ERRCODE(drvRet);
-    }
-
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_DRV, (tsNumber == 0) || (static_cast<uint32_t>(tsNumber) > RT_MAX_TS_NUM),
-        RT_ERROR_DRV_ERR,
-        "Get ts num failed, tsNumber=%" PRId64 ", valid range is [1,%u]", tsNumber, RT_MAX_TS_NUM);
-    tsNum_ = static_cast<uint32_t>(tsNumber);
 
     int64_t vmAicoreNum = 0;
     drvRet = halGetDeviceInfo(workingDev_, MODULE_TYPE_AICORE, INFO_TYPE_CORE_NUM, &vmAicoreNum);
@@ -887,21 +713,59 @@ rtError_t Runtime::InitSocType()
         "Get aicore number by level failed: aicore numer level=%u", static_cast<uint32_t>(aicoreNumLevel));
 
     CheckVirtualMachineMode(aicoreNum, vmAicoreNum);
-
-    return SetSocTypeByChipType(hardwareVersion, aicoreNumLevel, vmAicoreNum);
+    return GetSocVersionByHardwareVer(hardwareVersion, aicoreNumLevel, vmAicoreNum);
 }
 
-rtError_t Runtime::InitChipAndSocType()
+rtError_t Runtime::InitSocVersion()
+{
+    rtError_t error = InitSocVersionAndChipType(workingDev_);
+    if (error != RT_ERROR_NONE) {
+        RT_LOG(RT_LOG_ERROR, "Init socVersion and chipType failed.");
+        return error;
+    }
+    if (chipType_ == CHIP_NO_DEVICE) {
+        return RT_ERROR_NONE;
+    }
+
+    if (GlobalContainer::GetSocVersion().empty()) {
+        GlobalContainer::SetRtChipType(chipType_);
+        GlobalContainer::SetSocVersion(socVersion_);
+    } else {
+        RT_LOG(RT_LOG_DEBUG, "GlobalContainer socVersion_ = %s, chipType_ = %u",
+               GlobalContainer::GetSocVersion().c_str(), GlobalContainer::GetRtChipType());
+    }
+
+    error = GetConnectUbFlagFromDrv(workingDev_, connectUbFlag_);
+    if (error != RT_ERROR_NONE) {
+        return error;
+    }
+    
+    drvError_t drvRet;
+    int64_t tsNumber = 0;
+    drvRet = halGetDeviceInfo(workingDev_, MODULE_TYPE_SYSTEM, INFO_TYPE_CORE_NUM, &tsNumber);
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "Call halGetDeviceInfo failed: drvRetCode=%u, module type=%d, info type=%d.",
+            static_cast<uint32_t>(drvRet), MODULE_TYPE_SYSTEM, INFO_TYPE_CORE_NUM);
+        return RT_GET_DRV_ERRCODE(drvRet);
+    }
+
+    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_DRV, (tsNumber == 0) || (static_cast<uint32_t>(tsNumber) > RT_MAX_TS_NUM),
+        RT_ERROR_DRV_ERR,
+        "Get ts num failed, tsNumber=%" PRId64 ", valid range is [1,%u]", tsNumber, RT_MAX_TS_NUM);
+    tsNum_ = static_cast<uint32_t>(tsNumber);
+    return error;
+}
+
+rtError_t Runtime::InitChipTypeAndSocVersion()
 {
     if (!CheckHaveDevice()) {
         chipType_ = GlobalContainer::GetRtChipType();
-        socType_ = GlobalContainer::GetSocType();
-        archType_ = GlobalContainer::GetArchType();
+        socVersion_ = GlobalContainer::GetSocVersion();
         isHaveDevice_ = false;
     } else {
-        rtError_t error = InitSocType();
+        rtError_t error = InitSocVersion();
         if (error != RT_ERROR_NONE) {
-            RT_LOG(RT_LOG_ERROR, "Init SocType failed.");
+            RT_LOG(RT_LOG_ERROR, "Init socVersion failed.");
             return error;
         }
         error = InitAiCpuCnt();
@@ -912,8 +776,8 @@ rtError_t Runtime::InitChipAndSocType()
     ERROR_RETURN_MSG_INNER(ret, "init chip properties fail, retCode=%#x", static_cast<uint32_t>(ret));
     ret = GET_DEV_PROPERTIES(chipType_, curChipProperties_);
     ERROR_RETURN_MSG_INNER(ret, "init chip:%d properties fail, retCode=%#x", chipType_, static_cast<uint32_t>(ret));
-    RT_LOG(RT_LOG_INFO, "Runtime init: device type=%d, soc type=%d, arch type=%d, have device=%d",
-           chipType_, socType_, archType_, isHaveDevice_);
+    RT_LOG(RT_LOG_INFO, "Runtime init: device type=%d, soc version=%d, have device=%d",
+           chipType_, socVersion_, isHaveDevice_);
     return RT_ERROR_NONE;
 }
 
@@ -1331,10 +1195,10 @@ rtError_t Runtime::Init()
 {
     FeatureToTsVersionInit();
     RegAtraceInfoInit();
-    rtError_t error = InitChipAndSocType();
+    rtError_t error = InitChipTypeAndSocVersion();
     COND_RETURN_WITH_NOLOG((error != RT_ERROR_NONE), error);
 
-    UpdateDevProperties(chipType_, GetSocVersionStrByType(socType_));
+    UpdateDevProperties(chipType_, GetSocVersion());
     ParseHostCpuModelInfo();
     (void)GetVisibleDevices();
     if (IS_SUPPORT_CHIP_FEATURE(chipType_, RtOptionalFeatureType::RT_FEATURE_OVERFLOW_MODE)) {
@@ -3565,11 +3429,15 @@ Device *Runtime::DeviceRetain(const uint32_t devId, const uint32_t tsId)
             ERROR_GOTO(error, DEV_FREE, "Failed to set ts id.");
 
             error = dev->Init();
-            if (GetIsUserSetSocVersion() && (GlobalContainer::GetRtChipType() != GlobalContainer::GetHardwareChipType())) {
+            if (GetIsUserSetSocVersion() &&
+                (GlobalContainer::GetSocVersion() != GlobalContainer::GetHardwareSocVersion())) {
                 std::string inputSocVersion = GlobalContainer::GetUserSocVersion();
-                ERROR_GOTO_MSG_INNER(RT_ERRORCODE_BASE, DEV_FREE, "The chip type=%d has been set,"
-                    " device can not be created on real chip type=%d, the current input soc version(%s) does not match the NPU type.",
-                    GlobalContainer::GetRtChipType(), GlobalContainer::GetHardwareChipType(), inputSocVersion.c_str());
+                ERROR_GOTO_MSG_INNER(
+                    RT_ERRORCODE_BASE, DEV_FREE,
+                    "The soc version=%s has been set,"
+                    " device can not be created on real soc version=%s, the current input soc version does not match "
+                    "the NPU type.",
+                    GlobalContainer::GetSocVersion().c_str(), GlobalContainer::GetHardwareSocVersion().c_str());
             }
 
             ERROR_GOTO(error, DEV_FREE, "Failed to init device.");
@@ -4989,7 +4857,7 @@ rtError_t Runtime::SetTimeoutConfig(const rtTaskTimeoutType_t type, const uint64
     COND_RETURN_ERROR_MSG_INNER((tsNum_ == 0U) || (tsNum_ > RT_MAX_TS_NUM), RT_ERROR_DEVICE_INVALID,
         "Set timeout config failed, tsNum=%u, valid range is [1,%u].", tsNum_, RT_MAX_TS_NUM);
     // AS31XM1 use ms to calculate timeout cfg
-    if (socType_ == SOC_AS31XM1X) {
+    if (socVersion_ == "AS31XM1X") {
         timeoutConfig_.mtx.lock();
         timeoutConfig_.isCfgOpExcTaskTimeout = true;
         timeoutConfig_.opExcTaskTimeout = timeout * RT_TIMEOUT_MS_TO_US;
@@ -5028,7 +4896,7 @@ rtError_t Runtime::SetTimeoutConfig(const rtTaskTimeoutType_t type, const uint64
                 continue;
             }
 
-            if (socType_ == SOC_AS31XM1X) {
+            if (socVersion_ == "AS31XM1X") {
                 // set op exec time out depend on aicpu in AS31XM1X
                 ERROR_RETURN_MSG_INNER(StartAicpuSd(device),
                     "Set timeout config failed, start tsd open aicpu sd error.");
@@ -5677,68 +5545,6 @@ rtError_t Runtime::GetBinBuffer(const rtBinHandle binHandle, const rtBinBufferTy
 rtError_t Runtime::FreeKernelBin(char_t * const buffer) const
 {
     delete [] buffer;
-    return RT_ERROR_NONE;
-}
-
-rtError_t Runtime::GetArchVersion(const char_t * const omArchVersion, rtArchType_t &omArchType) const
-{
-    const auto iter = archMap_.find(omArchVersion);
-    if (iter != archMap_.end()) {
-        omArchType = iter->second;
-    } else {
-        return RT_ERROR_INVALID_VALUE;
-    }
-    return RT_ERROR_NONE;
-}
-
-rtError_t Runtime::ModelCheckArchVersion(const char_t * const omArchVersion, const rtArchType_t archType) const
-{
-    DevProperties prop;
-    rtError_t ret = GET_DEV_PROPERTIES(chipType_, prop);
-    COND_RETURN_ERROR_MSG_INNER(ret != RT_ERROR_NONE, ret, "GetDevProperties failed.");
-    rtArchType_t omArchType = ARCH_BEGIN;
-    if (archType == ARCH_V100) {
-        if ((prop.omArchVersion == OMArchVersion::omArchVersion_4) && (strcmp(omArchVersion, "4") == 0)) {
-            return RT_ERROR_NONE;
-        } else if ((prop.omArchVersion == OMArchVersion::omArchVersion_3) && (strcmp(omArchVersion, "3") == 0)) { // ，兼容性值
-            return RT_ERROR_NONE;
-        } else {
-            RT_LOG(RT_LOG_DEBUG, "need to check archVersion");
-        }
-    }
-
-    const rtError_t error = GetArchVersion(omArchVersion, omArchType);
-    if (error != RT_ERROR_NONE) {
-        RT_LOG(RT_LOG_ERROR, "GetArchVersion failed,  please check omArchVersion=%s", omArchVersion);
-        return RT_ERROR_INVALID_VALUE;
-    }
-
-    if (omArchType != archType) {
-        RT_LOG(RT_LOG_ERROR, "ModelCheckArchVersion failed, omArchVersion=%s, archType=%d", omArchVersion, archType);
-        return RT_ERROR_INSTANCE_VERSION;
-    }
-
-    return RT_ERROR_NONE;
-}
-
-rtError_t Runtime::CheckArchVersionIsCompatibility(const rtArchType_t inputArchType, const rtArchType_t hardwareArchType) const
-{
-    if (hardwareArchType == ARCH_V100) {
-        DevProperties prop;
-        rtError_t ret = GET_DEV_PROPERTIES(chipType_, prop);
-        COND_RETURN_ERROR_MSG_INNER(ret != RT_ERROR_NONE, ret, "GetDevProperties failed.");
-        if ((prop.checkArchVersionCompatibility == CheckArchVersionCompatibility::Arch_Version_Compat_V220) && (inputArchType == ARCH_C220)) {
-            return RT_ERROR_NONE;
-        } else if ((prop.checkArchVersionCompatibility == CheckArchVersionCompatibility::Arch_Version_Compat_V100) && (inputArchType == ARCH_C100)) {
-            return RT_ERROR_NONE;
-        } else {
-            RT_LOG(RT_LOG_DEBUG, "need to check archVersion");
-        }
-    }
-    if (inputArchType != hardwareArchType) {
-        RT_LOG(RT_LOG_WARNING, "ModelCheckArchVersion failed, omArchVersion=%d, archType=%d", inputArchType, hardwareArchType);
-        return RT_ERROR_INSTANCE_VERSION;
-    }
     return RT_ERROR_NONE;
 }
 

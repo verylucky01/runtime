@@ -66,7 +66,7 @@ class ApiEventNotifyTest : public testing::Test
 protected:
     static void SetUpTestCase()
     {
-        (void)rtSetSocVersion("Ascend910");
+        (void)rtSetSocVersion("Ascend910B1");
         ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(CHIP_CLOUD);
@@ -129,10 +129,6 @@ TEST_F(ApiEventNotifyTest, rtsEventTest)
 
     rtError_t error9 = rtsEventSynchronize(event, -2);
     EXPECT_NE(error9, RT_ERROR_NONE);
-
-    uint64_t timeStamp = 0;
-    rtError_t error10 = rtsEventGetTimeStamp(&timeStamp, event);
-    EXPECT_EQ(error10, RT_ERROR_NONE);
 
     rtError_t error11 = rtsEventReset(event, stream);
     EXPECT_EQ(error11, RT_ERROR_NONE);

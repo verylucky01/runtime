@@ -59,8 +59,8 @@ protected:
         std::cout<<"api test start end : "<<error1<<", "<<error2<<", "<<error3<<std::endl;
         GlobalMockObject::verify();
         rtDeviceReset(0);
-        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 
     virtual void SetUp()
@@ -957,8 +957,8 @@ protected:
     static void TearDownTestCase()
     {
         rtDeviceReset(0);
-        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 
     virtual void SetUp()
@@ -1240,8 +1240,8 @@ protected:
         std::cout<<"api test start end : "<<error1<<", "<<error2<<", "<<error3<<std::endl;
         GlobalMockObject::verify();
         rtDeviceReset(0);
-        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 
     virtual void SetUp()
@@ -1537,17 +1537,17 @@ TEST_F(CloudV2ApiTest, rtGetOpTimeOutV2_notset)
 {
     rtError_t error;
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
+    std::string socVersion = rtInstance->GetSocVersion();
 
     //not set timeout
     uint32_t timeout = 0;
     Runtime::Instance()->timeoutConfig_.isInit = false;
-    rtInstance->SetSocType(SOC_ASCEND910B1);
+    rtInstance->SetSocVersion("Ascend910B1");
     error = rtGetOpExecuteTimeoutV2(&timeout);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
     EXPECT_EQ(timeout, 1090922);
 
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(CloudV2ApiTest, rtGetOpTimeOutV2_set)
@@ -1555,7 +1555,7 @@ TEST_F(CloudV2ApiTest, rtGetOpTimeOutV2_set)
     rtError_t error;
     rtStream_t stream;
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
+    std::string socVersion = rtInstance->GetSocVersion();
     bool oriisCfgOpExcTaskTimeout = rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout;
     int32_t oriopExcTaskTimeout = rtInstance->timeoutConfig_.opExcTaskTimeout;
     rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout = true;
@@ -1564,12 +1564,12 @@ TEST_F(CloudV2ApiTest, rtGetOpTimeOutV2_set)
     Runtime::Instance()->timeoutConfig_.isInit = false;
     rtInstance->timeoutConfig_.opExcTaskTimeout = 10;
     //change soctype
-    rtInstance->SetSocType(SOC_ASCEND910B1);
+    rtInstance->SetSocVersion("Ascend910B1");
     error = rtGetOpExecuteTimeoutV2(&timeout);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
     EXPECT_EQ(timeout, 4295);
 
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
     rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout = oriisCfgOpExcTaskTimeout;
     rtInstance->timeoutConfig_.opExcTaskTimeout = oriopExcTaskTimeout;
 }
@@ -1987,41 +1987,6 @@ TEST_F(CloudV2ApiTest, rtsLaunchRandomNumTask_TEST_abnormal)
 
     error = rtFree(devPtr2);
     EXPECT_EQ(error, RT_ERROR_NONE);
-}
-
-TEST_F(CloudV2ApiTest, rtModelCheckCompatibility_archVersion)
-{
-    rtError_t error;
-    Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtArchType_t oriArchType = rtInstance->GetArchType();
-
-    rtInstance->SetArchType(ARCH_M300);
-    // OmArchVersion is null
-    error = rtModelCheckCompatibility("SOC_ASCEND910B1", "");
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    // OmArchVersion is nullptr
-    error = rtModelCheckCompatibility("SOC_ASCEND910B1", nullptr);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
-
-    // OmArchVersion is not same as archType
-    error = rtModelCheckCompatibility("SOC_ASCEND910B1", "11");
-    EXPECT_EQ(error, ACL_ERROR_RT_SOC_VERSION);
-
-    // OmArchVersion is same as archType
-    error = rtModelCheckCompatibility("SOC_ASCEND910B1", "10");
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    // OmArchVersion is not find
-    error = rtModelCheckCompatibility("SOC_ASCEND910B1", "20");
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
-
-    // 只换1-2包
-    rtInstance->SetArchType(ARCH_V100);
-    error = rtModelCheckCompatibility("SOC_ASCEND310", "4");
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    // restore all type
-    rtInstance->SetArchType(oriArchType);
 }
 
 TEST_F(CloudV2ApiTest, rtLaunchSqeUpdateTask_PARAM_SRC_NULL)

@@ -54,8 +54,6 @@ TEST_F(DevInfoManageTest, DevInfoManageDestroy)
     EXPECT_EQ(ret, false);
     rtError_t error = info.GetSocInfo(nullptr, soc);
     EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
-    error = info.GetSocInfo(CHIP_910_B_93, ARCH_V100, soc);
-    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
     std::array<bool, FEATURE_MAX_VALUE> tmp{false};
     error = info.GetChipFeatureSet(CHIP_910_B_93, tmp);
     EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
@@ -83,36 +81,32 @@ TEST_F(DevInfoManageTest, DevInfoManagePlatform)
 TEST_F(DevInfoManageTest, DevInfoManageDevInfo)
 {
     DevInfoManage info;
-    RtDevInfo i = {CHIP_910_B_93, ARCH_V100, PG_VER_BIN10, "Ascend910_9362"};
+    rtSocInfo_t i = {CHIP_910_B_93, "Ascend910_9362"};
     bool ret = info.RegisterDevInfo(i);
     EXPECT_EQ(ret, true);
     std::string soName;
-    RtDevInfo out;
+    rtSocInfo_t out;
     rtError_t result = info.GetDevInfo("Ascend910_9362", out);
     EXPECT_EQ(result, RT_ERROR_NONE);
-    EXPECT_EQ(out.archType, ARCH_V100);
     EXPECT_EQ(out.chipType, CHIP_910_B_93);
-    EXPECT_EQ(out.pgType, PG_VER_BIN10);
 }
 
 TEST_F(DevInfoManageTest, DevInfoManageSocInfo)
 {
     DevInfoManage info;
-    rtSocInfo_t s = {SOC_ASCEND910B1, CHIP_910_B_93, ARCH_C220, "Ascend910B1"};
+    rtSocInfo_t s = {CHIP_910_B_93, "Ascend910B1"};
     bool ret = info.RegisterSocInfo(s);
     EXPECT_EQ(ret, true);
     rtSocInfo_t out;
     rtError_t result = info.GetSocInfo("Ascend910B1", out);
     EXPECT_EQ(result, RT_ERROR_NONE);
-    EXPECT_EQ(out.archType, ARCH_C220);
     EXPECT_EQ(out.chipType, CHIP_910_B_93);
-    EXPECT_EQ(out.socType, SOC_ASCEND910B1);
 }
 
 TEST_F(DevInfoManageTest, GetSocInfo)
 {
-    rtSocInfo_t s = {SOC_ASCEND910B1, CHIP_910_B_93, ARCH_C220, "Ascend910_9391"};
-    rtError_t result = GetSocInfoByName("Ascend910_9372", s);
+    rtSocInfo_t s = {CHIP_910_B_93, "Ascend910_9391"};
+    rtError_t result = GetSocInfoFromRuntimeByName("Ascend910_9372", s);
     EXPECT_EQ(result, RT_ERROR_NONE);
 }
 
@@ -129,82 +123,60 @@ TEST_F(DevInfoManageTest, GetNpuArchByName)
     EXPECT_EQ(result, RT_ERROR_INVALID_VALUE);
 }
 
-void test_soc_info_by_soc_type_and_name(const rtSocType_t socType, const char_t *const socName)
+void test_soc_info_by_soc_name(const char_t *const socName)
 {
-    rtSocInfo_t socInfo = {SOC_END, CHIP_END, ARCH_END, nullptr};
+    rtSocInfo_t socInfo = {CHIP_END, nullptr};
     rtError_t result = RT_ERROR_NONE;
  
-    // 1. get soc info by type
-    result = DevInfoManage::Instance().GetSocInfo(socType, socInfo);
- 
-    EXPECT_EQ(result, RT_ERROR_NONE);
-    EXPECT_EQ(socInfo.socType, socType);
-    EXPECT_EQ(socInfo.chipType, CHIP_DAVID);
-    EXPECT_EQ(socInfo.archType, ARCH_V100);
-    EXPECT_EQ(strcmp(socInfo.socName, socName), 0);
- 
-    // 2. get soc info by name
+    // get soc info by name
     result = DevInfoManage::Instance().GetSocInfo(socName, socInfo);
  
     EXPECT_EQ(result, RT_ERROR_NONE);
-    EXPECT_EQ(socInfo.socType, socType);
     EXPECT_EQ(socInfo.chipType, CHIP_DAVID);
-    EXPECT_EQ(socInfo.archType, ARCH_V100);
     EXPECT_EQ(strcmp(socInfo.socName, socName), 0);
 }
  
 TEST_F(DevInfoManageTest, GetSocInfo_David_V120_test)
 {
-    const rtSocType_t socType_957c = SOC_ASCEND950PR_957C;
     const char_t *const socName_957c = "Ascend950PR_957c";
-    test_soc_info_by_soc_type_and_name(socType_957c, socName_957c);
+    test_soc_info_by_soc_name(socName_957c);
  
-    const rtSocType_t socType_95a1 = SOC_ASCEND950DT_95A1;
     const char_t *const socName_95a1 = "Ascend950DT_95A1";
-    test_soc_info_by_soc_type_and_name(socType_95a1, socName_95a1);
+    test_soc_info_by_soc_name(socName_95a1);
  
-    const rtSocType_t socType_95a2 = SOC_ASCEND950DT_95A2;
     const char_t *const socName_95a2 = "Ascend950DT_95A2";
-    test_soc_info_by_soc_type_and_name(socType_95a2, socName_95a2);
+    test_soc_info_by_soc_name(socName_95a2);
  
-    const rtSocType_t socType_9595 = SOC_ASCEND950DT_9595;
     const char_t *const socName_9595 = "Ascend950DT_9595";
-    test_soc_info_by_soc_type_and_name(socType_9595, socName_9595);
- 
-    const rtSocType_t socType_9596 = SOC_ASCEND950DT_9596;
+    test_soc_info_by_soc_name(socName_9595);
+
     const char_t *const socName_9596 = "Ascend950DT_9596";
-    test_soc_info_by_soc_type_and_name(socType_9596, socName_9596);
+    test_soc_info_by_soc_name(socName_9596);
  
-    const rtSocType_t socType_9585 = SOC_ASCEND950DT_9585;
     const char_t *const socName_9585 = "Ascend950DT_9585";
-    test_soc_info_by_soc_type_and_name(socType_9585, socName_9585);
+    test_soc_info_by_soc_name(socName_9585);
  
-    const rtSocType_t socType_9586 = SOC_ASCEND950DT_9586;
     const char_t *const socName_9586 = "Ascend950DT_9586";
-    test_soc_info_by_soc_type_and_name(socType_9586, socName_9586);
+    test_soc_info_by_soc_name(socName_9586);
  
-    const rtSocType_t socType_9583 = SOC_ASCEND950DT_9583;
     const char_t *const socName_9583 = "Ascend950DT_9583";
-    test_soc_info_by_soc_type_and_name(socType_9583, socName_9583);
+    test_soc_info_by_soc_name(socName_9583);
  
-    const rtSocType_t socType_9571 = SOC_ASCEND950DT_9571;
     const char_t *const socName_9571 = "Ascend950DT_9571";
-    test_soc_info_by_soc_type_and_name(socType_9571, socName_9571);
+    test_soc_info_by_soc_name(socName_9571);
  
-    const rtSocType_t socType_9573 = SOC_ASCEND950DT_9573;
     const char_t *const socName_9573 = "Ascend950DT_9573";
-    test_soc_info_by_soc_type_and_name(socType_9573, socName_9573);
+    test_soc_info_by_soc_name(socName_9573);
 }
  
 void test_dev_info_by_soc_name(const char_t *const socName)
 {
-    RtDevInfo devInfo = {CHIP_END, ARCH_END, PG_VER_END, nullptr};
+    rtSocInfo_t devInfo = {CHIP_END, nullptr};
  
     rtError_t result = DevInfoManage::Instance().GetDevInfo(socName, devInfo);
  
     EXPECT_EQ(result, RT_ERROR_NONE);
     EXPECT_EQ(devInfo.chipType, CHIP_DAVID);
-    EXPECT_EQ(devInfo.archType, ARCH_V100);
     EXPECT_EQ(strcmp(devInfo.socName, socName), 0);
 }
  
@@ -252,7 +224,7 @@ TEST_F(DevInfoManageTest, DevInfoManageSocInfoKirinX90)
 TEST_F(DevInfoManageTest, DevInfoManageDevInfoKirinX90)
 {
     DevInfoManage info;
-    RtDevInfo out;
+    rtSocInfo_t out;
     rtError_t result = info.GetDevInfo("KirinX90", out);
     EXPECT_NE(result, RT_ERROR_NONE);
 }
@@ -283,7 +255,7 @@ TEST_F(DevInfoManageTest, DevInfoManageSocInfoKirin9030)
 TEST_F(DevInfoManageTest, DevInfoManageDevInfoKirin9030)
 {
     DevInfoManage info;
-    RtDevInfo out;
+    rtSocInfo_t out;
     rtError_t result = info.GetDevInfo("Kirin9030", out);
     EXPECT_NE(result, RT_ERROR_NONE);
 }

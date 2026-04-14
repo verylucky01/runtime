@@ -119,7 +119,7 @@ TEST_F(CloudV2ApiDeviceTest, AddAddrKernelNameMapTableTest)
 {
     RawDevice dev(0);
     dev.Init();
-    dev.platformConfig_ = 0x500;
+    dev.chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x500)));
     rtAddrKernelName_t mapInfo;
     mapInfo.addr = 0;
     mapInfo.kernelName = "testKernel";

@@ -105,8 +105,8 @@ TEST_F(CloudV2ArgLoaderTest, uma_arg_loader_init_of_chip_as31xm1x)
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     Device *device = rtInstance->DeviceRetain(0, 0);
     UmaArgLoader argLdr(device);
-    rtSocType_t preType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_AS31XM1X);
+    std::string socVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("AS31XM1X");
     int32_t aicpuCnt = rtInstance->GetAicpuCnt();
     rtInstance->SetAicpuCnt(1);
     rtError_t err = argLdr.Init();
@@ -115,7 +115,7 @@ TEST_F(CloudV2ArgLoaderTest, uma_arg_loader_init_of_chip_as31xm1x)
     argLdr.GetKernelInfoDevAddr("123", KernelInfoType::SO_NAME, &soNameAddr);
     argLdr.GetKernelInfoDevAddr("456", KernelInfoType::KERNEL_NAME, &soNameAddr);
     argLdr.RestoreAiCpuKernelInfo();
-    rtInstance->SetSocType(preType);
+    rtInstance->SetSocVersion(socVersion);
     rtInstance->SetAicpuCnt(aicpuCnt);
     rtInstance->DeviceRelease(device);
 }

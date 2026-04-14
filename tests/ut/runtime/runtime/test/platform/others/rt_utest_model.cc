@@ -68,8 +68,8 @@ TEST_F(ChipModelTest, TestCmoIdFree)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     Model* model = static_cast<Model *>(rtModel);
-    rtPlatformType_t prePlatform = ((RawDevice*)device)->platformType_;
-    ((RawDevice*)device)->platformType_ = PLATFORM_AS31XM1X;
+    rtChipType_t chipType = ((RawDevice*)device)->chipType_;
+    ((RawDevice*)device)->chipType_ = CHIP_AS31XM1;
     rtChipType_t preChipType = rtInstance->GetChipType();
     rtInstance->SetChipType(CHIP_MINI_V3);
     GlobalContainer::SetRtChipType(CHIP_MINI_V3);
@@ -79,7 +79,7 @@ TEST_F(ChipModelTest, TestCmoIdFree)
     model->CmoIdFree();
     rtInstance->SetChipType(preChipType);
     GlobalContainer::SetRtChipType(preChipType);
-    ((RawDevice*)device)->platformType_ = prePlatform;
+    ((RawDevice*)device)->chipType_ = chipType;
 
     error = rtModelDestroy(rtModel);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -340,6 +340,7 @@ TEST_F(ChipModelTest, l1fusiondumpaddrset)
 
     error = rtCtxDestroy(ctx);
     EXPECT_EQ(error, RT_ERROR_NONE);
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 }
 
 TEST_F(ChipModelTest, model_stream_offline_ok)
@@ -360,7 +361,7 @@ TEST_F(ChipModelTest, model_stream_offline_ok)
     rtChipType_t oldChipType = rtInstance->GetChipType();
     rtInstance->SetChipType(CHIP_DC);
     GlobalContainer::SetRtChipType(CHIP_DC);
-    GlobalContainer::SetSocType(SOC_BEGIN);
+    GlobalContainer::SetSocVersion("");
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -399,7 +400,7 @@ TEST_F(ChipModelTest, model_stream_offline_fail)
     rtChipType_t oldChipType = rtInstance->GetChipType();
     rtInstance->SetChipType(CHIP_DC);
     GlobalContainer::SetRtChipType(CHIP_DC);
-    GlobalContainer::SetSocType(SOC_BEGIN);
+    GlobalContainer::SetSocVersion("");
     error = rtModelCreate(&model1, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 

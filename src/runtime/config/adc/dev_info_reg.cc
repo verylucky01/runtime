@@ -15,10 +15,10 @@
 namespace cce {
 namespace runtime {
 static constexpr rtSocInfo_t CHIP_ADC_SOC_INFO[] = {
-    {SOC_ASCEND610, CHIP_ADC, ARCH_M200, "Ascend610"},
-    {SOC_BS9SX1AA, CHIP_ADC, ARCH_M201, "BS9SX1AA"},
-    {SOC_BS9SX1AB, CHIP_ADC, ARCH_M201, "BS9SX1AB"},
-    {SOC_BS9SX1AC, CHIP_ADC, ARCH_M201, "BS9SX1AC"},
+    {CHIP_ADC, "Ascend610"},
+    {CHIP_ADC, "BS9SX1AA"},
+    {CHIP_ADC, "BS9SX1AB"},
+    {CHIP_ADC, "BS9SX1AC"},
 };
 
 BATCH_REGISTER_SOC_INFO(CHIP_ADC_SOC_INFO, sizeof(CHIP_ADC_SOC_INFO) / sizeof(rtSocInfo_t));
@@ -74,6 +74,7 @@ static constexpr uint64_t ENGINE_WAIT_COMPLETION_TIMEOUT = 2000UL; //2000ms
 static const DevProperties CHIP_ADC_PROPERTIES = {
     .engineType = "HWTS",
     .isStars = false,
+    .isStarsV2 = false,
     .pthreadStackSize = PTHREAD_STACK_SIZE,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_NOT_SUPPORT,
     .tsCount = 2U,

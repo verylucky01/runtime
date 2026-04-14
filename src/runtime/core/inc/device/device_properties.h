@@ -216,6 +216,7 @@ enum class DeviceSatStatusImpl : uint8_t {
 struct DevProperties final {
     std::string engineType;
     bool isStars;
+    bool isStarsV2;
     uint32_t pthreadStackSize; // 0: Use the default stack size. others: Custom Stack Size
     EventWaitTimeoutType eventWaitTimeout;
     uint32_t tsCount;

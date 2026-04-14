@@ -94,9 +94,8 @@ AwdHandle ThreadLocalContainer::GetOrCreateWatchDogHandle(void)
 uint8_t GlobalContainer::eventWorkMode_ = 0;
 uint64_t GlobalContainer::eventModeSetRefCount = 0;
 rtChipType_t GlobalContainer::chipType_ = CHIP_BEGIN;
-rtSocType_t  GlobalContainer::socType_ = SOC_BEGIN;
-rtArchType_t GlobalContainer::archType_ = ARCH_BEGIN;
-rtChipType_t GlobalContainer::hardwareChipType_ = CHIP_END;
+std::string GlobalContainer::socVersion_;
+std::string GlobalContainer::hardwareSocVersion_;
 std::string GlobalContainer::userSocVersion_;
 std::mutex GlobalContainer::socVersionMutex_;
 std::mutex GlobalContainer::uceMutex_;
@@ -112,32 +111,23 @@ void GlobalContainer::SetRtChipType(const rtChipType_t inChipType)
     chipType_ = inChipType;
 }
 
-rtSocType_t GlobalContainer::GetSocType(void)
+std::string GlobalContainer::GetSocVersion(void)
 {
-    return socType_;
+    return socVersion_;
 }
-void GlobalContainer::SetSocType(const rtSocType_t inSocType)
+void GlobalContainer::SetSocVersion(const std::string &socVersion)
 {
-    socType_ = inSocType;
-}
-
-rtArchType_t GlobalContainer::GetArchType(void)
-{
-    return archType_;
-}
-void GlobalContainer::SetArchType(const rtArchType_t inArchType)
-{
-    archType_ = inArchType;
+    socVersion_ = socVersion;
 }
 
-rtChipType_t GlobalContainer::GetHardwareChipType(void)
+std::string GlobalContainer::GetHardwareSocVersion(void)
 {
-    return hardwareChipType_;
+    return hardwareSocVersion_;
 }
 
-void GlobalContainer::SetHardwareChipType(const rtChipType_t chipType)
+void GlobalContainer::SetHardwareSocVersion(const std::string &socVersion)
 {
-    hardwareChipType_ = chipType;
+    hardwareSocVersion_ = socVersion;
 }
 
 std::string GlobalContainer::GetUserSocVersion(void)

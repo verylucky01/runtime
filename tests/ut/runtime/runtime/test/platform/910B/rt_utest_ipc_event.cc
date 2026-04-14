@@ -62,6 +62,7 @@ protected:
         rtDeviceReset(0);
         ((Runtime *)Runtime::Instance())->SetDisableThread(false);
         (void)rtSetSocVersion("");
+        ((Runtime*)Runtime::Instance())->SetIsUserSetSocVersion(false);
         GlobalMockObject::verify();
     }
 };

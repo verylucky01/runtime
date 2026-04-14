@@ -14,7 +14,6 @@
 #define private public
 #define protected public
 #include "runtime.hpp"
-#include "config.hpp"
 #include "profiler.hpp"
 #include "api_profile_decorator.hpp"
 #include "api_profile_log_decorator.hpp"
@@ -921,6 +920,7 @@ class ProfilerLogFunctionTest : public testing::Test
 protected:
     static void SetUpTestCase()
     {
+        std::cout << "ProfilerLogFunctionTest SetUpTestCase start" << std::endl;
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtSetDevice(0);
         uint16_t type_log = PROF_RUNTIME_PROFILE_LOG_MASK;

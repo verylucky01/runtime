@@ -34,7 +34,6 @@
 #include "ctrl_stream.hpp"
 #include "runtime.hpp"
 #include "runtime_keeper.h"
-#include "config.hpp"
 #include "mockcpp/mockcpp.hpp"
 #include "uma_arg_loader.hpp"
 #include "driver/ascend_hal.h"
@@ -1154,7 +1153,6 @@ TEST_F(TaskTest, stars_stream_activate_sqe)
     rtError_t error;
     rtStream_t stream = NULL;
     uint32_t event_id = 0;
-    (void)rtSetSocVersion("AS31XM1X");
     error = rtStreamCreate(&stream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -1166,6 +1164,7 @@ TEST_F(TaskTest, stars_stream_activate_sqe)
     rtStarsStreamActiveFcPara_t fcPara = {};
     error = InitFuncCallParaForStreamActiveTask(&task, fcPara, CHIP_MINI_V3);
     rtStreamDestroy(stream);
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 }
 
 TEST_F(TaskTest, stars_ph_sqe)
@@ -1371,10 +1370,10 @@ TEST_F(TaskTest, do_complete_success)
     InitByStream(&task, taskStream);
     EventResetTaskInit(&task, nullptr, false, -1);
 
-    rtSocType_t socType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_ASCEND910B1);
+    std::string socVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("Ascend910B1");
     Complete(&task, 0);
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(TaskTest, kernel_task_async_copy_wait)
@@ -2238,38 +2237,6 @@ TEST_F(TaskTest, DoCompleteSuccess_1)
     Stream *stream = new Stream(device, 0);
     stream->Setup();
 
-    rtError_t error = RT_ERROR_NONE;
-    TaskInfo *task = device->GetTaskFactory()->Alloc(stream, TS_TASK_TYPE_MEMCPY, error);
-    EXPECT_NE(task, nullptr);
-    InitByStream(task, stream);
-    MemcpyAsyncTaskInitV1(task, nullptr, RT_MEMCPY_HOST_TO_DEVICE);
-    MemcpyAsyncTaskInfo *memcpyAsyncTsk = &task->u.memcpyAsyncTaskInfo;
-
-    NpuDriver drv;
-    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::GetRunMode).stubs().will(returnValue((uint32_t)1));  // RT_RUN_MODE_ONLINE
-
-    task->errorCode = 0;
-    memcpyAsyncTsk->copyType = RT_MEMCPY_DIR_H2D;
-    Complete(task, 0);
-    device->GetTaskFactory()->Recycle(task);
-
-    delete stream;
-    delete device;
-}
-
-TEST_F(TaskTest, TryAgainAlloc)
-{
-    RawDevice *device = new RawDevice(0);
-    MOCKER_CPP(&Stream::CheckASyncRecycle).stubs().will(returnValue(false));
-
-    device->Init();
-    EXPECT_NE(device->engine_, nullptr);
-    MOCKER_CPP_VIRTUAL(device->engine_, &Engine::WakeUpRecycleThread).stubs();
-
-    Stream *stream = new Stream(device, 0);
-    stream->Setup();
-
-    MOCKER_CPP(&TaskAllocator::AllocId).stubs().will(returnValue(-1)).then(returnValue(0));
     rtError_t error = RT_ERROR_NONE;
     TaskInfo *task = device->GetTaskFactory()->Alloc(stream, TS_TASK_TYPE_MEMCPY, error);
     EXPECT_NE(task, nullptr);

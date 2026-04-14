@@ -16,26 +16,26 @@
 namespace cce {
 namespace runtime {
 static constexpr rtSocInfo_t SOC_910B_INFO[] = {
-    {SOC_ASCEND910B1, CHIP_910_B_93, ARCH_C220, "Ascend910B1"},
-    {SOC_ASCEND910B2, CHIP_910_B_93, ARCH_C220, "Ascend910B2"},
-    {SOC_ASCEND910B3, CHIP_910_B_93, ARCH_C220, "Ascend910B3"},
-    {SOC_ASCEND910B4, CHIP_910_B_93, ARCH_C220, "Ascend910B4"},  // hardversion 910_93 same as 910B4
-    {SOC_ASCEND910B2C, CHIP_910_B_93, ARCH_C220, "Ascend910B2C"},
-    {SOC_ASCEND910B4_1, CHIP_910_B_93, ARCH_C220, "Ascend910B4-1"},
+    {CHIP_910_B_93, "Ascend910B1"},
+    {CHIP_910_B_93, "Ascend910B2"},
+    {CHIP_910_B_93, "Ascend910B3"},
+    {CHIP_910_B_93, "Ascend910B4"},  // hardversion 910_93 same as 910B4
+    {CHIP_910_B_93, "Ascend910B2C"},
+    {CHIP_910_B_93, "Ascend910B4-1"},
 };
 
 BATCH_REGISTER_SOC_INFO(SOC_910B_INFO, (sizeof(SOC_910B_INFO) / sizeof(rtSocInfo_t)));
 
-constexpr RtDevInfo DEV_INFO_910_93[] = {
-    {CHIP_910_B_93, ARCH_V100, PG_VER_BIN10, "Ascend910_9362"},
-    {CHIP_910_B_93, ARCH_V100, PG_VER_BIN3, "Ascend910_9372"},
-    {CHIP_910_B_93, ARCH_V100, PG_VER_BIN2, "Ascend910_9381"},
-    {CHIP_910_B_93, ARCH_V100, PG_VER_BIN2, "Ascend910_9382"},
-    {CHIP_910_B_93, ARCH_V100, PG_VER_BIN1, "Ascend910_9391"},
-    {CHIP_910_B_93, ARCH_V100, PG_VER_BIN1, "Ascend910_9392"},
+constexpr rtSocInfo_t DEV_INFO_910_93[] = {
+    {CHIP_910_B_93, "Ascend910_9362"},
+    {CHIP_910_B_93, "Ascend910_9372"},
+    {CHIP_910_B_93, "Ascend910_9381"},
+    {CHIP_910_B_93, "Ascend910_9382"},
+    {CHIP_910_B_93, "Ascend910_9391"},
+    {CHIP_910_B_93, "Ascend910_9392"},
 };
 
-BATCH_REGISTER_DEV_INFO(DEV_INFO_910_93, sizeof(DEV_INFO_910_93) / sizeof(RtDevInfo));
+BATCH_REGISTER_DEV_INFO(DEV_INFO_910_93, sizeof(DEV_INFO_910_93) / sizeof(rtSocInfo_t));
 
 REGISTER_PLATFORM_LIB_INFO(CHIP_910_B_93, "libruntime_v100.so");
 
@@ -172,6 +172,7 @@ static constexpr std::array<uint32_t, RT_ATOMIC_OPERATION_MAX_VAL> GetStarsP2PAt
 static const DevProperties CHIP_CLOUD_V2_PROPERTIES = {
     .engineType = "STARS",
     .isStars = true,
+    .isStarsV2 = false,
     .pthreadStackSize = 0U,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_CONFIG,
     .tsCount = 1U,

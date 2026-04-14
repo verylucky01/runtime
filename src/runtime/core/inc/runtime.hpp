@@ -14,7 +14,6 @@
 #include "osal.hpp"
 #include "reference.hpp"
 #include "kernel.hpp"
-#include "config.hpp"
 #include "program.hpp"
 #include "tsch_defines.h"
 #include "driver.hpp"
@@ -119,8 +118,6 @@ struct SnapShotCallBackInfo {
     void *args;
 };
 
-rtError_t GetHardVerBySocVer(const uint32_t deviceId, int64_t &hardwareVersion);
-
 static inline bool IsAbortError(rtError_t error)
 {
     if (error == RT_ERROR_STREAM_ABORT || error == RT_ERROR_STREAM_ABORT_SEND_TASK_FAIL ||
@@ -217,13 +214,6 @@ public:
     Profiler *Profiler_() const
     {
         return profiler_;
-    }
-
-    Config *Config_()
-    {
-    #ifndef CDQ_VECTOR_CAST
-        return &config_;
-    #endif
     }
 
     FacadeDriver &FacadeDriver_()
@@ -340,12 +330,15 @@ public:
 #endif
     bool ChipIsHaveStars() const override;
 
-    rtSocType_t GetSocType() const override;
+    std::string GetSocVersion() const override;
 
-    rtArchType_t GetArchType() const override
+    std::string GetRawSocVersion() const;
+
+    void SetSocVersion(const std::string& socVersion)
     {
-        return archType_;
+        socVersion_ = socVersion;
     }
+
     bool GetIsUserSetSocVersion() const
     {
         return isUserSetSocVersion_;
@@ -526,9 +519,6 @@ public:
     rtError_t BinaryGetFunctionByName(const Program * const binHandle, const char *kernelName,
                                       Kernel ** const funcHandle) const;
     rtError_t BinaryUnLoad(const Device *const device, Program * const prog) const;
-    rtError_t ModelCheckArchVersion(const char_t * const omArchVersion, const rtArchType_t archType) const;
-    rtError_t CheckArchVersionIsCompatibility(
-        const rtArchType_t inputArchType, const rtArchType_t hardwareArchType) const;
     rtError_t SetWatchDogDevStatus(const Device *device, rtDeviceStatus deviceStatus);
     rtError_t GetWatchDogDevStatus(uint32_t deviceId, rtDeviceStatus *deviceStatus);
     rtError_t RegKernelLaunchFillFunc(const char* symbol, rtKernelLaunchFillFunc callback) override;
@@ -572,7 +562,7 @@ public:
     uint32_t GetDefaultKernelCredit() const
     {
         if (curChipProperties_.DefaultKernelCredit == cce::runtime::RT_HWTS_610_DEFAULT_KERNEL_CREDIT_UINT32) {
-            if ((socType_ == SOC_BS9SX1AA) || (socType_ == SOC_BS9SX1AB) || (socType_ == SOC_BS9SX1AC)) {
+            if ((socVersion_ == "BS9SX1AA") || (socVersion_ == "BS9SX1AB") || (socVersion_ == "BS9SX1AC")) {
                 return RT_HWTS_BS9SX1AB_DEFAULT_KERNEL_CREDIT_UINT32;
             }
         }
@@ -584,7 +574,7 @@ public:
     {
         if (std::abs(curChipProperties_.KernelCreditScale - cce::runtime::RT_HWTS_610_TASK_KERNEL_CREDIT_SCALE_US) <
             std::numeric_limits<float>::epsilon()) {
-            if ((socType_ == SOC_BS9SX1AA) || (socType_ == SOC_BS9SX1AB) || (socType_ == SOC_BS9SX1AC)) {
+            if ((socVersion_ == "BS9SX1AA") || (socVersion_ == "BS9SX1AB") || (socVersion_ == "BS9SX1AC")) {
                 return RT_HWTS_BS9SX1AB_TASK_KERNEL_CREDIT_SCALE_US;
             }
         }
@@ -711,10 +701,6 @@ public:
     KernelTable kernelTable_;
     FacadeDriver facadeDriver_;
     rtErrorCallback excptCallBack_;
-    /* Config instance */
-#ifndef CDQ_VECTOR_CAST
-        Config config_;
-#endif
     uint32_t deviceCnt = 0U;
     uint32_t userDeviceCnt = 0U;
     char inputDeviceStr[RT_SET_DEVICE_STR_MAX_LEN + 1] = {0};
@@ -852,10 +838,10 @@ private:
     void InitSocTypeFrom910Version(const int64_t hardwareVersion);
 
     void Init310PSocType(const int64_t vmAicoreNum);
+    void InitSocTypeFromCloudVersion(const int64_t aicoreNumLevel);
     int32_t GetProfDeviceNum(const uint64_t profMask);
-    rtError_t SetSocTypeByChipType(int64_t hardwareVersion, int64_t aicoreNumLevel, int64_t vmAicoreNum);
     bool IsSupportVisibleDevices() const;
-    rtError_t InitChipAndSocType();
+    rtError_t InitChipTypeAndSocVersion();
     rtError_t InitApiImplies();
     rtError_t InitLogger();
     rtError_t InitApiProfiler(Api * const apiObj);
@@ -935,11 +921,12 @@ private:
                                const bool isHostApiRegister, bool &staticKernel) const;
     rtError_t GetVisibleDevices();
     bool IsNeedChangeDeviceId(const uint32_t userDevId, const bool isDeviceSetResetOp) const;
-    rtError_t GetArchVersion(const char_t * const omArchVersion, rtArchType_t &omArchType) const;
     void ReadStreamSyncModeFromConfigIni(void);
     rtError_t InitAiCpuCnt();
     void ParseHostCpuModelInfo();
-    rtError_t InitSocType();
+    rtError_t InitSocVersion();
+    rtError_t InitSocVersionAndChipType(const uint32_t deviceId);
+    rtError_t GetSocVersionByHardwareVer(int64_t hardwareVersion, int64_t aicoreNumLevel, int64_t vmAicoreNum);
     bool CheckHaveDevice();
     rtError_t WaitMonitorExit() const;
     rtError_t GetEnvPath(std::string &binaryPath) const;
@@ -952,16 +939,6 @@ private:
     void SetChipType(rtChipType_t chipType)
     {
         chipType_ = chipType;
-    }
-
-    void SetSocType(rtSocType_t socType)
-    {
-        socType_ = socType;
-    }
-
-    void SetArchType(rtArchType_t archType)
-    {
-        archType_ = archType;
     }
 
     void SetAicpuCnt(int64_t aicpuCnt)
@@ -1009,9 +986,8 @@ private:
     Bitmap *aicpuStreamIdBitmap_;
     CbSubscribe *cbSubscribe_;
     rtChipType_t chipType_;
-    rtSocType_t socType_;
+    std::string socVersion_;
     int64_t aicpuCnt_ = DEFAULT_AICPU_INVALID_NUM;
-    rtArchType_t archType_;
     rtFloatOverflowMode_t satMode_ = RT_OVERFLOW_MODE_SATURATION;
     SpinLock profConfLock_;
     uint32_t tsNum_;

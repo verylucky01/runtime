@@ -37,10 +37,10 @@ using namespace cce::runtime;
 
 class RtMemoryApiTest : public testing::Test
 {
-
 protected:
     static void SetUpTestCase()
     {
+        GlobalContainer::SetHardwareSocVersion("Ascend910B2");
         RawDevice *rawDevice = new RawDevice(0);
         MOCKER_CPP_VIRTUAL(rawDevice, &RawDevice::SetTschVersionForCmodel).stubs().will(ignoreReturnValue());
         delete rawDevice;

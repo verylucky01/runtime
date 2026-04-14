@@ -15,7 +15,7 @@
 
 namespace cce {
 namespace runtime {
-static constexpr rtSocInfo_t CHIP_610LITE_SOC_INFO[] = {{SOC_ASCEND610Lite, CHIP_610LITE, ARCH_M310, "Ascend610Lite"}};
+static constexpr rtSocInfo_t CHIP_610LITE_SOC_INFO[] = {{CHIP_610LITE, "Ascend610Lite"}};
 
 BATCH_REGISTER_SOC_INFO(CHIP_610LITE_SOC_INFO, sizeof(CHIP_610LITE_SOC_INFO) / sizeof(rtSocInfo_t));
 
@@ -73,6 +73,7 @@ static constexpr uint64_t ENGINE_WAIT_COMPLETION_TIMEOUT = 2000UL; //2000ms
 static const DevProperties CHIP_610LITE_PROPERTIES = {
     .engineType = "HWTS",
     .isStars = false,
+    .isStarsV2 = false,
     .pthreadStackSize = PTHREAD_STACK_SIZE,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_NOT_SUPPORT,
     .tsCount = 1U,

@@ -163,7 +163,7 @@ rtError_t msprofreportcallback(uint32_t moduleId, uint32_t type, void *data, uin
 drvError_t stubHalGetDeviceInfo(uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value);
 void initData(uint32_t *hostPtr, uint32_t count, uint32_t data);
 void initUpdateDsaSqe(uint32_t *hostAddr, rtStarsDsaSqe_t* dsaSqe);
-void drvStubInit(rtSocType_t socType);
+void drvStubInit(const std::string& socVersion);
 void StubClearHalSqSendAndRecvCnt(uint32_t devId);
 rtError_t LaunchHostFuncNormalStub(cce::runtime::ApiImpl* impl, Stream* const stm, const rtCallback_t callBackFunc, void* const fnData);
 rtError_t LaunchHostFuncFailStub(cce::runtime::ApiImpl* impl, Stream* const stm, const rtCallback_t callBackFunc, void* const fnData);
@@ -181,7 +181,7 @@ public:
 protected:
     static void SetUpTestCase()
     {
-        (void)rtSetSocVersion("Ascend910");
+        (void)rtSetSocVersion("Ascend910A");
         ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         originType_ = Runtime::Instance()->GetChipType();
@@ -228,14 +228,12 @@ protected:
         Context * const curCtx = Runtime::Instance()->CurrentContext();
         EXPECT_EQ(curCtx != nullptr, true);
         curCtx->DefaultStream_()->pendingNum_.Set(0U);
-        // curCtx->Device_()->PrimaryStream_()->pendingNum_.Set(0U);
         MOCKER_CPP_VIRTUAL(curCtx->Device_(), &Device::GetDevRunningState).stubs().will(returnValue(1U));
-        // MOCKER_CPP(&AsyncHwtsEngine::ReceivingRun).stubs().will(returnValue(RT_ERROR_NONE));
         StubClearHalSqSendAndRecvCnt(0);
         rtDeviceReset(0);
         GlobalMockObject::verify();
-        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rtInstance->SetDisableThread(disableFlag_);
     }
 
@@ -266,7 +264,7 @@ class ApiTest5 : public testing::Test
 protected:
     static void SetUpTestCase()
     {
-        GlobalContainer::SetHardwareChipType(CHIP_END);
+        GlobalContainer::SetHardwareSocVersion("");
         (void)rtSetSocVersion("Ascend610");
         ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         bool flag = ((Runtime *)Runtime::Instance())->GetDisableThread();

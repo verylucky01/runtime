@@ -17,7 +17,6 @@
 #include "utils.h"
 #define private public
 #define protected public
-#include "config.hpp"
 #include "runtime.hpp"
 #include "task_info.hpp"
 #include "stream.hpp"

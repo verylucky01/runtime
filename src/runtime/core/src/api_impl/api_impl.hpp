@@ -334,7 +334,7 @@ public:
     rtError_t GetDeviceCapability(const int32_t deviceId, const int32_t moduleType, const int32_t featureType,
         int32_t * const val) override;
 
-    rtError_t ModelCheckArchVersion(const char_t *omArchVersion, const rtArchType_t archType) override;
+    rtError_t ModelCheckArchVersion(const char_t *omsocVersion) override;
     rtError_t CheckArchCompatibility(const char_t *socVersion, const char_t *omSocVersion, int32_t *canCompatible) override;
     rtError_t DeviceStatusQuery(const uint32_t devId, rtDeviceStatus *deviceStatus) override;
     rtError_t GetFaultEvent(const int32_t deviceId, rtDmsEventFilter *filter, rtDmsFaultEvent *dmsEvent,
@@ -448,8 +448,6 @@ public:
     rtError_t ModelDestroyUnregisterCallback(Model * const mdl, const rtCallback_t fn) override;
 
     /* hardware Info */
-    rtError_t GetAiCoreCount(uint32_t * const aiCoreCnt) override;
-    rtError_t GetAiCpuCount(uint32_t * const aiCpuCnt) override;
     rtError_t SetDeviceSatMode(const rtFloatOverflowMode_t floatOverflowMode) override;
     rtError_t GetDeviceSatMode(rtFloatOverflowMode_t * const floatOverflowMode) override;
     rtError_t GetDeviceSatModeForStream(Stream * const stm, rtFloatOverflowMode_t * const floatOverflowMode) override;
@@ -552,6 +550,8 @@ public:
     rtError_t LabelCreateEx(Label ** const lbl, Model * const mdl, Stream * const stm) override;
     rtError_t LabelSwitchListCreate(Label ** const labels, const size_t num, void ** const labelList) override;
     rtError_t GetAicpuDeploy(rtAicpuDeployType_t * const deployType) override;
+    rtError_t GetAiCoreCount(uint32_t * const aiCoreCnt) override;
+    rtError_t GetAiCpuCount(uint32_t * const aiCpuCnt) override;
     rtError_t XpuProfilingCommandHandle(uint32_t type, void *data, uint32_t len) override;
     // group info
     rtError_t SetGroup(const int32_t groupId) override;

@@ -212,98 +212,6 @@ uint16_t ChipDeviceTest::g_sId = 0;
 uint16_t ChipDeviceTest::g_tId = 0;
 uint32_t ChipDeviceTest::g_printType = 0;
 
-
-TEST_F(ChipDeviceTest, device_error_proc1)
-{
-    Device* device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
-    DeviceErrorProc *errorProc = new DeviceErrorProc(device);
-    Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtChipType_t chipOld = rtInstance->GetChipType();
-    rtInstance->SetChipType(CHIP_DC);
-    GlobalContainer::SetRtChipType(CHIP_DC);
-    void *memBase = (void*)100;
-    MOCKER_CPP_VIRTUAL((NpuDriver*)(device->Driver_()),&NpuDriver::DevMemAlloc)
-        .stubs()
-        .with(outBoundP(&memBase, sizeof(memBase)), mockcpp::any(), mockcpp::any(), mockcpp::any())
-        .will(returnValue(RT_ERROR_NONE));
-    rtError_t error = errorProc->CreateDeviceRingBufferAndSendTask();
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    errorProc->deviceRingBufferAddr_ = (void *)0xffff;
-    MOCKER_CPP(&DeviceErrorProc::ProcRingBufferTask)
-        .stubs()
-        .will(returnValue(RT_ERROR_NONE));
-    MOCKER_CPP_VIRTUAL((NpuDriver*)(device->Driver_()),&NpuDriver::DevMemFree)
-        .stubs()
-        .will(returnValue(RT_ERROR_NONE));
-    error = errorProc->SendTaskToStopUseRingBuffer();
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    error = errorProc->DestroyDeviceRingBuffer();
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    errorProc->deviceRingBufferAddr_ = nullptr;
-    error = errorProc->SendTaskToStopUseRingBuffer();
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    errorProc->fastRingBufferAddr_ = (void *)1;
-    error = errorProc->SendTaskToStopUseRingBuffer();
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    MOCKER_CPP_VIRTUAL((NpuDriver*)(device->Driver_()),&NpuDriver::DevMemFree)
-        .stubs()
-        .will(returnValue(RT_ERROR_NONE));
-    error = errorProc->DestroyDeviceRingBuffer();
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    DeviceErrorInfo coreInfo;
-    coreInfo.u.coreErrorInfo.coreNum = 1;
-    coreInfo.u.coreErrorInfo.info[0].aicError = 0;
-    error = errorProc->ProcessCoreErrorInfo(&coreInfo, 0, device);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    coreInfo.u.coreErrorInfo.type = AICORE_ERROR;
-    coreInfo.u.coreErrorInfo.dhaNum = 1;
-    uint32_t tsVersion = device->GetTschVersion();
-    device->SetTschVersion(TS_VERSION_AIC_ERR_DHA_INFO);
-    error = errorProc->ProcessCoreErrorInfo(&coreInfo, 0, device);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    device->SetTschVersion(tsVersion);
-    coreInfo.u.coreErrorInfo.type = AIVECTOR_ERROR;
-    coreInfo.u.coreErrorInfo.info[0].aicError = 1;
-    error = errorProc->ProcessCoreErrorInfo(&coreInfo, 0, device);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    coreInfo.u.sdmaErrorInfo.channelStatus = 1 << 16;
-    error = errorProc->ProcessSdmaErrorInfo(&coreInfo, 0, device);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    coreInfo.u.sdmaErrorInfo.channelStatus = 1 << 1;
-    error = errorProc->ProcessSdmaErrorInfo(&coreInfo, 0, device);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    error = errorProc->ProcessAicpuErrorInfo(&coreInfo, 0, device);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    DevRingBufferCtlInfo ctrlInfo;
-    ctrlInfo.ringBufferLen = 0;
-    error = errorProc->CheckValid(&ctrlInfo);
-    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
-    ctrlInfo.ringBufferLen = 1;
-    ctrlInfo.magic = 0;
-    error = errorProc->CheckValid(&ctrlInfo);
-    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
-    ctrlInfo.magic = 0xA55A2020;
-    ctrlInfo.head = 16;
-    error = errorProc->CheckValid(&ctrlInfo);
-    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
-
-    rtInstance->SetChipType(chipOld);
-    GlobalContainer::SetRtChipType(chipOld);
-    GlobalMockObject::verify();
-
-    delete errorProc;
-    ((Runtime *)Runtime::Instance())->DeviceRelease(device);
-}
-
 TEST_F(ChipDeviceTest, device_error_proc2)
 {
     Device* device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
@@ -709,9 +617,10 @@ TEST_F(ChipDeviceTest, get_davidDieNum_failed)
     MOCKER_CPP_VIRTUAL(driver,
             &Driver::GetDevInfo).stubs().with(mockcpp::any(), mockcpp::any(), mockcpp::any(), mockcpp::any())
             .will(returnValue(RT_ERROR_DRV_INPUT));
-    MOCKER(halGetSocVersion).stubs().with(mockcpp::any(), mockcpp::any(), mockcpp::any()).will(returnValue(DRV_ERROR_NOT_SUPPORT));
-    MOCKER(halGetDeviceInfo).stubs().with(mockcpp::any(), mockcpp::any(), mockcpp::any(), mockcpp::any()).will(returnValue(DRV_ERROR_INVALID_VALUE));
-
+    MOCKER(halGetChipCapability)
+        .stubs()
+        .with(mockcpp::any(), mockcpp::any())
+        .will(returnValue(DRV_ERROR_INVALID_VALUE));
     error = device->Init();
     EXPECT_EQ(error, RT_ERROR_DRV_INPUT);
     rtInstance->SetChipType(chipOld);

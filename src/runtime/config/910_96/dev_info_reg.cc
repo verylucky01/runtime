@@ -17,7 +17,7 @@ namespace cce {
 namespace runtime {
 
 static constexpr rtSocInfo_t SOC_INFO_910_96[] = {
-    {SOC_ASCEND910_5591, CHIP_CLOUD_V5, ARCH_V100, "Ascend910_5591"},
+    {CHIP_CLOUD_V5, "Ascend910_5591"},
 };
 
 BATCH_REGISTER_SOC_INFO(SOC_INFO_910_96, sizeof(SOC_INFO_910_96) / sizeof(rtSocInfo_t));
@@ -110,6 +110,7 @@ constexpr uint32_t TASK_RATION = 1U;
 static const DevProperties CHIP_CLOUD_V5_PROPERTIES = {
     .engineType = "STARS",
     .isStars = true,
+    .isStarsV2 = true,
     .pthreadStackSize = 0U,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_CONFIG,
     .tsCount = 1U,

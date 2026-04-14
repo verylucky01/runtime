@@ -17,7 +17,6 @@
 #include "runtime/dev.h"
 #include "runtime/mem.h"
 #include "runtime.hpp"
-#include "config.hpp"
 #include "cmodel_driver.h"
 #include "raw_device.hpp"
 #include "thread_local_container.hpp"
@@ -59,6 +58,7 @@ protected:
     static void SetUpTestCase()
     {
         (void)rtSetSocVersion("Ascend910");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(CHIP_CLOUD);
         GlobalContainer::SetRtChipType(CHIP_CLOUD);
@@ -71,8 +71,8 @@ protected:
     {
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         std::cout<<"Driver test start end"<<std::endl;
-
     }
 
     virtual void SetUp()
@@ -94,6 +94,7 @@ protected:
     {
         GlobalMockObject::reset();
         (void)rtSetSocVersion("Ascend610");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(true);       // Recover.
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(CHIP_ADC);
@@ -107,6 +108,7 @@ protected:
     {
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(false);      // Recover.
         std::cout<<"Driver test start end"<<std::endl;
     }
@@ -129,6 +131,7 @@ protected:
     static void SetUpTestCase()
     {
         (void)rtSetSocVersion("Hi3796CV300ES");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(CHIP_LHISI);
     GlobalContainer::SetRtChipType(CHIP_LHISI);
@@ -141,8 +144,8 @@ protected:
     {
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         std::cout<<"Driver test start end"<<std::endl;
-
     }
 
     virtual void SetUp()
@@ -161,6 +164,7 @@ class NpuDriverTest5 : public testing::Test {
  protected:
   static void SetUpTestCase() {
     (void)rtSetSocVersion("Ascend310P3");
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     rtInstance->SetChipType(CHIP_DC);
     GlobalContainer::SetRtChipType(CHIP_DC);
@@ -171,6 +175,7 @@ class NpuDriverTest5 : public testing::Test {
   static void TearDownTestCase() {
     rtDeviceReset(0);
     (void)rtSetSocVersion("");
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     std::cout << "Driver test start end" << std::endl;
   }
 

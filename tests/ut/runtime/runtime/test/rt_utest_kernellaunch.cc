@@ -56,6 +56,7 @@ protected:
     static void SetUpTestCase()
     {
         (void)rtSetSocVersion("Ascend310P");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(true);
         originType_ = Runtime::Instance()->GetChipType();
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
@@ -112,6 +113,7 @@ protected:
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rtInstance->SetChipType(originType_);
         GlobalContainer::SetRtChipType(originType_);
         rtInstance->SetDisableThread(false);      // Recover.

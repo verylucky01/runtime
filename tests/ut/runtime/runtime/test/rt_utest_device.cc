@@ -235,7 +235,7 @@ TEST_F(DeviceTest, module_alloc_03)
 
     RawDevice *dev = new RawDevice(1);
     dev->Init();
-    dev->platformConfig_ = 0x00;
+    dev->chipType_ = CHIP_END;
     dev->l2buffer_ = &bin;
 
     NpuDriver drv;
@@ -1937,7 +1937,8 @@ TEST_F(DeviceTest, TschStreamTest)
     dev.Init();
     rtError_t ret = dev.TschStreamAllocDsaAddr();
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    dev.platformConfig_ = 0x500;
+    dev.chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x500)));
+    
     MOCKER_CPP_VIRTUAL(*(dev.Driver_()),&Driver::LogicCqAllocate)
         .stubs()
         .will(returnValue(RT_ERROR_NONE));

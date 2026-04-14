@@ -287,7 +287,6 @@ set(libruntime_cmodel_src_files
     ${RUNTIME_CORE_DIR}/src/device/ctrl_msg.cc
     ${RUNTIME_CORE_DIR}/src/device/ctrl_sq.cc
     ${RUNTIME_DIR}/src/runtime/driver/v100/
-    ${RUNTIME_CORE_DIR}/src/config.cc
     ${RUNTIME_CORE_DIR}/src/device/device.cc
     ${RUNTIME_CORE_DIR}/src/device/raw_device.cc
     ${RUNTIME_CORE_DIR}/src/device/raw_device_res_camodel.cc
@@ -397,7 +396,6 @@ set(libruntime_cmodel_v200_src_files
     ${RUNTIME_CORE_DIR}/src/api_impl/api_impl_creator.cc
     ${RUNTIME_CORE_DIR}/src/api_impl/v200/api_impl_creator_c.cc
 
-    ${RUNTIME_CORE_DIR}/src/config.cc
     ${RUNTIME_CORE_DIR}/src/context/context.cc
     ${RUNTIME_CORE_DIR}/src/device/device.cc
     ${RUNTIME_CORE_DIR}/src/device/raw_device.cc

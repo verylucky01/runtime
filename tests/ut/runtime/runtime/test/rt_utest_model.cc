@@ -558,16 +558,12 @@ TEST_F(ModelTest, CacheTaskTrackReport)
     rtContext_t ctx;
     rtStream_t syncStream;
     rtEvent_t event;
-    char oldSocVsion[24]={0};
 
     error = rtCtxCreate(&ctx, RT_CTX_NORMAL_MODE, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Device *device = (Device *)((Context *)ctx)->Device_();
-    device->SetPlatformType(PLATFORM_CLOUD_V1);
-
-    (void)rtGetSocVersion(oldSocVsion, sizeof(oldSocVsion));
-    (void)rtSetSocVersion("Ascend910B");
+    RawDevice *device = (RawDevice *)((Context *)ctx)->Device_();
+    device->chipType_ = CHIP_CLOUD;
 
     Profiler *profilerPtr = Runtime::Instance()->Profiler_();
     profilerPtr->SetTrackProfEnable(false);
@@ -618,8 +614,7 @@ TEST_F(ModelTest, CacheTaskTrackReport)
     error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    device->SetPlatformType(PLATFORM_BEGIN);
-    (void)rtSetSocVersion(oldSocVsion);
+    device->chipType_ = CHIP_BEGIN;
     error = rtCtxDestroy(ctx);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
@@ -665,8 +660,8 @@ TEST_F(ModelTest, model_end_graph)
     rtStream_t stream;
     rtStream_t exe_stream;
     rtModel_t  model;
-    rtSocType_t oldSocType = Runtime::Instance()->GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND310P1);
+    std::string oldSocVersion = Runtime::Instance()->GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend310P1");
     rtError_t error = rtStreamCreateWithFlags(&stream, 1, RT_STREAM_DEFAULT);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -691,7 +686,7 @@ TEST_F(ModelTest, model_end_graph)
     error = rtStreamDestroy(exe_stream);
     error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    GlobalContainer::SetSocType(oldSocType);
+    GlobalContainer::SetSocVersion(oldSocVersion);
 }
 #if 0
 TEST_F(ModelTest, model_stream_unbind_task_pool)
@@ -862,13 +857,11 @@ TEST_F(ModelTest, IsActiveTaskExceed)
 {
     rtError_t error;
     rtContext_t ctx;
-    char oldSocVsion[24]={0};
 
     error = rtCtxCreate(&ctx, RT_CTX_NORMAL_MODE, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    (void)rtGetSocVersion(oldSocVsion, sizeof(oldSocVsion));
 
     rtStream_t aicpuStream;
     rtStream_t activeStream;
@@ -888,8 +881,6 @@ TEST_F(ModelTest, IsActiveTaskExceed)
 
     error = rtModelBindStream(model, activeStream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-
-    (void)rtSetSocVersion(oldSocVsion);
 
     error = rtStreamActive(activeStream, aicpuStream);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -1688,7 +1679,8 @@ TEST_F(ModelTest, cancel_surport_single_thread)
     error = rtStreamCreateWithFlags(&exeStream, 0, RT_STREAM_FORBIDDEN_DEFAULT);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((RawDevice *)(((Context *)ctx)->device_))->platformConfig_ = 0x300;
+    ((RawDevice*)(((Context*)ctx)->device_))->chipType_ =
+        static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x300)));
     error = rtModelExecute(model, exeStream, 0);
     EXPECT_NE(error, RT_ERROR_NONE);
 

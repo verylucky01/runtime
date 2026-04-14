@@ -56,7 +56,7 @@ protected:
         rtError_t error;
         Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
         EXPECT_NE(rtInstance, nullptr);
-        GlobalContainer::SetHardwareChipType(CHIP_END);
+        GlobalContainer::SetHardwareSocVersion("");
 		GlobalMockObject::verify();
     }
     virtual void TearDown()

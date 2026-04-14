@@ -50,7 +50,8 @@ class ApiCloudDisableThreadDfxTest : public testing::Test
 protected:
     static void SetUpTestCase()
     {
-        (void)rtSetSocVersion("Ascend910");
+        (void)rtSetSocVersion("Ascend910A");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(true);
 
         int64_t hardwareVersion = CHIP_CLOUD << 8;
@@ -93,6 +94,7 @@ protected:
         std::cout<<"api test start end : "<<error1<<", "<<error2<<", "<<error3<<std::endl;
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetDisableThread(false);      // Recover.
     }

@@ -60,6 +60,7 @@ protected:
 
     virtual void SetUp()
     {
+        GlobalContainer::SetHardwareSocVersion("Ascend910B1");
         (void)rtSetDevice(0);
         std::cout<<"ut test start."<<std::endl;
     }
@@ -1928,11 +1929,11 @@ TEST_F(StreamTest, Query_test)
     EXPECT_EQ(ret, RT_ERROR_NONE);
 
     Runtime::Instance()->SetDisableThread(true);
-    rtPlatformType_t oldPlatForm = device->platformType_;
+    rtChipType_t oldchipType = device->chipType_;
     uint16_t sqHead = 0U;
     uint16_t sqTail = 1U;
 
-    device->platformType_ = PLATFORM_CLOUD_V1;
+    device->chipType_ = CHIP_CLOUD;
     uint32_t lastTaskId = 1U;
     MOCKER_CPP_VIRTUAL(device.get(), &RawDevice::QueryLatestTaskId)
         .stubs()
@@ -1941,7 +1942,7 @@ TEST_F(StreamTest, Query_test)
     ret = stream->Query();
     EXPECT_EQ(ret, RT_ERROR_STREAM_NOT_COMPLETE);
 
-    device->platformType_ = oldPlatForm;
+    device->chipType_ = oldchipType;
     Runtime::Instance()->SetDisableThread(olgFlag);
     GlobalMockObject::verify();
 }
@@ -1950,10 +1951,10 @@ TEST_F(StreamTest, SetFailureMode)
 {
     uint32_t num = Runtime::maxProgramNum_;
     std::unique_ptr<RawDevice> device = std::make_unique<RawDevice>(0);
-    rtPlatformType_t oldPlatForm = device->platformType_;
+    rtChipType_t oldChipType = device->chipType_;
     device->Init();
     std::unique_ptr<Stream> stream = std::make_unique<Stream>(device.get(), 0);
-    device->platformType_ = PLATFORM_DC;
+    device->chipType_ = CHIP_DC;
     Context * context = new Context(device.get(), true);
     stream->context_ = context;
     stream->taskResMang_ = nullptr;
@@ -1966,7 +1967,7 @@ TEST_F(StreamTest, SetFailureMode)
     Runtime::maxProgramNum_ = 0;
     rtError_t error = stream->SetFailMode(STOP_ON_FAILURE);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    device->platformType_ = oldPlatForm;
+    device->chipType_ = oldChipType;
     delete context;
     Runtime::maxProgramNum_ = num;
     GlobalMockObject::verify(); 

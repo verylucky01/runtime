@@ -16,9 +16,9 @@ namespace cce {
 namespace runtime {
 
 static constexpr rtSocInfo_t CHIP_NANO_SOC_INFO[] = {
-    {SOC_ASCEND035, CHIP_NANO, ARCH_N350, "Ascend035"},
-    {SOC_ASCEND035A, CHIP_NANO, ARCH_N350, "Ascend035A"},
-    {SOC_ASCEND035B, CHIP_NANO, ARCH_N350, "Ascend035B"},
+    {CHIP_NANO, "Ascend035"},
+    {CHIP_NANO, "Ascend035A"},
+    {CHIP_NANO, "Ascend035B"},
 };
 
 BATCH_REGISTER_SOC_INFO(CHIP_NANO_SOC_INFO, sizeof(CHIP_NANO_SOC_INFO) / sizeof(rtSocInfo_t));
@@ -66,6 +66,7 @@ static constexpr uint32_t CQE_DEPTH = 1024U;
 static const DevProperties CHIP_NANO_PROPERTIES = {
     .engineType = "HWTS",
     .isStars = false,
+    .isStarsV2 = false,
     .pthreadStackSize = PTHREAD_STACK_SIZE,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_CONFIG,
     .tsCount = 1U,

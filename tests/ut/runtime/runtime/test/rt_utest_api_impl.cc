@@ -44,7 +44,7 @@
 #include "task_info.hpp"
 #include "platform/platform_info.h"
 #include "soc_info.h"
-#include "config_define.hpp"
+#include "rt_utest_config_define.hpp"
 #include "api_impl_david.hpp"
 #include "thread_local_container.hpp"
 #include "stream_c.hpp"
@@ -1003,7 +1003,6 @@ TEST_F(ApiImplTest, rtGetSocVersionFromDrvApi)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
     rtChipType_t chipType = rtInstance->GetChipType();
-    rtArchType_t archType = rtInstance->GetArchType();
 
     char *socVer = "Ascend610Lite";
     // get socversion from halGetSocVersion
@@ -1015,101 +1014,83 @@ TEST_F(ApiImplTest, rtGetSocVersionFromDrvApi)
 
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
-    rtInstance->SetArchType(archType);
 }
 
 TEST_F(ApiImplTest, rtSetSocVersionFeInitFailed)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
     rtChipType_t chipType = rtInstance->GetChipType();
-    rtArchType_t archType = rtInstance->GetArchType();
 
     MOCKER_CPP(&fe::PlatformInfoManager::InitializePlatformInfo).stubs().will(returnValue(0xF));
-    GlobalContainer::SetHardwareChipType(CHIP_END);
+    GlobalContainer::SetHardwareSocVersion("");
     rtError_t error = rtSetSocVersion("Ascend610Lite");
     EXPECT_EQ(error, RT_ERROR_NONE);
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
-    rtInstance->SetArchType(archType);
 }
 
 TEST_F(ApiImplTest, rtSetSocVersionFeGetPlatformInfoFailed)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
     rtChipType_t chipType = rtInstance->GetChipType();
-    rtArchType_t archType = rtInstance->GetArchType();
     MOCKER_CPP(&fe::PlatformInfoManager::InitializePlatformInfo).stubs().will(returnValue(0U));
     MOCKER_CPP(&fe::PlatformInfoManager::GetPlatformInfo).stubs().will(returnValue(0xF));
-    GlobalContainer::SetHardwareChipType(CHIP_END);
+    GlobalContainer::SetHardwareSocVersion("");
     rtError_t error = rtSetSocVersion("Ascend610Lite");
     EXPECT_EQ(error, RT_ERROR_NONE);
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
-    rtInstance->SetArchType(archType);
 }
 
 TEST_F(ApiImplTest, rtSetSocVersionFeGetPlatformInfoSuccess)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
     rtChipType_t chipType = rtInstance->GetChipType();
-    rtArchType_t archType = rtInstance->GetArchType();
     fe::PlatformInfo platInfo;
-    platInfo.soc_info.arch_type = ARCH_C100;
     platInfo.soc_info.chip_type = CHIP_CLOUD;
     MOCKER_CPP(&fe::PlatformInfoManager::InitializePlatformInfo).stubs().will(returnValue(0U));
     MOCKER_CPP(&fe::PlatformInfoManager::GetPlatformInfo).stubs().with(mockcpp::any(), outBound(platInfo), mockcpp::any())
         .will(returnValue(0U));
-    GlobalContainer::SetHardwareChipType(CHIP_END);
-    rtError_t error = rtSetSocVersion("Ascend910");
+    GlobalContainer::SetHardwareSocVersion("");
+    rtError_t error = rtSetSocVersion("Ascend910A");
     EXPECT_EQ(error, RT_ERROR_NONE);
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
-    rtInstance->SetArchType(archType);
 }
 
 TEST_F(ApiImplTest, rtSetSocVersionFeGetPlatInfoInvalidChip)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
     rtChipType_t chipType = rtInstance->GetChipType();
-    rtArchType_t archType = rtInstance->GetArchType();
     fe::PlatformInfo platInfo;
     platInfo.soc_info.arch_type = -1;
     platInfo.soc_info.chip_type = -1;
     MOCKER_CPP(&fe::PlatformInfoManager::InitializePlatformInfo).stubs().will(returnValue(0U));
     MOCKER_CPP(&fe::PlatformInfoManager::GetPlatformInfo).stubs().with(mockcpp::any(), outBound(platInfo), mockcpp::any())
         .will(returnValue(0U));
-    GlobalContainer::SetHardwareChipType(CHIP_END);
-    rtError_t error = rtSetSocVersion("Ascend910");
+    GlobalContainer::SetHardwareSocVersion("");
+    rtError_t error = rtSetSocVersion("Ascend910A");
     EXPECT_EQ(error, RT_ERROR_NONE);
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
-    rtInstance->SetArchType(archType);
 }
 
 TEST_F(ApiImplTest, rtSetSocVersionFeGetPlatInfoInvalidArch)
 {
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
     rtChipType_t chipType = rtInstance->GetChipType();
-    rtArchType_t archType = rtInstance->GetArchType();
+    GlobalContainer::SetHardwareSocVersion("Ascend910A");
     fe::PlatformInfo platInfo;
     platInfo.soc_info.arch_type = ARCH_V100;
     platInfo.soc_info.chip_type = CHIP_CLOUD;
     MOCKER_CPP(&fe::PlatformInfoManager::InitializePlatformInfo).stubs().will(returnValue(0U));
     MOCKER_CPP(&fe::PlatformInfoManager::GetPlatformInfo).stubs().with(mockcpp::any(), outBound(platInfo), mockcpp::any())
         .will(returnValue(0U));
+    GlobalContainer::SetHardwareSocVersion("Ascend910A");
     rtError_t error = rtSetSocVersion("BS9SX1AA");
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
-    rtInstance->SetArchType(archType);
-}
-
-TEST_F(ApiImplTest, ut_GetSocVersionStrEx_null)
-{
-    rtError_t error = -1;
-    rtSocType_t socType = SOC_END;
-    const std::string ret = GetSocVersionStrByType(socType);
-    EXPECT_EQ(ret == std::string(), true);
 }
 
 TEST_F(ApiImplTest, SetIpcMemPid_01)

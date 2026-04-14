@@ -61,6 +61,7 @@ protected:
         rtDeviceReset(0);
         ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 
     virtual void SetUp()
@@ -328,7 +329,7 @@ TEST_F(CloudV2ApiTest910b, testGetTaskBufferLenTest)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     MOCKER_CPP_VIRTUAL(impl, &ApiImpl::ModelCheckArchVersion).stubs().will(returnValue(RT_ERROR_NONE));
-    error = apiDec.ModelCheckArchVersion(NULL, ARCH_S202);
+    error = apiDec.ModelCheckArchVersion(NULL);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     MOCKER_CPP_VIRTUAL(impl, &ApiImpl::ReserveMemAddress).stubs().will(returnValue(RT_ERROR_NONE));

@@ -25,7 +25,7 @@
 #include "rt_utest_stub.h"
 #include "task_info.hpp"
 #include "stars_base.hpp"
-#include "config_define.hpp"
+#include "../../../rt_utest_config_define.hpp"
 
 
 #define MAX_DEVICE_NUM  2

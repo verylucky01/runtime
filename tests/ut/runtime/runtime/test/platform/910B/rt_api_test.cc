@@ -64,6 +64,7 @@ protected:
 
     virtual void SetUp()
     {
+        GlobalContainer::SetHardwareSocVersion("Ascend910B1");
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         oldChipType = rtInstance->GetChipType();
         (void)rtSetDevice(0);
@@ -85,13 +86,12 @@ TEST_F(CloudV2ApiAbnormalTest, rtsGetMemcpyDescSizeTest)
     rtError_t error;
     char oriSocVersion[128] = {0};
     rtGetSocVersion(oriSocVersion, 128);
-    GlobalContainer::SetHardwareChipType(CHIP_END);
     (void)rtSetSocVersion("Ascend910B1");
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     error = rtsGetMemcpyDescSize(RT_MEMCPY_KIND_INNER_DEVICE_TO_DEVICE, nullptr);
     EXPECT_NE(error, RT_ERROR_NONE);
-    GlobalContainer::SetHardwareChipType(CHIP_END);
     rtSetSocVersion(oriSocVersion);
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 }
 
 TEST_F(CloudV2ApiAbnormalTest, rtsMemcpyAsyncWithDescTest)
@@ -108,15 +108,14 @@ TEST_F(CloudV2ApiAbnormalTest, rtsGetMemcpyDescSize_NonDavidChip_Success)
     size_t size;
     char oriSocVersion[128] = {0};
     rtGetSocVersion(oriSocVersion, 128);
-    GlobalContainer::SetHardwareChipType(CHIP_END);
     (void)rtSetSocVersion("Ascend910B1");
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     
     error = rtsGetMemcpyDescSize(RT_MEMCPY_KIND_INNER_DEVICE_TO_DEVICE, &size);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
     EXPECT_EQ(size, MEMCPY_DESC_SIZE);
-    GlobalContainer::SetHardwareChipType(CHIP_END);
     rtSetSocVersion(oriSocVersion);
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 }
 
 TEST_F(CloudV2ApiAbnormalTest, rtMemcpyAsyncPtrAbnormal)
@@ -218,6 +217,7 @@ TEST(RdmaPiValueModifyTaskTest, RdmaPiValueModifyTaskUnInitSuccess)
     free(stream);
     rtInstance->DeviceRelease(device);
     (void)rtDeviceReset(0);
+    ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     GlobalMockObject::verify();
 }
 
@@ -236,16 +236,16 @@ TEST(RdmaPiValueModifyTaskTest, PrintDfxInfoForRdmaPiValueModifyTaskCountNotifyR
 
 TEST(RdmaPiValueModifyTaskTest, PrintDfxInfoForRdmaPiValueModifyTaskSuccess)
 {
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+    std::string socVersion = GlobalContainer::GetHardwareSocVersion();
+    GlobalContainer::SetSocVersion("Ascend910B2");
+    GlobalContainer::SetHardwareSocVersion("Ascend910B2");
 
     rtContext_t ctx = nullptr;
-    rtError_t ret = rtCtxCreate(&ctx, 0, 0);
-    ASSERT_EQ(ret, RT_ERROR_NONE);
+    ASSERT_EQ(rtCtxCreate(&ctx, 0, 0), RT_ERROR_NONE);
     Context *curCtx = static_cast<Context *>(ctx);
 
     rtStream_t stream = nullptr;
-    ret = rtStreamCreate(&stream, 0);
+    rtError_t ret = rtStreamCreate(&stream, 0);
     ASSERT_EQ(ret, RT_ERROR_NONE);
     Stream *stm = static_cast<Stream *>(stream);
 
@@ -291,7 +291,7 @@ TEST(RdmaPiValueModifyTaskTest, PrintDfxInfoForRdmaPiValueModifyTaskSuccess)
     curCtx->models_.clear();
     ret = rtCtxDestroy(ctx);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetHardwareSocVersion(socVersion);
     GlobalMockObject::verify();
 }
 

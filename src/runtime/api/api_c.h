@@ -14,6 +14,8 @@
 #include "error_code.h"
 #include "api_global_err.h"
 
+constexpr uint32_t RUNTIME_PUBLIC_VERSION = 1001U;
+
 #define REPORT_FUNC_ERROR_REASON(ERRCODE) \
     do { \
         const std::string errorStr = RT_GET_ERRDESC(ERRCODE); \

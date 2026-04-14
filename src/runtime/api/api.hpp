@@ -434,7 +434,7 @@ public:
     virtual rtError_t GetDeviceCapability(const int32_t deviceId,
         const int32_t moduleType, const int32_t featureType, int32_t * const val) = 0;
     virtual rtError_t GetDevMsg(const rtGetDevMsgType_t getMsgType, const rtGetMsgCallback callback) = 0;
-    virtual rtError_t ModelCheckArchVersion(const char_t *omArchVersion, const rtArchType_t archType) = 0;
+    virtual rtError_t ModelCheckArchVersion(const char_t *omsocVersion) = 0;
     virtual rtError_t DeviceStatusQuery(const uint32_t devId, rtDeviceStatus *deviceStatus) = 0;
     virtual rtError_t GetFaultEvent(const int32_t deviceId, rtDmsEventFilter *filter, rtDmsFaultEvent *dmsEvent,
         uint32_t len, uint32_t *eventCount) = 0;
@@ -539,8 +539,6 @@ public:
     virtual rtError_t ModelTaskDisable(rtTask_t task) = 0;
 
     /* hardware Info */
-    virtual rtError_t GetAiCoreCount(uint32_t * const aiCoreCnt) = 0;
-    virtual rtError_t GetAiCpuCount(uint32_t * const aiCpuCnt) = 0;
     virtual rtError_t SetDeviceSatMode(const rtFloatOverflowMode_t floatOverflowMode) = 0;
     virtual rtError_t GetDeviceSatMode(rtFloatOverflowMode_t * const floatOverflowMode) = 0;
     virtual rtError_t GetDeviceSatModeForStream(Stream * const stm,
@@ -635,6 +633,8 @@ public:
     virtual rtError_t UnSubscribeReport(const uint64_t threadId, Stream * const stm) = 0;
     virtual rtError_t GetRunMode(rtRunMode * const runMode) = 0;
     virtual rtError_t GetAicpuDeploy(rtAicpuDeployType_t * const deployType) = 0;
+    virtual rtError_t GetAiCoreCount(uint32_t * const aiCoreCnt) = 0;
+    virtual rtError_t GetAiCpuCount(uint32_t * const aiCpuCnt) = 0;
     virtual rtError_t XpuProfilingCommandHandle(uint32_t type, void *data, uint32_t len) = 0;
 
     // stream label func

@@ -30,7 +30,7 @@
 #include "raw_device.hpp"
 #include "task_execute_time.h"
 #include "capture_model_utils.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 using namespace testing;
 using namespace cce::runtime;
 
@@ -53,17 +53,17 @@ protected:
         rtSetDevice(0);
         rtGetDevice(&devId);
         dev_ = ((Runtime *)Runtime::Instance())->DeviceRetain(devId, 0);
-        old = dev_->GetPlatformType();
+        old = dev_->GetChipType();
 
         rtStreamCreate((rtStream_t*)&stream_, 0);
         ctx_ = Runtime::Instance()->CurrentContext();
-        std::cout<<"RtsStApi test start start. old platform="<<old<<std::endl;
+        std::cout<<"RtsStApi test start start. old chiptype="<<old<<std::endl;
     }
     virtual void TearDown()
     {
         GlobalMockObject::verify();
         rtStreamDestroy(stream_);
-        dev_->SetPlatformType(old);
+        dev_->SetChipType(old);
         ((Runtime *)Runtime::Instance())->DeviceRelease(dev_);
         rtDeviceReset(0);
         stream_ = nullptr;
@@ -77,27 +77,27 @@ protected:
     Stream *stream_ = nullptr;
     Device *dev_ = nullptr;
     Context *ctx_ = nullptr;
-    rtPlatformType_t old;
+    rtChipType_t old;
     static bool flag;
 };
 
 TEST_F(StarsTaskTest, DoCompleteStarsError_david)
 {
-    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    Runtime* rtInstance = (Runtime*)Runtime::Instance();
     rtChipType_t oriChipType = rtInstance->GetChipType();
     rtInstance->SetChipType(CHIP_DAVID);
     GlobalContainer::SetRtChipType(CHIP_DAVID);
 
     rtError_t ret;
-    Model *model;
-    Stream *stream;
-    Notify *notify;
+    Model* model;
+    Stream* stream;
+    Notify* notify;
 
-    ret = rtStreamCreate((rtStream_t *)&stream, 0);
+    ret = rtStreamCreate((rtStream_t*)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate((rtModel_t*)&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtNotifyCreate(0, (rtNotify_t *)&notify);
+    ret = rtNotifyCreate(0, (rtNotify_t*)&notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     notify->SetEndGraphModel(model);
 
@@ -116,7 +116,7 @@ TEST_F(StarsTaskTest, DoCompleteStarsError_david)
     wait_cqe.errorType = 1U;
     wait_cqe.errorCode = 1U;
 
-    TaskInfo *errTask = dev_->GetTaskFactory()->Alloc(stream_, TS_TASK_TYPE_KERNEL_AICORE, ret);
+    TaskInfo* errTask = dev_->GetTaskFactory()->Alloc(stream_, TS_TASK_TYPE_KERNEL_AICORE, ret);
     dev_->GetTaskFactory()->SetSerialId(stream_, errTask);
     AicTaskInit(errTask, 0, 1, 0, nullptr);
     EXPECT_EQ(errTask->type, TS_TASK_TYPE_KERNEL_AICORE);
@@ -124,7 +124,7 @@ TEST_F(StarsTaskTest, DoCompleteStarsError_david)
     rtStarsCqeSwStatus_t sw_status;
     sw_status.model_exec.stream_id = errTask->stream->Id_();
     sw_status.model_exec.task_id = errTask->id;
-    GetRealReportFaultTask(&task, static_cast<const void *>(&sw_status));
+    GetRealReportFaultTask(&task, static_cast<const void*>(&sw_status));
     (void)dev_->GetTaskFactory()->Recycle(errTask);
     SetStarsResult(&task, wait_cqe);
     Complete(&task, 0);

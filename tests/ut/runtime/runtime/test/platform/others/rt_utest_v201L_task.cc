@@ -42,7 +42,7 @@
 #include "npu_driver.hpp"
 #include "task_submit.hpp"
 #include "thread_local_container.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "task_res_da.hpp"
 #include "task_manager_david.h"
 #include "stars_model_execute_cond_isa_define.hpp"
@@ -55,7 +55,7 @@
 #include "dqs_task_info.hpp"
 #include "ioctl_utils.hpp"
 #include "notify.hpp"
-#include "config_define_adc.hpp"
+#include "../../rt_utest_api.hpp"
 #include "driver/ascend_hal.h"
 #include "api_impl_david.hpp"
 #include "aicpu_c.hpp"
@@ -142,12 +142,12 @@ TEST_F(TaskTestV201L, Test_SetSocTypeByChipType)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std::string oriSocVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_MC32DM11A);
     GlobalContainer::SetRtChipType(CHIP_MC32DM11A);
-    rtError_t ret = rtInstance->SetSocTypeByChipType(PLAT_COMBINE(ARCH_M510, CHIP_MC32DM11A, VER_NA), 0, 0);
+    rtError_t ret = rtInstance->GetSocVersionByHardwareVer(PLAT_COMBINE(ARCH_M510, CHIP_MC32DM11A, VER_NA), 0, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(oriSocVersion);
 }

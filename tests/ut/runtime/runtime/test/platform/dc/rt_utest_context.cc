@@ -437,11 +437,11 @@ unsigned char dynamic_kernel_data_mix_1_2_data[] = {
     argsInfo.args = &arg;
     argsInfo.argsSize = 4100;
     Stream *stream = (Stream *)ctx->DefaultStream_();
-    uint32_t oldPlatform = ((RawDevice *)(ctx->Device_()))->platformConfig_;
-    ((RawDevice *)(ctx->Device_()))->platformConfig_ = 0x400;
+    rtChipType_t oldChipType = ((RawDevice *)(ctx->Device_()))->chipType_;
+    ((RawDevice *)(ctx->Device_()))->chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x400)));
     error = ctx->LaunchKernel(kernelPtr, 8, &argsInfo, stream, NULL, true);
-    ((RawDevice *)(ctx->Device_()))->platformConfig_ = oldPlatform;                            
-    
+    ((RawDevice *)(ctx->Device_()))->chipType_ = oldChipType;
+
     error = rtDevBinaryUnRegister(m_handle);
     EXPECT_EQ(error, RT_ERROR_NONE);
     (void)((Runtime *)Runtime::Instance())->PrimaryContextRelease(0);

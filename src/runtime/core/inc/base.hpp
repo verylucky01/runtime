@@ -420,17 +420,8 @@ void ErrorCodeProcess(ErrorCode errorCode, const char *file,
 using TDT_StatusType = uint32_t;
 
 struct rtSocInfo_t final {
-    rtSocType_t socType;
     rtChipType_t chipType;
-    rtArchType_t archType;
     const char_t *socName; // Must be a constant string
-};
-
-struct RtDevInfo final {
-    rtChipType_t chipType;
-    rtArchType_t archType;
-    RtPGVersion pgType;
-    const char_t *socName;// Must be a constant string
 };
 
 // delete an ref obj

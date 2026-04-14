@@ -59,8 +59,8 @@ protected:
         std::cout<<"api test start end : "<<error1<<", "<<error2<<", "<<error3<<std::endl;
         GlobalMockObject::verify();
         rtDeviceReset(0);
-        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 
     virtual void SetUp()
@@ -119,19 +119,6 @@ TEST_F(NewCloudV2ApiTest, rtCmoAddrTaskLaunch)
 
     error = rtFree(cmoAddrInfo);
     EXPECT_EQ(error, RT_ERROR_NONE);
-}
-
-TEST_F(NewCloudV2ApiTest, get_aiCoreCount_test)
-{
-    rtError_t error;
-    uint32_t *aiCoreCnt;
-    aiCoreCnt = (uint32_t *)malloc(sizeof(uint32_t));
-    Device *rawDevice = new RawDevice(0);
-    rawDevice->SetPlatformType(PLATFORM_MINI_V1);
-    error = rtGetAiCoreCount(aiCoreCnt);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    free(aiCoreCnt);
-    delete rawDevice;
 }
 
 TEST_F(NewCloudV2ApiTest, LAUNCH_ALL_KERNEL_KernelExpandCopy_error)
@@ -194,7 +181,7 @@ TEST_F(NewCloudV2ApiTest, LAUNCH_ALL_KERNEL_KernelExpandCopy_error)
     error = rtCtxGetCurrent(&context);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
     RawDevice* device= (RawDevice*)(((RtPtrToPtr<Context *>(context)))->Device_());
-    uint32_t platformConfig = device->platformConfig_;
+    rtChipType_t chipType = device->chipType_;
 
     MOCKER(malloc).stubs().will(returnValue((void*)nullptr));
 
@@ -206,7 +193,7 @@ TEST_F(NewCloudV2ApiTest, LAUNCH_ALL_KERNEL_KernelExpandCopy_error)
 
     GlobalMockObject::reset();
 
-    device->platformConfig_ = platformConfig;
+    device->chipType_ = chipType;
 
     error = rtStreamSynchronize(NULL);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -285,7 +272,7 @@ TEST_F(NewCloudV2ApiTest, LAUNCH_ALL_KERNEL_TEST_2_V2_KernelExpandCopy_error)
     error = rtCtxGetCurrent(&context);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
     RawDevice* device= (RawDevice*)(((RtPtrToPtr<Context *>(context)))->Device_());
-    uint32_t platformConfig = device->platformConfig_;
+    rtChipType_t chipType = device->chipType_;
 
     MOCKER(malloc).stubs().will(returnValue((void*)nullptr));
     error = rtKernelGetAddrAndPrefCntV2(handle, 355, NULL, RT_DYNAMIC_SHAPE_KERNEL, &kernelInfo);
@@ -293,7 +280,7 @@ TEST_F(NewCloudV2ApiTest, LAUNCH_ALL_KERNEL_TEST_2_V2_KernelExpandCopy_error)
 
     GlobalMockObject::reset();
 
-    device->platformConfig_ = platformConfig;
+    device->chipType_ = chipType;
 
     error = rtStreamSynchronize(NULL);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -2035,8 +2022,8 @@ TEST_F(NewCloudV2ApiTest, rtCheckArchCompatibility_socVersion)
     char version[50] = {0};
     int32_t canCompatible = 0;
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socBak = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_ASCEND910B1);
+    std::string socBak = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("Ascend910B1");
 
     // OmSocVersion is null
     error = rtCheckArchCompatibility(nullptr, &canCompatible);
@@ -2077,7 +2064,7 @@ TEST_F(NewCloudV2ApiTest, rtCheckArchCompatibility_socVersion)
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
 
     // restore all type
-    rtInstance->SetSocType(socBak);
+    rtInstance->SetSocVersion(socBak);
 }
 
 TEST_F(NewCloudV2ApiTest, notify_address_otherChipCloud)
@@ -2280,8 +2267,8 @@ TEST_F(NewCloudV2ApiTest, RT_SetOpExecuteWithMs_8)
     rtStream_t stream;
     uint32_t timeout = 0;
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_ASCEND910B1);
+    std::string socVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("Ascend910B1");
     error = rtSetOpExecuteTimeOut(100);
     EXPECT_EQ(error, RT_ERROR_NONE);
     uint16_t kernelCredit = GetAicpuKernelCredit(0);
@@ -2291,7 +2278,7 @@ TEST_F(NewCloudV2ApiTest, RT_SetOpExecuteWithMs_8)
     kernelCredit = GetSdmaKernelCredit();
     EXPECT_EQ(kernelCredit, 254);
     rtGetOpExecuteTimeOut(&timeout);
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(NewCloudV2ApiTest, rtGetOpTimeOutInterval)
@@ -2469,7 +2456,7 @@ TEST_F(NewCloudV2ApiTest, rt_notify_reset_all_1)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     RawDevice* device= (RawDevice*)(((RtPtrToPtr<Context *>(ctx)))->Device_());
-    uint32_t platformConfig = device->platformConfig_;
+    rtChipType_t chipType = device->chipType_;
     int32_t version = device->GetTschVersion();
     device->SetTschVersion(TS_VERSION_LATEST );
 
@@ -2503,7 +2490,7 @@ TEST_F(NewCloudV2ApiTest, rt_notify_reset_all_1)
     error = rtNotifyDestroy(notify1);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    device->platformConfig_ = platformConfig;
+    device->chipType_ = chipType;
     device->SetTschVersion(version);
 
     error = rtStreamDestroy(stream);

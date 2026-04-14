@@ -35,6 +35,7 @@
 #include <utility>  // For std::pair and std::make_pair.
 #include "rt_stars_define.h"
 #include "thread_local_container.hpp"
+#include "../../rt_utest_config_define.hpp"
 
 using namespace testing;
 using namespace cce::runtime;

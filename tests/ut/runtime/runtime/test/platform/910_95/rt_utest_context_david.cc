@@ -34,7 +34,7 @@
 #include "raw_device.hpp"
 #include "device/device_error_proc.hpp"
 #include "stars_engine.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "api_impl_david.hpp"
 #include "task_recycle.hpp"
 #include "stream_david.hpp"

@@ -60,6 +60,7 @@ protected:
     {
         GlobalMockObject::verify();
         (void)rtSetSocVersion("Ascend310");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rt_ = const_cast<Runtime *>(Runtime::Instance());
         EXPECT_NE(rt_, nullptr);
         originType_ = rt_->GetChipType();
@@ -102,6 +103,7 @@ protected:
         rt_->SetChipType(originType_);
         GlobalContainer::SetRtChipType(originType_);
         rt_->SetDisableThread(originThread_);
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         GlobalMockObject::verify();
     }
 

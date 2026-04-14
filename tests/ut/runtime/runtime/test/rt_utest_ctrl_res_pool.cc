@@ -42,16 +42,17 @@ protected:
     static void SetUpTestCase()
     {
         std::cout<<"CtrlTaskPoolEntry test start"<<std::endl;
-        (void)rtSetSocVersion("Ascend910");
+        (void)rtSetSocVersion("Ascend910B1");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(true);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(CHIP_CLOUD);
         GlobalContainer::SetRtChipType(CHIP_CLOUD);
         (void)rtSetTSDevice(0);
-
     }
     static void TearDownTestCase()
     {
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(false);
     }
 

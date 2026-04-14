@@ -25,9 +25,8 @@
 #include "rt_utest_stub.h"
 #include "task_info.hpp"
 #include "stars_base.hpp"
-#include "config_define.hpp"
+#include "../../../rt_utest_config_define.hpp"
 #include "task_info_base.hpp"
-#include "config_define_mini.hpp"
 
 #define MAX_DEVICE_NUM  2
 #define MAX_LOG_BUF_SIZE 2048

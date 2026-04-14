@@ -13,7 +13,6 @@
 #include "securec.h"
 #include "runtime/rt.h"
 #include "runtime/event.h"
-#include "config.hpp"
 #include "task.hpp"
 #define private public
 #define protected public

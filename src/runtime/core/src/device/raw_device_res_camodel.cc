@@ -63,8 +63,7 @@ static const std::string GetSocVersion()
     }
 
     const Runtime * const rtInstance = Runtime::Instance();
-    const rtSocType_t socType = rtInstance->GetSocType();
-    return GetSocVersionStrByType(socType);
+    return rtInstance->GetSocVersion();
 }
 
 static rtError_t GetDeviceResByFe(const uint32_t devId, int32_t moduleType, int64_t &value)

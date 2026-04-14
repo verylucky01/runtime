@@ -43,7 +43,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "thread_local_container.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "task_res.hpp"
 #include "task_david.hpp"
 #include "task_recycle.hpp"
@@ -136,8 +136,9 @@ protected:
         MOCKER_CPP_VIRTUAL(driver, &Driver::EnableSq).stubs().will(returnValue(RT_ERROR_NONE));
         rtSetDevice(0);
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         device_ = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
-        device_->SetPlatformType(PLATFORM_DAVID_950PR_9599);
+        device_->SetChipType(CHIP_DAVID);
         engine_ = ((RawDevice *)device_)->engine_;
 
         rtError_t res = rtStreamCreateWithFlags(&streamHandle_, 0, 0);
@@ -184,6 +185,7 @@ protected:
         stream_ = nullptr;
         engine_ = nullptr;
         ((Runtime *)Runtime::Instance())->DeviceRelease(device_);
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 
         MOCKER_CPP_VIRTUAL(driver, &Driver::GetRunMode).stubs().will(returnValue((uint32_t)RT_RUN_MODE_OFFLINE));
 

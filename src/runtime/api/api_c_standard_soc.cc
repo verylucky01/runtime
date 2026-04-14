@@ -11,7 +11,6 @@
 #include "api.hpp"
 #include "base.hpp"
 #include "prof_ctrl_callback_manager.hpp"
-#include "config.hpp"
 #include "error_message_manage.hpp"
 #include "errcode_manage.hpp"
 #include "error_code.h"

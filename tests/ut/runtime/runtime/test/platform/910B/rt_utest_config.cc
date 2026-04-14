@@ -10,22 +10,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
-#include "driver/ascend_hal.h"
 #include "gtest/gtest.h"
 #include "mockcpp/mockcpp.hpp"
 #include "heterogenous.h"
 #include "utils.h"
+#include "driver.hpp"
+#include "driver/ascend_hal.h"
 #define private public
 #define protected public
-#include "config.hpp"
 #include "runtime.hpp"
 #include "task_info.hpp"
 #include "stream.hpp"
 #undef protected
 #undef private
-#include "driver.hpp"
-
-
 using namespace testing;
 using namespace cce::runtime;
 class CloudV2ConfigTest : public testing::Test

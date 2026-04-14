@@ -51,10 +51,10 @@ protected:
         std::cout<<"api test start end : "<<error1<<", "<<error2<<", "<<error3<<std::endl;
         GlobalMockObject::verify();
         rtDeviceReset(0);
-        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetSocVersion("");
+        ((Runtime*)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
- 
+
     virtual void SetUp()
     {
         Runtime *rtInstance = (Runtime *)Runtime::Instance();

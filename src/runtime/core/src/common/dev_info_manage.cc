@@ -54,37 +54,7 @@ rtError_t DevInfoManage::GetSocInfo(const char_t *const socName, rtSocInfo_t &in
     return RT_ERROR_INVALID_VALUE;
 }
 
-rtError_t DevInfoManage::GetSocInfo(const rtSocType_t socType, rtSocInfo_t &info)
-{
-    if (isDestroy) {
-        return RT_ERROR_INVALID_VALUE;
-    }
-    const ReadProtect lk(&socInfoLock);
-    for (auto &i : socInfos) {
-        if (socType == i.socType) {
-            info = i;
-            return RT_ERROR_NONE;
-        } 
-    }
-    return RT_ERROR_INVALID_VALUE;
-}
-
-rtError_t DevInfoManage::GetSocInfo(rtChipType_t chipType, rtArchType_t archType, rtSocInfo_t &info)
-{
-    if (isDestroy) {
-        return RT_ERROR_INVALID_VALUE;
-    }
-    const ReadProtect lk(&socInfoLock);
-    for (auto &i : socInfos) {
-        if ((chipType == i.chipType) && (archType == i.archType)) {
-            info = i;
-            return RT_ERROR_NONE;
-        } 
-    }
-    return RT_ERROR_INVALID_VALUE;
-}
-
-bool DevInfoManage::RegisterDevInfo(const RtDevInfo &conf)
+bool DevInfoManage::RegisterDevInfo(const rtSocInfo_t &conf)
 {
     if (isDestroy) {
         return false;
@@ -94,7 +64,7 @@ bool DevInfoManage::RegisterDevInfo(const RtDevInfo &conf)
     return true;
 }
 
-bool DevInfoManage::BatchRegDevInfo(const RtDevInfo *conf, size_t size)
+bool DevInfoManage::BatchRegDevInfo(const rtSocInfo_t *conf, size_t size)
 {
     if (isDestroy) {
         return false;
@@ -107,7 +77,7 @@ bool DevInfoManage::BatchRegDevInfo(const RtDevInfo *conf, size_t size)
     return true;
 }
 
-rtError_t DevInfoManage::GetDevInfo(const char_t *socName, RtDevInfo &info)
+rtError_t DevInfoManage::GetDevInfo(const char_t *socName, rtSocInfo_t &info)
 {
     if (isDestroy) {
         return RT_ERROR_INVALID_VALUE;

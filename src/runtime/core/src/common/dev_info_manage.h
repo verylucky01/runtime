@@ -62,12 +62,10 @@ public:
     bool RegisterSocInfo(const rtSocInfo_t &conf);
     bool BatchRegSocInfo(const rtSocInfo_t *conf, size_t size);
     rtError_t GetSocInfo(const char_t *const socName, rtSocInfo_t &info);
-    rtError_t GetSocInfo(const rtSocType_t socType, rtSocInfo_t &info);
-    rtError_t GetSocInfo(rtChipType_t chipType, rtArchType_t archType, rtSocInfo_t &info);
 
-    bool RegisterDevInfo(const RtDevInfo &conf);
-    bool BatchRegDevInfo(const RtDevInfo *conf, size_t size);
-    rtError_t GetDevInfo(const char_t *socName, RtDevInfo &info);
+    bool RegisterDevInfo(const rtSocInfo_t &conf);
+    bool BatchRegDevInfo(const rtSocInfo_t *conf, size_t size);
+    rtError_t GetDevInfo(const char_t *socName, rtSocInfo_t &info);
 
     bool RegPlatformSoNameInfo(rtChipType_t chip, const std::string &soName);
     rtError_t GetPlatformSoName(rtChipType_t chip, std::string &soName);
@@ -91,7 +89,7 @@ private:
     std::atomic<bool> isDestroy{false};
     std::mutex info_lock;
     mmRWLock_t devInfoLock;
-    std::vector<RtDevInfo> devInfos;
+    std::vector<rtSocInfo_t> devInfos;
     mmRWLock_t socInfoLock;
     std::vector<rtSocInfo_t> socInfos;
 

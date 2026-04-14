@@ -42,7 +42,7 @@
 #include "npu_driver.hpp"
 #include "task_submit.hpp"
 #include "thread_local_container.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "task_res_da.hpp"
 #include "task_manager_david.h"
 #include "stars_model_execute_cond_isa_define.hpp"
@@ -55,7 +55,7 @@
 #include "dqs_task_info.hpp"
 #include "ioctl_utils.hpp"
 #include "notify.hpp"
-#include "config_define_adc.hpp"
+#include "../../rt_utest_api.hpp"
 #include "driver/ascend_hal.h"
 #include "api_impl_david.hpp"
 #include "aicpu_c.hpp"
@@ -195,9 +195,10 @@ protected:
         rtSetDevice(0);
 
         (void)rtSetSocVersion("MC62CM12AA");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 
         device_ = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
-        device_->SetPlatformType(PLATFORM_MC62CM12A);
+        device_->SetChipType(CHIP_MC62CM12A);
         engine_ = ((RawDevice *)device_)->engine_;
 
         MOCKER_CPP(&IoctlUtil::IoctlByCmd).defaults().will(invoke(IoctlByCmdMockRes));
@@ -227,6 +228,7 @@ protected:
         stream_ = nullptr;
         engine_ = nullptr;
         ((Runtime *)Runtime::Instance())->DeviceRelease(device_);
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rtDeviceReset(0);
         GlobalMockObject::verify();
     }
@@ -1046,18 +1048,18 @@ TEST_F(TaskTestV201, Test_UpdateDevProperties)
     EXPECT_EQ(Runtime::starsPendingMax_, props.rtsqDepth * 3U / 4U);
 }
 
-TEST_F(TaskTestV201, Test_SetSocTypeByChipType)
+TEST_F(TaskTestV201, Test_GetSocVersionByHardwareVer)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std::string oriSocVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_MC62CM12A);
     GlobalContainer::SetRtChipType(CHIP_MC62CM12A);
-    rtError_t ret = rtInstance->SetSocTypeByChipType(PLAT_COMBINE(ARCH_M510, CHIP_MC62CM12A, VER_NA), 0, 0);
+    rtError_t ret = rtInstance->GetSocVersionByHardwareVer(PLAT_COMBINE(ARCH_M510, CHIP_MC62CM12A, VER_NA), 0, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(oriSocVersion);
 }
 
 TEST_F(TaskTestV201, Test_DqsCountNotifyWait)
@@ -1135,7 +1137,7 @@ TEST_F(TaskTestV201, Test_CondIsaHelper)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std:string oriSocVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_MC62CM12A);
     GlobalContainer::SetRtChipType(CHIP_MC62CM12A);
 
@@ -1149,7 +1151,7 @@ TEST_F(TaskTestV201, Test_CondIsaHelper)
 
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(oriSocVersion);
 }
 
 TEST_F(TaskTestV201, Test_ioctl_utils_success)
@@ -1165,7 +1167,7 @@ TEST_F(TaskTestV201, Test_GetIpcSqeWriteAddrForNotifyRecordTask)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtSocType_t oriSocType = rtInstance->GetSocType();
+    std::string oriSocVersion = rtInstance->GetSocVersion();
     rtInstance->SetChipType(CHIP_MC62CM12A);
     GlobalContainer::SetRtChipType(CHIP_MC62CM12A);
     Stream *stm = CreateStreamAndGet(device_, 0, RT_STREAM_DQS_CTRL, nullptr);
@@ -1192,7 +1194,7 @@ TEST_F(TaskTestV201, Test_GetIpcSqeWriteAddrForNotifyRecordTask)
     EXPECT_EQ(error, RT_ERROR_NONE);
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(oriSocType);
+    rtInstance->SetSocVersion(oriSocVersion);
     delete notify;
     delete stm;
 }

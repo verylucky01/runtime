@@ -32,7 +32,6 @@
 #include "ctrl_stream.hpp"
 #include "runtime.hpp"
 #include "runtime_keeper.h"
-#include "config.hpp"
 #include "mockcpp/mockcpp.hpp"
 #include "uma_arg_loader.hpp"
 #include "driver/ascend_hal.h"
@@ -797,6 +796,7 @@ protected:
     static void SetUpTestCase()
     {
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetDevice(0);
         std::cout << "task test start: " << std::endl;
     }
@@ -805,6 +805,7 @@ protected:
     {
         std::cout << "task test1 end" << std::endl;
         rtDeviceReset(0);
+        ((Runtime*)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 
     virtual void SetUp()

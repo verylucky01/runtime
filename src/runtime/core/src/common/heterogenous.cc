@@ -8,9 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include "heterogenous.h"
-#include "config.hpp"
 #include "error_message_manage.hpp"
-#include "config_define.hpp"
 #include "utils.h"
 namespace cce {
 namespace runtime {

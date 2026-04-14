@@ -44,7 +44,7 @@ protected:
     virtual void SetUp()
     {
         ((Runtime *)Runtime::Instance())->SetDisableThread(true);
-        (void)rtSetSocVersion("Ascend910");
+        (void)rtSetSocVersion("Ascend910B1");
         ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         oldChipType = rtInstance->GetChipType();
@@ -57,6 +57,7 @@ protected:
     {
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(oldChipType);

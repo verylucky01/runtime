@@ -70,6 +70,7 @@
 #include "uvm_callback.hpp"
 #include "api_soma.hpp"
 #include "utils.h"
+#include "platform_manager_v2.h"
 
 #define RT_DRV_FAULT_CNT 25U
 #define NULL_STREAM_PTR_RETURN_MSG(STREAM)     NULL_PTR_RETURN_MSG((STREAM), RT_ERROR_STREAM_NULL)
@@ -4412,89 +4413,6 @@ rtError_t ApiImpl::SetIpcMemPid(const char_t * const name, int32_t pid[], const 
     return curCtx->Device_()->Driver_()->SetIpcMemPid(name, pid, num);
 }
 
-rtError_t ApiImpl::GetAiCoreCount(uint32_t * const aiCoreCnt)
-{
-    const Runtime * const rt = Runtime::Instance();
-    if (!rt->HaveDevice()) {
-        RT_LOG(RT_LOG_WARNING, "Aicore count cannot be gotten in no device scenarios.");
-        return RT_ERROR_FEATURE_NOT_SUPPORT;
-    }
-    Context * const curCtx = CurrentContext();
-    int64_t val = 0;
-    rtError_t error = RT_ERROR_NONE;
-    uint32_t curDrvDeviceId = RT_DEV_ZERO;
-
-    const rtChipType_t chipType = Runtime::Instance()->GetChipType();
-    if (IS_SUPPORT_CHIP_FEATURE(chipType, RtOptionalFeatureType::RT_FEATURE_DEVICE_DOT_GET_GROUP_AIC_NUM)) {
-        error = DavidGetGroupAccNum(static_cast<int32_t>(MODULE_TYPE_AICORE),
-            static_cast<int32_t>(INFO_TYPE_CORE_NUM), &val);
-        if (error == RT_ERROR_NONE) {
-            *aiCoreCnt = static_cast<uint32_t>(val);
-            RT_LOG(RT_LOG_DEBUG, "aicore cnt is %u.", *aiCoreCnt);
-            return RT_ERROR_NONE;
-        }
-    }
-
-    if (ContextManage::CheckContextIsValid(curCtx, true)) {
-        const ContextProtect cp(curCtx);
-        curDrvDeviceId = curCtx->Device_()->Id_();
-    }
-    Driver* const curDrv = Runtime::Instance()->driverFactory_.GetDriver(NPU_DRIVER);
-    NULL_PTR_RETURN_MSG(curDrv, RT_ERROR_DRV_NULL);
-    error = curDrv->GetDevInfo(curDrvDeviceId, static_cast<int32_t>(MODULE_TYPE_AICORE),
-        static_cast<int32_t>(INFO_TYPE_CORE_NUM), &val);
-    if (error != RT_ERROR_NONE) {
-        return error;
-    }
-
-    if ((val < 0) || (val > static_cast<int64_t>(UINT32_MAX))) {
-        error = RT_ERROR_DRV_ERR;
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "Get aicore cnt failed, cnt=%" PRId64 " is out of range[0, %#x]",
-                         val, UINT32_MAX);
-    } else {
-        *aiCoreCnt = static_cast<uint32_t>(val);
-        if (curDrv->GetDevProperties().reduceAicNum && (*aiCoreCnt == RT_AICORE_NUM_25)) {
-            *aiCoreCnt = RT_AICORE_NUM_25 - 1U;
-        } else {
-            RT_LOG(RT_LOG_DEBUG, "it is not belong to 910B1.");
-        }
-        RT_LOG(RT_LOG_DEBUG, "aicore cnt is %u.", *aiCoreCnt);
-    }
-    return error;
-}
-
-rtError_t ApiImpl::GetAiCpuCount(uint32_t * const aiCpuCnt)
-{
-    const Runtime * const rt = Runtime::Instance();
-    if (!rt->HaveDevice()) {
-        RT_LOG(RT_LOG_WARNING, "Aicpu count cannot be gotten in offline or no device scenarios.");
-        return RT_ERROR_FEATURE_NOT_SUPPORT;
-    }
-    int64_t val = 0;
-    Context * const curContext = CurrentContext();
-    uint32_t deviceId = RT_DEV_ZERO;
-    if (ContextManage::CheckContextIsValid(curContext, true)) {
-        const ContextProtect cp(curContext);
-        deviceId = curContext->Device_()->Id_();
-    }
-
-    Driver* const curDrv = Runtime::Instance()->driverFactory_.GetDriver(NPU_DRIVER);
-    NULL_PTR_RETURN_MSG(curDrv, RT_ERROR_DRV_NULL);
-    rtError_t error = curDrv->GetDevInfo(deviceId, static_cast<int32_t>(MODULE_TYPE_AICPU),
-        static_cast<int32_t>(INFO_TYPE_CORE_NUM), &val);
-    if (error != RT_ERROR_NONE) {
-        return error;
-    }
-
-    if ((val < 0) || (val > static_cast<int64_t>(UINT32_MAX))) {
-        error = RT_ERROR_DRV_ERR;
-        RT_LOG_OUTER_MSG_INVALID_PARAM(val, "[0, " + std::to_string(static_cast<int64_t>(UINT32_MAX)) + "]");
-    } else {
-        *aiCpuCnt = static_cast<uint32_t>(val);
-    }
-    return error;
-}
-
 rtError_t ApiImpl::NotifyCreate(const int32_t deviceId, Notify ** const retNotify, uint64_t flag)
 {
     RT_LOG(RT_LOG_INFO, "Notify create.");
@@ -5245,6 +5163,47 @@ rtError_t ApiImpl::GetAicpuDeploy(rtAicpuDeployType_t * const deployType)
                                 " valid deployType range is [0, %d]",
                                 type, AICPU_DEPLOY_RESERVED);
     *deployType = static_cast<rtAicpuDeployType_t>(type);
+    return RT_ERROR_NONE;
+}
+
+rtError_t ApiImpl::GetAiCoreCount(uint32_t * const aiCoreCnt)
+{
+    const Runtime * const rtInstance = Runtime::Instance();
+    std::string socVersion = rtInstance->GetSocVersion();
+    std::string result = "";
+    const std::string label = "SoCInfo";
+    const std::string key = "ai_core_cnt";
+    int32_t ret = PlatformManagerV2::Instance().GetSocSpec(socVersion, label, key, result);
+    COND_RETURN_ERROR(ret != RT_ERROR_NONE, ret, "Get soc spec failed, ret = %u, please check.", ret);
+    try {
+        const uint32_t aiCoreCount = std::stoi(result);
+        *aiCoreCnt = aiCoreCount;
+    } catch (...) {
+        RT_LOG(RT_LOG_ERROR, "ai_core_cnt [%s] is invalid.", result.c_str());
+        return RT_ERROR_INVALID_VALUE;
+    }
+    
+    return RT_ERROR_NONE;
+}
+
+rtError_t ApiImpl::GetAiCpuCount(uint32_t * const aiCpuCnt)
+{
+    const Runtime * const rtInstance = Runtime::Instance();
+    std::string socVersion = rtInstance->GetSocVersion();
+    std::string result = "";
+    const std::string label = "SoCInfo";
+    const std::string key = "ai_cpu_cnt";
+    const int32_t ret = PlatformManagerV2::Instance().GetSocSpec(socVersion, label, key, result);
+    COND_RETURN_ERROR(ret != RT_ERROR_NONE, ret, "Get soc spec failed, ret = %u, please check.", ret);
+    
+    try {
+        const uint32_t aiCpuCount = std::stoi(result);
+        *aiCpuCnt = aiCpuCount;
+    } catch (...) {
+        RT_LOG(RT_LOG_ERROR, "ai_cpu_cnt [%s] is invalid.", result.c_str());
+        return RT_ERROR_INVALID_VALUE;
+    }
+    
     return RT_ERROR_NONE;
 }
 
@@ -6880,16 +6839,36 @@ rtError_t ApiImpl::GetDevArgsAddr(Stream * const stm, rtArgsEx_t * const argsInf
     return curCtx->GetDevArgsAddr(stm, argsInfo, devArgsAddr, argsHandle);
 }
 
-rtError_t ApiImpl::ModelCheckArchVersion(const char_t *omArchVersion, const rtArchType_t archType)
+rtError_t ApiImpl::ModelCheckArchVersion(const char_t *omsocVersion)
 {
-    RT_LOG(RT_LOG_INFO, "Start to check omArchVersion=%s, archType=%d", omArchVersion, archType);
-    rtError_t error = RT_ERROR_NONE;
-    if (omArchVersion[0U] == '\0') {
-        RT_LOG(RT_LOG_WARNING, "Old version no need to compare, default is consistent.");
-    } else {
-        error = Runtime::Instance()->ModelCheckArchVersion(omArchVersion, archType);
+    Runtime * const rtInstance = Runtime::Instance();
+    const std::string socVersion = rtInstance->GetSocVersion();
+    RT_LOG(RT_LOG_INFO, "Start to check omArchVersion=%s, socVersion=%s", omsocVersion, socVersion.c_str());
+    // Get the NpuArch to the omSocVersion
+    int32_t inputNpuArch;
+    rtError_t ret = GetNpuArchByName(omsocVersion, &inputNpuArch);
+    if (ret != RT_ERROR_NONE) {
+        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "Soc version [%s] is invalid", omsocVersion);
+        return RT_ERROR_INVALID_VALUE;
     }
-    return error;
+
+    // Get the NpuArch to the hardwareSocVersion
+    int32_t hardwareNpuArch;
+    ret = GetNpuArchByName(socVersion.c_str(), &hardwareNpuArch);
+    if (ret != RT_ERROR_NONE) {
+        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "Soc version [%s] is invalid", socVersion.c_str());
+        return RT_ERROR_INVALID_VALUE;
+    }
+
+    if (inputNpuArch != hardwareNpuArch) {
+        RT_LOG(
+            RT_LOG_INFO,
+            "ModelCheckArchVersion: inputNpuArch not equal hardwareNpuArch, inputNpuArch=%d, hardwareNpuArch=%d",
+            inputNpuArch, hardwareNpuArch);
+        return RT_ERROR_INSTANCE_VERSION;
+    }
+
+    return RT_ERROR_NONE;
 }
 
 rtError_t ApiImpl::ReserveMemAddress(void** devPtr, size_t size, size_t alignment, void *devAddr, uint64_t flags)
@@ -7391,14 +7370,12 @@ static rtError_t UpdatePlatformRes(fe::PlatFormInfos &platformInfos, const rtDev
 static rtError_t SetDeviceResLimitByFe(const uint32_t devId, const rtDevResLimitType_t type, const uint32_t value)
 {
     Runtime *const rt = Runtime::Instance();
-    const rtSocType_t socType = rt->GetSocType();
-    const std::string socVersion = GetSocVersionStrByType(socType);
+    const std::string socVersion = rt->GetSocVersion();
     uint32_t platformRet = fe::PlatformInfoManager::GeInstance().InitRuntimePlatformInfos(socVersion);
     if (platformRet != 0U) {
         RT_LOG(RT_LOG_ERROR,
-            "InitRuntime PlatformInfos failed, drv devId=%u, socType=%d, socVersion=%s, platformRet=%u",
+            "InitRuntime PlatformInfos failed, drv devId=%u, socVersion=%s, platformRet=%u",
             devId,
-            socType,
             socVersion.c_str(),
             platformRet);
         return RT_ERROR_INVALID_VALUE;

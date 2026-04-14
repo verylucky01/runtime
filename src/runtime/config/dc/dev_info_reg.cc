@@ -16,10 +16,10 @@ namespace cce {
 namespace runtime {
 
 static constexpr rtSocInfo_t CHIP_DC_SOC_INFO[] = {
-    {SOC_ASCEND310P3, CHIP_DC, ARCH_V200, "Ascend310P3"},
-    {SOC_ASCEND310P1, CHIP_DC, ARCH_V200, "Ascend310P1"},
-    {SOC_ASCEND310P5, CHIP_DC, ARCH_V200, "Ascend310P5"},
-    {SOC_ASCEND310P7, CHIP_DC, ARCH_V200, "Ascend310P7"},
+    {CHIP_DC, "Ascend310P3"},
+    {CHIP_DC, "Ascend310P1"},
+    {CHIP_DC, "Ascend310P5"},
+    {CHIP_DC, "Ascend310P7"},
 };
 
 BATCH_REGISTER_SOC_INFO(CHIP_DC_SOC_INFO, sizeof(CHIP_DC_SOC_INFO) / sizeof(rtSocInfo_t));
@@ -106,6 +106,7 @@ static constexpr double RT_HWTS_310P_TASK_KERNEL_CREDIT_SCALE_US = 2147483.648; 
 static const DevProperties CHIP_DC_PROPERTIES = {
     .engineType = "HWTS",
     .isStars = false,
+    .isStarsV2 = false,
     .pthreadStackSize = 0U,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_NEED_TS_VERSION,
     .tsCount = 1U,

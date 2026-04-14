@@ -50,7 +50,7 @@ protected:
     static void SetUpTestCase()
     {
         std::cout<<"stream test start"<<std::endl;
-        (void)rtSetSocVersion("Ascend910");
+        (void)rtSetSocVersion("Ascend910B1");
         ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         ((Runtime *)Runtime::Instance())->SetDisableThread(true);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
@@ -64,6 +64,7 @@ protected:
     {
         std::cout<<"stream test end"<<std::endl;
         ((Runtime *)Runtime::Instance())->SetDisableThread(false);
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
     }
 
     virtual void SetUp()

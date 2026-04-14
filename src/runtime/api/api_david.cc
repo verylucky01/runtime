@@ -10,7 +10,6 @@
 #include "api_c.h"
 #include "api.hpp"
 #include "base.hpp"
-#include "config.hpp"
 #include "error_message_manage.hpp"
 #include "errcode_manage.hpp"
 #include "error_code.h"

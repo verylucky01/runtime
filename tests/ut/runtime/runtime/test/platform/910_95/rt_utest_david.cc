@@ -33,7 +33,7 @@
 #include "raw_device.hpp"
 #include "device/device_error_proc.hpp"
 #include "stars_engine.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "api_impl_david.hpp"
 #include "task_recycle.hpp"
 #include "stream_david.hpp"
@@ -157,8 +157,9 @@ protected:
         GlobalContainer::SetRtChipType(CHIP_DAVID);
         rtSetDevice(0);
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         dev_ = rtInstance->DeviceRetain(0, 0);
-        dev_->SetPlatformType(PLATFORM_DAVID_950PR_9599);
+        dev_->SetChipType(CHIP_DAVID);
         Driver *driver_ = ((Runtime *)Runtime::Instance())->driverFactory_.GetDriver(NPU_DRIVER);
         MOCKER_CPP_VIRTUAL((NpuDriver *)(driver_), &NpuDriver::GetRunMode)
             .stubs()
@@ -206,9 +207,10 @@ protected:
 
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->DeviceRelease(dev_);
-        rtDeviceReset(0);
+        rtInstance->SetIsUserSetSocVersion(false);
         rtInstance->SetDisableThread(g_disableThread);
         rtInstance->SetChipType(g_chipType);
+        rtDeviceReset(0);
         GlobalContainer::SetRtChipType(g_chipType);
         GlobalMockObject::verify();
     }
@@ -245,8 +247,9 @@ protected:
         GlobalContainer::SetRtChipType(CHIP_DAVID);
         rtSetDevice(0);
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         dev_ = rtInstance->DeviceRetain(0, 0);
-        dev_->SetPlatformType(PLATFORM_DAVID_950PR_9599);
+        dev_->SetChipType(CHIP_DAVID);
         rtStreamCreate(&streamHandle_, 0);
         stream_ = (Stream *)streamHandle_;
         MOCKER(StreamNopTask).stubs().will(returnValue(RT_ERROR_NONE));
@@ -257,6 +260,7 @@ protected:
         rtStreamDestroy(streamHandle_);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->DeviceRelease(dev_);
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rtDeviceReset(0);
         rtInstance->SetChipType(g_chipType);
         GlobalContainer::SetRtChipType(g_chipType);
@@ -297,7 +301,7 @@ protected:
         GlobalContainer::SetRtChipType(CHIP_DAVID);
         rtSetDevice(0);
         dev_ = rtInstance->DeviceRetain(0, 0);
-        dev_->SetPlatformType(PLATFORM_DAVID_950PR_9599);
+        dev_->SetChipType(CHIP_DAVID);
         rtStreamCreate(&streamHandle_, 0);
         stream_ = (Stream *)streamHandle_;
         MOCKER(StreamNopTask).stubs().will(returnValue(RT_ERROR_NONE));
@@ -344,8 +348,9 @@ protected:
         GlobalContainer::SetRtChipType(CHIP_DAVID);
         rtSetDevice(0);
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         dev_ = rtInstance->DeviceRetain(0, 0);
-        dev_->SetPlatformType(PLATFORM_DAVID_950PR_9599);
+        dev_->SetChipType(CHIP_DAVID);
         Driver *driver_ = ((Runtime *)Runtime::Instance())->driverFactory_.GetDriver(NPU_DRIVER);
         MOCKER_CPP_VIRTUAL((NpuDriver *)(driver_), &NpuDriver::GetRunMode)
             .stubs()
@@ -364,7 +369,7 @@ protected:
     {
         rtStreamDestroy(streamHandle_);
         stream_ = nullptr;
-
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->DeviceRelease(dev_);
         rtDeviceReset(0);
@@ -406,8 +411,9 @@ protected:
         GlobalContainer::SetRtChipType(CHIP_CLOUD_V5);
         rtSetDevice(0);
         (void)rtSetSocVersion("Ascend910SOLMON");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         dev_ = rtInstance->DeviceRetain(0, 0);
-        dev_->SetPlatformType(PLATFORM_SOLOMON);
+        dev_->SetChipType(CHIP_CLOUD_V5);
         rtStreamCreate(&streamHandle_, 0);
         stream_ = (DavidStream *)streamHandle_;
         MOCKER(StreamNopTask).stubs().will(returnValue(RT_ERROR_NONE));
@@ -418,6 +424,7 @@ protected:
         rtStreamDestroy(streamHandle_);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->DeviceRelease(dev_);
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rtDeviceReset(0);
         rtInstance->SetChipType(g_chipType);
         GlobalContainer::SetRtChipType(g_chipType);
@@ -453,8 +460,9 @@ protected:
         GlobalContainer::SetRtChipType(CHIP_DAVID);
         rtSetDevice(0);
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         dev_ = rtInstance->DeviceRetain(0, 0);
-        dev_->SetPlatformType(PLATFORM_DAVID_950PR_9599);
+        dev_->SetChipType(CHIP_DAVID);
         Driver *driver_ = ((Runtime *)Runtime::Instance())->driverFactory_.GetDriver(NPU_DRIVER);
         MOCKER_CPP_VIRTUAL((NpuDriver *)(driver_), &NpuDriver::GetRunMode)
             .stubs()
@@ -466,12 +474,13 @@ protected:
 
     virtual void TearDown()
     {
+        rtDeviceReset(0);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->DeviceRelease(dev_);
-        rtDeviceReset(0);
         rtInstance->SetDisableThread(g_disableThread);
         rtInstance->SetChipType(g_chipType);
         GlobalContainer::SetRtChipType(g_chipType);
+        rtInstance->SetIsUserSetSocVersion(false);
         GlobalMockObject::verify();
     }
 
@@ -561,14 +570,7 @@ TEST_F(SolomonTaskTest, macroinit_for_chip_cloud_v5)
 {
     Runtime *rt = ((Runtime *)Runtime::Instance());
     rt->UpdateDevProperties(CHIP_CLOUD_V5, "Ascend910_5591");
-    rt->SetSocTypeByChipType(0, 1, 1);
-}
-
-TEST_F(DavidTaskTest, macroinit_for_chip_david)
-{
-    Runtime *rt = ((Runtime *)Runtime::Instance());
-    rt->UpdateDevProperties(CHIP_DAVID, "Ascend950PR_9599");
-    rt->SetSocTypeByChipType(0, 1, 1);
+    rt->GetSocVersionByHardwareVer(0, 1, 1);
 }
 
 TEST_F(DavidTaskTest, construct_davidsqe_for_model_maintaince)
@@ -3288,9 +3290,6 @@ TEST_F(DavidTaskTest, InitFuncStreamSwitchTaskV1)
     NpuDriver drv;
     drv.chipType_ = CHIP_DAVID;
     stub->driver_ = &drv;
-
-    stub->platformType_ = PLATFORM_DAVID_950PR_9599;
-    stub->platformConfig_ = (0xE << 8);
     void *buf = malloc(2);
 
     InitByStream(&switchtask, stream_);
@@ -3338,8 +3337,6 @@ TEST_F(DavidTaskTest1, InitFuncStreamSwitchTaskV2)
     NpuDriver drv;
     drv.chipType_ = CHIP_DAVID;
     stub->driver_ = &drv;
-    stub->platformType_ = PLATFORM_DAVID_950PR_9599;
-    stub->platformConfig_ = (0xE << 8);
     void *buf = malloc(2);
 
     InitByStream(&switchtask, stream_);
@@ -3364,8 +3361,6 @@ TEST_F(DavidTaskTest1, model_maintaince_init_david)
     NpuDriver drv;
     drv.chipType_ = CHIP_DAVID;
     stub->driver_ = &drv;
-    stub->platformType_ = PLATFORM_DAVID_950PR_9599;
-    stub->platformConfig_ = (0xE << 8);
     ret = rtModelCreate((rtModel_t *)&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     TaskInfo maintainceTask = {};
@@ -3819,6 +3814,7 @@ protected:
     virtual void SetUp()
     {
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         originType_ = Runtime::Instance()->GetChipType();
         Runtime::Instance()->SetDisableThread(true);
@@ -3853,6 +3849,7 @@ protected:
     {
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(originType_);
         GlobalContainer::SetRtChipType(originType_);
@@ -3874,6 +3871,7 @@ protected:
     static void SetUpTestCase()
     {
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         originType_ = Runtime::Instance()->GetChipType();
         Runtime::Instance()->SetDisableThread(true);
@@ -3901,6 +3899,7 @@ protected:
     {
         rtDeviceReset(0);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         rtInstance->SetChipType(originType_);
         GlobalContainer::SetRtChipType(originType_);
@@ -3947,6 +3946,10 @@ TEST_F(DavidVfApiTest, test_setgroup_for_david)
 
     uint32_t aiCoreCnt = 0;
     error = rtGetAiCoreCount(&aiCoreCnt);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    uint32_t aiCpuCnt = 0;
+    error = rtGetAiCpuCount(&aiCpuCnt);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     Device *device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
@@ -4547,23 +4550,15 @@ TEST_F(DavidTaskErrTest, get_connect_ub_flag_fail)
 TEST_F(DavidTaskErrTest, get_connect_ub_flag_fail2)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
-    rtError_t err = rtInstance->InitSocType();
-    EXPECT_EQ(err, RT_ERROR_DRV_INPUT);
-}
-
-TEST_F(DavidTaskTest, get_connect_ub_flag_fail3)
-{
-    Runtime *rtInstance = ((Runtime *)Runtime::Instance());
-    MOCKER(GetHardVerBySocVer).stubs().will(invoke(stubGetHardVerBySocVerFail));
-    rtError_t err = rtInstance->InitSocType();
+    rtError_t err = rtInstance->InitSocVersion();
     EXPECT_EQ(err, RT_ERROR_DRV_INPUT);
 }
 
 TEST_F(DavidTaskTest, get_connect_ub_flag_fail4)
 {
     Runtime *rtInstance = ((Runtime *)Runtime::Instance());
-    MOCKER(GetHardVerBySocVer).stubs().will(invoke(stubGetHardVerBySocVerNoDevice));
-    rtError_t err = rtInstance->InitSocType();
+    MOCKER_CPP(&Runtime::InitSocVersionAndChipType).stubs().will(returnValue(RT_ERROR_NONE));
+    rtError_t err = rtInstance->InitSocVersion();
     EXPECT_EQ(err, RT_ERROR_NONE);
 }
 

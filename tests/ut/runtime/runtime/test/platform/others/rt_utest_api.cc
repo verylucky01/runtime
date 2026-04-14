@@ -9,6 +9,7 @@
  */
 #include "../../rt_utest_api.hpp"
 #include "../../data/elf.h"
+#include "../../rt_utest_config_define.hpp"
 
 TEST_F(ApiTest, util_test)
 {
@@ -259,7 +260,7 @@ TEST_F(ApiTest, testGetTaskBufferLenTest)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     MOCKER_CPP_VIRTUAL(impl, &ApiImpl::ModelCheckArchVersion).stubs().will(returnValue(RT_ERROR_NONE));
-    error = apiDec.ModelCheckArchVersion(NULL, ARCH_S202);
+    error = apiDec.ModelCheckArchVersion(NULL);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     MOCKER_CPP_VIRTUAL(impl, &ApiImpl::ReserveMemAddress).stubs().will(returnValue(RT_ERROR_NONE));
@@ -1076,8 +1077,8 @@ TEST_F(ApiTest, start5612spmpool)
 {
     rtError_t error;
     Runtime *rtInstance = (Runtime *) Runtime::Instance();
-    rtSocType_t oldSocType = rtInstance->GetSocType();
-    Runtime::Instance()->SetSocType(SOC_ASCEND320T);
+    std::string socVersion = rtInstance->GetSocVersion();
+    Runtime::Instance()->SetSocVersion("Ascend031");
     int64_t hardwareVersion = CHIP_ASCEND_031 << 8;
     driver_ = ((Runtime *)Runtime::Instance())->driverFactory_.GetDriver(NPU_DRIVER);
     MOCKER_CPP_VIRTUAL(driver_,
@@ -1093,7 +1094,7 @@ TEST_F(ApiTest, start5612spmpool)
     device->primaryStream_ = stream;
     device->GetPendingNum();
     delete(device);
-    rtInstance->SetSocType(oldSocType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(ApiTest, sq_lock_unlock_test)
@@ -3382,13 +3383,6 @@ TEST_F(ApiTest, AI_CPU_KERNEL_LAUNCH_TEST)
     error = rtStreamCreate(&stream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    uint32_t aiCpuCnt = 0U;
-    Api *api = Api::Instance();
-    MOCKER_CPP_VIRTUAL(api, &Api::GetAiCpuCount)
-    .stubs()
-    .with(outBoundP(&aiCpuCnt, sizeof(aiCpuCnt)))
-    .will(returnValue(RT_ERROR_NONE));
-
     rtSmDesc_t desc;
     const rtKernelLaunchNames_t name = {
         "soName",
@@ -4001,9 +3995,9 @@ TEST_F(ApiTest, kernel_launch_ex_dump)
 TEST_F(ApiTest, GetOpTimeOut_set)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
+    std::string socVersion = rtInstance->GetSocVersion();
 
-    rtInstance->SetSocType(SOC_ASCEND910B4_1);
+    rtInstance->SetSocVersion("Ascend910B4-1");
     uint32_t aiCpuCnt = 0U;
     MOCKER(rtGetAiCpuCount)
     .stubs()
@@ -4020,7 +4014,7 @@ TEST_F(ApiTest, GetOpTimeOut_set)
     error = rtGetOpExecuteTimeOut(&timeout);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(ApiTest, GetDeviceCapModelUpdate)
@@ -6212,93 +6206,93 @@ TEST_F(ApiTest, rtGetPriCtxByDeviceId)
  
 TEST_F(ApiTest, rtGetSocVersion)
 {
-    GlobalContainer::SetHardwareChipType(CHIP_END);
+    GlobalContainer::SetHardwareSocVersion("");
     rtError_t error;
     char version[50] = {0};
  
     MOCKER(halGetDeviceInfo).stubs().will(invoke(stubHalGetDeviceInfo));
  
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socBak = rtInstance->GetSocType();
+    std::string socBak = rtInstance->GetSocVersion();
  
     error = rtGetSocVersion(nullptr, 50);
     EXPECT_NE(error, RT_ERROR_NONE);
  
-    drvStubInit(SOC_ASCEND910A);
-    rtInstance->InitSocType();
+    drvStubInit("Ascend910A");
+    rtInstance->InitSocVersion();
  
-    rtInstance->SetSocType(SOC_ASCEND910A);
-    GlobalContainer::SetSocType(SOC_ASCEND910A);
+    rtInstance->SetSocVersion("Ascend910A");
+    GlobalContainer::SetSocVersion("Ascend910A");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("Ascend910A", version), 0);
  
-    rtInstance->SetSocType(SOC_ASCEND610);
-    GlobalContainer::SetSocType(SOC_ASCEND610);
+    rtInstance->SetSocVersion("Ascend610");
+    GlobalContainer::SetSocVersion("Ascend610");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("Ascend610", version), 0);
  
-    rtInstance->SetSocType(SOC_ASCEND310);
-    GlobalContainer::SetSocType(SOC_ASCEND310);
+    rtInstance->SetSocVersion("Ascend310");
+    GlobalContainer::SetSocVersion("Ascend310");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("Ascend310", version), 0);
  
-    rtInstance->SetSocType(SOC_ASCEND910B);
-    GlobalContainer::SetSocType(SOC_ASCEND910B);
+    rtInstance->SetSocVersion("Ascend910B");
+    GlobalContainer::SetSocVersion("Ascend910B");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("Ascend910B", version), 0);
  
-    rtInstance->SetSocType(SOC_ASCEND910ProA);
-    GlobalContainer::SetSocType(SOC_ASCEND910ProA);
+    rtInstance->SetSocVersion("Ascend910ProA");
+    GlobalContainer::SetSocVersion("Ascend910ProA");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("Ascend910ProA", version), 0);
  
-    rtInstance->SetSocType(SOC_ASCEND910PremiumA);
-    GlobalContainer::SetSocType(SOC_ASCEND910PremiumA);
+    rtInstance->SetSocVersion("Ascend910PremiumA");
+    GlobalContainer::SetSocVersion("Ascend910PremiumA");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("Ascend910PremiumA", version), 0);
  
-    rtInstance->SetSocType(SOC_ASCEND310P3);
-    GlobalContainer::SetSocType(SOC_ASCEND310P3);
+    rtInstance->SetSocVersion("Ascend310P3");
+    GlobalContainer::SetSocVersion("Ascend310P3");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("Ascend310P3", version), 0);
  
-    rtInstance->SetSocType(SOC_BS9SX1AA);
-    GlobalContainer::SetSocType(SOC_BS9SX1AA);
+    rtInstance->SetSocVersion("BS9SX1AA");
+    GlobalContainer::SetSocVersion("BS9SX1AA");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("BS9SX1AA", version), 0);
  
-    rtInstance->SetSocType(SOC_BS9SX1AB);
-    GlobalContainer::SetSocType(SOC_BS9SX1AB);
+    rtInstance->SetSocVersion("BS9SX1AB");
+    GlobalContainer::SetSocVersion("BS9SX1AB");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("BS9SX1AB", version), 0);
  
-    rtInstance->SetSocType(SOC_BS9SX1AC);
-    GlobalContainer::SetSocType(SOC_BS9SX1AC);
+    rtInstance->SetSocVersion("BS9SX1AC");
+    GlobalContainer::SetSocVersion("BS9SX1AC");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("BS9SX1AC", version), 0);
  
-    rtInstance->SetSocType(SOC_END);
-    GlobalContainer::SetSocType(SOC_END);
+    rtInstance->SetSocVersion("");
+    GlobalContainer::SetSocVersion("");
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_NE(error, RT_ERROR_NONE);
@@ -6315,20 +6309,20 @@ TEST_F(ApiTest, rtGetSocVersion)
     error = rtSetSocVersion("ERROR");
     EXPECT_NE(error, RT_ERROR_NONE);
  
-    drvStubInit(SOC_SD3403);
-    rtInstance->InitSocType();
+    drvStubInit("SD3403");
+    rtInstance->InitSocVersion();
  
-    drvStubInit(SOC_ASCEND910B1);
-    rtInstance->InitSocType();
+    drvStubInit("Ascend910B1");
+    rtInstance->InitSocVersion();
  
-    drvStubInit(SOC_ASCEND910B2);
-    rtInstance->InitSocType();
+    drvStubInit("Ascend910B2");
+    rtInstance->InitSocVersion();
  
-    drvStubInit(SOC_ASCEND910B3);
-    rtInstance->InitSocType();
+    drvStubInit("Ascend910B3");
+    rtInstance->InitSocVersion();
  
-    drvStubInit(SOC_ASCEND910B4);
-    rtInstance->InitSocType();
+    drvStubInit("Ascend910B4");
+    rtInstance->InitSocVersion();
  
     rtInstance->InitSocTypeFrom910BVersion(PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, 0));
     rtInstance->InitSocTypeFrom910BVersion(PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, 1));
@@ -6343,26 +6337,26 @@ TEST_F(ApiTest, rtGetSocVersion)
     rtInstance->InitSocTypeFrom910BVersion(PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, 10));
     rtInstance->InitSocTypeFrom910BVersion(PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, 11));
  
-    drvStubInit(SOC_ASCEND310B1);
-    rtInstance->InitSocType();
+    drvStubInit("Ascend310B1");
+    rtInstance->InitSocVersion();
     rtInstance->UpdateDevProperties(CHIP_MINI_V3, "Ascend310B1");
-
-    drvStubInit(SOC_ASCEND310B1);
-    rtInstance->InitSocType();
-    rtInstance->UpdateDevProperties(CHIP_MINI_V3, "Ascend310B1");
-
-    drvStubInit(SOC_Hi3796CV300ES);
-    rtInstance->InitSocType();
  
-    drvStubInit(SOC_ASCEND320T);
-    rtInstance->InitSocType();
-    rtInstance->UpdateDevProperties(CHIP_ASCEND_031, "Ascend031");
-
+    drvStubInit("Ascend310B1");
+    rtInstance->InitSocVersion();
+    rtInstance->UpdateDevProperties(CHIP_MINI_V3, "Ascend310B1");
+ 
+    drvStubInit("Hi3796CV300ES");
+    rtInstance->InitSocVersion();
+ 
+    drvStubInit("Ascend031");
+    rtInstance->InitSocVersion();
+    rtInstance->UpdateDevProperties(CHIP_MINI_V3, "Ascend310B1");
+ 
     // restore soc type
     drvStubInit(socBak);
-    rtInstance->InitSocType();
+    rtInstance->InitSocVersion();
     ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
-    GlobalContainer::SetHardwareChipType(CHIP_END);
+    GlobalContainer::SetHardwareSocVersion("");
 }
  
 TEST_F(ApiTest, rtModelCheckCompatibility_socVersion)
@@ -6372,57 +6366,35 @@ TEST_F(ApiTest, rtModelCheckCompatibility_socVersion)
  
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtArchType_t oriArchType = rtInstance->GetArchType();
-    rtSocType_t socBak = rtInstance->GetSocType();
+    std::string socBak = rtInstance->GetSocVersion();
  
     rtInstance->SetChipType(CHIP_ADC);
     GlobalContainer::SetRtChipType(CHIP_ADC);
-    rtInstance->SetSocType(SOC_ASCEND910B);
-    GlobalContainer::SetSocType(SOC_ASCEND910B);
+    rtInstance->SetSocVersion("Ascend910B");
+    GlobalContainer::SetSocVersion("Ascend910B");
  
     memset_s(version, 50, 0, 50);
     error = rtGetSocVersion(version, 50);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(strcmp("Ascend910B", version), 0);
  
-    rtInstance->SetArchType(ARCH_M300);
     // OMSocVersion is null
     error = rtModelCheckCompatibility("", "10");
-    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
     // OMSocVersion is nullptr
     error = rtModelCheckCompatibility(nullptr, "10");
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+
+    error = rtModelCheckCompatibility("Ascend910A", "10");
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
  
     // restore all type
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
     drvStubInit(socBak);
-    rtInstance->InitSocType();
-    rtInstance->SetArchType(oriArchType);
+    rtInstance->InitSocVersion();
 }
- 
-TEST_F(ApiTest, rtModelCheckCompatibility_archVersion)
-{
-    rtError_t error;
- 
-    Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtArchType_t oriArchType = rtInstance->GetArchType();
- 
-    // 只换1-2包
-    rtInstance->SetArchType(ARCH_V100);
-    rtInstance->SetChipType(CHIP_CLOUD);
-    GlobalContainer::SetRtChipType(CHIP_CLOUD);
-    error = rtModelCheckCompatibility("SOC_ASCEND910", "3");
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    rtInstance->SetChipType(CHIP_ADC);
-    GlobalContainer::SetRtChipType(CHIP_ADC);
-    error = rtModelCheckCompatibility("SOC_ASCEND910", "0");
-    EXPECT_EQ(error, RT_ERROR_NONE);
- 
-    // restore all type
-    rtInstance->SetArchType(oriArchType);
-}
- 
+
 TEST_F(ApiTest, rtGetPairDevicesInfo)
 {
     rtError_t error;
@@ -7162,9 +7134,9 @@ TEST_F(ApiTest, rtGetOpTimeOutInterval)
     rtChipType_t oriChipType = rtInstance->GetChipType();
     rtInstance->SetChipType(CHIP_610LITE);
     GlobalContainer::SetRtChipType(CHIP_610LITE);
-    rtSocType_t socType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_ASCEND910B1);
-    rtInstance->InitChipAndSocType();
+    std::string socVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("Ascend910B1");
+    rtInstance->InitChipTypeAndSocVersion();
     error= rtGetOpTimeOutInterval(nullptr);
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID); // nullptr
     Runtime::Instance()->timeoutConfig_.isInit = false;
@@ -7182,57 +7154,5 @@ TEST_F(ApiTest, rtGetOpTimeOutInterval)
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(socType);
-}
-
-TEST_F(ApiTest, rtSetOpExecuteTimeOutV2)
-{
-    rtError_t error;
-    uint64_t timeout = 100 * 1000 * 100UL; // 100s
-    uint64_t actualTimeout = 0UL;
-    Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtChipType_t oriChipType = rtInstance->GetChipType();
-    rtInstance->SetChipType(CHIP_610LITE);
-    GlobalContainer::SetRtChipType(CHIP_610LITE);
-    rtSocType_t socType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_ASCEND910B1);
-    rtInstance->InitChipAndSocType();
-    error= rtSetOpExecuteTimeOutV2(timeout, nullptr);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID); // nullptr
-    Runtime::Instance()->timeoutConfig_.isInit = false;
-    error= rtSetOpExecuteTimeOutV2(timeout, &actualTimeout);
-    EXPECT_EQ(error, ACL_ERROR_RT_DEV_SETUP_ERROR); // not set device
-
-    Device* device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0); // set device
-    Runtime::Instance()->timeoutConfig_.isInit = false;
-    MOCKER_CPP_VIRTUAL(device, &Device::CheckFeatureSupport)
-        .stubs().will(returnValue(false));
-    ((Runtime *)Runtime::Instance())->InitOpExecTimeout(device);
-    error= rtSetOpExecuteTimeOutV2(timeout, &actualTimeout);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
-    ((Runtime *)Runtime::Instance())->DeviceRelease(device);
-    rtInstance->SetChipType(oriChipType);
-    GlobalContainer::SetRtChipType(oriChipType);
-    rtInstance->SetSocType(socType);
-}
-
-TEST_F(ApiTest, CheckMemCpyAttr_NumaCoverage) 
-{
-    ApiImpl api;  
-    char d_obj = 0;
-    char s_obj = 0;
-    void* dst_ptr = &d_obj;
-    void* src_ptr = &s_obj;
-    rtMemcpyBatchAttr memAttr{}; 
-    rtPtrAttributes_t dstAttr_actual{};
-    rtPtrAttributes_t srcAttr_actual{};
-    memAttr.dstLoc.type = RT_MEMORY_LOC_HOST_NUMA;
-    memAttr.dstLoc.id = 1;
-    memAttr.srcLoc.type = RT_MEMORY_LOC_HOST_NUMA;
-    memAttr.srcLoc.id =1;
-    MOCKER(drvMemGetAttribute).stubs().will(invoke(drvMemGetAttribute_2));
-    rtError_t error = api.CheckMemCpyAttr(dst_ptr, src_ptr, memAttr, dstAttr_actual, srcAttr_actual);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-    GlobalMockObject::verify();
+    rtInstance->SetSocVersion(socVersion);
 }

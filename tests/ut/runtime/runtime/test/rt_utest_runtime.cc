@@ -154,22 +154,6 @@ TEST_F(RuntimeTest, function_reg_repeat)
     rtInstance->PutProgram(program);
 }
 
-TEST_F(RuntimeTest, config_log_level)
-{
-    setenv("RT_LOG_LEVEL", "xxx", 1);
-    Config *tmpConfig = new Config();
-    delete tmpConfig;
-
-    setenv("RT_LOG_LEVEL", "100", 1);
-    tmpConfig = new Config();
-    delete tmpConfig;
-
-    setenv("RT_LOG_LEVEL", "2", 1);
-    tmpConfig = new Config();
-    delete tmpConfig;
-    EXPECT_NE(tmpConfig, nullptr);
-}
-
 using ConstructFunc = Runtime *(*)();
 using DesConstructFunc = void (*)(Runtime *);
 
@@ -194,15 +178,15 @@ TEST_F(RuntimeTest, BOOT_RUNTIME_TEST_ConstructRuntime)
 TEST_F(RuntimeTest, AicpuCntInitTest)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_AS31XM1X);
+    std::string socVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("AS31XM1X");
     rtError_t error  = rtInstance->InitAiCpuCnt();
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    rtInstance->SetSocType(SOC_BEGIN);
+    rtInstance->SetSocVersion("");
     error  = rtInstance->InitAiCpuCnt();
 
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(RuntimeTest, CheckHaveDevice)
@@ -217,7 +201,7 @@ TEST_F(RuntimeTest, CheckHaveDevice)
         .then(returnValue(DRV_ERROR_NONE));
     ret = rtInstance->CheckHaveDevice();
     EXPECT_EQ(ret, false);
-    rtInstance->InitChipAndSocType();
+    rtInstance->InitChipTypeAndSocVersion();
 
     MOCKER(drvGetDevNum).stubs().will(returnValue(DRV_ERROR_INVALID_VALUE));
     ret = rtInstance->CheckHaveDevice();
@@ -527,43 +511,43 @@ TEST_F(RuntimeTest, ut_OtherProfilerApiStartStopTest)
 TEST_F(RuntimeTest, ut_LoadFunction)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtInstance->SetSocTypeByChipType(0x0500, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0500, 0, 0);
     rtChipType_t chipType = rtInstance->chipType_;
     rtInstance->chipType_ = CHIP_DC;
     GlobalContainer::SetRtChipType(CHIP_DC);
-    rtInstance->SetSocTypeByChipType(0x0500, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0500, 0, 0);
     rtInstance->chipType_ = CHIP_ADC;
     GlobalContainer::SetRtChipType(CHIP_ADC);
-    rtInstance->SetSocTypeByChipType(0x0502, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0502, 0, 0);
     rtInstance->chipType_ = CHIP_ADC;
     GlobalContainer::SetRtChipType(CHIP_ADC);
-    rtInstance->SetSocTypeByChipType(0x0506, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0506, 0, 0);
     rtInstance->chipType_ = CHIP_AS31XM1;
     GlobalContainer::SetRtChipType(CHIP_AS31XM1);
-    rtInstance->SetSocTypeByChipType(0x0506, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0506, 0, 0);
     rtInstance->chipType_ = CHIP_610LITE;
     GlobalContainer::SetRtChipType(CHIP_610LITE);
-    rtInstance->SetSocTypeByChipType(0x0506, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0506, 0, 0);
     rtInstance->chipType_ = CHIP_DAVID;
     GlobalContainer::SetRtChipType(CHIP_DAVID);
-    rtInstance->SetSocTypeByChipType(0x0506, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0506, 0, 0);
     rtInstance->chipType_ = CHIP_DC;
     GlobalContainer::SetRtChipType(CHIP_DC);
     rtInstance->chipType_ = CHIP_X90;
     GlobalContainer::SetRtChipType(CHIP_X90);
-    rtInstance->SetSocTypeByChipType(0x0506, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0506, 0, 0);
     rtInstance->chipType_ = CHIP_9030;
     GlobalContainer::SetRtChipType(CHIP_9030);
-    rtInstance->SetSocTypeByChipType(0x0506, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0506, 0, 0);
     uint32_t devId = rtInstance->workingDev_;
     rtInstance->workingDev_ = 10;
-    rtInstance->SetSocTypeByChipType(0x0500, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0500, 0, 0);
     rtInstance->workingDev_ = 12;
-    rtInstance->SetSocTypeByChipType(0x0500, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0500, 0, 0);
     rtInstance->workingDev_ = 329;
-    rtInstance->SetSocTypeByChipType(0x0500, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0500, 0, 0);
     rtInstance->workingDev_ = 5525;
-    rtInstance->SetSocTypeByChipType(0x0500, 0, 0);
+    rtInstance->GetSocVersionByHardwareVer(0x0500, 0, 0);
     rtInstance->workingDev_ = devId;
     rtInstance->chipType_ = chipType;
     GlobalContainer::SetRtChipType(chipType);
@@ -572,8 +556,9 @@ TEST_F(RuntimeTest, ut_LoadFunction)
 TEST_F(RuntimeTest, SocTypeByChipType)
 {
     Runtime rt; // no init
-    rt.SetSocTypeByChipType(0x0800, 0, 0);
-    EXPECT_NE(rt.GetSocType(), SOC_BEGIN);
+    rt.SetChipType(static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x0800))));
+    rt.GetSocVersionByHardwareVer(0x0800, 0, 0);
+    EXPECT_NE(rt.GetSocVersion(), "");
 }
 
 extern "C" {
@@ -714,14 +699,14 @@ TEST_F(RuntimeTest, ut_SetAndGetWatchDogDevStatus_04)
 TEST_F(RuntimeTest, SetTimeoutConfig_test)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t oldSocType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_AS31XM1X);
+    std::string oldSocVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("AS31XM1X");
     bool oldflag1 = rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout;
     bool oldflag2 = rtInstance->timeoutConfig_.isCfgOpWaitTaskTimeout;
     rtError_t ret = rtInstance->SetTimeoutConfig(RT_TIMEOUT_TYPE_OP_WAIT, 60, RT_TIME_UNIT_TYPE_S);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 
-    rtInstance->SetSocType(oldSocType);
+    rtInstance->SetSocVersion(oldSocVersion);
     rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout = oldflag1;
     rtInstance->timeoutConfig_.isCfgOpWaitTaskTimeout = oldflag2;
 }

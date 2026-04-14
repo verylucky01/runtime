@@ -30,7 +30,7 @@
 #include "raw_device.hpp"
 #include "task_execute_time.h"
 #include "capture_model_utils.hpp"
-#include "config_define.hpp"
+#include "rt_utest_config_define.hpp"
 #include "task_res.hpp"
 #include "dvpp_c.hpp"
 using namespace testing;
@@ -59,26 +59,28 @@ protected:
     virtual void SetUp()
     {
         GlobalMockObject::verify();
-        MOCKER(GetHardVerBySocVer).stubs().will(invoke(stubGetHardVerBySocVer));
         (void)rtSetSocVersion("Ascend910B1");
+        ((Runtime*)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
+        rtInstance->SetChipType(CHIP_910_B_93);
         int32_t devId = -1;
         rtSetDevice(0);
         rtGetDevice(&devId);
         dev_ = ((Runtime *)Runtime::Instance())->DeviceRetain(devId, 0);
-        old = dev_->GetPlatformType();
-        dev_->SetPlatformType(PLATFORM_CLOUD_V2);
+        old = dev_->GetChipType();
+        dev_->SetChipType(CHIP_910_B_93);
 
         rtStreamCreate((rtStream_t*)&stream_, 0);
         ctx_ = Runtime::Instance()->CurrentContext();
-        std::cout<<"RtsStApi test start start. old platform="<<old<<std::endl;
+        std::cout<<"RtsStApi test start start. old chiptype="<<old<<std::endl;
     }
     virtual void TearDown()
     {
         GlobalMockObject::verify();
         rtStreamDestroy(stream_);
-        dev_->SetPlatformType(old);
+        dev_->SetChipType(old);
         ((Runtime *)Runtime::Instance())->DeviceRelease(dev_);
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rtDeviceReset(0);
         stream_ = nullptr;
         dev_ = nullptr;
@@ -90,7 +92,7 @@ protected:
     Stream *stream_ = nullptr;
     Device *dev_ = nullptr;
     Context *ctx_ = nullptr;
-    rtPlatformType_t old;
+    rtChipType_t old;
     static bool flag;
 };
 bool StarsTaskTest::flag = false;
@@ -1414,8 +1416,8 @@ TEST_F(StarsTaskTest, SameTaskIdForAll)
 TEST_F(StarsTaskTest, TransExeTimeoutCfgToKernelCredit_Test)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_AS31XM1X);
+    std::string socVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("AS31XM1X");
     
     bool oldflag1 = rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout;
     bool oldflag2 = rtInstance->timeoutConfig_.isCfgOpWaitTaskTimeout;
@@ -1425,7 +1427,7 @@ TEST_F(StarsTaskTest, TransExeTimeoutCfgToKernelCredit_Test)
     uint16_t kernelCredit = GetAicoreKernelCredit(UINT64_MAX); // never timeout
     EXPECT_EQ(kernelCredit, RT_STARS_NEVER_TIMEOUT_KERNEL_CREDIT);
 
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
     rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout = oldflag1;
     rtInstance->timeoutConfig_.isCfgOpWaitTaskTimeout = oldflag2;
 }

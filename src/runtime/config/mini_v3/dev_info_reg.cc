@@ -15,10 +15,10 @@
 namespace cce {
 namespace runtime {
 static constexpr rtSocInfo_t CHIP_MINI_V3_SOC_INFO[] = {
-    {SOC_ASCEND310B1, CHIP_MINI_V3, ARCH_V300, "Ascend310B1"},
-    {SOC_ASCEND310B2, CHIP_MINI_V3, ARCH_V300, "Ascend310B2"},
-    {SOC_ASCEND310B3, CHIP_MINI_V3, ARCH_V300, "Ascend310B3"},
-    {SOC_ASCEND310B4, CHIP_MINI_V3, ARCH_V300, "Ascend310B4"},
+    {CHIP_MINI_V3, "Ascend310B1"},
+    {CHIP_MINI_V3, "Ascend310B2"},
+    {CHIP_MINI_V3, "Ascend310B3"},
+    {CHIP_MINI_V3, "Ascend310B4"},
 };
 
 BATCH_REGISTER_SOC_INFO(CHIP_MINI_V3_SOC_INFO, sizeof(CHIP_MINI_V3_SOC_INFO) / sizeof(rtSocInfo_t));
@@ -84,6 +84,7 @@ static constexpr uint32_t KERNEL_CUSTOM_STACK_SIZE_MAX = 7864320U; // 7680KB
 static const DevProperties CHIP_MINI_V3_PROPERTIES = {
     .engineType = "STARS",
     .isStars = true,
+    .isStarsV2 = false,
     .pthreadStackSize = PTHREAD_STACK_SIZE,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_CONFIG,
     .tsCount = 1U,

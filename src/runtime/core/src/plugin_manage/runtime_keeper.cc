@@ -125,7 +125,7 @@ using DesConstructPool = void (*)();
 static rtChipType_t g_chipType = CHIP_BEGIN;
 rtChipType_t Runtime::GetChipType()
 {
-    if (GlobalContainer::GetSocType() != SOC_BEGIN) {
+    if (GlobalContainer::GetRtChipType() != CHIP_END) {
         return GlobalContainer::GetRtChipType();
     }
     return g_chipType;

@@ -448,10 +448,10 @@ TEST_F(CloudV2ContextTest, ModelAddEndGraph_Test)
     ctx->streams_.push_back(stmPtr);
     Stream *defaultStream = ctx->defaultStream_;
     ctx->defaultStream_ = stmPtr;
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND310P1);
+    std::string socVersion = GlobalContainer::GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend310P1");
     error = ctx->ModelAddEndGraph(model, stmPtr, 0);
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetSocVersion(socVersion);
     ctx->streams_.clear();
     ctx->defaultStream_ = defaultStream;
 
@@ -1014,10 +1014,10 @@ unsigned char dynamic_kernel_data_mix_1_2_data[] = {
     argsInfo.args = &arg;
     argsInfo.argsSize = 4100;
     Stream *stream = (Stream *)ctx->DefaultStream_();
-     uint32_t oldPlatform = ((RawDevice *)(ctx->Device_()))->platformConfig_;
-    ((RawDevice *)(ctx->Device_()))->platformConfig_ = 0x400;
+    rtChipType_t oldChipType = ((RawDevice *)(ctx->Device_()))->chipType_;
+    ((RawDevice *)(ctx->Device_()))->chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x400)));
     error = ctx->LaunchKernelWithHandle(m_handle, 1, 1, &argsInfo, stream, 0, NULL);
-    ((RawDevice *)(ctx->Device_()))->platformConfig_ = oldPlatform;
+    ((RawDevice *)(ctx->Device_()))->chipType_ = oldChipType;
 
     error = rtDevBinaryUnRegister(m_handle);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -1393,10 +1393,10 @@ unsigned char dynamic_kernel_data_mix_1_2_data[] = {
     argsInfo.args = &arg;
     argsInfo.argsSize = 4100;
     Stream *stream = (Stream *)ctx->DefaultStream_();
-     uint32_t oldPlatform = ((RawDevice *)(ctx->Device_()))->platformConfig_;
-    ((RawDevice *)(ctx->Device_()))->platformConfig_ = 0x400;
+    rtChipType_t oldChipType = ((RawDevice *)(ctx->Device_()))->chipType_;
+    ((RawDevice *)(ctx->Device_()))->chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x400)));
     error = ctx->LaunchKernel(kernelPtr, 8, &argsInfo, stream, NULL, true);
-    ((RawDevice *)(ctx->Device_()))->platformConfig_ = oldPlatform;
+    ((RawDevice *)(ctx->Device_()))->chipType_ = oldChipType;
 
     error = rtDevBinaryUnRegister(m_handle);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -1805,11 +1805,11 @@ TEST_F(CloudV2ContextTest, aicpu_kernel_launch_with_pctrace)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     RawDevice * rawDevice = (RawDevice *)((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
-    rawDevice->platformConfig_ = 0x100;
+    rawDevice->chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x100)));
     error = rtKernelLaunch(&funStub, 1, (void *)binary, sizeof(binary), NULL, NULL);
     EXPECT_NE(error, RT_ERROR_NONE);
 
-    rawDevice->platformConfig_ = 0x0;
+    rawDevice->chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x0)));
     error = rtStreamSynchronize(stream_);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -2083,7 +2083,7 @@ TEST_F(CloudV2ContextTest, ReduceAsync_CheckAlign)
     error = api->ContextGetCurrent(&ctx);
     EXPECT_EQ(error, RT_ERROR_NONE);
     RawDevice* device= (RawDevice*)ctx->Device_();
-    device->platformConfig_ = 0x300;
+    device->chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x300)));
     uint32_t *addr = (uint32_t *)0x2;
     error = ctx->CheckMemAlign(addr, RT_DATA_TYPE_FP16);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -2093,7 +2093,7 @@ TEST_F(CloudV2ContextTest, ReduceAsync_CheckAlign)
     EXPECT_NE(error, RT_ERROR_NONE);
     error = ctx->CheckMemAlign(addr, RT_DATA_TYPE_END);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    device->platformConfig_ = 0x0;
+    device->chipType_ = static_cast<rtChipType_t>(PLAT_GET_CHIP(static_cast<uint64_t>(0x0)));
 }
 
 rtError_t MemCopySyncStub_(NpuDriver *drv, void *dst, uint64_t destMax, const void *src, uint64_t size, rtMemcpyKind_t kind)

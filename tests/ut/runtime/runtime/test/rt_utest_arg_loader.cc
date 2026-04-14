@@ -80,8 +80,8 @@ TEST_F(ArgLoaderTest, uma_arg_loader_test_310M)
 
     device = ((Runtime *)Runtime::Instance())->DeviceRetain(devId, 0);
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_AS31XM1X);
+    std::string socVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("AS31XM1X");
     UmaArgLoader *loader = new UmaArgLoader(device);
     error = loader->Init();
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -100,7 +100,7 @@ TEST_F(ArgLoaderTest, uma_arg_loader_test_310M)
     delete loader;
     delete rawDrv;
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
-    rtInstance->SetSocType(socType);
+    rtInstance->SetSocVersion(socVersion);
 }
 
 TEST_F(ArgLoaderTest, uma_arg_loader)
@@ -196,8 +196,8 @@ TEST_F(ArgLoaderTest, uma_arg_loader_init_of_chip_as31xm1x)
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     Device *device = rtInstance->DeviceRetain(0, 0);
     UmaArgLoader argLdr(device);
-    rtSocType_t preType = rtInstance->GetSocType();
-    rtInstance->SetSocType(SOC_AS31XM1X);
+    std::string preSocVersion = rtInstance->GetSocVersion();
+    rtInstance->SetSocVersion("AS31XM1X");
     int32_t aicpuCnt = rtInstance->GetAicpuCnt();
     rtInstance->SetAicpuCnt(1);
     rtError_t err = argLdr.Init();
@@ -206,7 +206,7 @@ TEST_F(ArgLoaderTest, uma_arg_loader_init_of_chip_as31xm1x)
     argLdr.GetKernelInfoDevAddr("123", KernelInfoType::SO_NAME, &soNameAddr);
     argLdr.GetKernelInfoDevAddr("456", KernelInfoType::KERNEL_NAME, &soNameAddr);
     argLdr.RestoreAiCpuKernelInfo();
-    rtInstance->SetSocType(preType);
+    rtInstance->SetSocVersion(preSocVersion);
     rtInstance->SetAicpuCnt(aicpuCnt);
     rtInstance->DeviceRelease(device);
 }

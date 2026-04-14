@@ -16,12 +16,11 @@ namespace cce {
 namespace runtime {
 
 static constexpr rtSocInfo_t CHIP_CLOUD_SOC_INFO[] = {
-    {SOC_ASCEND910A, CHIP_CLOUD, ARCH_C100, "Ascend910A"},
-    {SOC_ASCEND910A, CHIP_CLOUD, ARCH_C100, "Ascend910"},
-    {SOC_ASCEND910B, CHIP_CLOUD, ARCH_C100, "Ascend910B"},
-    {SOC_ASCEND910ProA, CHIP_CLOUD, ARCH_C100, "Ascend910ProA"},
-    {SOC_ASCEND910ProB, CHIP_CLOUD, ARCH_C100, "Ascend910ProB"},
-    {SOC_ASCEND910PremiumA, CHIP_CLOUD, ARCH_C100, "Ascend910PremiumA"}
+    {CHIP_CLOUD, "Ascend910A"},
+    {CHIP_CLOUD, "Ascend910B"},
+    {CHIP_CLOUD, "Ascend910ProA"},
+    {CHIP_CLOUD, "Ascend910ProB"},
+    {CHIP_CLOUD, "Ascend910PremiumA"}
 };
 
 BATCH_REGISTER_SOC_INFO(CHIP_CLOUD_SOC_INFO, sizeof(CHIP_CLOUD_SOC_INFO) / sizeof(rtSocInfo_t));
@@ -94,6 +93,7 @@ static constexpr double RT_HWTS_910A_TASK_KERNEL_CREDIT_SCALE_US = 68719476.736;
 static const DevProperties CHIP_CLOUD_PROPERTIES = {
     .engineType = "HWTS",
     .isStars = false,
+    .isStarsV2 = false,
     .pthreadStackSize = PTHREAD_STACK_SIZE,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_CONFIG,
     .tsCount = 1U,

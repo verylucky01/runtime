@@ -17,7 +17,7 @@ public:
 protected:
     static void SetUpTestCase()
     {
-        (void)rtSetSocVersion("Ascend910");
+        (void)rtSetSocVersion("Ascend910A");
         ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         Runtime *rtInstance = (Runtime *)Runtime::Instance();
         originType_ = Runtime::Instance()->GetChipType();
@@ -46,8 +46,8 @@ protected:
         StubClearHalSqSendAndRecvCnt(0);
         rtDeviceReset(0);
         GlobalMockObject::verify();
-        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         (void)rtSetSocVersion("");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rtInstance->SetDisableThread(disableFlag_);
     }
 

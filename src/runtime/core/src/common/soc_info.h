@@ -18,8 +18,7 @@
 
 namespace cce {
 namespace runtime {
-rtError_t GetSocInfoByName(const char_t * const socName, rtSocInfo_t& info);
-std::string GetSocVersionStrByType(const rtSocType_t socType);
+rtError_t GetSocInfoFromRuntimeByName(const char_t * const socName, rtSocInfo_t& info);
 rtError_t GetNpuArchByName(const char_t* const socName, int32_t* hardwareNpuArch);
 }
 }

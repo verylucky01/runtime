@@ -1058,16 +1058,6 @@ rtError_t ApiDecorator::ModelBindQueue(Model * const mdl, const uint32_t queueId
     return impl_->ModelBindQueue(mdl, queueId, flag);
 }
 
-rtError_t ApiDecorator::GetAiCoreCount(uint32_t * const aiCoreCnt)
-{
-    return impl_->GetAiCoreCount(aiCoreCnt);
-}
-
-rtError_t ApiDecorator::GetAiCpuCount(uint32_t * const aiCpuCnt)
-{
-    return impl_->GetAiCpuCount(aiCpuCnt);
-}
-
 rtError_t ApiDecorator::SetExceptCallback(const rtErrorCallback callback)
 {
     return impl_->SetExceptCallback(callback);
@@ -1274,6 +1264,16 @@ rtError_t ApiDecorator::GetRunMode(rtRunMode * const runMode)
 rtError_t ApiDecorator::GetAicpuDeploy(rtAicpuDeployType_t * const deployType)
 {
     return impl_->GetAicpuDeploy(deployType);
+}
+
+rtError_t ApiDecorator::GetAiCoreCount(uint32_t * const aiCoreCnt)
+{
+    return impl_->GetAiCoreCount(aiCoreCnt);
+}
+
+rtError_t ApiDecorator::GetAiCpuCount(uint32_t * const aiCpuCnt)
+{
+    return impl_->GetAiCpuCount(aiCpuCnt);
 }
 
 rtError_t ApiDecorator::StartOnlineProf(Stream * const stm, const uint32_t sampleNum)
@@ -1871,9 +1871,9 @@ rtError_t ApiDecorator::EschedQueryInfo(const uint32_t devId, const rtEschedQuer
     return impl_->EschedQueryInfo(devId, type, inPut, outPut);
 }
 
-rtError_t ApiDecorator::ModelCheckArchVersion(const char_t *omArchVersion, const rtArchType_t archType)
+rtError_t ApiDecorator::ModelCheckArchVersion(const char_t *omsocVersion)
 {
-    return impl_->ModelCheckArchVersion(omArchVersion, archType);
+    return impl_->ModelCheckArchVersion(omsocVersion);
 }
 
 rtError_t ApiDecorator::ReserveMemAddress(void** devPtr, size_t size, size_t alignment, void *devAddr, uint64_t flags)

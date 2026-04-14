@@ -17,7 +17,7 @@ namespace cce {
 namespace runtime {
 
 static constexpr rtSocInfo_t CHIP_MC32DM11A_SOC_INFO[] = {
-    {SOC_MC62CM12A, CHIP_MC32DM11A, ARCH_M510, "MC32DM11AA"},
+    {CHIP_MC32DM11A, "MC32DM11AA"},
 };
 
 BATCH_REGISTER_SOC_INFO(CHIP_MC32DM11A_SOC_INFO, sizeof(CHIP_MC32DM11A_SOC_INFO) / sizeof(rtSocInfo_t));
@@ -101,6 +101,7 @@ static constexpr uint32_t CQE_DEPTH = 1024U;
 static const DevProperties CHIP_MC32DM11A_PROPERTIES = {
     .engineType = "STARS",
     .isStars = true,
+    .isStarsV2 = false,
     .pthreadStackSize = PTHREAD_STACK_SIZE,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_CONFIG,
     .tsCount = 2U,

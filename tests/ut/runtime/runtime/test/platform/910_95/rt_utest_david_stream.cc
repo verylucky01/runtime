@@ -48,7 +48,7 @@
 #include "aix_c.hpp"
 #include "aicpu_c.hpp"
 #include "thread_local_container.hpp"
-#include "config_define.hpp"
+#include "../../rt_utest_config_define.hpp"
 #include "event_c.hpp"
 #include "api_impl_david.hpp"
 #include "api_error.hpp"
@@ -131,9 +131,10 @@ protected:
         rtSetDevice(0);
 
         (void)rtSetSocVersion("Ascend950PR_9599");
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
 
         device_ = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
-        device_->SetPlatformType(PLATFORM_DAVID_950PR_9599);
+        device_->SetChipType(CHIP_DAVID);
         engine_ = ((RawDevice *)device_)->engine_;
 
         rtError_t res = rtStreamCreate(&streamHandle_, 0);
@@ -166,6 +167,7 @@ protected:
         stream_ = nullptr;
         engine_ = nullptr;
         ((Runtime *)Runtime::Instance())->DeviceRelease(device_);
+        ((Runtime *)Runtime::Instance())->SetIsUserSetSocVersion(false);
         rtDeviceReset(0);
         GlobalMockObject::reset();
     }

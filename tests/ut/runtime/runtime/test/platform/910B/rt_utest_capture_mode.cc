@@ -82,8 +82,8 @@ TEST_F(CloudV2CaptureModelTest, SUBMIT_RDMA_PI_VALUE_MODIFY_TASK)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     MOCKER_CPP(&Model::LoadCompleteByStreamPostp).stubs().will(returnValue(RT_ERROR_NONE));
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+    std::string socVersion = GlobalContainer::GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend910B2");
 
     rtContext_t ctx;
     rtError_t ret = rtCtxCreate(&ctx, 0, 0);
@@ -122,15 +122,15 @@ TEST_F(CloudV2CaptureModelTest, SUBMIT_RDMA_PI_VALUE_MODIFY_TASK)
 
     ret = rtCtxDestroy(ctx);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetSocVersion(socVersion);
     GlobalMockObject::verify();
 }
 
 TEST_F(CloudV2CaptureModelTest, PRINT_DFX_INFO)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+    std::string socVersion = GlobalContainer::GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend910B2");
 
     rtContext_t ctx;
     rtError_t ret = rtCtxCreate(&ctx, 0, 0);
@@ -187,15 +187,15 @@ TEST_F(CloudV2CaptureModelTest, PRINT_DFX_INFO)
     curCtx->models_.clear();
     ret = rtCtxDestroy(ctx);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetSocVersion(socVersion);
     GlobalMockObject::verify();
 }
 
 TEST_F(CloudV2CaptureModelTest, PRINT_DFX_DEBUG_INFO)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+    std::string socVersion = GlobalContainer::GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend910B2");
 
     rtContext_t ctx;
     rtError_t ret = rtCtxCreate(&ctx, 0, 0);
@@ -243,15 +243,15 @@ TEST_F(CloudV2CaptureModelTest, PRINT_DFX_DEBUG_INFO)
     curCtx->models_.clear();
     ret = rtCtxDestroy(ctx);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetSocVersion(socVersion);
     GlobalMockObject::verify();
 }
 
 TEST_F(CloudV2CaptureModelTest, PRINT_DFX_INFO_FAIL)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+    std::string socVersion = GlobalContainer::GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend910B2");
 
     rtContext_t ctx;
     rtError_t ret = rtCtxCreate(&ctx, 0, 0);
@@ -286,15 +286,15 @@ TEST_F(CloudV2CaptureModelTest, PRINT_DFX_INFO_FAIL)
     curCtx->models_.clear();
     ret = rtCtxDestroy(ctx);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetSocVersion(socVersion);
     GlobalMockObject::verify();
 }
 
 TEST_F(CloudV2CaptureModelTest, PRINT_DFX_DEBUG_INFO_NONE)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+    std::string socVersion = GlobalContainer::GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend910B2");
 
     rtContext_t ctx;
     rtError_t ret = rtCtxCreate(&ctx, 0, 0);
@@ -332,15 +332,15 @@ TEST_F(CloudV2CaptureModelTest, PRINT_DFX_DEBUG_INFO_NONE)
     ret = rtCtxDestroy(ctx);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetSocVersion(socVersion);
     GlobalMockObject::verify();
 }
 
 TEST_F(CloudV2CaptureModelTest, PRINT_DFX_DEBUG_ZERO)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+    std::string socVersion = GlobalContainer::GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend910B2");
 
     rtContext_t ctx;
     rtError_t ret = rtCtxCreate(&ctx, 0, 0);
@@ -382,15 +382,15 @@ TEST_F(CloudV2CaptureModelTest, PRINT_DFX_DEBUG_ZERO)
     curCtx->models_.clear();
     ret = rtCtxDestroy(ctx);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetSocVersion(socVersion);
     GlobalMockObject::verify();
 }
 
 TEST_F(CloudV2CaptureModelTest, PRINT_DFX_DEBUG_INFO_COPY_FAIL)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+    std::string socVersion = GlobalContainer::GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend910B2");
 
     rtContext_t ctx;
     rtError_t ret = rtCtxCreate(&ctx, 0, 0);
@@ -438,7 +438,7 @@ TEST_F(CloudV2CaptureModelTest, PRINT_DFX_DEBUG_INFO_COPY_FAIL)
     ret = rtCtxDestroy(ctx);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetSocVersion(socVersion);
     GlobalMockObject::verify();
 }
 
@@ -1326,8 +1326,8 @@ void StubAddCaptureSqeNum(Stream* ptr, uint32_t sqeNum)
 TEST_F(CloudV2CaptureModelTest, cascade_stream)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtSocType_t socType = GlobalContainer::GetSocType();
-    GlobalContainer::SetSocType(SOC_ASCEND910B2);
+    std::string socVersion = GlobalContainer::GetSocVersion();
+    GlobalContainer::SetSocVersion("Ascend910B2");
 
     rtContext_t ctx;
     rtError_t ret = rtCtxCreate(&ctx, 0, 0);
@@ -1388,7 +1388,7 @@ TEST_F(CloudV2CaptureModelTest, cascade_stream)
 
     ret = rtCtxDestroy(ctx);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    GlobalContainer::SetSocType(socType);
+    GlobalContainer::SetSocVersion(socVersion);
     GlobalMockObject::verify();
 }
 

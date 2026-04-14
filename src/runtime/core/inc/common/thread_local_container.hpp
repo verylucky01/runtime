@@ -52,14 +52,11 @@ public:
     static rtChipType_t GetRtChipType(void);
     static void SetRtChipType(const rtChipType_t inChipType);
 
-    static rtSocType_t GetSocType(void);
-    static void SetSocType(const rtSocType_t inSocType);
+    static std::string GetSocVersion(void);
+    static void SetSocVersion(const std::string& socVersion);
 
-    static rtArchType_t GetArchType(void);
-    static void SetArchType(const rtArchType_t inArchType);
-
-    static rtChipType_t GetHardwareChipType(void);
-    static void SetHardwareChipType(const rtChipType_t chipType);
+    static std::string GetHardwareSocVersion(void);
+    static void SetHardwareSocVersion(const std::string& socVersion);
 
     static std::string GetUserSocVersion(void);
     static void SetUserSocVersion(const std::string &inSocVersion);
@@ -84,9 +81,8 @@ private:
     static uint8_t eventWorkMode_;
     static uint64_t eventModeSetRefCount;
     static rtChipType_t chipType_;
-    static rtSocType_t socType_;
-    static rtArchType_t archType_;
-    static rtChipType_t hardwareChipType_;
+    static std::string socVersion_;
+    static std::string hardwareSocVersion_;
     static std::string userSocVersion_;
     static std::mutex socVersionMutex_;
 };

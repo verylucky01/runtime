@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include "rt_utest_api.hpp"
+#include "rt_utest_config_define.hpp"
 
 DVresult drvMemGetAttribute_1(DVdeviceptr vptr, struct DVattribute *attr)
 {
@@ -331,6 +332,11 @@ drvError_t halResourceIdAllocStub(uint32_t devId, struct halResourceIdInputInfo 
     return DRV_ERROR_NONE;
 }
 
+rtError_t msprofreportcallback(uint32_t moduleId, uint32_t type, void *data, uint32_t len)
+{
+    return ACL_RT_SUCCESS;
+}
+
 uint32_t g_exception_device_id = 1;
 void StubTaskFailCallback(rtExceptionInfo *exceptionInfo)
 {
@@ -342,24 +348,6 @@ int32_t stubRtsDeviceTaskAbortCallback(uint32_t devId, rtDeviceTaskAbortStage st
     return 0;
 }
 
-rtError_t GetNotifyPhyInfoStub(cce::runtime::ApiImpl *api,
-    Notify *const inNotify, rtNotifyPhyInfo* notifyInfo)
-{
-    notifyInfo->phyId = 1;
-    notifyInfo->tsId = 2;
-    return RT_ERROR_NONE;
-}
-rtError_t msprofreportcallback(uint32_t moduleId, uint32_t type, void *data, uint32_t len)
-{
-    return ACL_RT_SUCCESS;
-}
-
-void initData(uint32_t *hostPtr, uint32_t count, uint32_t data) {
-    for (int i = 0; i < count; i++) {
-        hostPtr[i] = data;
-    }
-}
-
 void initUpdateDsaSqe(uint32_t *hostAddr, rtStarsDsaSqe_t* dsaSqe)
 {
     const uint32_t * const cmd = reinterpret_cast<const uint32_t *>(dsaSqe);
@@ -368,10 +356,24 @@ void initUpdateDsaSqe(uint32_t *hostAddr, rtStarsDsaSqe_t* dsaSqe)
     }
 }
 
-rtSocType_t g_StubSocType = SOC_BEGIN;
+rtError_t GetNotifyPhyInfoStub(cce::runtime::ApiImpl *api,
+    Notify *const inNotify, rtNotifyPhyInfo* notifyInfo)
+{
+    notifyInfo->phyId = 1;
+    notifyInfo->tsId = 2;
+    return RT_ERROR_NONE;
+}
+
+void initData(uint32_t *hostPtr, uint32_t count, uint32_t data) {
+    for (int i = 0; i < count; i++) {
+        hostPtr[i] = data;
+    }
+}
+
+std::string g_StubSocVersion;
 
 struct RtUtestStubHardwareInfo {
-    int32_t socType;
+    std::string socVersion;
     int32_t aicoreNum;
     int32_t aicoreFreq;
     int32_t tsNum;
@@ -379,55 +381,65 @@ struct RtUtestStubHardwareInfo {
 };
 
 static RtUtestStubHardwareInfo g_StubHardwareInfo[] = {
-    {SOC_BEGIN, 0, 0, 0, 0},
-    {SOC_ASCEND910A, 32, 1000, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
-    {SOC_ASCEND910B, 30, 900, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
-    {SOC_ASCEND910ProA, 32, 1100, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
-    {SOC_ASCEND910ProB, 30, 1150, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
-    {SOC_ASCEND910PremiumA, 32, 1200, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
-    {SOC_ASCEND610, 10, 1000, 2, PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_NA)},
-    {SOC_ASCEND310P3, 8, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_DC, VER_NA)},
-    {SOC_Hi3796CV300ES, 1, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_LHISI, VER_ES)},
-    {SOC_Hi3796CV300CS, 1, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_LHISI, VER_CS)},
-    {SOC_BS9SX1AA, 10, 1000, 2, PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_NA)},
-    {SOC_BS9SX1AB, 10, 1000, 2, PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_NA)},
-    {SOC_BS9SX1AC, 10, 1000, 2, PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_NA)},
-    {SOC_ASCEND310P1, 10, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_DC, VER_NA)},
-    {SOC_ASCEND910B1, 50, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, RT_VER_BIN1)},
-    {SOC_ASCEND910B2, 50, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, RT_VER_BIN2)},
-    {SOC_ASCEND910B3, 50, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, RT_VER_BIN3)},
-    {SOC_ASCEND910B4, 50, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, RT_VER_NA)},
-    {SOC_SD3403, 1, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_LHISI, VER_SD3403)},
-    {SOC_ASCEND310B1, 1, 1000, 1, PLAT_COMBINE(ARCH_V300, CHIP_MINI_V3, VER_NA)},
-    {SOC_ASCEND320T, 1, 1000, 1, PLAT_COMBINE(ARCH_V300, CHIP_ASCEND_031, VER_NA)},
+    {"", 0, 0, 0, 0},
+    {"Ascend910A", 32, 1000, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
+    {"Ascend910B", 30, 900, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
+    {"Ascend910ProA", 32, 1100, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
+    {"Ascend910ProB", 30, 1150, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
+    {"Ascend910PremiumA", 32, 1200, 1, PLAT_COMBINE(ARCH_V100, CHIP_CLOUD, VER_NA)},
+    {"Ascend610", 10, 1000, 2, PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_NA)},
+    {"Ascend310P3", 8, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_DC, VER_NA)},
+    {"Hi3796CV300ES", 1, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_LHISI, VER_ES)},
+    {"Hi3796CV300CS", 1, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_LHISI, VER_CS)},
+    {"BS9SX1AA", 10, 1000, 2, PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_NA)},
+    {"BS9SX1AB", 10, 1000, 2, PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_NA)},
+    {"BS9SX1AC", 10, 1000, 2, PLAT_COMBINE(ARCH_V200, CHIP_ADC, VER_NA)},
+    {"Ascend310P1", 10, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_DC, VER_NA)},
+    {"Ascend910B1", 50, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, RT_VER_BIN1)},
+    {"Ascend910B2", 50, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, RT_VER_BIN2)},
+    {"Ascend910B3", 50, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, RT_VER_BIN3)},
+    {"Ascend910B4", 50, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_910_B_93, RT_VER_NA)},
+    {"SD3403", 1, 1000, 1, PLAT_COMBINE(ARCH_V200, CHIP_LHISI, VER_SD3403)},
+    {"Ascend310B1", 1, 1000, 1, PLAT_COMBINE(ARCH_V300, CHIP_MINI_V3, VER_NA)},
+    {"Ascend031", 1, 1000, 1, PLAT_COMBINE(ARCH_V300, CHIP_ASCEND_031, VER_NA)},
 };
 
+static RtUtestStubHardwareInfo* FindStubHardwareInfo(const std::string& socVersion)
+{
+    for (size_t i = 0; i < sizeof(g_StubHardwareInfo) / sizeof(g_StubHardwareInfo[0]); i++) {
+        if (g_StubHardwareInfo[i].socVersion == socVersion) {
+            return &g_StubHardwareInfo[i];
+        }
+    }
+    return nullptr;
+}
 drvError_t stubHalGetDeviceInfo(uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value)
 {
     if (value == nullptr) {
         return DRV_ERROR_NONE;
     }
-
-    if (g_StubSocType >= SOC_END) {
+ 
+    RtUtestStubHardwareInfo* hwInfo = FindStubHardwareInfo(g_StubSocVersion);
+    if (hwInfo == nullptr) {
         *value = 0;
         return DRV_ERROR_NONE;
     }
-
+ 
     switch (moduleType) {
         case MODULE_TYPE_SYSTEM:
             if (infoType == INFO_TYPE_VERSION) {
-                *value = g_StubHardwareInfo[g_StubSocType].hardwareVersion;
+                *value = hwInfo->hardwareVersion;
             } else if (infoType == INFO_TYPE_CORE_NUM) {
-                *value = g_StubHardwareInfo[g_StubSocType].tsNum;
+                *value = hwInfo->tsNum;
             } else {
                 *value = 0;
             }
             break;
         case MODULE_TYPE_AICORE:
             if (infoType == INFO_TYPE_CORE_NUM) {
-                *value = g_StubHardwareInfo[g_StubSocType].aicoreNum;
+                *value = hwInfo->aicoreNum;
             } else if (infoType == INFO_TYPE_FREQUE) {
-                *value = g_StubHardwareInfo[g_StubSocType].aicoreFreq;
+                *value = hwInfo->aicoreFreq;
             } else if (infoType == INFO_TYPE_CORE_NUM_LEVEL) {
                 *value = 1;
             } else {
@@ -438,12 +450,12 @@ drvError_t stubHalGetDeviceInfo(uint32_t devId, int32_t moduleType, int32_t info
             *value = 0;
             break;
     }
-
     return DRV_ERROR_NONE;
 }
-void drvStubInit(rtSocType_t socType)
+
+void drvStubInit(const std::string& socVersion)
 {
-    g_StubSocType = socType;
+    g_StubSocVersion = socVersion;
 }
 rtChipType_t ApiTest::originType_ = CHIP_CLOUD;
 rtStream_t ApiTest::stream_ = NULL;

@@ -3069,20 +3069,6 @@ rtError_t ApiErrorDecorator::IpcCloseMemoryByName(const char_t * const name)
     return error;
 }
 
-rtError_t ApiErrorDecorator::GetAiCoreCount(uint32_t * const aiCoreCnt)
-{
-    NULL_PTR_RETURN_MSG_OUTER(aiCoreCnt, RT_ERROR_INVALID_VALUE);
-
-    return impl_->GetAiCoreCount(aiCoreCnt);
-}
-
-rtError_t ApiErrorDecorator::GetAiCpuCount(uint32_t * const aiCpuCnt)
-{
-    NULL_PTR_RETURN_MSG_OUTER(aiCpuCnt, RT_ERROR_INVALID_VALUE);
-
-    return impl_->GetAiCpuCount(aiCpuCnt);
-}
-
 rtError_t ApiErrorDecorator::ModelCreate(Model ** const mdl, const uint32_t flag)
 {
     NULL_PTR_RETURN_MSG_OUTER(mdl, RT_ERROR_INVALID_VALUE);
@@ -3825,6 +3811,20 @@ rtError_t ApiErrorDecorator::GetAicpuDeploy(rtAicpuDeployType_t * const deployTy
     NULL_PTR_RETURN_MSG_OUTER(deployType, RT_ERROR_INVALID_VALUE);
 
     return impl_->GetAicpuDeploy(deployType);
+}
+
+rtError_t ApiErrorDecorator::GetAiCoreCount(uint32_t * const aiCoreCnt)
+{
+    NULL_PTR_RETURN_MSG_OUTER(aiCoreCnt, RT_ERROR_INVALID_VALUE);
+
+    return impl_->GetAiCoreCount(aiCoreCnt);
+}
+
+rtError_t ApiErrorDecorator::GetAiCpuCount(uint32_t * const aiCpuCnt)
+{
+    NULL_PTR_RETURN_MSG_OUTER(aiCpuCnt, RT_ERROR_INVALID_VALUE);
+
+    return impl_->GetAiCpuCount(aiCpuCnt);
 }
 
 rtError_t ApiErrorDecorator::GetPairDevicesInfo(const uint32_t devId, const uint32_t otherDevId, const int32_t infoType,
@@ -5121,12 +5121,14 @@ rtError_t ApiErrorDecorator::EschedQueryInfo(const uint32_t devId, const rtEsche
     return impl_->EschedQueryInfo(realDeviceId, type, inPut, outPut);
 }
 
-rtError_t ApiErrorDecorator::ModelCheckArchVersion(const char_t *omArchVersion, const rtArchType_t archType)
+rtError_t ApiErrorDecorator::ModelCheckArchVersion(const char_t *omsocVersion)
 {
-    NULL_PTR_RETURN_MSG_OUTER(omArchVersion, RT_ERROR_INVALID_VALUE);
-    COND_RETURN_AND_MSG_OUTER_WITH_PARAM(static_cast<uint32_t>(archType) >= ARCH_END, RT_ERROR_INVALID_VALUE, 
-        archType, "less than " + std::to_string(ARCH_END));
-    return impl_->ModelCheckArchVersion(omArchVersion, archType);
+    NULL_PTR_RETURN_MSG_OUTER(omsocVersion, RT_ERROR_INVALID_VALUE);
+    if (omsocVersion[0U] == '\0') {
+        RT_LOG(RT_LOG_ERROR, "input omsocVersion is null, please check.");
+        return RT_ERROR_INVALID_VALUE;
+    }
+    return impl_->ModelCheckArchVersion(omsocVersion);
 }
 
 rtError_t ApiErrorDecorator::ReserveMemAddress(void** devPtr, size_t size, size_t alignment, void *devAddr,

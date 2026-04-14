@@ -14,7 +14,7 @@
 namespace cce {
 namespace runtime {
 
-static constexpr rtSocInfo_t CHIP_AS31XM1_SOC_INFO[] = {{SOC_AS31XM1X, CHIP_AS31XM1, ARCH_M300, "AS31XM1X"}};
+static constexpr rtSocInfo_t CHIP_AS31XM1_SOC_INFO[] = {{CHIP_AS31XM1, "AS31XM1X"}};
 BATCH_REGISTER_SOC_INFO(CHIP_AS31XM1_SOC_INFO, sizeof(CHIP_AS31XM1_SOC_INFO) / sizeof(rtSocInfo_t));
 
 REGISTER_PLATFORM_LIB_INFO(CHIP_AS31XM1, "libruntime_v100.so");
@@ -81,6 +81,7 @@ static constexpr uint64_t ENGINE_WAIT_COMPLETION_TIMEOUT = 2000UL; //2000ms
 static const DevProperties CHIP_AS31XM1_PROPERTIES = {
     .engineType = "STARS",
     .isStars = true,
+    .isStarsV2 = false,
     .pthreadStackSize = PTHREAD_STACK_SIZE,
     .eventWaitTimeout = EventWaitTimeoutType::SET_OP_WAIT_TIMEOUT_CONFIG,
     .tsCount = 1U,

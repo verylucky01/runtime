@@ -268,17 +268,17 @@ public:
 
     rtChipType_t GetChipType() const override
     {
-        return static_cast<rtChipType_t>(PLAT_GET_CHIP(platformConfig_));
+        return chipType_;
     }
 
-    void SetPlatformType(rtPlatformType_t platformType) override
+    void SetChipType(const rtChipType_t& chipType) override
     {
-        platformType_ = platformType;
+        chipType_ = chipType;
     }
 
-    rtPlatformType_t GetPlatformType() const override
+    std::string GetSocVersion() const override
     {
-        return platformType_;
+        return socVersion_;
     }
 
     void SetDevProfStatus(uint64_t profConfigType, bool isSet) override
@@ -932,8 +932,8 @@ private:
     uint32_t SSID_;
     uint64_t TCR_;
     void *l2buffer_;
-    uint32_t platformConfig_;
-    rtPlatformType_t platformType_;
+    std::string socVersion_;
+    rtChipType_t chipType_;
 
     Atomic<bool> onProfEnable_;
     Atomic<uint64_t> devFailureMode_{0};  // device级别的遇错即停状态

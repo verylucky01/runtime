@@ -241,9 +241,6 @@ TEST_F(RtApiTest, capture_api_08)
 
     MOCKER(memcpy_s).stubs().will(returnValue(NULL));
 
-    uint32_t rtsqDepth = Runtime::macroValue_.rtsqDepth;
-    Runtime::macroValue_.rtsqDepth = 32;
-
     MOCKER_CPP(&Model::LoadCompleteByStreamPostp).stubs().will(returnValue(RT_ERROR_NONE));
 
     error = rtStreamCreate(&stream, 0);
@@ -263,8 +260,6 @@ TEST_F(RtApiTest, capture_api_08)
 
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
-
-    Runtime::macroValue_.rtsqDepth = rtsqDepth;
 }
 
 TEST_F(RtApiTest, capture_api_09)
@@ -278,9 +273,6 @@ TEST_F(RtApiTest, capture_api_09)
     MOCKER(memcpy_s).stubs().will(returnValue(NULL));
     MOCKER_CPP(&CondStreamActive).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
 
-    uint32_t rtsqDepth = Runtime::macroValue_.rtsqDepth;
-    Runtime::macroValue_.rtsqDepth = 32;
-
     MOCKER_CPP(&Model::LoadCompleteByStreamPostp).stubs().will(returnValue(RT_ERROR_NONE));
 
     error = rtStreamCreate(&stream, 0);
@@ -300,8 +292,6 @@ TEST_F(RtApiTest, capture_api_09)
 
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
-
-    Runtime::macroValue_.rtsqDepth = rtsqDepth;
 }
 
 TEST_F(RtApiTest, capture_api_15)

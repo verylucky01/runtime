@@ -47,7 +47,7 @@ static void ReportTimeoutProc(const rtError_t error, int32_t &timeoutCnt, Stream
     }
 
     timeoutCnt++;
-    if (timeoutCnt >= Runtime::macroValue_.maxReportTimeoutCnt) {
+    if (timeoutCnt >= stm->Device_()->GetDevProperties().maxReportTimeoutCnt) {
         timeoutCnt = 0;
         const mmTimespec curTimeSpec = mmGetTickCount();
         RT_LOG(RT_LOG_EVENT, "report timeout! streamId=%u, pos=%u, curSec=%llu.",

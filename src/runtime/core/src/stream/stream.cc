@@ -79,7 +79,7 @@ Stream::Stream(Device * const dev, const uint32_t prio) : Stream(dev, prio, 0U)
 {
 }
 
-Stream::Stream(Device * const dev, const uint32_t prio, const uint32_t stmFlags, DvppGrp * const dvppGrp)
+Stream::Stream(Device* const dev, const uint32_t prio, const uint32_t stmFlags, DvppGrp* const dvppGrp)
     : NoCopy(),
       device_(dev),
       streamId_(-1),
@@ -124,7 +124,7 @@ Stream::Stream(Device * const dev, const uint32_t prio, const uint32_t stmFlags,
       taskPosTail_(0U),
       context_(nullptr),
       satMode_(RT_OVERFLOW_MODE_SATURATION),
-      sqDepth_(Runtime::macroValue_.rtsqDepth),
+      sqDepth_((device_ != nullptr) ? device_->GetDevProperties().rtsqDepth : 0U),
       pendingNum_(0U),
       argRecycleList_(nullptr),
       argRecycleListHead_(0U),
@@ -585,9 +585,11 @@ rtError_t Stream::EschedManage(const bool enFlag) const
 rtError_t Stream::Setup()
 {
     rtError_t error;
-    const uint32_t rtsqDepth = (((flags_ & RT_STREAM_HUGE) != 0U) && (Runtime::macroValue_.maxTaskNumPerHugeStream != 0)) ?
-        Runtime::macroValue_.maxTaskNumPerHugeStream : Runtime::macroValue_.rtsqDepth;
-    SetSqDepth(rtsqDepth); 
+    const uint32_t rtsqDepth =
+        (((flags_ & RT_STREAM_HUGE) != 0U) && (device_->GetDevProperties().maxTaskNumPerHugeStream != 0)) ?
+            device_->GetDevProperties().maxTaskNumPerHugeStream :
+            device_->GetDevProperties().rtsqDepth;
+    SetSqDepth(rtsqDepth);
 
     const bool isDisableThread = Runtime::Instance()->GetDisableThread();
 
@@ -1559,8 +1561,10 @@ rtError_t Stream::CheckContextTaskSend(const TaskInfo * const workTask) const
 rtError_t Stream::GetFinishedTaskIdBySqHead(const uint16_t sqHead, uint32_t &finishedId)
 {
     // sqHead indicates the current position of execution; it has not yet been completed.
-    const uint32_t rtsqDepth = (((flags_ & RT_STREAM_HUGE) != 0U) && (Runtime::macroValue_.maxTaskNumPerHugeStream != 0)) ?
-                               Runtime::macroValue_.maxTaskNumPerHugeStream : Runtime::macroValue_.rtsqDepth;
+    const uint32_t rtsqDepth =
+        (((flags_ & RT_STREAM_HUGE) != 0U) && (device_->GetDevProperties().maxTaskNumPerHugeStream != 0)) ?
+            device_->GetDevProperties().maxTaskNumPerHugeStream :
+            device_->GetDevProperties().rtsqDepth;
     const uint32_t posTail = GetTaskPosTail();
     const uint32_t posHead = GetTaskPosHead();
     if (((posTail + rtsqDepth - sqHead) % rtsqDepth) >= (posTail + rtsqDepth - posHead) % rtsqDepth) {
@@ -2790,7 +2794,7 @@ rtError_t Stream::SetSqRegVirtualAddrToDevice(uint64_t sqRegVirtualAddr) const
 bool Stream::IsPersistentTaskFull()
 {
     const std::lock_guard<std::mutex> stmLock(persistentTaskMutex_);
-    return (persistentTaskid_.size() >= Runtime::macroValue_.maxPersistTaskNum);
+    return (persistentTaskid_.size() >= device_->GetDevProperties().maxPersistTaskNum);
 }
 
 void Stream::InsertPendingList(uint32_t hostTaskType, HostTaskBase *base)
@@ -2871,8 +2875,10 @@ void Stream::StarsShowStmDfxInfo(void)
         "davinciTaskHead=%u, davinciTaskTail=%u, taskHead=%u, taskTail=%u, taskPosHead=%u, taskPosTail=%u,",
         finishTaskId_, lastTaskId_, pendingNum_.Value(), davinciTaskHead_, davinciTaskTail_, taskHead_, taskTail_,
         taskPosHead_.Value(), taskPosTail_.Value());
-    const uint32_t rtsqDepth = (((flags_ & RT_STREAM_HUGE) != 0U) && (Runtime::macroValue_.maxTaskNumPerHugeStream != 0)) ?
-        Runtime::macroValue_.maxTaskNumPerHugeStream : GetSqDepth();
+    const uint32_t rtsqDepth =
+        (((flags_ & RT_STREAM_HUGE) != 0U) && (device_->GetDevProperties().maxTaskNumPerHugeStream != 0)) ?
+            device_->GetDevProperties().maxTaskNumPerHugeStream :
+            GetSqDepth();
 
     const uint32_t headStart = (taskPosHead_.Value() + rtsqDepth - 5U) % rtsqDepth;
     const uint32_t tailStart = (taskPosTail_.Value() + rtsqDepth - 5U) % rtsqDepth;
@@ -3067,8 +3073,10 @@ rtError_t Stream::StarsAddTaskToStream(TaskInfo * const tsk, const uint32_t send
     NULL_PTR_RETURN_MSG(tsk, RT_ERROR_TASK_NULL);
     const bool bind = GetBindFlag();
     const uint32_t posTail = bind ? taskPersistentTail_.Value() : taskPosTail_.Value();
-    const uint32_t rtsqDepth = (((flags_ & RT_STREAM_HUGE) != 0U) && (Runtime::macroValue_.maxTaskNumPerHugeStream != 0)) ?
-        Runtime::macroValue_.maxTaskNumPerHugeStream : GetSqDepth();
+    const uint32_t rtsqDepth =
+        (((flags_ & RT_STREAM_HUGE) != 0U) && (device_->GetDevProperties().maxTaskNumPerHugeStream != 0)) ?
+            device_->GetDevProperties().maxTaskNumPerHugeStream :
+            GetSqDepth();
     const uint32_t newPosTail = (posTail + sendSqeNum) % rtsqDepth;
 
     if (bind) {
@@ -3688,8 +3696,10 @@ rtError_t Stream::StarsWaitForTask(const uint32_t taskId, const bool isNeedWaitS
 
 rtError_t Stream::GetTaskIdByPos(const uint16_t recycleHead, uint32_t &taskId)
 {
-    const uint32_t rtsqDepth = (((flags_ & RT_STREAM_HUGE) != 0U) && (Runtime::macroValue_.maxTaskNumPerHugeStream != 0)) ?
-        Runtime::macroValue_.maxTaskNumPerHugeStream : GetSqDepth();
+    const uint32_t rtsqDepth =
+        (((flags_ & RT_STREAM_HUGE) != 0U) && (device_->GetDevProperties().maxTaskNumPerHugeStream != 0)) ?
+            device_->GetDevProperties().maxTaskNumPerHugeStream :
+            GetSqDepth();
 
     posToTaskIdMapLock_.lock();
     if (unlikely(recycleHead >= rtsqDepth) || (posToTaskIdMap_[recycleHead] == MAX_UINT16_NUM)) {
@@ -3980,8 +3990,10 @@ void Stream::SetContextFailureCode()
 
 void Stream::DelPosToTaskIdMap(uint16_t pos) const
 {
-    const uint32_t rtsqDepth = (((flags_ & RT_STREAM_HUGE) != 0U) && (Runtime::macroValue_.maxTaskNumPerHugeStream != 0)) ?
-        Runtime::macroValue_.maxTaskNumPerHugeStream : GetSqDepth();
+    const uint32_t rtsqDepth =
+        (((flags_ & RT_STREAM_HUGE) != 0U) && (device_->GetDevProperties().maxTaskNumPerHugeStream != 0)) ?
+            device_->GetDevProperties().maxTaskNumPerHugeStream :
+            GetSqDepth();
     if (pos >= rtsqDepth) {
         return;
     }
@@ -4434,7 +4446,7 @@ rtError_t Stream::AllocSoftwareSqAddr(uint32_t additionalSqeNum)
 
         // stars v2要求sq深度必须是8的整数倍+1，调用者给additionalSqeNum加了8个，结合sq addr mem pool的各个内存梯度，
         // 可以保证这里再减7也能放的下全部的sqe，同时满足stars v2的要求。
-        SetSqDepth(sqDepthAfterUpdate - Runtime::macroValue_.expandStreamSqDepthAdapt);
+        SetSqDepth(sqDepthAfterUpdate - device_->GetDevProperties().expandStreamSqDepthAdapt);
     }
 
     return ret;

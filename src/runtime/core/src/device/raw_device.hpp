@@ -826,6 +826,11 @@ public:
         return properties_;
     }
 
+    void RefreshDevProperties(const DevProperties& props) override
+    {
+        properties_ = props;
+    }
+
     std::map<std::pair<uint32_t, uint32_t>, std::vector<rtExceptionErrRegInfo_t>>& GetExceptionRegMap() override
     {
         return exceptionRegMap_;

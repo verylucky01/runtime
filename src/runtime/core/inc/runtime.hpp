@@ -415,7 +415,6 @@ public:
     }
     SpinLock ipcMemNameLock_;
     std::unordered_map<uint64_t, ipcMemInfo_t> ipcMemNameMap_;
-    static RtMacroValue macroValue_;
     static uint32_t starsPendingMax_;
     static uint32_t maxProgramNum_;
 
@@ -520,7 +519,7 @@ public:
         bool isDeviceSetResetOp = false) const override;
     rtError_t GetUserDevIdByDeviceId(const uint32_t deviceId, uint32_t * const userDevId,
         const bool isDeviceSetResetOp = false, const bool ignoredError = false, const bool checkLog = false) const;
-    void MacroInit(const rtChipType_t chipTypeValue) override;
+    void UpdateDevProperties(const rtChipType_t chipTypeValue, const std::string& socVersion) override;
     rtError_t BinaryLoad(const Device *const device, Program * const prog);
     rtError_t BinaryGetFunction(const Program * const prog, const uint64_t tilingKey,
                                 Kernel ** const funcHandle) const;
@@ -602,6 +601,11 @@ public:
     uint32_t GetMaxKernelCredit() const
     {
         return curChipProperties_.MaxKernelCredit;
+    }
+
+    const DevProperties &GetCurChipProperties() const
+    {
+        return curChipProperties_;
     }
 
     Context *CurrentContext() const override;
@@ -835,7 +839,7 @@ public:
     }
 
 private:
-    void MacroInitDefault(RtMacroValue &value) const;
+    void UpdateDevPropertiesFromIniAttrs(const rtChipType_t chipTypeValue, const RtIniAttributes& iniAttrs);
     void SocTypeInit(const int64_t aicoreNumLevel, const int64_t aicoreFreqLevel);
     void TsdClientInit();
     void LoadFunction(void *const handlePtr, const char_t * const libSoName);

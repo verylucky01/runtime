@@ -274,6 +274,7 @@ set(libruntime_v100_src_files
     ${RUNTIME_CORE_DIR}/src/utils/aicpu_scheduler_agent.cc
     ${RUNTIME_CORE_DIR}/src/device/device_msg_handler.cc
     ${RUNTIME_CORE_DIR}/src/device/aicpu_err_msg.cc
+    ${RUNTIME_CORE_DIR}/src/device/ini_parse_utils.cc
     ${RUNTIME_CORE_DIR}/src/stream/dvpp_grp.cc
     ${RUNTIME_CORE_DIR}/src/engine/engine.cc
     ${RUNTIME_CORE_DIR}/src/engine/hwts/package_rebuilder.cc
@@ -324,6 +325,7 @@ set(RUNTIME_INC_DIR_OPEN
     ${RUNTIME_DIR}/src/runtime/core/inc/soc
     ${RUNTIME_DIR}/src/runtime/core/inc/spec
     ${RUNTIME_DIR}/src/runtime/core/inc/sqe
+    ${RUNTIME_DIR}/src/runtime/inc/device
     ${RUNTIME_DIR}/src/runtime/inc/sqe
     ${RUNTIME_DIR}/src/runtime/core/inc/stars
     ${RUNTIME_DIR}/src/runtime/core/inc/stream
@@ -554,15 +556,7 @@ macro(add_runtime_api_library target_name)
 endmacro()
 
 set(libruntime_dev_info_src_files
-    ${RUNTIME_DIR}/src/runtime/config/610_lite/dev_info_proc_func.cc
     ${RUNTIME_DIR}/src/runtime/config/910_B_93/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/as31xm1/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/cloud/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/dc/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/adc/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/mini/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/mini_v3/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/tiny/dev_info_proc_func.cc
 )
 
 macro(add_runtime_v100_library target_name)

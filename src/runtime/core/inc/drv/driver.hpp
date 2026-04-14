@@ -135,6 +135,7 @@ public:
     virtual rtError_t GetChipList(uint32_t chipList[], const uint32_t cnt) = 0;
     virtual bool IsSupportFeature(RtOptionalFeatureType f) const = 0;
     virtual const DevProperties& GetDevProperties(void) const = 0;
+    virtual void RefreshDevProperties(const DevProperties& props) = 0;
     virtual rtError_t GetDeviceCountFromChip(const uint32_t chipId, uint32_t * const cnt) = 0;
     virtual rtError_t GetDeviceFromChip(const uint32_t chipId, uint32_t deviceList[], const uint32_t cnt) = 0;
     virtual rtError_t GetChipFromDevice(const uint32_t deviceId, uint32_t * const chipId) = 0;
@@ -641,6 +642,7 @@ public:
     DriverFactory();
     ~DriverFactory();
     Driver *GetDriver(const driverType_t type);
+    Driver *GetDriverIfCreated(const driverType_t type) const;
     static bool RegDriver(const driverType_t type, const DriverGetInsFunc_t func);
 
 private:

@@ -132,7 +132,8 @@ static rtError_t ConvertAsyncDmaForSoftWareSq(MemcpyAsyncTaskInfo * const cpyAsy
     Stream *updateStm = updateTask->stream;
     Driver * const curDrv = updateStm->Device_()->Driver_();
     if (updateStm->GetSqBaseAddr() == 0ULL) {
-        error = updateStm->AllocSoftwareSqAddr(CAPTURE_TASK_RESERVED_NUM + Runtime::macroValue_.expandStreamRsvTaskNum);
+        error = updateStm->AllocSoftwareSqAddr(
+            CAPTURE_TASK_RESERVED_NUM + updateStm->Device_()->GetDevProperties().expandStreamRsvTaskNum);
         COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "AllocSoftwareSqAddr failed, device_id=%d, stream_id=%d, retCode=%#x.",
             updateStm->Device_()->Id_(), updateStm->Id_(), static_cast<uint32_t>(error));
     }

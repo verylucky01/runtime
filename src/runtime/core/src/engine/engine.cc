@@ -819,7 +819,7 @@ void Engine::ReportTimeoutProc(const rtError_t error, int32_t &timeoutCnt, const
         return;
     }
     timeoutCnt++;
-    if (timeoutCnt >= Runtime::macroValue_.maxReportTimeoutCnt) {
+    if (timeoutCnt >= device_->GetDevProperties().maxReportTimeoutCnt) {
         timeoutCnt = 0;
         const mmTimespec curTimeSpec = mmGetTickCount();
         const uint64_t curmsec = static_cast<uint64_t>(curTimeSpec.tv_sec) * RT_MS_PER_S +
@@ -1155,8 +1155,10 @@ rtError_t Engine::SendTask(TaskInfo * const workTask, uint16_t &taskId, uint32_t
 
     const uint32_t posTail = stm->GetBindFlag() ? stm->GetDelayRecycleTaskSqeNum() : stm->GetTaskPosTail();
     const uint32_t posHead = stm->GetBindFlag() ? stm->GetTaskPersistentHeadValue() : stm->GetTaskPosHead();
-    const uint32_t rtsqDepth = (((stm->Flags() & RT_STREAM_HUGE) != 0U) && (Runtime::macroValue_.maxTaskNumPerHugeStream != 0)) ?
-        Runtime::macroValue_.maxTaskNumPerHugeStream : stm->GetSqDepth();
+    const uint32_t rtsqDepth =
+        (((stm->Flags() & RT_STREAM_HUGE) != 0U) && (device_->GetDevProperties().maxTaskNumPerHugeStream != 0)) ?
+            device_->GetDevProperties().maxTaskNumPerHugeStream :
+            stm->GetSqDepth();
     const uint32_t newPosTail = (posTail + sendSqeNum) % rtsqDepth;
     RT_LOG(RT_LOG_DEBUG, "device_id=%u, ts_id=%u, sq_id=%u, cq_id=%u, stream_id=%d, task_id=%hu, task_type=%u(%s), "
         "isSupportASyncRecycle=%d, isNeedPostProc=%d, davincHead=%u, davincTail=%u, taskHead=%u, taskTail=%u, "

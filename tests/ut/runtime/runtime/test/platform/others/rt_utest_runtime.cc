@@ -21,9 +21,16 @@
 #include "raw_device.hpp"
 #include "platform/platform_info.h"
 #include "soc_info.h"
+#include "dev_info_manage.h"
 #include "thread_local_container.hpp"
 
 #undef private
+
+namespace cce {
+namespace runtime {
+void ParseIniFile(const std::string& socVersion, RtIniAttributes& iniAttrs);
+}
+}
 
 using namespace testing;
 using namespace cce::runtime;
@@ -160,29 +167,93 @@ TEST_F(ChipRuntimeTest, SocTypeInit)
     rtInstance->CheckVirtualMachineMode(aicoreNum, virAicoreNum);
 }
 
-
-TEST_F(ChipRuntimeTest, MacroInit)
+TEST_F(ChipRuntimeTest, UpdateDevProperties)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     EXPECT_NE(rtInstance, nullptr);
 
-    rtInstance->MacroInit(CHIP_CLOUD);
+    rtInstance->UpdateDevProperties(CHIP_CLOUD, "Ascend910A");
 
-    rtInstance->MacroInit(CHIP_ADC);
+    // Verify DevProperties values after UpdateDevProperties for CHIP_CLOUD
+    DevProperties cloudProps;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_CLOUD, cloudProps), RT_ERROR_NONE);
+    EXPECT_EQ(cloudProps.rtsqDepth, 4096U);
+    EXPECT_EQ(Runtime::starsPendingMax_, cloudProps.rtsqDepth * 3U / 4U);
 
-    rtInstance->MacroInit(CHIP_DC);
+    rtInstance->UpdateDevProperties(CHIP_ADC, "Ascend610");
 
-    rtInstance->MacroInit(CHIP_END);
+    rtInstance->UpdateDevProperties(CHIP_DC, "Ascend310P3");
 
-    rtInstance->MacroInit(CHIP_AS31XM1);
+    rtInstance->UpdateDevProperties(CHIP_END, "Ascend910A");
 
-    rtInstance->MacroInit(CHIP_610LITE);
+    rtInstance->UpdateDevProperties(CHIP_AS31XM1, "AS31XM1X");
 
-    rtInstance->MacroInit(CHIP_END);
+    rtInstance->UpdateDevProperties(CHIP_610LITE, "Ascend610Lite");
 
-    rtInstance->MacroInit(CHIP_AS31XM1);
+    rtInstance->UpdateDevProperties(CHIP_END, "Ascend910A");
 
-    rtInstance->MacroInit(CHIP_610LITE);
+    rtInstance->UpdateDevProperties(CHIP_AS31XM1, "AS31XM1X");
+
+    rtInstance->UpdateDevProperties(CHIP_610LITE, "Ascend610Lite");
+}
+
+TEST_F(ChipRuntimeTest, UpdateDevPropertiesFromIniAttrs_PartialOverride)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+
+    DevProperties origProps;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_CLOUD, origProps), RT_ERROR_NONE);
+
+    // Only set normalStreamDepth, leave others as 0 (should not override)
+    RtIniAttributes iniAttrs = {};
+    iniAttrs.normalStreamDepth = 8192U;
+
+    rtInstance->UpdateDevPropertiesFromIniAttrs(CHIP_CLOUD, iniAttrs);
+
+    DevProperties updatedProps;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_CLOUD, updatedProps), RT_ERROR_NONE);
+    // normalStreamDepth overrides rtsqDepth
+    EXPECT_EQ(updatedProps.rtsqDepth, 8192U);
+    // normalStreamNum was 0, should keep original
+    EXPECT_EQ(updatedProps.maxAllocStreamNum, origProps.maxAllocStreamNum);
+    // hugeStreamNum was 0, should keep original
+    EXPECT_EQ(updatedProps.maxAllocHugeStreamNum, origProps.maxAllocHugeStreamNum);
+
+    // Restore original props
+    SET_DEV_PROPERTIES(CHIP_CLOUD, origProps);
+}
+
+TEST_F(ChipRuntimeTest, ParseIniFile_Success)
+{
+    RtIniAttributes iniAttrs = {};
+    ParseIniFile("LLT_ParseIniFile_Success", iniAttrs);
+
+    EXPECT_EQ(iniAttrs.normalStreamNum, 64U);
+    EXPECT_EQ(iniAttrs.normalStreamDepth, 8192U);
+    EXPECT_EQ(iniAttrs.hugeStreamNum, 16U);
+    EXPECT_EQ(iniAttrs.hugeStreamDepth, 4096U);
+}
+
+TEST_F(ChipRuntimeTest, ParseIniFile_MixedInvalidInput_KeepDefaultForBadFields)
+{
+    RtIniAttributes iniAttrs = {};
+    ParseIniFile("LLT_ParseIniFile_Mixed", iniAttrs);
+
+    EXPECT_EQ(iniAttrs.normalStreamNum, 0U);
+    EXPECT_EQ(iniAttrs.normalStreamDepth, 0U);
+    EXPECT_EQ(iniAttrs.hugeStreamNum, 0U);
+    EXPECT_EQ(iniAttrs.hugeStreamDepth, 256U);
+}
+
+TEST_F(ChipRuntimeTest, ParseIniFile_QueryError_SkipRemainingFields)
+{
+    RtIniAttributes iniAttrs = {};
+    ParseIniFile("LLT_ParseIniFile_QueryError", iniAttrs);
+
+    EXPECT_EQ(iniAttrs.normalStreamNum, 0U);
+    EXPECT_EQ(iniAttrs.normalStreamDepth, 0U);
+    EXPECT_EQ(iniAttrs.hugeStreamNum, 0U);
+    EXPECT_EQ(iniAttrs.hugeStreamDepth, 0U);
 }
 
 TEST_F(ChipRuntimeTest, AicpuCntInitTest_02)

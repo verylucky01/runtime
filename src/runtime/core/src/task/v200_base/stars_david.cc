@@ -71,8 +71,9 @@ uint8_t GetHeadUpdateFlag(uint64_t allocTimes)
 rtDavidSqe_t *GetSqPosAddr(uint64_t sqBaseAddr, uint32_t pos)
 {
     uint32_t temp = pos;
-    if (temp >= Runtime::macroValue_.rtsqDepth) {
-        temp -= Runtime::macroValue_.rtsqDepth;
+    const uint32_t rtsqDepth = Runtime::Instance()->GetCurChipProperties().rtsqDepth;
+    if (temp >= rtsqDepth) {
+        temp -= rtsqDepth;
     }
     return RtValueToPtr<rtDavidSqe_t *>(sqBaseAddr + (temp << SHIFT_SIX_SIZE));
 }

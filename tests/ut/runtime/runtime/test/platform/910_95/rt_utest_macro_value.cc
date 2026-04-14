@@ -10,11 +10,11 @@
 #include "gtest/gtest.h"
 #include "mockcpp/mockcpp.hpp"
 #include "runtime.hpp"
+#include "dev_info_manage.h"
 
 using namespace cce::runtime;
 
-class MacroInitValueTest : public testing::Test
-{
+class UpdateDevPropertiesValueTest : public testing::Test {
 protected:
     static void SetUpTestCase()
     {
@@ -35,20 +35,24 @@ protected:
     }
 };
 
-TEST_F(MacroInitValueTest, MacroInitValue)
+TEST_F(UpdateDevPropertiesValueTest, UpdateDevPropertiesValue)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     EXPECT_NE(rtInstance, nullptr);
-    RtMacroValue &value = Runtime::macroValue_;
-    uint32_t rtsqDepth = 2049U;
-    EXPECT_EQ(value.maxPersistTaskNum, 60000U);
-    EXPECT_EQ(value.maxTaskNumPerStream, rtsqDepth - 35U);
-    EXPECT_EQ(value.maxSupportTaskNum, 134215680U);
-    EXPECT_EQ(value.maxAllocStreamNum, 65535U);
-    EXPECT_EQ(value.stubEventCount, 131072U);
-    EXPECT_EQ(value.maxReportTimeoutCnt, 36);
-    EXPECT_EQ(value.maxTaskNumPerHugeStream, 0U);
-    EXPECT_EQ(value.maxAllocHugeStreamNum, 0U);
-    EXPECT_EQ(value.rtsqDepth, rtsqDepth);
-    EXPECT_EQ(value.baseAicpuStreamId, 1024U);
+    DevProperties props;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_CLOUD_V5, props), RT_ERROR_NONE);
+    EXPECT_EQ(props.maxPersistTaskNum, 60000U);
+    EXPECT_EQ(props.maxSupportTaskNum, 1000000U);
+    EXPECT_EQ(props.stubEventCount, 131072U);
+    EXPECT_EQ(props.maxReportTimeoutCnt, 36);
+    EXPECT_EQ(props.rtcqDepth, 2049U);
+    EXPECT_EQ(props.baseAicpuStreamId, 1024U);
+    EXPECT_EQ(props.expandStreamRsvTaskNum, 0U);
+    EXPECT_EQ(props.expandStreamSqDepthAdapt, 0U);
+    EXPECT_EQ(props.expandStreamAdditionalSqeNum, 0U);
+    EXPECT_EQ(props.rsvAicpuStreamNum, 0U);
+    EXPECT_EQ(props.maxPhysicalStreamNum, 2016U);
+    EXPECT_EQ(props.maxAllocStreamNum, 2016U);
+    EXPECT_EQ(props.rtsqDepth, 2049U);
+    EXPECT_EQ(props.rtsqReservedTaskNum, 35U);
 }

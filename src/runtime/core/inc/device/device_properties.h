@@ -28,8 +28,6 @@ constexpr uint32_t DEVICE_RINGBUFFER_SIZE_ON_95_96 = 4U * 1024U * 1024U; // 4M
 constexpr uint32_t PREFETCH_CNT_8 = 8U;
 constexpr uint32_t PREFETCH_CNT_10 = 10U;
 constexpr int32_t MAX_GROUP_ID = 3;
-constexpr uint32_t NUM_RESET_WITH_FIXED_VALUE = 0x1U;
-constexpr uint32_t NUM_RESET_WITH_DRIVER = 0x2U;
 constexpr uint32_t MAP_WHEN_GET_INFO = 0x1U;
 constexpr uint32_t MAP_WHEN_SET_INFO = 0x2U;
 
@@ -288,7 +286,7 @@ struct DevProperties final {
     CheckArchVersionCompatibility checkArchVersionCompatibility;
     DcacheLockMixType dcacheLockMixType;
     KernelFuncType kernelFuncType;
-    bool taskPoolSizeFromMacroValue;
+    bool taskPoolSizeFromRtsqDepth;
     uint16_t taskPoolSize;
     GetTsMemTypeMethod getTsMemTypeMethod;
     uint8_t enabledTSNum;
@@ -311,6 +309,22 @@ struct DevProperties final {
     int32_t reportWaitTimeout;
     std::array<uint32_t, RT_ATOMIC_OPERATION_MAX_VAL> hostAtomicCapabilities;
     std::array<uint32_t, RT_ATOMIC_OPERATION_MAX_VAL> p2pAtomicCapabilities;
+    uint32_t maxPersistTaskNum;
+    uint32_t maxSupportTaskNum;
+    uint32_t stubEventCount;
+    int32_t maxReportTimeoutCnt;
+    uint32_t rtcqDepth;
+    uint32_t baseAicpuStreamId;
+    uint32_t expandStreamRsvTaskNum;
+    uint32_t expandStreamSqDepthAdapt;
+    uint32_t expandStreamAdditionalSqeNum;
+    uint32_t rsvAicpuStreamNum;
+    uint32_t maxPhysicalStreamNum;
+    uint32_t maxAllocStreamNum;
+    uint32_t rtsqDepth;
+    uint32_t maxTaskNumPerStream;
+    uint32_t maxTaskNumPerHugeStream;
+    uint32_t rtsqReservedTaskNum;
 };
 }
 }

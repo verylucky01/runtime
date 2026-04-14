@@ -79,7 +79,7 @@ public:
     virtual uint32_t GetWaitTimeout() = 0;
     virtual rtError_t ChgUserDevIdToDeviceId(const uint32_t userDevId, uint32_t * const deviceId,
         bool isDeviceSetResetOp = false) const = 0;
-    virtual void MacroInit(const rtChipType_t chipTypeValue) = 0;
+    virtual void UpdateDevProperties(const rtChipType_t chipTypeValue, const std::string& socVersion) = 0;
     virtual rtError_t RegKernelLaunchFillFunc(const char* symbol, rtKernelLaunchFillFunc callback) = 0;
     virtual rtError_t UnRegKernelLaunchFillFunc(const char* symbol) = 0;
     virtual Context *CurrentContext() const = 0;

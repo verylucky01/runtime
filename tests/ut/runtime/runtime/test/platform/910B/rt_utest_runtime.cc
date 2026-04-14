@@ -21,6 +21,7 @@
 #include "raw_device.hpp"
 #include "platform/platform_info.h"
 #include "soc_info.h"
+#include "dev_info_manage.h"
 #include "thread_local_container.hpp"
 #include <dlfcn.h>
 
@@ -615,24 +616,132 @@ TEST_F(CloudV2RuntimeTest, ut_AiCpuProfilerStart_00)
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
-TEST_F(CloudV2RuntimeTest, MacroInitCloudV2)
+TEST_F(CloudV2RuntimeTest, UpdateDevPropertiesCloudV2)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
-    rtInstance->MacroInit(CHIP_910_B_93);
-    EXPECT_EQ(Runtime::macroValue_.rtsqDepth, 2048U);
+    ASSERT_NE(rtInstance, nullptr);
 
+    DevProperties origProps;
+    ASSERT_EQ(GET_DEV_PROPERTIES(CHIP_910_B_93, origProps), RT_ERROR_NONE);
+    const uint32_t origStarsPendingMax = Runtime::starsPendingMax_;
+    const auto cachedIt = rtInstance->propertiesMap_.find(CHIP_910_B_93);
+    const bool hasCachedProps = (cachedIt != rtInstance->propertiesMap_.end());
+    const DevProperties origCachedProps = hasCachedProps ? cachedIt->second : DevProperties{};
+    const DevProperties origCurChipProperties = rtInstance->curChipProperties_;
+
+    DevProperties baselineProps = origProps;
+    baselineProps.rtsqDepth = 2048U;
+    baselineProps.maxAllocStreamNum = 32768U;
+    baselineProps.baseAicpuStreamId = 2048U;
+
+    // Dynamic bind supported: baseAicpuStreamId should be promoted to 32768.
+    SET_DEV_PROPERTIES(CHIP_910_B_93, baselineProps);
+    rtInstance->UpdateDevProperties(CHIP_910_B_93, "Ascend910B4");
+
+    DevProperties supportedProps;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_910_B_93, supportedProps), RT_ERROR_NONE);
+    EXPECT_EQ(supportedProps.rtsqDepth, baselineProps.rtsqDepth);
+    EXPECT_EQ(supportedProps.maxAllocStreamNum, baselineProps.maxAllocStreamNum);
+    EXPECT_EQ(supportedProps.baseAicpuStreamId, 32768U);
+    EXPECT_EQ(Runtime::starsPendingMax_, supportedProps.rtsqDepth * 3U / 4U);
+
+    // Dynamic bind not supported: UpdateDevProperties should keep baseline value.
+    SET_DEV_PROPERTIES(CHIP_910_B_93, baselineProps);
     MOCKER(halSupportFeature).stubs().will(returnValue(false));
+    rtInstance->UpdateDevProperties(CHIP_910_B_93, "Ascend910B4");
 
-    rtInstance->MacroInit(CHIP_910_B_93);
-    EXPECT_EQ(Runtime::macroValue_.rtsqDepth, 4096U);
+    DevProperties unsupportedProps;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_910_B_93, unsupportedProps), RT_ERROR_NONE);
+    EXPECT_EQ(unsupportedProps.rtsqDepth, baselineProps.rtsqDepth);
+    EXPECT_EQ(unsupportedProps.maxAllocStreamNum, baselineProps.maxAllocStreamNum);
+    EXPECT_EQ(unsupportedProps.baseAicpuStreamId, baselineProps.baseAicpuStreamId);
+    EXPECT_EQ(Runtime::starsPendingMax_, unsupportedProps.rtsqDepth * 3U / 4U);
 
-    rtInstance->MonitorNumAdd(1U);
-
-    rtInstance->MacroInit(CHIP_910_B_93);
-    EXPECT_EQ(Runtime::macroValue_.rtsqDepth, 4096U);
     GlobalMockObject::reset();
-    // Restore to the initial system value
-    rtInstance->MacroInit(CHIP_910_B_93);
+    SET_DEV_PROPERTIES(CHIP_910_B_93, origProps);
+    Runtime::starsPendingMax_ = origStarsPendingMax;
+    if (hasCachedProps) {
+        rtInstance->propertiesMap_[CHIP_910_B_93] = origCachedProps;
+    } else {
+        rtInstance->propertiesMap_.erase(CHIP_910_B_93);
+    }
+    rtInstance->curChipProperties_ = origCurChipProperties;
+    Driver *const npuDrv = rtInstance->driverFactory_.GetDriverIfCreated(NPU_DRIVER);
+    if (npuDrv != nullptr) {
+        npuDrv->RefreshDevProperties(origProps);
+    }
+}
+
+TEST_F(CloudV2RuntimeTest, UpdateDevPropertiesFromIniAttrs_AllFieldsOverride)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+
+    // Save original props
+    DevProperties origProps;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_910_B_93, origProps), RT_ERROR_NONE);
+
+    RtIniAttributes iniAttrs = {};
+    iniAttrs.normalStreamNum = 64U;
+    iniAttrs.normalStreamDepth = 8192U;
+    iniAttrs.hugeStreamNum = 16U;
+    iniAttrs.hugeStreamDepth = 4096U;
+
+    rtInstance->UpdateDevPropertiesFromIniAttrs(CHIP_910_B_93, iniAttrs);
+
+    DevProperties updatedProps;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_910_B_93, updatedProps), RT_ERROR_NONE);
+    EXPECT_EQ(updatedProps.maxAllocStreamNum, 64U);
+    EXPECT_EQ(updatedProps.rtsqDepth, 8192U);
+    EXPECT_EQ(updatedProps.maxAllocHugeStreamNum, 16U);
+    EXPECT_EQ(updatedProps.maxTaskNumPerHugeStream, 4096U);
+
+    // maxTaskNumPerStream should be normalStreamDepth - rtsqReservedTaskNum (if rtsqReservedTaskNum > 0)
+    if (origProps.rtsqReservedTaskNum > 0U) {
+        EXPECT_EQ(updatedProps.maxTaskNumPerStream, 8192U - origProps.rtsqReservedTaskNum);
+    } else {
+        EXPECT_EQ(updatedProps.maxTaskNumPerStream, 8192U);
+    }
+
+    // Restore original props
+    SET_DEV_PROPERTIES(CHIP_910_B_93, origProps);
+}
+
+TEST_F(CloudV2RuntimeTest, UpdateDevPropertiesFromIniAttrs_ZeroIniAttrs_NoChange)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+
+    DevProperties origProps;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_910_B_93, origProps), RT_ERROR_NONE);
+
+    RtIniAttributes iniAttrs = {};  // All zeros
+    rtInstance->UpdateDevPropertiesFromIniAttrs(CHIP_910_B_93, iniAttrs);
+
+    DevProperties afterProps;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_910_B_93, afterProps), RT_ERROR_NONE);
+    EXPECT_EQ(afterProps.maxAllocStreamNum, origProps.maxAllocStreamNum);
+    EXPECT_EQ(afterProps.rtsqDepth, origProps.rtsqDepth);
+    EXPECT_EQ(afterProps.maxAllocHugeStreamNum, origProps.maxAllocHugeStreamNum);
+    EXPECT_EQ(afterProps.maxTaskNumPerHugeStream, origProps.maxTaskNumPerHugeStream);
+    EXPECT_EQ(afterProps.maxTaskNumPerStream, origProps.maxTaskNumPerStream);
+}
+
+TEST_F(CloudV2RuntimeTest, UpdateDevProperties_CacheRefresh_StarsPendingMax)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+
+    rtInstance->UpdateDevProperties(CHIP_910_B_93, "Ascend910B4");
+
+    DevProperties props;
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_910_B_93, props), RT_ERROR_NONE);
+    EXPECT_EQ(Runtime::starsPendingMax_, props.rtsqDepth * 3U / 4U);
+
+    // Verify propertiesMap_ cache is consistent
+    auto it = rtInstance->propertiesMap_.find(CHIP_910_B_93);
+    EXPECT_NE(it, rtInstance->propertiesMap_.end());
+    if (it != rtInstance->propertiesMap_.end()) {
+        EXPECT_EQ(it->second.rtsqDepth, props.rtsqDepth);
+        EXPECT_EQ(it->second.maxAllocStreamNum, props.maxAllocStreamNum);
+    }
 }
 
 TEST_F(CloudV2RuntimeTest, ut_GetDcacheLockMixPath_CloudV2_FileExistsInSoDir) {

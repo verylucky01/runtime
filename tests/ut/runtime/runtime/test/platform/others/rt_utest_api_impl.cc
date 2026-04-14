@@ -404,6 +404,10 @@ TEST_F(ApiImplTest, apiimpl_stream_test)
     EXPECT_EQ(error, RT_ERROR_NONE);
     Runtime *rtInstance = const_cast<Runtime *>(Runtime::Instance());
     rtChipType_t chipType = rtInstance->GetChipType();
+    std::string originSocVersion = GetSocVersionStrByType(rtInstance->GetSocType());
+    if (originSocVersion.empty()) {
+        originSocVersion = "Ascend910A";
+    }
 
     uint32_t maxStrCount;
     uint32_t maxTaskCount;
@@ -411,14 +415,17 @@ TEST_F(ApiImplTest, apiimpl_stream_test)
     EXPECT_EQ(error, RT_ERROR_NONE);
     rtInstance->SetChipType(CHIP_ADC);
     GlobalContainer::SetRtChipType(CHIP_ADC);
+    rtInstance->UpdateDevProperties(CHIP_ADC, "Ascend610");
     error = apiImpl.GetMaxStreamAndTask(0, &maxStrCount, &maxTaskCount);
     EXPECT_EQ(error, RT_ERROR_NONE);
     rtInstance->SetChipType(CHIP_610LITE);
     GlobalContainer::SetRtChipType(CHIP_610LITE);
+    rtInstance->UpdateDevProperties(CHIP_610LITE, "Ascend610Lite");
     error = apiImpl.GetMaxStreamAndTask(1, &maxStrCount, &maxTaskCount);
     EXPECT_EQ(error, RT_ERROR_NONE);
     rtInstance->SetChipType(chipType);
     GlobalContainer::SetRtChipType(chipType);
+    rtInstance->UpdateDevProperties(chipType, originSocVersion);
 
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);

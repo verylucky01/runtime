@@ -1696,20 +1696,19 @@ rtError_t ApiImpl::GetMaxStreamAndTask(const uint32_t streamType, uint32_t * con
         return RT_ERROR_FEATURE_NOT_SUPPORT;
     }
 
+    const DevProperties &props = rt->GetCurChipProperties();
     if (streamType == RT_HUGE_STREAM) {
-        DevProperties props;
-        GET_DEV_PROPERTIES(rt->GetChipType(), props);
         if (props.maxAllocHugeStreamNum == 0U) {
             RT_LOG(RT_LOG_WARNING, "Get max stream and task failed, unsupported huge stream mode in chipType=%d, "
                                    "streamType=%u", rt->GetChipType(), streamType);
             return RT_ERROR_FEATURE_NOT_SUPPORT;
         }
         *maxStrCount = props.maxAllocHugeStreamNum;
-        *maxTaskCount = Runtime::macroValue_.maxTaskNumPerHugeStream;
+        *maxTaskCount = props.maxTaskNumPerHugeStream;
         return RT_ERROR_NONE;
     }
-    *maxStrCount = Runtime::macroValue_.maxPhysicalStreamNum;
-    *maxTaskCount = Runtime::macroValue_.maxTaskNumPerStream;
+    *maxStrCount = props.maxPhysicalStreamNum;
+    *maxTaskCount = props.maxTaskNumPerStream;
     RT_LOG(RT_LOG_INFO, "Max streamNum=%u, max TaskNum=%u", *maxStrCount, *maxTaskCount);
     return RT_ERROR_NONE;
 }
@@ -1721,19 +1720,18 @@ rtError_t ApiImpl::GetAvailStreamNum(const uint32_t streamType, uint32_t * const
     CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
     const uint32_t deviceId = curCtx->Device_()->Id_();
     const uint32_t tsId = curCtx->Device_()->DevGetTsId();
+    const Runtime * const rt = Runtime::Instance();
+    const rtChipType_t chipType = rt->GetChipType();
+    const DevProperties &props = rt->GetCurChipProperties();
     if (streamType == RT_HUGE_STREAM) {
-        const Runtime * const rt = Runtime::Instance();
-        DevProperties props;
-        GET_DEV_PROPERTIES(rt->GetChipType(), props);
         COND_RETURN_ERROR_MSG_INNER(props.maxAllocHugeStreamNum == 0U,
             RT_ERROR_FEATURE_NOT_SUPPORT,
             "Get max stream and task failed, unsupported huge stream mode in chipType=%d, streamType=%u",
-            rt->GetChipType(), streamType);
+            chipType, streamType);
         *streamCount = props.maxAllocHugeStreamNum;
         return RT_ERROR_NONE;
     }
-    *streamCount = Runtime::macroValue_.maxAllocStreamNum;
-    const rtChipType_t chipType = Runtime::Instance()->GetChipType();
+    *streamCount = props.maxAllocStreamNum;
     if (IS_SUPPORT_CHIP_FEATURE(chipType, RtOptionalFeatureType::RT_FEATURE_DEVICE_GET_RESOURCE_NUM_DYNAMIC)) {
         return NpuDriver::GetAvailStreamNum(deviceId, tsId, streamCount);
     }
@@ -1758,8 +1756,10 @@ rtError_t ApiImpl::GetAvailEventNum(uint32_t * const eventCount)
     CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
     const uint32_t deviceId = curCtx->Device_()->Id_();
     const uint32_t tsId = curCtx->Device_()->DevGetTsId();
-    *eventCount = Runtime::macroValue_.stubEventCount;
-    const rtChipType_t chipType = Runtime::Instance()->GetChipType();
+    const Runtime * const rt = Runtime::Instance();
+    const rtChipType_t chipType = rt->GetChipType();
+    const DevProperties &eventProps = rt->GetCurChipProperties();
+    *eventCount = eventProps.stubEventCount;
     if (IS_SUPPORT_CHIP_FEATURE(chipType, RtOptionalFeatureType::RT_FEATURE_DEVICE_GET_RESOURCE_NUM_DYNAMIC)) {
         Driver* driver = curCtx->Device_()->Driver_();
         NULL_PTR_RETURN_MSG_OUTER(driver, RT_ERROR_INVALID_VALUE);

@@ -707,6 +707,7 @@ rtError_t Context::Synchronize(int32_t timeout)
     return SyncStreamsWithTimeout(syncStreams, timeout, startTime);
 }
 
+
 TIMESTAMP_EXTERN(rtKernelLaunch_KernelLookup);
 TIMESTAMP_EXTERN(rtKernelLaunch_ALLKernelLookup);
 TIMESTAMP_EXTERN(rtKernelLaunch_GetModule);
@@ -994,8 +995,8 @@ rtError_t Context::UpdateNormalKernelTaskForSoftwareSq(TaskInfo * const updateTa
          * 但存在update task在capture mode执行前下发的场景，需要提前申请SqMem
          * 预留的CAPTURE_TASK_RESERVED_NUM(32)个SQE用于CaptureModel执行时申请的LoadComplete等SQE
          */
-        const rtError_t ret = updateTask->stream->AllocSoftwareSqAddr(CAPTURE_TASK_RESERVED_NUM +
-            Runtime::macroValue_.expandStreamRsvTaskNum); 
+        const rtError_t ret = updateTask->stream->AllocSoftwareSqAddr(
+            CAPTURE_TASK_RESERVED_NUM + device_->GetDevProperties().expandStreamRsvTaskNum);
         COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "AllocSoftwareSqAddr failed. device_id=%u, stream_id=%d, "
             "retCode=%#x,", device_->Id_(), updateTask->stream->Id_(), ret);
     }

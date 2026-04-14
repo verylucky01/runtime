@@ -2229,7 +2229,6 @@ TEST_F(ContextTest, aicpu_kernel_launch_with_pctrace_failed)
     error = rtFunctionRegister(binHandle, &funStub, "foo_pctrace_failed", NULL, 1);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    // pctrace not use in product=mini
     error = rtKernelLaunch(&funStub, 1, (void *)binary, sizeof(binary), NULL, NULL);
     EXPECT_NE(error, RT_ERROR_NONE);
 
@@ -2267,7 +2266,6 @@ TEST_F(ContextTest, rtDevBinaryUnRegister_after_RuntimeKeeper_Destroy)
     error = rtFunctionRegister(binHandle, &funStub, "foo_rtDevBinaryUnRegister", NULL, 1);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    // pctrace not use in product=mini
     error = rtKernelLaunch(&funStub, 1, (void *)binary, sizeof(binary), NULL, NULL);
     EXPECT_NE(error, RT_ERROR_NONE);
 

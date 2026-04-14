@@ -194,7 +194,23 @@ bool DevInfoManage::RegDevProperties(const rtChipType_t chip, const DevPropertie
     propertiesMap[chip] = properties;
     return true;
 }
- 
+
+rtError_t DevInfoManage::SetDevProperties(const rtChipType_t chip, const DevProperties& properties)
+{
+    if (isDestroy) {
+        return RT_ERROR_INVALID_VALUE;
+    }
+
+    const WriteProtect lk(&propertiesLock);
+    auto it = propertiesMap.find(chip);
+    if (it != propertiesMap.end()) {
+        it->second = properties;
+        return RT_ERROR_NONE;
+    }
+
+    return RT_ERROR_INVALID_VALUE;
+}
+
 rtError_t DevInfoManage::GetDevProperties(const rtChipType_t chip, DevProperties& properties)
 {
     if (isDestroy) {

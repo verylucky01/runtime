@@ -223,17 +223,17 @@ TEST_F(ArgManageUbTest, ub_arg_loader_init_exception)
         .then(returnValue(RT_ERROR_NONE));
 
     // malloc_ub_buffer_exception
-    H2DCopyMgr *argAllocator = new (std::nothrow) H2DCopyMgr(
-        device_, 4096, 1024, Runtime::macroValue_.maxSupportTaskNum, BufferAllocator::LINEAR, COPY_POLICY_UB);
+    H2DCopyMgr* argAllocator =
+        new (std::nothrow) H2DCopyMgr(device_, 4096, 1024, 2000000U, BufferAllocator::LINEAR, COPY_POLICY_UB);
     EXPECT_EQ(argAllocator->devAllocator_->allocFuncState_, false);
     delete argAllocator;
-    argAllocator = new (std::nothrow) H2DCopyMgr(device_, 4096, 1024, Runtime::macroValue_.maxSupportTaskNum,
-                                                 BufferAllocator::LINEAR, COPY_POLICY_UB);
+    argAllocator =
+        new (std::nothrow) H2DCopyMgr(device_, 4096, 1024, 2000000U, BufferAllocator::LINEAR, COPY_POLICY_UB);
     EXPECT_EQ(argAllocator->devAllocator_->allocFuncState_, false);
     delete argAllocator;
     // free_ub_buffer_exception
-    argAllocator = new (std::nothrow) H2DCopyMgr(device_, 4096, 1024, Runtime::macroValue_.maxSupportTaskNum,
-                                                 BufferAllocator::LINEAR, COPY_POLICY_UB);
+    argAllocator =
+        new (std::nothrow) H2DCopyMgr(device_, 4096, 1024, 2000000U, BufferAllocator::LINEAR, COPY_POLICY_UB);
     CpyUbInfo para = {};
     argAllocator->FreeUbBuffer(mem1, &para);
     delete argAllocator;
@@ -381,9 +381,6 @@ TEST_F(ArgManageUbTest, persistent_force_copy)
 
 TEST_F(ArgManageUbTest, stm_arg_pool_alloc)
 {
-    uint32_t oldDepth = ((Runtime *)Runtime::Instance())->macroValue_.rtsqDepth;
-    ((Runtime *)Runtime::Instance())->macroValue_.rtsqDepth = 2049;
-
     rtError_t ret = RT_ERROR_NONE;
     DavidStream *stm = new (std::nothrow)
         DavidStream(device_, RT_STREAM_PRIORITY_DEFAULT, RT_STREAM_FAST_LAUNCH, nullptr);
@@ -439,8 +436,6 @@ TEST_F(ArgManageUbTest, stm_arg_pool_alloc)
 
     stm->ReleaseStreamArgRes();
     delete stm;
-
-    ((Runtime *)Runtime::Instance())->macroValue_.rtsqDepth = oldDepth;
 }
 
 class ArgManagePcieTest : public testing::Test {

@@ -199,18 +199,7 @@ set(runtimeut_platform_list
     ${TOP_DIR}/src/runtime/config/nano/dev_info_reg.cc
     ${TOP_DIR}/src/runtime/config/tiny/dev_info_reg.cc
     ${TOP_DIR}/src/runtime/config/910_96/dev_info_reg.cc
-    ${TOP_DIR}/src/runtime/config/610_lite/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/950/dev_info_proc_func.cc
     ${TOP_DIR}/src/runtime/config/910_B_93/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/as31xm1/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/cloud/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/dc/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/mc62cm12a/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/adc/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/mini/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/mini_v3/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/tiny/dev_info_proc_func.cc
-    ${TOP_DIR}/src/runtime/config/910_96/dev_info_proc_func.cc
 )
 
 set(runtimeut_910b_src_list
@@ -279,6 +268,7 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/core/src/event/ipc_event.cc
     ${TOP_DIR}/src/runtime/core/src/engine/logger.cc
     ${TOP_DIR}/src/runtime/core/src/runtime.cc
+    ${TOP_DIR}/src/runtime/core/src/device/ini_parse_utils.cc
     ${TOP_DIR}/src/runtime/core/src/memory/mem_type.cc
     ${TOP_DIR}/src/runtime/core/src/plugin_manage/runtime_keeper.cc
     ${TOP_DIR}/src/runtime/core/src/plugin_manage/v100/plugin_old_arch.cc
@@ -381,6 +371,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/src/runtime/core/inc/context
     ${TOP_DIR}/src/runtime/core/inc/spec
     ${TOP_DIR}/src/runtime/core/inc/common
+    ${TOP_DIR}/src/runtime/inc/device
     ${TOP_DIR}/src/runtime/inc/sqe
     ${TOP_DIR}/src/runtime/core/inc/sqe/v200_base
     ${TOP_DIR}/src/runtime/core/inc/runtime

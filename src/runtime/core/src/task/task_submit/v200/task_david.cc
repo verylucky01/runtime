@@ -411,7 +411,7 @@ static void SetFlipTaskNum(Stream *const stream, uint32_t prePos, uint32_t sqeNu
         return;
     }
 
-    if ((prePos + sqeNum) < Runtime::macroValue_.rtsqDepth) {
+    if ((prePos + sqeNum) < stream->Device_()->GetDevProperties().rtsqDepth) {
         return;
     }
 

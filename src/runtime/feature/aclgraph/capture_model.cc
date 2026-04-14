@@ -766,7 +766,8 @@ rtError_t CaptureModel::AllocSqAddr(void) const
     const uint32_t deviceId = Context_()->Device_()->Id_();
 
     for (auto stm : StreamList_()) {
-        rtError_t ret = stm->AllocSoftwareSqAddr(Runtime::macroValue_.expandStreamAdditionalSqeNum);
+        rtError_t ret =
+            stm->AllocSoftwareSqAddr(Context_()->Device_()->GetDevProperties().expandStreamAdditionalSqeNum);
         COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "AllocSoftwareSqAddr failed. device_id=%u, stream_id=%d, "
             "model_id=%u, retCode=%#x.", deviceId, stm->Id_(), Id_(), static_cast<uint32_t>(ret));
     }

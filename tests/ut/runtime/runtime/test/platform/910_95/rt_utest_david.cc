@@ -560,16 +560,15 @@ TEST_F(DavidTest, GetPrefetchCnt_program_kernel)
 TEST_F(SolomonTaskTest, macroinit_for_chip_cloud_v5)
 {
     Runtime *rt = ((Runtime *)Runtime::Instance());
-    rt->MacroInit(CHIP_CLOUD_V5);
+    rt->UpdateDevProperties(CHIP_CLOUD_V5, "Ascend910_5591");
     rt->SetSocTypeByChipType(0, 1, 1);
 }
 
 TEST_F(DavidTaskTest, macroinit_for_chip_david)
 {
     Runtime *rt = ((Runtime *)Runtime::Instance());
-    rt->MacroInit(CHIP_DAVID);
+    rt->UpdateDevProperties(CHIP_DAVID, "Ascend950PR_9599");
     rt->SetSocTypeByChipType(0, 1, 1);
-    EXPECT_EQ(Runtime::macroValue_.rtsqDepth, 2049U);
 }
 
 TEST_F(DavidTaskTest, construct_davidsqe_for_model_maintaince)

@@ -98,7 +98,7 @@ protected:
         rtInstance->SetDisableThread(true);
         g_chipType = rtInstance->GetChipType();
         rtInstance->SetChipType(CHIP_MC32DM11A);
-        rtInstance->MacroInit(CHIP_MC32DM11A);
+        rtInstance->UpdateDevProperties(CHIP_MC32DM11A, "MC32DM11AA");
         rtInstance->SetConnectUbFlag(false);
         std::cout << "TaskTestDavid start" << std::endl;
     }

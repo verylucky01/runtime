@@ -235,7 +235,7 @@ TEST_F(ProgramTest, Program_Process_ELF_No_Kernel)
         program->kernelPos_ = 1;
         Runtime *rt = ((Runtime *)Runtime::Instance());
         TilingTablForDavid *tilingTabForDavid = nullptr;
-        rt->MacroInit(CHIP_DAVID);
+        rt->UpdateDevProperties(CHIP_DAVID, "Ascend950PR_9599");
         error = program->BuildTilingTblForDavid(mdl, &tilingTabForDavid, &kernelLen);
         EXPECT_EQ(error, RT_ERROR_PROGRAM_SIZE);
         program->kernelPos_ = kernelPos; 
@@ -311,7 +311,7 @@ TEST_F(ProgramTest, Program_Process_ELF_No_Kernel_For_David)
         program->kernelPos_ = 1;
         Runtime *rt = ((Runtime *)Runtime::Instance());
         TilingTablForDavid *tilingTabForDavid = nullptr;
-        rt->MacroInit(CHIP_DAVID);
+        rt->UpdateDevProperties(CHIP_DAVID, "Ascend950PR_9599");
         error = program->BuildTilingTblForDavid(mdl, &tilingTabForDavid, &kernelLen);
         EXPECT_EQ(error, RT_ERROR_PROGRAM_SIZE);
         program->kernelPos_ = kernelPos;

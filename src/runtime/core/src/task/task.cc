@@ -58,8 +58,8 @@ TaskFactory::~TaskFactory()
 
 rtError_t TaskFactory::Init()
 {
-    allocator_ = new (std::nothrow) TaskAllocator(GetTaskMaxSize(), INIT_TASK_CAPACITY,
-                                                  Runtime::macroValue_.maxSupportTaskNum);
+    allocator_ = new (std::nothrow)
+        TaskAllocator(GetTaskMaxSize(), INIT_TASK_CAPACITY, device_->GetDevProperties().maxSupportTaskNum);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, allocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
         "Init task factory failed, new TaskAllocator failed.");
     RT_LOG(RT_LOG_DEBUG, "TaskFactory::Init ok, alloc size is %zu.", sizeof(TaskAllocator));

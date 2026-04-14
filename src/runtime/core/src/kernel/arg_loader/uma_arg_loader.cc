@@ -55,31 +55,34 @@ rtError_t UmaArgLoader::Init()
         uint32_t argAllocatorSize = initCount;
         if(device_->GetDevProperties().argsAllocatorSize != 0U){
             argAllocatorSize = device_->GetDevProperties().argsAllocatorSize;
-        } 
-        argAllocator_ = new (std::nothrow) H2DCopyMgr(device_, itemSize_, argAllocatorSize,
-            Runtime::macroValue_.maxSupportTaskNum, BufferAllocator::LINEAR, COPY_POLICY_DEFAULT); // 512 cell for init
+        }
+        argAllocator_ = new (std::nothrow) H2DCopyMgr(
+            device_, itemSize_, argAllocatorSize, device_->GetDevProperties().maxSupportTaskNum,
+            BufferAllocator::LINEAR, COPY_POLICY_DEFAULT); // 512 cell for init
 
         COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, argAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
             "Init uma arg loader stage1 failed, new BufferAllocator failed.");
         if (device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_KERNEL_UMA_SUPER_ARGS_ALLOC)) {
             const uint32_t superArgAllocatorSize = device_->GetDevProperties().superArgAllocatorSize;
-            superArgAllocator_ = new (std::nothrow) H2DCopyMgr(device_, MULTI_GRAPH_SUPER_ARG_ENTRY_SIZE,
-                superArgAllocatorSize, Runtime::macroValue_.maxSupportTaskNum,
-                BufferAllocator::LINEAR, COPY_POLICY_DEFAULT);
+            superArgAllocator_ = new (std::nothrow) H2DCopyMgr(
+                device_, MULTI_GRAPH_SUPER_ARG_ENTRY_SIZE, superArgAllocatorSize,
+                device_->GetDevProperties().maxSupportTaskNum, BufferAllocator::LINEAR, COPY_POLICY_DEFAULT);
 
             COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, superArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
                 "Init uma arg loader stage2 failed, new BufferAllocator failed.");
             const uint32_t maxArgAllocatorSize =  device_->GetDevProperties().maxArgAllocatorSize;
-            maxArgAllocator_ = new (std::nothrow) H2DCopyMgr(device_, maxItemSize_, maxArgAllocatorSize,
-                Runtime::macroValue_.maxSupportTaskNum, BufferAllocator::LINEAR, COPY_POLICY_DEFAULT);
+            maxArgAllocator_ = new (std::nothrow) H2DCopyMgr(
+                device_, maxItemSize_, maxArgAllocatorSize, device_->GetDevProperties().maxSupportTaskNum,
+                BufferAllocator::LINEAR, COPY_POLICY_DEFAULT);
 
             COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, maxArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
                 "Init uma arg loader stage3 failed, new BufferAllocator failed.");
         } else {
             // only when the aicpu does not exist, do this
             if (Runtime::Instance()->GetAicpuCnt() != 0) {
-                maxArgAllocator_ = new (std::nothrow) H2DCopyMgr(device_, maxItemSize_, ARG_MAX_ENTRY_INIT_NUM,
-                    Runtime::macroValue_.maxSupportTaskNum, BufferAllocator::LINEAR, COPY_POLICY_DEFAULT);
+                maxArgAllocator_ = new (std::nothrow) H2DCopyMgr(
+                    device_, maxItemSize_, ARG_MAX_ENTRY_INIT_NUM, device_->GetDevProperties().maxSupportTaskNum,
+                    BufferAllocator::LINEAR, COPY_POLICY_DEFAULT);
                 COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, maxArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
                     "Init uma arg loader stage3 failed, new BufferAllocator failed.");
             }
@@ -92,17 +95,16 @@ rtError_t UmaArgLoader::Init()
 
     RT_LOG(RT_LOG_INFO, "new BufferAllocator superArgAllocator_ ok, Runtime_alloc_size %zu", sizeof(BufferAllocator));
     const uint32_t handleAllocatorSize = device_->GetDevProperties().handleAllocatorSize;
-    handleAllocator_ = new (std::nothrow) BufferAllocator(static_cast<uint32_t>(sizeof(Handle)), handleAllocatorSize,
-        Runtime::macroValue_.maxSupportTaskNum);
+    handleAllocator_ = new (std::nothrow) BufferAllocator(
+        static_cast<uint32_t>(sizeof(Handle)), handleAllocatorSize, device_->GetDevProperties().maxSupportTaskNum);
 
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, handleAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
         "Init uma arg loader stage4 failed, new BufferAllocator failed.");
     RT_LOG(RT_LOG_INFO, "new BufferAllocator handleAllocator_ ok, Runtime_alloc_size %zu", sizeof(BufferAllocator));
     const uint32_t kernelInfoAllocatorSize =  device_->GetDevProperties().kernelInfoAllocatorSize;
-    kernelInfoAllocator_ = new (std::nothrow) BufferAllocator(KERNEL_INFO_ENTRY_SIZE, kernelInfoAllocatorSize,
-                                                            Runtime::macroValue_.maxSupportTaskNum,
-                                                            BufferAllocator::LINEAR, &MallocBuffer,
-                                                            &FreeBuffer, device_);
+    kernelInfoAllocator_ = new (std::nothrow) BufferAllocator(
+        KERNEL_INFO_ENTRY_SIZE, kernelInfoAllocatorSize, device_->GetDevProperties().maxSupportTaskNum,
+        BufferAllocator::LINEAR, &MallocBuffer, &FreeBuffer, device_);
 
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, kernelInfoAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
         "Init uma arg loader stage5 failed, new BufferAllocator failed.");
@@ -110,8 +112,9 @@ rtError_t UmaArgLoader::Init()
 
     RT_LOG(RT_LOG_INFO, "ALLOC PCIE is support[%d]", static_cast<int32_t>(isPcieBarSupport));
     if ((drv_->GetRunMode() == static_cast<uint32_t>(RT_RUN_MODE_ONLINE)) && isPcieBarSupport) {
-        argPcieBarAllocator_ = new (std::nothrow) H2DCopyMgr(device_, PCIE_BAR_COPY_SIZE, 1024U,
-            Runtime::macroValue_.maxSupportTaskNum, BufferAllocator::LINEAR, COPY_POLICY_PCIE_BAR);
+        argPcieBarAllocator_ = new (std::nothrow) H2DCopyMgr(
+            device_, PCIE_BAR_COPY_SIZE, 1024U, device_->GetDevProperties().maxSupportTaskNum, BufferAllocator::LINEAR,
+            COPY_POLICY_PCIE_BAR);
         COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, argPcieBarAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
             "Init uma arg loader stage6 failed, new BufferAllocator failed.");
     }

@@ -84,7 +84,8 @@ rtError_t Stream::AllocCaptureTaskWithoutLock(tsTaskType_t taskType, uint32_t sq
     COND_PROC_RETURN_ERROR(IsTaskGroupBreak(), RT_ERROR_STREAM_TASKGRP_INTR,
         SetTaskGroupErrCode(RT_ERROR_STREAM_TASKGRP_INTR), "the task group interrupted.");
 
-    if ((curCaptureStream->GetCaptureSqeNum() + CAPTURE_TASK_RESERVED_NUM + Runtime::macroValue_.expandStreamRsvTaskNum) >=
+    if ((curCaptureStream->GetCaptureSqeNum() + CAPTURE_TASK_RESERVED_NUM +
+         device_->GetDevProperties().expandStreamRsvTaskNum) >=
          curCaptureStream->GetSqDepth()) {
         Stream *newCaptureStream = nullptr;
         Context * const ctx = Context_();

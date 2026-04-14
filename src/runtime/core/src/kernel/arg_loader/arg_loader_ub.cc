@@ -34,18 +34,20 @@ UbArgLoader::~UbArgLoader()
 
 rtError_t UbArgLoader::Init()
 {
-    argAllocator_ = new (std::nothrow) H2DCopyMgr(device_, UB_ARG_MAX_ENTRY_SIZE, UB_ARG_INIT_CNT,
-        Runtime::macroValue_.maxSupportTaskNum, BufferAllocator::LINEAR, COPY_POLICY_UB);
+    argAllocator_ = new (std::nothrow) H2DCopyMgr(
+        device_, UB_ARG_MAX_ENTRY_SIZE, UB_ARG_INIT_CNT, device_->GetDevProperties().maxSupportTaskNum,
+        BufferAllocator::LINEAR, COPY_POLICY_UB);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, argAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
         "Init ubArgLoader stage1 failed, new BufferAllocator failed.");
 
-    superArgAllocator_ = new (std::nothrow) H2DCopyMgr(device_, UB_ARG_MAX_SUPER_ENTRY_SIZE, UB_ARG_SUPER_INIT_CNT,
-        Runtime::macroValue_.maxSupportTaskNum, BufferAllocator::LINEAR, COPY_POLICY_UB);
+    superArgAllocator_ = new (std::nothrow) H2DCopyMgr(
+        device_, UB_ARG_MAX_SUPER_ENTRY_SIZE, UB_ARG_SUPER_INIT_CNT, device_->GetDevProperties().maxSupportTaskNum,
+        BufferAllocator::LINEAR, COPY_POLICY_UB);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, superArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
         "Init ubArgLoader stage2 failed, new BufferAllocator failed.");
 
-    handleAllocator_ = new (std::nothrow) BufferAllocator(static_cast<uint32_t>(sizeof(UbHandle)), UB_ARG_INIT_CNT,
-        Runtime::macroValue_.maxSupportTaskNum);
+    handleAllocator_ = new (std::nothrow) BufferAllocator(
+        static_cast<uint32_t>(sizeof(UbHandle)), UB_ARG_INIT_CNT, device_->GetDevProperties().maxSupportTaskNum);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, handleAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
         "Init ubArgLoader stage3 failed, new BufferAllocator failed.");
     RT_LOG(RT_LOG_INFO, "new argAllocator and handleAllocator success.");

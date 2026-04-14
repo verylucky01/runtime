@@ -44,12 +44,13 @@
 #include "platform/platform_info.h"
 #include "stream_state_callback_manager.hpp"
 #include "memory_pool.hpp"
-#include "soc_info.h"
+#include "ini_parse_utils.h"
 #include "runtime_keeper.h"
 #include "utils.h"
 #include "device.hpp"
 #include "api_impl_creator.hpp"
 #include "dev_info_manage.h"
+#include "soc_info.h"
 #include "global_state_manager.hpp"
 #include "kernel.hpp"
 #include "stream_mem_pool.hpp"
@@ -60,8 +61,6 @@ namespace runtime {
 namespace {
 constexpr uint32_t TSD_OK = 0U;
 constexpr int64_t RTS_INVALID_HARDWARE_VERSION = 0xFFFFFFFFFFFFFFFFLL;
-constexpr int32_t MAX_REPORT_TIMEOUT_CNT = 36;
-
 constexpr uint32_t  TSD_SUBPROCESS_NUM_EXCEED_THE_LIMIT = 100U;
 constexpr uint32_t  TSD_SUBPROCESS_BINARY_FILE_DAMAGED = 101U;
 constexpr uint32_t  TSD_DEVICE_DISCONNECTED = 102U;
@@ -72,8 +71,6 @@ constexpr uint32_t  MONITOR_THREAD_MAX_WAIT_TIMES = 10U;
 constexpr uint32_t  TSD_CLOSE_EX_FLAG_QUICK_CLOSE = 1U;
 constexpr uint32_t  PAGE_FAULT_CNT_THRESHOLD = 5000U; // 单次aicore可能发生最多缺页数量48*48 
 constexpr uint64_t  PAGE_FAULT_TIME_THRESHOLD = 2000U;
-constexpr int32_t FEATURE_TRSDRV_SQ_DEVICE_MEM_PRIORITY = 0;
-constexpr uint32_t BASE_AICPU_STREAM_ID = 1024U;
 constexpr uint32_t KERNEL_INFO_EXT_MAX = 4096U;
 enum AiCpuProfilingConfig : uint32_t {
     PROFILING_FEATURE_SWITCH = 0U,       // bit0 means profiling start or profiling stop
@@ -126,7 +123,6 @@ static const std::unordered_map<std::string, rtArchType_t> archMap_ = {
     {"15", ARCH_END}
 };
 
-RtMacroValue Runtime::macroValue_ = {};
 uint32_t Runtime::starsPendingMax_ = 0U;
 uint32_t Runtime::maxProgramNum_ = 0U;
 
@@ -256,34 +252,74 @@ bool Runtime::ChipIsHaveStars() const
     return ret;
 }
 
-void Runtime::MacroInitDefault(RtMacroValue &value) const
+void Runtime::UpdateDevPropertiesFromIniAttrs(const rtChipType_t chipTypeValue, const RtIniAttributes& iniAttrs)
 {
-    value.maxPersistTaskNum = 15000U;
-    value.maxTaskNumPerStream = 1018U;
-    value.maxSupportTaskNum = MAX_UINT16_NUM;
-    value.maxAllocStreamNum = 56U;
-    value.stubEventCount = 512U;
-    value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT;
-    value.baseAicpuStreamId = BASE_AICPU_STREAM_ID;
-    value.maxPhysicalStreamNum = value.maxAllocStreamNum;
-}
-
-void Runtime::MacroInit(const rtChipType_t chipTypeValue)
-{
-    macroValue_.rtsqDepth = 4096U;
-    DevDynInfoProcFunc func{};
-    const rtError_t ret = GET_DEV_INFO_PROC_FUNC(chipTypeValue, func);
-    if ((ret != RT_ERROR_NONE) || (func.macroInitFunc == nullptr)) {
-        RT_LOG(RT_LOG_WARNING,
-            "can not get chip[%d] reg info, ret[%d], use default value.",
-            static_cast<int32_t>(chipTypeValue),
-            ret);
-        MacroInitDefault(macroValue_);
+    DevProperties props;
+    if (GET_DEV_PROPERTIES(chipTypeValue, props) != RT_ERROR_NONE) {
+        RT_LOG(
+            RT_LOG_WARNING, "GetDevProperties failed for chip[%d], skip ini update.",
+            static_cast<int32_t>(chipTypeValue));
         return;
     }
-    func.macroInitFunc(socType_, macroValue_);
-    starsPendingMax_ = macroValue_.rtsqDepth * 3U / 4U;
-    return;
+
+    if (iniAttrs.normalStreamNum != 0U) {
+        props.maxAllocStreamNum = iniAttrs.normalStreamNum;
+    }
+    if (iniAttrs.normalStreamDepth != 0U) {
+        props.rtsqDepth = iniAttrs.normalStreamDepth;
+    }
+    if (iniAttrs.hugeStreamNum != 0U) {
+        props.maxAllocHugeStreamNum = iniAttrs.hugeStreamNum;
+    }
+    if (iniAttrs.hugeStreamDepth != 0U) {
+        props.maxTaskNumPerHugeStream = iniAttrs.hugeStreamDepth;
+    }
+
+    if ((iniAttrs.normalStreamDepth != 0U) && (props.rtsqReservedTaskNum > 0U)) {
+        if (iniAttrs.normalStreamDepth <= props.rtsqReservedTaskNum) {
+            RT_LOG(RT_LOG_WARNING,
+                "normalStreamDepth[%u] <= rtsqReservedTaskNum[%u], skip maxTaskNumPerStream update.",
+                iniAttrs.normalStreamDepth, props.rtsqReservedTaskNum);
+        } else {
+            props.maxTaskNumPerStream = iniAttrs.normalStreamDepth - props.rtsqReservedTaskNum;
+        }
+    } else if (iniAttrs.normalStreamDepth != 0U) {
+        props.maxTaskNumPerStream = iniAttrs.normalStreamDepth;
+    }
+
+    SET_DEV_PROPERTIES(chipTypeValue, props);
+}
+
+void Runtime::UpdateDevProperties(const rtChipType_t chipTypeValue, const std::string& socVersion)
+{
+    RtIniAttributes iniAttrs = {};
+    ParseIniFile(socVersion, iniAttrs);
+    UpdateDevPropertiesFromIniAttrs(chipTypeValue, iniAttrs);
+
+    DevDynInfoProcFunc func{};
+    if ((GET_DEV_INFO_PROC_FUNC(chipTypeValue, func) == RT_ERROR_NONE) && (func.devPropsUpdateFunc != nullptr)) {
+        DevProperties props;
+        GET_DEV_PROPERTIES(chipTypeValue, props);
+        func.devPropsUpdateFunc(props);
+        SET_DEV_PROPERTIES(chipTypeValue, props);
+    }
+
+    DevProperties finalProps;
+    if (GET_DEV_PROPERTIES(chipTypeValue, finalProps) == RT_ERROR_NONE) {
+        starsPendingMax_ = finalProps.rtsqDepth * 3U / 4U;
+
+        // Refresh cached DevProperties in Runtime
+        propertiesMap_[chipTypeValue] = finalProps;
+        if (chipTypeValue == GetChipType()) {
+            curChipProperties_ = finalProps;
+        }
+
+        // Refresh cached DevProperties in NpuDriver (only if already constructed, avoid lazy creation)
+        Driver* const npuDrv = driverFactory_.GetDriverIfCreated(NPU_DRIVER);
+        if (npuDrv != nullptr) {
+            npuDrv->RefreshDevProperties(finalProps);
+        }
+    }
 }
 
 void Runtime::TsdClientInit()
@@ -1045,8 +1081,10 @@ rtError_t Runtime::InitProgramAllocator()
         if (IS_SUPPORT_CHIP_FEATURE(chipType_, RtOptionalFeatureType::RT_FEATURE_KERNEL_DOT_PROGRAM_ALLOCATOR)) {
             maxProgramNum_ = 20000U;
         }
-        RT_LOG(RT_LOG_DEBUG, "run mode = %u [0:offline, 1:online], max program num %u, rtsqDepth=%u.",
-               runMode, maxProgramNum_, macroValue_.rtsqDepth);
+        const DevProperties &logProps = GetCurChipProperties();
+        RT_LOG(
+            RT_LOG_DEBUG, "run mode = %u [0:offline, 1:online], max program num %u, rtsqDepth=%u.", runMode,
+            maxProgramNum_, logProps.rtsqDepth);
     }
 #endif
 
@@ -1296,7 +1334,7 @@ rtError_t Runtime::Init()
     rtError_t error = InitChipAndSocType();
     COND_RETURN_WITH_NOLOG((error != RT_ERROR_NONE), error);
 
-    MacroInit(chipType_);
+    UpdateDevProperties(chipType_, GetSocVersionStrByType(socType_));
     ParseHostCpuModelInfo();
     (void)GetVisibleDevices();
     if (IS_SUPPORT_CHIP_FEATURE(chipType_, RtOptionalFeatureType::RT_FEATURE_OVERFLOW_MODE)) {
@@ -1459,7 +1497,7 @@ rtError_t Runtime::AddProgramToPool(Program *const prog)
     static uint32_t programsTryIdx = 0U;
     const uint32_t newEnd = maxProgramNum_ + programsTryIdx;
     for (uint32_t i = programsTryIdx; i < newEnd; i++) {
-        const uint32_t id = i % maxProgramNum_;  // init in Runtime::MacroInit
+        const uint32_t id = i % maxProgramNum_;
         RefObject<Program *> *const programItem = programAllocator_->GetDataToItem(id);
         if ((programItem != nullptr) && (programItem->TryIncAndSet(prog))) {
             prog->SetId(id);
@@ -4714,7 +4752,7 @@ rtError_t Runtime::AllocAiCpuStreamId(int32_t &id)
     const int32_t tmpId = aicpuStreamIdBitmap_->AllocId();
     COND_RETURN_ERROR_MSG_INNER(tmpId < 0, RT_ERROR_STREAM_AICPU_ALLOC_FAIL,
         "Alloc aicpu stream id=%d, can not be less than 0", tmpId);
-    id = static_cast<int32_t>(static_cast<uint32_t>(tmpId) | macroValue_.baseAicpuStreamId);
+    id = static_cast<int32_t>(static_cast<uint32_t>(tmpId) | curChipProperties_.baseAicpuStreamId);
     return RT_ERROR_NONE;
 }
 
@@ -4759,8 +4797,8 @@ rtError_t Runtime::TaskAbortCallBack(int32_t devId, rtTaskAbortStage_t stage, ui
 
 void Runtime::FreeAiCpuStreamId(const int32_t id)
 {
-    const uint32_t tmpId = static_cast<uint32_t>(id) & (~macroValue_.baseAicpuStreamId);
-    if (tmpId < macroValue_.baseAicpuStreamId) {
+    const uint32_t tmpId = static_cast<uint32_t>(id) & (~curChipProperties_.baseAicpuStreamId);
+    if (tmpId < curChipProperties_.baseAicpuStreamId) {
         aicpuStreamIdBitmap_->FreeId(static_cast<int32_t>(tmpId));
     } else {
         RT_LOG_INNER_MSG(RT_LOG_ERROR, "Free aicpu stream id=%d, tmpId=%u", id, tmpId);
@@ -6256,8 +6294,9 @@ uint32_t GetRuntimeStreamNum(void)
 {
     Runtime *rt = Runtime::Instance();
     if ((rt != nullptr) && IS_SUPPORT_CHIP_FEATURE(rt->GetChipType(), RtOptionalFeatureType::RT_FEATURE_STREAM_EXTENSION)) {
-        RT_LOG(RT_LOG_DEBUG, "StreamCnt=%u", Runtime::macroValue_.rsvAicpuStreamNum);
-        return Runtime::macroValue_.maxAllocStreamNum + Runtime::macroValue_.rsvAicpuStreamNum;
+        const DevProperties &stmProps = rt->GetCurChipProperties();
+        RT_LOG(RT_LOG_DEBUG, "StreamCnt=%u", stmProps.rsvAicpuStreamNum);
+        return stmProps.maxAllocStreamNum + stmProps.rsvAicpuStreamNum;
     }
     RT_LOG(RT_LOG_DEBUG, "StreamCnt=%u", 3U * 1024U);
     return 3072U;

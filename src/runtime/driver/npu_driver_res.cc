@@ -1507,14 +1507,14 @@ rtError_t NpuDriver::NormalSqCqAllocate(const uint32_t deviceId, const uint32_t 
     // 1980C sqeDepth/cqeDepth is 4096U when not support sq alloc device mem
     if ((GetDevProperties().cqeSize == RT_VIRTUAL_CQE_SIZE) && (sqeDepth == UINT32_MAX)) {
         normalSqCqAllocInputInfo.cqeSize = RT_VIRTUAL_CQE_SIZE;
-        normalSqCqAllocInputInfo.sqeDepth = Runtime::macroValue_.rtsqDepth;
-        normalSqCqAllocInputInfo.cqeDepth = Runtime::macroValue_.rtsqDepth;
+        normalSqCqAllocInputInfo.sqeDepth = GetDevProperties().rtsqDepth;
+        normalSqCqAllocInputInfo.cqeDepth = GetDevProperties().rtsqDepth;
     }
 
     if (IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DRIVER_RESOURCE_SQCQ_ALLOC_EX)) {
         normalSqCqAllocInputInfo.cqeSize = RT_DAVID_VIRTUAL_CQE_SIZE;
-        normalSqCqAllocInputInfo.sqeDepth = Runtime::macroValue_.rtsqDepth;
-        normalSqCqAllocInputInfo.cqeDepth = Runtime::macroValue_.rtcqDepth;
+        normalSqCqAllocInputInfo.sqeDepth = GetDevProperties().rtsqDepth;
+        normalSqCqAllocInputInfo.cqeDepth = GetDevProperties().rtcqDepth;
     }
 
     normalSqCqAllocInputInfo.cqeDepth =

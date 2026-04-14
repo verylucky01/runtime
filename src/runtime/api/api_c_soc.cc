@@ -102,7 +102,7 @@ rtError_t rtSetSocVersion(const char_t *ver)
     const auto rtInstance = Runtime::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
     rtInstance->SetIsUserSetSocVersion(true);
-    rtInstance->MacroInit(socInfo.chipType);
+    rtInstance->UpdateDevProperties(socInfo.chipType, inputSocVersion);
     RT_LOG(RT_LOG_EVENT, "soc version is %s, type=%d, soc type=%d", ver, socInfo.chipType, socInfo.socType);
     return ACL_RT_SUCCESS;
 }

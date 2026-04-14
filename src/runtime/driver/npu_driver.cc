@@ -134,6 +134,11 @@ const DevProperties& NpuDriver::GetDevProperties(void) const
     return properties_;
 }
 
+void NpuDriver::RefreshDevProperties(const DevProperties& props)
+{
+    properties_ = props;
+}
+
 rtError_t NpuDriver::GetDeviceCount(int32_t * const cnt)
 {
     const drvError_t drvRet = drvGetDevNum(RtPtrToPtr<uint32_t *>(cnt));

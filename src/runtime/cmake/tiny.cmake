@@ -254,6 +254,7 @@ set(libruntime_common_src_files
     ${RUNTIME_CORE_DIR}/src/utils/aicpu_scheduler_agent.cc
     ${RUNTIME_CORE_DIR}/src/device/device_msg_handler.cc
     ${RUNTIME_CORE_DIR}/src/device/aicpu_err_msg.cc
+    ${RUNTIME_CORE_DIR}/src/device/ini_parse_utils.cc
     ${RUNTIME_CORE_DIR}/src/stream/dvpp_grp.cc
     ${RUNTIME_CORE_DIR}/src/engine/engine.cc
     ${RUNTIME_CORE_DIR}/src/engine/hwts/package_rebuilder.cc
@@ -276,7 +277,6 @@ set(libruntime_common_src_files
 )
 
 set(libruntime_dev_info_src_files
-    ${RUNTIME_DIR}/src/runtime/config/tiny/dev_info_proc_func.cc
 )
 
 #------------------------- runtime v100 -------------------------
@@ -415,6 +415,7 @@ set(RUNTIME_INC_DIR_TINY
     ${RUNTIME_DIR}/src/runtime/core/inc/soc
     ${RUNTIME_DIR}/src/runtime/core/inc/spec
     ${RUNTIME_DIR}/src/runtime/core/inc/sqe
+    ${RUNTIME_DIR}/src/runtime/inc/device
     ${RUNTIME_DIR}/src/runtime/inc/sqe
     ${RUNTIME_DIR}/src/runtime/core/inc/stars
     ${RUNTIME_DIR}/src/runtime/core/inc/stream

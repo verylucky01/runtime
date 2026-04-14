@@ -7916,9 +7916,6 @@ TEST_F(ApiDavidTest, modelDebugDotPrintApi)
 
 TEST_F(ApiDavidTest, captureStreamCascade)
 {
-    uint32_t rtsqDepth = Runtime::macroValue_.rtsqDepth;
-    Runtime::macroValue_.rtsqDepth = 32;
-    
     rtContext_t current = NULL;
     rtError_t error = rtCtxGetCurrent(&current);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -7968,8 +7965,6 @@ TEST_F(ApiDavidTest, captureStreamCascade)
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtEventDestroy(event);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
-
-    Runtime::macroValue_.rtsqDepth = rtsqDepth;
 }
 
 TEST_F(ApiDavidTest, captureReduceAsync)

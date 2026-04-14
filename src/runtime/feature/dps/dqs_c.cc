@@ -294,7 +294,7 @@ static rtError_t InterChipDqsTaskInit(Stream* const stream)
 {
     rtError_t result = RT_ERROR_NONE;
     // 8: inter chip rtsq drops 8 tasks to sink all needed task. 4: 4 task in one group
-    const uint32_t grpCnt = ((Runtime::macroValue_.rtsqDepth - 8U) / 4U);
+    const uint32_t grpCnt = ((stream->Device_()->GetDevProperties().rtsqDepth - 8U) / 4U);
     RT_LOG(RT_LOG_INFO, "Init inter-chip dqs tasks for streamId: %d, grpCnt=%u", stream->Id_(), grpCnt);
 
     for (uint32_t groupIdx = 0U; groupIdx < grpCnt; groupIdx++) {

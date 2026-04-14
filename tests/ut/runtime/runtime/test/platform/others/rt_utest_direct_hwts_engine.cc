@@ -94,8 +94,7 @@ TEST_F(RtOtherDirectHwtsEngineTest, ReportTimeoutProc_01)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     std::unique_ptr<Engine> engine = std::make_unique<DirectHwtsEngine>(device);
     int32_t timeoutCnt = 1U;
-    int32_t oldTimeoutCnt = Runtime::macroValue_.maxReportTimeoutCnt;
-    Runtime::macroValue_.maxReportTimeoutCnt = 0U;
+    // maxReportTimeoutCnt migrated to DevProperties
     engine->pendingNum_.Add(1U);
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     rtChipType_t originType = rtInstance->GetChipType();
@@ -107,7 +106,7 @@ TEST_F(RtOtherDirectHwtsEngineTest, ReportTimeoutProc_01)
     rtInstance->SetDisableThread(old);
     rtInstance->SetChipType(originType);
     GlobalContainer::SetRtChipType(originType);
-    Runtime::macroValue_.maxReportTimeoutCnt = oldTimeoutCnt;
+    // maxReportTimeoutCnt migrated to DevProperties
     delete device;
     GlobalMockObject::reset();
 }

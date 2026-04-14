@@ -21,7 +21,7 @@ bool DavidArgManage::CreateArgRes()
     Device * const dev = stream_->Device_();
     void *devAddr = nullptr;
     void *hostAddr = nullptr;
-    const uint64_t size = DAVID_ARG_POOL_SQ_SIZE * Runtime::macroValue_.rtsqDepth;
+    const uint64_t size = DAVID_ARG_POOL_SQ_SIZE * dev->GetDevProperties().rtsqDepth;
     argPoolSize_ = static_cast<uint32_t>(size & UINT32_MAX);
 
     dev->ArgStreamMutexLock();

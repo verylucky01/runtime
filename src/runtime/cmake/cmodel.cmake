@@ -540,6 +540,7 @@ set(RUNTIME_CMODEL_INC_DIR_COMMON
     ${RUNTIME_DIR}/src/runtime/core/inc/spec
     ${RUNTIME_DIR}/src/runtime/core/inc/sqe/v200_base
     ${RUNTIME_DIR}/src/runtime/core/inc/sqe
+    ${RUNTIME_DIR}/src/runtime/inc/device
     ${RUNTIME_DIR}/src/runtime/inc/sqe
     ${RUNTIME_DIR}/src/runtime/core/inc/stars
     ${RUNTIME_DIR}/src/runtime/core/inc/stream
@@ -597,15 +598,7 @@ set(RUNTIME_CMODEL_INC_DIR
 )
 
 set(libruntime_model_dev_info_src_files
-    ${RUNTIME_DIR}/src/runtime/config/610_lite/dev_info_proc_func.cc
     ${RUNTIME_DIR}/src/runtime/config/910_B_93/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/as31xm1/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/cloud/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/dc/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/adc/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/mini/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/mini_v3/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/tiny/dev_info_proc_func.cc
 )
 
 if(NOT ${TARGET_SYSTEM_NAME} STREQUAL "Windows")
@@ -660,10 +653,6 @@ target_link_libraries(runtime_model PRIVATE
 )
 
 set(libruntime_cmodel_v200_dev_info_src_files
-    ${RUNTIME_DIR}/src/runtime/config/950/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/mc62cm12a/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/mc32dm11a/dev_info_proc_func.cc
-    ${RUNTIME_DIR}/src/runtime/config/910_96/dev_info_proc_func.cc
 )
 
 add_library(runtime_model_v200 OBJECT EXCLUDE_FROM_ALL

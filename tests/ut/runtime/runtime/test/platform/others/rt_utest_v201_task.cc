@@ -1032,14 +1032,18 @@ TEST_F(TaskTestV201, TestDqsAdspcTaskWithCqeDepthError)
     delete stm;
 }
 
-TEST_F(TaskTestV201, Test_MacroInit)
+TEST_F(TaskTestV201, Test_UpdateDevProperties)
 {
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     EXPECT_NE(rtInstance, nullptr);
 
-    rtInstance->MacroInit(CHIP_MC62CM12A);
-    EXPECT_EQ(Runtime::macroValue_.rtsqDepth, 4089);
-    EXPECT_EQ(Runtime::macroValue_.rtcqDepth, 1024);
+    rtInstance->UpdateDevProperties(CHIP_MC62CM12A, "MC62CM12AA");
+
+    DevProperties props = {};
+    EXPECT_EQ(GET_DEV_PROPERTIES(CHIP_MC62CM12A, props), RT_ERROR_NONE);
+    EXPECT_EQ(props.rtsqDepth, 4089U);
+    EXPECT_EQ(props.maxTaskNumPerStream, 4054U);
+    EXPECT_EQ(Runtime::starsPendingMax_, props.rtsqDepth * 3U / 4U);
 }
 
 TEST_F(TaskTestV201, Test_SetSocTypeByChipType)

@@ -409,7 +409,7 @@ TEST_F(DavidStreamTest, public_queue)
     ((Stream *)stream)->taskPublicBuffSize_ = 0U;
     res = ((DavidStream *)stream)->DavidUpdatePublicQueue();
     EXPECT_NE(res, RT_ERROR_NONE);
-    ((Stream *)stream)->taskPublicBuffSize_ = Runtime::macroValue_.rtsqDepth;
+    ((Stream*)stream)->taskPublicBuffSize_ = 4096U;
     res = ((DavidStream *)stream)->DavidUpdatePublicQueue();
     EXPECT_NE(res, RT_ERROR_NONE);
     ((DavidStream *)stream)->publicQueueHead_ = 0;

@@ -1133,11 +1133,9 @@ void RawDevice::FreeBufferForSqIdMem(void * const addr, void * const para)
 uint64_t RawDevice::AllocSqIdMemAddr(void)
 {
     if (sqIdMemAddrPool_ == nullptr) {
-        sqIdMemAddrPool_ = new (std::nothrow) BufferAllocator(sizeof(uint64_t), SQ_ID_MEM_POOL_INIT_COUNT,
-                                                              Runtime::macroValue_.maxAllocStreamNum,
-                                                              BufferAllocator::LINEAR,
-                                                              &MallocBufferForSqIdMem,
-                                                              &FreeBufferForSqIdMem, this);
+        sqIdMemAddrPool_ = new (std::nothrow) BufferAllocator(
+            sizeof(uint64_t), SQ_ID_MEM_POOL_INIT_COUNT, GetDevProperties().maxAllocStreamNum, BufferAllocator::LINEAR,
+            &MallocBufferForSqIdMem, &FreeBufferForSqIdMem, this);
         COND_RETURN_WARN(sqIdMemAddrPool_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, "alloc sq mem pool failed");
     }
     auto id = sqIdMemAddrPool_->AllocId(true);
@@ -1550,7 +1548,7 @@ rtError_t RawDevice::DatadumpInfoLoad(const void * const dumpInfo, const uint32_
 
 rtError_t RawDevice::AllocMemForSqVirtualArr()
 {
-    const uint64_t allocSize = static_cast<uint64_t>(Runtime::macroValue_.rtsqDepth * sizeof(uint64_t));
+    const uint64_t allocSize = static_cast<uint64_t>(GetDevProperties().rtsqDepth * sizeof(uint64_t));
     rtError_t error = driver_->DevMemAlloc(&sqVirtualArrBaseAddr_, allocSize, RT_MEMORY_DDR, deviceId_);
     ERROR_RETURN_MSG_INNER(error, "Device mem alloc for sq virtual addr failed, retCode=%#x, deviceId=%u, "
                                   "size = %#" PRIx64 "(bytes).", static_cast<uint32_t>(error), deviceId_, allocSize);

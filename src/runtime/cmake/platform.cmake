@@ -31,6 +31,7 @@ set(RUNTIME_INC_DIR_COMMON_PLATFORM
     ${RUNTIME_DIR}/src/runtime/core/inc/soc
     ${RUNTIME_DIR}/src/runtime/core/inc/spec
     ${RUNTIME_DIR}/src/runtime/core/inc/sqe
+    ${RUNTIME_DIR}/src/runtime/inc/device
     ${RUNTIME_DIR}/src/runtime/inc/sqe
     ${RUNTIME_DIR}/src/runtime/core/inc/stars
     ${RUNTIME_DIR}/src/runtime/core/inc/stream

@@ -41,6 +41,7 @@ public:
     rtError_t GetChipFromDevice(const uint32_t deviceId, uint32_t * const chipId) override;
     bool IsSupportFeature(RtOptionalFeatureType f) const override;
     const DevProperties& GetDevProperties(void) const override;
+    void RefreshDevProperties(const DevProperties& props) override;
     rtError_t GetDeviceIDs(uint32_t * const deviceIds, const uint32_t len) override;
 
     // Alloc page-locked host memory.

@@ -14,30 +14,19 @@
 
 namespace cce {
 namespace runtime {
-struct RtMacroValue {
-    uint32_t maxPersistTaskNum;
-    uint32_t maxTaskNumPerStream;
-    uint32_t maxSupportTaskNum;
-    uint32_t maxAllocStreamNum;
-    uint32_t stubEventCount;
-    int32_t maxReportTimeoutCnt;
-    uint32_t maxTaskNumPerHugeStream;
-    uint32_t maxAllocHugeStreamNum;
-    uint32_t rtsqDepth;
-    uint32_t rtcqDepth;
-    uint32_t baseAicpuStreamId;
-    uint32_t expandStreamRsvTaskNum;
-    uint32_t expandStreamSqDepthAdapt;
-    uint32_t expandStreamAdditionalSqeNum;
-    uint32_t rsvAicpuStreamNum;
-    uint32_t maxPhysicalStreamNum;
+struct RtIniAttributes {
+    uint32_t normalStreamNum = 0U;   // ini SoCInfo.normal_stream_num
+    uint32_t normalStreamDepth = 0U; // ini SoCInfo.normal_stream_depth
+    uint32_t hugeStreamNum = 0U;     // ini SoCInfo.huge_stream_num
+    uint32_t hugeStreamDepth = 0U;   // ini SoCInfo.huge_stream_depth
 };
 
-using MACRO_VALUE_INIT_FUNC = void (*)(rtSocType_t, RtMacroValue &);
+struct DevProperties;
+using DEV_PROPS_UPDATE_FUNC = void (*)(DevProperties&);
 
 // Dynamic attribute processing, which is registered in the SO opened in dlopen mode,
 struct DevDynInfoProcFunc {
-    MACRO_VALUE_INIT_FUNC macroInitFunc;
+    DEV_PROPS_UPDATE_FUNC devPropsUpdateFunc = nullptr;
 };
 }  // namespace runtime
 }  // namespace cce

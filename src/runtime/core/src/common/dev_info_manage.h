@@ -77,6 +77,7 @@ public:
     bool IsSupportChipFeature(rtChipType_t chip, RtOptionalFeatureType f);
     bool RegDevProperties(const rtChipType_t chip, const DevProperties& properties);
     rtError_t GetDevProperties(const rtChipType_t chip, DevProperties& properties);
+    rtError_t SetDevProperties(const rtChipType_t chip, const DevProperties& properties);
     rtError_t GetAllDevProperties(std::unordered_map<rtChipType_t, DevProperties> &properties);
 
     bool RegDevInfoProcFunc(const rtChipType_t chip, const DevDynInfoProcFunc& func);
@@ -155,6 +156,9 @@ private:
 
 #define GET_DEV_PROPERTIES(chipType, properties) \
     cce::runtime::DevInfoManage::Instance().GetDevProperties((chipType), (properties))
+
+#define SET_DEV_PROPERTIES(chipType, properties) \
+    cce::runtime::DevInfoManage::Instance().SetDevProperties((chipType), (properties))
 
 #define GET_ALL_DEV_PROPERTIES(properties) \
     cce::runtime::DevInfoManage::Instance().GetAllDevProperties(properties)

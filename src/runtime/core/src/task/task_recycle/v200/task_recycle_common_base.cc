@@ -212,7 +212,7 @@ rtError_t AdjustRecycleTaskID(const Stream * const stm, const uint32_t endTaskId
 {
     COND_RETURN_ERROR(stm->taskResMang_ == nullptr, RT_ERROR_INVALID_VALUE, "taskResMang_ of stm is nullptr");
 
-    const uint32_t rtsqDepth = Runtime::macroValue_.rtsqDepth;
+    const uint32_t rtsqDepth = stm->Device_()->GetDevProperties().rtsqDepth;
     const uint16_t nextPos = ((recyclePos + 1) % rtsqDepth);
     bool taskIsFinished = true;
     uint16_t nextTaskId = 0;

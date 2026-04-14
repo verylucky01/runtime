@@ -3904,18 +3904,18 @@ TEST_F(ApiTest, rtGetSocVersion)
 
     drvStubInit(SOC_ASCEND310B1);
     rtInstance->InitSocType();
-    rtInstance->MacroInit(CHIP_MINI_V3);
+    rtInstance->UpdateDevProperties(CHIP_MINI_V3, "Ascend310B1");
 
     drvStubInit(SOC_ASCEND310B1);
     rtInstance->InitSocType();
-    rtInstance->MacroInit(CHIP_MINI_V3);
+    rtInstance->UpdateDevProperties(CHIP_MINI_V3, "Ascend310B1");
 
     drvStubInit(SOC_Hi3796CV300ES);
     rtInstance->InitSocType();
 
     drvStubInit(SOC_ASCEND320T);
     rtInstance->InitSocType();
-    rtInstance->MacroInit(CHIP_ASCEND_031);
+    rtInstance->UpdateDevProperties(CHIP_ASCEND_031, "Ascend031");
 
     // restore soc type
     drvStubInit(socBak);

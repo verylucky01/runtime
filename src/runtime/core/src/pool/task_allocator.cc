@@ -136,7 +136,7 @@ int32_t TaskAllocator::AllocId(const Stream * const stm, rtError_t &errCode)
         maxCnt = UINT32_MAX;
     } else {
         usedCnt = &usedCntUnSink_;
-        maxCnt = Runtime::macroValue_.maxSupportTaskNum;
+        maxCnt = stm->Device_()->GetDevProperties().maxSupportTaskNum;
     }
 
     std::unique_lock<std::mutex> taskLock(taskAllocLock_);

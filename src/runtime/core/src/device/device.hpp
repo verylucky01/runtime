@@ -239,6 +239,7 @@ public:
     virtual rtError_t RegisterAndLaunchDcacheLockOp(Context *ctx) = 0;
     virtual rtError_t SendTopicMsgVersionToAicpu() = 0;
     virtual const DevProperties& GetDevProperties(void) const = 0;
+    virtual void RefreshDevProperties(const DevProperties& props) = 0;
     virtual rtError_t SetQosCfg(const QosMasterConfigType& qosCfg, uint32_t index) = 0;
     bool IsStarsPlatform() const
     {

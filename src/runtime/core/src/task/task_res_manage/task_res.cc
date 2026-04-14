@@ -225,8 +225,8 @@ uint16_t TaskResManage::GetTaskPoolSizeByChipType(const rtChipType_t chipType) c
         RT_LOG(RT_LOG_ERROR, "GetDevProperties failed, error code=%u.", ret);
         return 0U;
     }
-    if (prop.taskPoolSizeFromMacroValue) {
-        return Runtime::macroValue_.rtsqDepth;
+    if (prop.taskPoolSizeFromRtsqDepth) {
+        return prop.rtsqDepth;
     }
     return prop.taskPoolSize;
 }

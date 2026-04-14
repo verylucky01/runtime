@@ -10,48 +10,20 @@
 #include "dev_info.h"
 #include "dev_info_manage.h"
 #include "npu_driver.hpp"
-namespace {
-constexpr int32_t MAX_REPORT_TIMEOUT_CNT_STARS = 360;
-constexpr uint32_t BASE_AICPU_STREAM_ID_V2 = 2048U;  // for A2/A3, aicpu stream id range [2048, 3072).
-constexpr uint32_t BASE_AICPU_STREAM_ID_V2_MAX_STREAM = 32U * 1024U;
-}  // namespace
 
 namespace cce {
 namespace runtime {
-static void MacroInit910B(rtSocType_t socType, RtMacroValue &value)
+static void UpdateDevProps910B(DevProperties& props)
 {
-    UNUSED(socType);
-    uint32_t rtsqDepth = 4096U;
-
-    const bool isSupportDevMem = NpuDriver::CheckIsSupportFeature(0U, FEATURE_TRSDRV_SQ_DEVICE_MEM_PRIORITY);
-    if (isSupportDevMem) {
-        rtsqDepth = 2048U;
-    }
-
-    value.maxPersistTaskNum = 60000U;
-    value.maxTaskNumPerStream = rtsqDepth - 35U;
-    value.maxSupportTaskNum = 64 * 1024 * 1024U;
-    value.maxAllocStreamNum = 32 * 1024U;
-    value.stubEventCount = 65536U;
-    value.maxReportTimeoutCnt = MAX_REPORT_TIMEOUT_CNT_STARS;
-    value.maxTaskNumPerHugeStream = 0U;
-    value.maxAllocHugeStreamNum = 0U;
-    value.rtsqDepth = rtsqDepth;
-    value.baseAicpuStreamId = BASE_AICPU_STREAM_ID_V2;
-    value.expandStreamRsvTaskNum = 0U;
-    value.expandStreamSqDepthAdapt = 0U;
-    value.expandStreamAdditionalSqeNum = 1U;
-    value.rsvAicpuStreamNum = 1024U;
     if (NpuDriver::CheckIsSupportFeature(0U, FEATURE_TRSDRV_SQ_SUPPORT_DYNAMIC_BIND)) {
-        value.baseAicpuStreamId = BASE_AICPU_STREAM_ID_V2_MAX_STREAM;
+        props.baseAicpuStreamId = 32768U; // 32*1024
     }
-    value.maxPhysicalStreamNum = 2038U; // 2048 - 10. 10 streams reserved
 }
 
 static DevDynInfoProcFunc CHIP_910B_PROC_FUNC = {
-    .macroInitFunc = &MacroInit910B,
+    .devPropsUpdateFunc = &UpdateDevProps910B,
 };
 
 REGISTER_DEV_INFO_PROC_FUNC(CHIP_910_B_93, CHIP_910B_PROC_FUNC);
 }  // namespace runtime
-}  // namespace cce
+} // namespace cce

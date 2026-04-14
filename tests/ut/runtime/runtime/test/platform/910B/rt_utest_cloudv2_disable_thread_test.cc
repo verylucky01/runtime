@@ -759,9 +759,6 @@ TEST_F(ApiCloudV2DisableThreadTest, task_group_cascade)
     MOCKER_CPP_VIRTUAL(device, &Device::CheckFeatureSupport).stubs().will(returnValue(true));
     MOCKER_CPP(&Model::LoadCompleteByStreamPostp).stubs().will(returnValue(RT_ERROR_NONE));
 
-    uint32_t rtsqDepth = Runtime::macroValue_.rtsqDepth;
-    Runtime::macroValue_.rtsqDepth = 32U + PREFETCH_CNT_CLOUD_V2;
-
     error = rtStreamCreate(&stream2, 0);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
 
@@ -830,8 +827,6 @@ TEST_F(ApiCloudV2DisableThreadTest, task_group_cascade)
     delete rawDrv;
     delete stream;
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
-
-    Runtime::macroValue_.rtsqDepth = rtsqDepth;
 }
 
 TEST_F(ApiCloudV2DisableThreadTest, task_group_cascade2)
@@ -856,16 +851,11 @@ TEST_F(ApiCloudV2DisableThreadTest, task_group_cascade2)
     MOCKER_CPP_VIRTUAL(device, &Device::CheckFeatureSupport).stubs().will(returnValue(true));
     MOCKER_CPP(&Model::LoadCompleteByStreamPostp).stubs().will(returnValue(RT_ERROR_NONE));
 
-    uint32_t rtsqDepth = Runtime::macroValue_.rtsqDepth;
-    Runtime::macroValue_.rtsqDepth = 32U + PREFETCH_CNT_CLOUD_V2;
-
     error = rtStreamCreate(&stream2, 0);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
 
     NpuDriver * rawDrv = new NpuDriver();
-    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::GetRunMode)
-                        .stubs()
-                        .will(returnValue(1)); 
+    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::GetRunMode).stubs().will(returnValue(1));
     error = rtStreamBeginCapture(stream1, RT_STREAM_CAPTURE_MODE_GLOBAL);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
 
@@ -920,8 +910,6 @@ TEST_F(ApiCloudV2DisableThreadTest, task_group_cascade2)
     delete rawDrv;
     delete stream;
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
-
-    Runtime::macroValue_.rtsqDepth = rtsqDepth;
 }
 
 TEST_F(ApiCloudV2DisableThreadTest, task_group_capture_invalid)
@@ -943,9 +931,6 @@ TEST_F(ApiCloudV2DisableThreadTest, task_group_capture_invalid)
     MOCKER_CPP_VIRTUAL(stream, &Stream::AddTaskToList).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP(&Context::AllocCascadeCaptureStream).stubs().will(returnValue(RT_ERROR_DRV_NO_RESOURCES));
     MOCKER_CPP(&Model::LoadCompleteByStreamPostp).stubs().will(returnValue(RT_ERROR_NONE));
-
-    uint32_t rtsqDepth = Runtime::macroValue_.rtsqDepth;
-    Runtime::macroValue_.rtsqDepth = 32U + PREFETCH_CNT_CLOUD_V2;
 
     error = rtStreamCreate(&stream1, 0);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
@@ -976,8 +961,6 @@ TEST_F(ApiCloudV2DisableThreadTest, task_group_capture_invalid)
 
     delete stream;
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
-
-    Runtime::macroValue_.rtsqDepth = rtsqDepth;
 }
 
 TEST_F(ApiCloudV2DisableThreadTest, ModelDebugJsonPrint_AicpuTask)
@@ -1001,15 +984,10 @@ TEST_F(ApiCloudV2DisableThreadTest, ModelDebugJsonPrint_AicpuTask)
     MOCKER_CPP_VIRTUAL(device, &Device::CheckFeatureSupport).stubs().will(returnValue(true));
     MOCKER_CPP(&Model::LoadCompleteByStreamPostp).stubs().will(returnValue(RT_ERROR_NONE));
 
-    uint32_t rtsqDepth = Runtime::macroValue_.rtsqDepth;
-    Runtime::macroValue_.rtsqDepth = 32U + PREFETCH_CNT_CLOUD_V2;
-
     error = rtStreamCreate(&stream2, 0);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
     NpuDriver * rawDrv = new NpuDriver();
-    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::GetRunMode)
-                        .stubs()
-                        .will(returnValue(1)); 
+    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::GetRunMode).stubs().will(returnValue(1));
 
     error = rtStreamBeginCapture(stream1, RT_STREAM_CAPTURE_MODE_GLOBAL);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
@@ -1054,7 +1032,7 @@ TEST_F(ApiCloudV2DisableThreadTest, ModelDebugJsonPrint_AicpuTask)
     task.type = TS_TASK_TYPE_KERNEL_AICPU;
     AicpuTaskInfo *aicpuTask = &(task.u.aicpuTaskInfo);
     aicpuTask->kernel = nullptr;
-    
+
     MOCKER_CPP(&TaskFactory::GetTask).stubs().will(returnValue(&task));
     ((Stream *)stream1)->SetBindFlag(true);
     ((Stream *)stream1)->StarsAddTaskToStream(&task, 1);
@@ -1074,8 +1052,6 @@ TEST_F(ApiCloudV2DisableThreadTest, ModelDebugJsonPrint_AicpuTask)
     delete rawDrv;
     delete stream;
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
-
-    Runtime::macroValue_.rtsqDepth = rtsqDepth;
 
 }
 
@@ -1100,15 +1076,10 @@ TEST_F(ApiCloudV2DisableThreadTest, ModelDebugJsonPrint_Error_01)
     MOCKER_CPP_VIRTUAL(device, &Device::CheckFeatureSupport).stubs().will(returnValue(true));
     MOCKER_CPP(&Model::LoadCompleteByStreamPostp).stubs().will(returnValue(RT_ERROR_NONE));
 
-    uint32_t rtsqDepth = Runtime::macroValue_.rtsqDepth;
-    Runtime::macroValue_.rtsqDepth = 32U + PREFETCH_CNT_CLOUD_V2;
-
     error = rtStreamCreate(&stream2, 0);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
     NpuDriver * rawDrv = new NpuDriver();
-    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::GetRunMode)
-                        .stubs()
-                        .will(returnValue(1));  
+    MOCKER_CPP_VIRTUAL(rawDrv, &NpuDriver::GetRunMode).stubs().will(returnValue(1));
 
     error = rtStreamBeginCapture(stream1, RT_STREAM_CAPTURE_MODE_GLOBAL);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
@@ -1168,8 +1139,6 @@ TEST_F(ApiCloudV2DisableThreadTest, ModelDebugJsonPrint_Error_01)
     delete rawDrv;
     delete stream;
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
-
-    Runtime::macroValue_.rtsqDepth = rtsqDepth;
 
 }
 

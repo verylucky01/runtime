@@ -280,7 +280,7 @@ inline void ConstructMixSqePart(T * const kernelInfo, RtDavidStarsAicAivKernelSq
             sqe->aivTaskParamPtrHigh = (sqe->aivTaskParamPtrHigh & 0xFFF00000U) | static_cast<uint32_t>(addr >> UINT32_BIT_NUM);
             break;
         default:
-            RT_LOG(RT_LOG_ERROR, "DavinciKernelTask mix error. ");
+            RT_LOG(RT_LOG_ERROR, "DavinciKernelTask mix error.");
             return;
     }
 }

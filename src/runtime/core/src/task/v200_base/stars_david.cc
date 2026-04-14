@@ -1171,7 +1171,6 @@ static void ConstructDavidMixSqeForDavinciTask(TaskInfo *taskInfo, rtDavidSqe_t 
 static void ConstructDavidAicAivSqeForDavinciTask(TaskInfo * const taskInfo, rtDavidSqe_t * const command,
     uint64_t sqBaseAddr)
 {
-    RT_LOG(RT_LOG_INFO, "DavinciKernelTask::ConstructSqe, type=%u.", taskInfo->type);
     AicTaskInfo *aicTaskInfo = &(taskInfo->u.aicTaskInfo);
     const uint8_t mixType = (aicTaskInfo->kernel != nullptr) ? aicTaskInfo->kernel->GetMixType() :
         static_cast<uint8_t>(NO_MIX);

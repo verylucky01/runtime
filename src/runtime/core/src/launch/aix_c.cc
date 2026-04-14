@@ -420,7 +420,7 @@ rtError_t StreamLaunchKernelWithHandle(void * const progHandle, const uint64_t t
     aicTask->funcAddr = addr1;
     aicTask->funcAddr1 = addr2;
     RT_LOG(RT_LOG_INFO, "stream_id=%d, kernel_name=%s, kernelType=%u, funcType=%u, "
-           "arg_size=%u, mixType=%u, taskRation=%u, kernelVfType=%u, dynamicSmSize=%u, addr1=0x%llx, addr2=0x%llx, "
+           "arg_size=%u, mixType=%hhu, taskRation=%u, kernelVfType=%u, dynamicSmSize=%u, addr1=0x%llx, addr2=0x%llx, "
            "flag=%u, kernelFlag=0x%x, qos=%u, partId=%u, schemMode=%u, infoAddr=%p, atomicIndex=%u.",
            stm->Id_(), name.c_str(), kernelType, funcType, argsInfo->argsSize, mixType, taskRation,
            kernelVfType, aicTask->dynamicShareMemSize, addr1, addr2, flag, aicTask->comm.kernelFlag, aicTask->qos,
@@ -530,11 +530,11 @@ rtError_t StreamLaunchKernelV2(Kernel * const kernel, const uint32_t coreDim, St
     aicTask->funcAddr1 = kernelPc2;
     SetArgsAix(argsInfo, kernelTask, &result);
 
-    RT_LOG(RT_LOG_INFO, "stream_id=%d, kernel_name=%s, kernelType=%u, funcType=%u, arg_size=%u, "
+    RT_LOG(RT_LOG_INFO, "stream_id=%d, kernel_name=%s, kernelType=%u, funcType=%u, arg_size=%u, mixType=%hhu, "
         "coreDim=%u, taskRation=%u, kernelVfType=%u, dynamicSmSize=%u, addr1=0x%llx, addr2=0x%llx, "
         "kernelFlag=0x%x, qos=%u, partId=%u, schemMode=%u, infoAddr=%p, atomicIndex=%u, "
         "groupDim=%u, groupBlockDim=%u.",
-        stm->Id_(), kernel->Name_().c_str(), kernelType, kernel->GetFuncType(), argsInfo->argsSize,
+        stm->Id_(), kernel->Name_().c_str(), kernelType, kernel->GetFuncType(), argsInfo->argsSize, mixType,
         coreDim, kernel->GetTaskRation(), kernel->KernelVfType_(),
         aicTask->dynamicShareMemSize, kernelPc1, kernelPc2, aicTask->comm.kernelFlag, aicTask->qos,
         aicTask->partId, aicTask->schemMode, aicTask->inputArgsSize.infoAddr, aicTask->inputArgsSize.atomicIndex,

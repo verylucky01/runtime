@@ -406,27 +406,27 @@ static void ConstructDavidSqeForModelMaintainceTask(TaskInfo * const taskInfo, r
                     static_cast<uint16_t>(modelMaintainceTaskInfo->model->GetEndGraphNotify()->GetNotifyId());
             }
             PrintDavidSqe(davidSqe, "ModelPreProcTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, pre proc stream_id=%hu of modelId=%hu,"
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, device_id=%u, pre proc stream_id=%hu of modelId=%hu,"
                 "endgraphNotifyId=%hu, taskId=%hu, executorFlag=%u.", type, taskInfo->stream->Device_()->Id_(),
                 sqe->u.modelMaintainceInfo.streamId, sqe->u.modelMaintainceInfo.modelId,
                 sqe->u.modelMaintainceInfo.endgraphNotifyId, taskInfo->id, sqe->u.modelMaintainceInfo.executorFlag);
             break;
         case MMT_MODEL_LOAD_COMPLETE:
             PrintDavidSqe(davidSqe, "ModelLoadCompleteTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, load complete stream_id=%hu of modelId=%hu,"
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, device_id=%u, load complete stream_id=%hu of modelId=%hu,"
                 "task_id=%hu", type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
                 sqe->u.modelMaintainceInfo.modelId, taskInfo->id);
             break;
         case MMT_MODEL_ABORT:
             sqe->header.preP = 1U;
             PrintDavidSqe(davidSqe, "ModelAbortTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, abort stream_id=%hu of modelId=%hu, task_id=%hu",
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, device_id=%u, abort stream_id=%hu of modelId=%hu, task_id=%hu",
                 type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
                 sqe->u.modelMaintainceInfo.modelId, taskInfo->id);
             break;
         default:
             PrintDavidSqe(davidSqe, "ModelMaintainceTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, stream_id=%hu, modelId=%hu, task_id=%hu",
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, device_id=%u, stream_id=%hu, modelId=%hu, task_id=%hu",
                 type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
                 sqe->u.modelMaintainceInfo.modelId, taskInfo->id);
             break;

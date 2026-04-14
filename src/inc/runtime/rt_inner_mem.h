@@ -17,7 +17,6 @@
 extern "C" {
 #endif
 
-
 typedef struct {
     uint32_t side;
     uint32_t devId;
@@ -84,8 +83,6 @@ typedef struct rtMemManagedLocation{
     rtMemManagedLocationType type;
     int32_t id;
 } rtMemManagedLocation;
-
-
 
 /**
 * @ingroup rt_mem

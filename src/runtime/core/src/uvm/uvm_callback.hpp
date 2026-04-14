@@ -34,9 +34,9 @@ typedef struct MemsetCallbackStruct {
 } MemsetCallbackStruct;
 
 typedef struct rtMemcpyCallbackParam {
-    void * dst;
+    void *dst;
     uint64_t destMax;
-    const void * src;
+    const void *src;
     uint64_t cnt;
     rtMemcpyKind_t kind;
     bool checkKind;
@@ -88,7 +88,6 @@ public :
         offset += sizeof(T);
         return RT_ERROR_NONE;
     }
-
 };
 
 }  // namespace runtime

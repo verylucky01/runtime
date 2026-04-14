@@ -291,7 +291,6 @@ Segment* SegmentManager::StreamInternalReuse(size_t size, const int32_t streamId
         [](const Segment* seg, size_t targetSize) {
             return seg->size < targetSize;
         });
-
     if (it != cachedSegs_.end()) {
         otherStmSeg = *it;
     }

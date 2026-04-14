@@ -2326,7 +2326,6 @@ rtError_t NpuDriver::ReportRelease(const uint32_t deviceId, const uint32_t tsId,
     constexpr uint32_t reportCount = 1U;
     struct halReportReleaseInfo repReleaseInfo;
 
-
     repReleaseInfo.type = type;
     repReleaseInfo.tsId = tsId;
     repReleaseInfo.cqId = cqId;

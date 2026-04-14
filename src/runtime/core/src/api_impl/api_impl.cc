@@ -1603,7 +1603,6 @@ rtError_t ApiImpl::StreamSynchronize(Stream * const stm, const int32_t timeout)
     return errCode;
 }
 
-
 rtError_t ApiImpl::StreamQuery(Stream * const stm)
 {
     RT_LOG(RT_LOG_DEBUG, "Query stream.");
@@ -1625,7 +1624,6 @@ rtError_t ApiImpl::StreamQuery(Stream * const stm)
 
 rtError_t ApiImpl::GetStreamId(Stream * const stm, int32_t * const streamId)
 {
-
     Stream *curStm = stm;
     if (curStm == nullptr) {
         Context * const curCtx = CurrentContext();
@@ -2150,7 +2148,6 @@ rtError_t ApiImpl::DevMalloc(void ** const devPtr, const uint64_t size, const rt
     auto driver = curCtx->Device_()->Driver_();
     uint32_t devId = curCtx->Device_()->Id_();
     rtError_t ret = driver->DevMemAlloc(devPtr, tmpSize, type, devId, moduleId);
-
     if (ret != RT_ERROR_NONE) {
         RT_LOG(RT_LOG_INFO, "DevMemAlloc first try failed, ret=%d, trigger implicit mempool trim.", ret);
         rtError_t trimRet = Runtime::Instance()->ApiSoma_()->MemPoolTrimImplicit(true);
@@ -2168,7 +2165,6 @@ rtError_t ApiImpl::DevFree(void * const devPtr)
     RT_LOG(RT_LOG_INFO, "device free mem=0x%llx", reinterpret_cast<uint64_t *>(devPtr));
     Context * const curCtx = CurrentContext(false);
     rtError_t error = DevFreeStatic(devPtr, curCtx);
-
     if ((error == RT_ERROR_NONE) && Runtime::Instance()->ApiSoma_()->InMemPoolRegion(devPtr)) {
         RT_LOG(RT_LOG_INFO, "Pointer %#" PRIx64 " is in SOMA memory pool range, assuming it's allocated by async api.",
             RtPtrToValue(devPtr));

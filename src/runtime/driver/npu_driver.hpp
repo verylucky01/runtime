@@ -178,7 +178,6 @@ public:
 
     rtError_t StreamIdReservedFree(const int32_t id, const uint32_t deviceId, const uint32_t tsId) override;
 
-
     // Alloc event ID.
     rtError_t EventIdAlloc(int32_t * const id, const uint32_t deviceId, const uint32_t tsId,
                            const uint32_t eventFlag = 0, const bool createFlag = false) override;

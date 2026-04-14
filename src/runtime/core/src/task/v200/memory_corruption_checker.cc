@@ -89,7 +89,6 @@ static uint32_t CalculateDeviceCrc(const Device *device, void *deviceAddr, void 
     rtError_t error = driver->MemCopySync(
         hostTempBuffer, static_cast<uint64_t>(memoryCheckSize), deviceAddr, static_cast<uint64_t>(memoryCheckSize),
         RT_MEMCPY_DEVICE_TO_HOST);
-
     if (error != RT_ERROR_NONE) {
         RT_LOG(RT_LOG_ERROR, "Failed to copy device memory to host, error=%u", error);
         return 0U;

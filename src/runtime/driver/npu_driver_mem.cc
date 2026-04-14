@@ -164,7 +164,6 @@ rtError_t NpuDriver::FreeHostSharedMemory(rtFreeHostSharedMemoryIn * const in, c
 rtError_t NpuDriver::HostRegister(void *ptr, uint64_t size, rtHostRegisterType type, void **devPtr,
     const uint32_t deviceId)
 {
-
     if (!IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_MEM_HOST_REGISTER)) {
         RT_LOG(RT_LOG_WARNING, "not support current chiptype");
         return RT_ERROR_FEATURE_NOT_SUPPORT;
@@ -202,7 +201,6 @@ rtError_t NpuDriver::HostRegister(void *ptr, uint64_t size, rtHostRegisterType t
 
 rtError_t NpuDriver::HostUnregister(void *ptr,  const uint32_t deviceId)
 {
-
     if (!IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_MEM_HOST_REGISTER)) {
         RT_LOG(RT_LOG_WARNING, "not support current chiptype");
         return RT_ERROR_FEATURE_NOT_SUPPORT;
@@ -690,7 +688,6 @@ rtError_t NpuDriver::MemPrefetchToDevice(const void * const devPtr, const uint64
 
 rtError_t NpuDriver::MemAddressTranslate(const int32_t deviceId, const uint64_t vptr, uint64_t * const pptr)
 {
-
     const drvError_t drvRet = drvMemAddressTranslate(static_cast<UINT64>(vptr), RtPtrToPtr<UINT64 *>(pptr));
     if (drvRet != DRV_ERROR_NONE) {
         DRV_ERROR_PROCESS(drvRet, "[drv api] drvMemAddressTranslate failed: device_id=%d, "
@@ -788,7 +785,6 @@ rtError_t NpuDriver::HostMemAlloc(void ** const dptr, const uint64_t size, const
 
 rtError_t NpuDriver::HostMemFree(void * const dptr)
 {
-
 #ifndef CFG_DEV_PLATFORM_PC
     const drvError_t drvRet = halMemFree(dptr);
 #else
@@ -1506,7 +1502,6 @@ rtError_t NpuDriver::DevMemFreeForPctrace(const void * const dst)
 rtError_t NpuDriver::DevMemAllocCached(void ** const dptr, const uint64_t size,
     const rtMemType_t type, const uint32_t deviceId, const uint16_t moduleId)
 {
-
     const uint32_t memPolicy = type & static_cast<uint32_t>(~MEM_ALLOC_TYPE_BIT);
     if (memPolicy == RT_MEMORY_POLICY_HUGE_PAGE_ONLY) {
         RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "not support huge page, device_id=%u,size=%" PRIu64,

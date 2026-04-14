@@ -295,7 +295,6 @@ rtError_t NpuDriver::MemConvertAddr(const uint64_t src, const uint64_t dst, cons
 
 rtError_t NpuDriver::MemDestroyAddr(struct DMA_ADDR * const ptr)
 {
-
     struct DMA_ADDR *tmp = ptr;
     drvError_t drvRet;
 
@@ -407,7 +406,6 @@ rtError_t NpuDriver::DeviceClose(const uint32_t deviceId, const uint32_t tsId)
 
 rtError_t NpuDriver::DeviceOpen(const uint32_t deviceId, const uint32_t tsId, uint32_t * const ssId)
 {
-
     const bool sentinelMode = Runtime::Instance()->GetSentinelMode();
     if (tsId == static_cast<uint32_t>(RT_TSV_ID)) {
         RT_LOG(RT_LOG_INFO, "Open device success, device_id=%u, tsId=%u.", deviceId, tsId);
@@ -517,7 +515,6 @@ rtError_t NpuDriver::GetPhyDevInfo(const uint32_t phyId, const int32_t moduleTyp
 rtError_t NpuDriver::CreateIpcMem(const void * const vptr, const uint64_t byteCount,
                                   char_t * const name, const uint32_t len)
 {
-
     const drvError_t drvRet = halShmemCreateHandle(RtPtrToPtr<DVdeviceptr>(vptr),
         byteCount, name, len);
     if (drvRet != DRV_ERROR_NONE) {
@@ -553,7 +550,6 @@ rtError_t NpuDriver::SetIpcMemAttr(const char *name, uint32_t type, uint64_t att
 
 rtError_t NpuDriver::OpenIpcMem(const char_t * const name, uint64_t * const vptr, uint32_t devId)
 {
-
     drvError_t drvRet = DRV_ERROR_NONE;
     SpinLock &ipcMemNameLock = Runtime::Instance()->GetIpcMemNameLock();
     std::unordered_map<uint64_t, ipcMemInfo_t> &ipcMemNameMap = Runtime::Instance()->GetIpcMemNameMap();
@@ -598,7 +594,6 @@ rtError_t NpuDriver::GetPhyDevIdByIpcMemName(const char *name, uint32_t *const p
 
 rtError_t NpuDriver::CloseIpcMem(const uint64_t vptr)
 {
-
     const drvError_t drvRet = halShmemCloseHandle(static_cast<DVdeviceptr>(vptr));
     if (drvRet != DRV_ERROR_NONE) {
         DRV_ERROR_PROCESS(drvRet, "[drv api] halShmemCloseHandle failed: vptr=%#" PRIx64 ", drvRetCode=%d!",
@@ -622,7 +617,6 @@ rtError_t NpuDriver::CloseIpcMem(const uint64_t vptr)
 
 rtError_t NpuDriver::DestroyIpcMem(const char_t * const name)
 {
-
     const drvError_t drvRet = halShmemDestroyHandle(name);
     if (drvRet != DRV_ERROR_NONE) {
         DRV_ERROR_PROCESS(drvRet, "[drv api] halShmemDestroyHandle failed: name=%s, drvRetCode=%d!",

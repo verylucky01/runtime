@@ -163,7 +163,7 @@ static void ConstructDavidDvppSqe(TaskInfo * const taskInfo, rtDavidSqe_t * cons
     }
     davinciMultiTaskInfo->cmdListVec->push_back(cmdList);
     PrintDavidSqe(sqeAddr, "DavinciMultipleTask-DVPP");
-    RT_LOG(RT_LOG_INFO, "DavinciMultipleTask Dvpp, deviceId=%u, streamId=%d, taskId=%hu.",
+    RT_LOG(RT_LOG_INFO, "DavinciMultipleTask Dvpp, device_id=%u, stream_id=%d, task_id=%hu.",
         taskInfo->stream->Device_()->Id_(), stream->Id_(), taskInfo->id);
 }
 static void CommonConstructDavidAICpuSqe(TaskInfo* const taskInfo, rtDavidSqe_t *const command,
@@ -381,7 +381,7 @@ static void ConstructDavidSqeForModelMaintainceTask(TaskInfo * const taskInfo, r
             sqe->u.modelMaintainceInfo.streamExecTimesAddr = modelMaintainceTaskInfo->execTimesSvmOffset;
             modelMaintainceTaskInfo->opStream->SetBindFlag(true);
             PrintDavidSqe(davidSqe, "ModelBindTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, bind streamId=%hu to modelId=%hu, taskId=%hu",
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, device_id=%u, bind stream_id=%hu to modelId=%hu, task_id=%hu",
                 type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
                 sqe->u.modelMaintainceInfo.modelId, taskInfo->id);
             break;
@@ -389,8 +389,8 @@ static void ConstructDavidSqeForModelMaintainceTask(TaskInfo * const taskInfo, r
             sqe->header.preP = 1U;
             modelMaintainceTaskInfo->opStream->SetBindFlag(false);
             PrintDavidSqe(davidSqe, "ModelUnbindTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, unbind streamId=%hu from modelId=%hu,"
-                "taskId=%hu", type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, device_id=%u, unbind stream_id=%hu from modelId=%hu,"
+                "task_id=%hu", type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
                 sqe->u.modelMaintainceInfo.modelId, taskInfo->id);
             break;
         case MMT_MODEL_PRE_PROC:
@@ -406,27 +406,27 @@ static void ConstructDavidSqeForModelMaintainceTask(TaskInfo * const taskInfo, r
                     static_cast<uint16_t>(modelMaintainceTaskInfo->model->GetEndGraphNotify()->GetNotifyId());
             }
             PrintDavidSqe(davidSqe, "ModelPreProcTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, pre proc streamId=%hu of modelId=%hu,"
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, pre proc stream_id=%hu of modelId=%hu,"
                 "endgraphNotifyId=%hu, taskId=%hu, executorFlag=%u.", type, taskInfo->stream->Device_()->Id_(),
                 sqe->u.modelMaintainceInfo.streamId, sqe->u.modelMaintainceInfo.modelId,
                 sqe->u.modelMaintainceInfo.endgraphNotifyId, taskInfo->id, sqe->u.modelMaintainceInfo.executorFlag);
             break;
         case MMT_MODEL_LOAD_COMPLETE:
             PrintDavidSqe(davidSqe, "ModelLoadCompleteTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, load complete streamId=%hu of modelId=%hu,"
-                "taskId=%hu", type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, load complete stream_id=%hu of modelId=%hu,"
+                "task_id=%hu", type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
                 sqe->u.modelMaintainceInfo.modelId, taskInfo->id);
             break;
         case MMT_MODEL_ABORT:
             sqe->header.preP = 1U;
             PrintDavidSqe(davidSqe, "ModelAbortTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, abort streamId=%hu of modelId=%hu, taskId=%hu",
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, abort stream_id=%hu of modelId=%hu, task_id=%hu",
                 type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
                 sqe->u.modelMaintainceInfo.modelId, taskInfo->id);
             break;
         default:
             PrintDavidSqe(davidSqe, "ModelMaintainceTask");
-            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, streamId=%hu, modelId=%hu, taskId=%hu",
+            RT_LOG(RT_LOG_INFO, "model maintaince type=%d, deviceId=%u, stream_id=%hu, modelId=%hu, task_id=%hu",
                 type, taskInfo->stream->Device_()->Id_(), sqe->u.modelMaintainceInfo.streamId,
                 sqe->u.modelMaintainceInfo.modelId, taskInfo->id);
             break;
@@ -478,7 +478,7 @@ static void ConstructDavidSqeForProfilingEnableTask(TaskInfo * const taskInfo, r
     sqe->u.dynamicProfilingInfo.isTaskBasedProfEn = profilingEnableTaskInfo->isTaskBasedProfEn;
     sqe->u.dynamicProfilingInfo.isSocLogEn = profilingEnableTaskInfo->isHwtsLogEn;
     PrintDavidSqe(davidSqe, "DynamicProfilingEnableTask");
-    RT_LOG(RT_LOG_INFO, "ProfilingEnableTask, deviceId=%u, streamId=%d, taskId=%hu, pid=%llu."
+    RT_LOG(RT_LOG_INFO, "ProfilingEnableTask, device_id=%u, stream_id=%d, task_id=%hu, pid=%llu."
         "isSocLogEn=%hhu, isTaskBasedProfEn=%hhu.",
         taskInfo->stream->Device_()->Id_(), stream->Id_(), taskInfo->id, profilingEnableTaskInfo->pid,
         sqe->u.dynamicProfilingInfo.isSocLogEn, sqe->u.dynamicProfilingInfo.isTaskBasedProfEn);
@@ -501,7 +501,7 @@ static void ConstructDavidSqeForProfilingDisableTask(TaskInfo * const taskInfo, 
     sqe->u.dynamicProfilingInfo.isTaskBasedProfEn = profilingDisableTaskInfo->isTaskBasedProfEn;
     sqe->u.dynamicProfilingInfo.isSocLogEn = profilingDisableTaskInfo->isHwtsLogEn;
     PrintDavidSqe(davidSqe, "DynamicProfilingDisableTask");
-    RT_LOG(RT_LOG_INFO, "ProfilingDisableTask, deviceId=%u, streamId=%d, taskId=%hu, pid=%u, "
+    RT_LOG(RT_LOG_INFO, "ProfilingDisableTask, device_id=%u, stream_id=%d, task_id=%hu, pid=%u, "
         "isSocLogEn=%hhu, isTaskBasedProfEn=%hhu.",
         taskInfo->stream->Device_()->Id_(), stream->Id_(), taskInfo->id,
         sqe->u.dynamicProfilingInfo.pid, sqe->u.dynamicProfilingInfo.isSocLogEn,

@@ -262,7 +262,7 @@ rtError_t AllocTaskInfo(TaskInfo **taskInfo, Stream * const stm, uint32_t &pos, 
         Runtime::Instance()->AllocTaskSn((*taskInfo)->taskSn);
     }
 
-    RT_LOG(RT_LOG_DEBUG, "alloc taskinfo success, stream_id=%d, task_id=%u, task_sn=%u.",
+    RT_LOG(RT_LOG_DEBUG, "alloc taskinfo success, stream_id=%d, task_id=%hu, task_sn=%u.",
         stmId, (*taskInfo)->id, (*taskInfo)->taskSn);
 
     return error;

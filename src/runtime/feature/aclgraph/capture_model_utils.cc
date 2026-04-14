@@ -162,8 +162,8 @@ rtError_t CheckCaptureModelForUpdate(Stream* stm) {
 
     Model* const mdl = stm->Model_();
     NULL_PTR_RETURN(mdl, RT_ERROR_MODEL_NULL);
-    COND_RETURN_ERROR(
-        mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_INVALID_VALUE, "now only support aclGraph.");
+    COND_RETURN_AND_MSG_OUTER(mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_FEATURE_NOT_SUPPORT, 
+        ErrorCode::EE1006, __func__, "non aclGraph mode");
     CaptureModel* captureModel = dynamic_cast<CaptureModel*>(mdl);
     NULL_PTR_RETURN(captureModel, RT_ERROR_MODEL_NULL);
     if (!captureModel->CanUpdate()) {

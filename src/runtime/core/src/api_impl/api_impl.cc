@@ -8996,8 +8996,8 @@ rtError_t ApiImpl::TaskGetSeqId(rtTask_t task, uint32_t *id)
     NULL_PTR_RETURN(stm, RT_ERROR_STREAM_NULL);
     const Model* mdl = stm->Model_();
     NULL_PTR_RETURN(mdl, RT_ERROR_MODEL_NULL);
-    COND_RETURN_ERROR(mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_INVALID_VALUE,
-        "Now only support aclGraph to get sequence id");
+    COND_RETURN_AND_MSG_OUTER(mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_FEATURE_NOT_SUPPORT, 
+        ErrorCode::EE1006, __func__, "non aclGraph mode");
     *id = taskInfo->modelSeqId;
     RT_LOG(RT_LOG_INFO, "Get task sequence id=%u, streamId=%d, taskId=%u.", *id, stm->Id_(), taskInfo->id);
     return RT_ERROR_NONE;

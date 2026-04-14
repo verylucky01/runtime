@@ -508,8 +508,8 @@ rtError_t ApiErrorDecorator::BinaryGetFunctionByEntry(const Program * const binH
     NULL_PTR_RETURN_MSG_OUTER(binHandle, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(funcHandle, RT_ERROR_INVALID_VALUE);
 	const KernelRegisterType kernelRegType = binHandle->GetKernelRegType();
-    COND_RETURN_AND_MSG_OUTER(kernelRegType != RT_KERNEL_REG_TYPE_NON_CPU, RT_ERROR_INVALID_VALUE, 
-        ErrorCode::EE1006, __func__, "kernelRegType=" + std::to_string(kernelRegType));
+    COND_RETURN_OUT_ERROR_MSG_CALL(kernelRegType != RT_KERNEL_REG_TYPE_NON_CPU, RT_ERROR_INVALID_VALUE, 
+        "The binHandle is invalid. binHandle obtained after registering the AICPU operator is not supported.");
 
     return impl_->BinaryGetFunctionByEntry(binHandle, funcEntry, funcHandle);
 }
@@ -589,8 +589,8 @@ rtError_t ApiErrorDecorator::FuncGetAddr(const Kernel * const funcHandle, void *
     NULL_PTR_RETURN_MSG_OUTER(aicAddr, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(aivAddr, RT_ERROR_INVALID_VALUE);
     const KernelRegisterType kernelRegType = funcHandle->GetKernelRegisterType();
-    COND_RETURN_AND_MSG_OUTER(kernelRegType != RT_KERNEL_REG_TYPE_NON_CPU, RT_ERROR_INVALID_VALUE, 
-        ErrorCode::EE1006, __func__, "kernelRegType=" + std::to_string(kernelRegType));
+    COND_RETURN_OUT_ERROR_MSG_CALL(kernelRegType != RT_KERNEL_REG_TYPE_NON_CPU, RT_ERROR_INVALID_VALUE, 
+        "The funcHandle is invalid. funcHandle obtained after registering the AICPU operator is not supported.");
     const rtError_t error = impl_->FuncGetAddr(funcHandle, aicAddr, aivAddr);
     ERROR_RETURN(error, "Get func addr by function handle failed.");
     return error;
@@ -602,8 +602,8 @@ rtError_t ApiErrorDecorator::FuncGetSize(const Kernel * const funcHandle, size_t
     NULL_PTR_RETURN_MSG_OUTER(aicSize, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(aivSize, RT_ERROR_INVALID_VALUE);
     const KernelRegisterType kernelRegType = funcHandle->GetKernelRegisterType();
-    COND_RETURN_AND_MSG_OUTER(kernelRegType != RT_KERNEL_REG_TYPE_NON_CPU, RT_ERROR_INVALID_VALUE, 
-        ErrorCode::EE1006, __func__, "kernelRegType=" + std::to_string(kernelRegType));
+    COND_RETURN_OUT_ERROR_MSG_CALL(kernelRegType != RT_KERNEL_REG_TYPE_NON_CPU, RT_ERROR_INVALID_VALUE, 
+        "The funcHandle is invalid. funcHandle obtained after registering the AICPU operator is not supported.");
     const rtError_t error = impl_->FuncGetSize(funcHandle, aicSize, aivSize);
     ERROR_RETURN(error, "Get func size by function handle failed.");
     return error;
@@ -5726,8 +5726,8 @@ rtError_t ApiErrorDecorator::GetStreamCacheOpInfoSwitch(const Stream * const stm
 rtError_t ApiErrorDecorator::ModelUpdate(Model* mdl)
 {
     NULL_PTR_RETURN_MSG_OUTER(mdl, RT_ERROR_INVALID_VALUE);
-    COND_RETURN_ERROR_MSG_INNER(
-        mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_INVALID_VALUE, "now only support aclGraph.");
+    COND_RETURN_AND_MSG_OUTER(mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_FEATURE_NOT_SUPPORT, 
+        ErrorCode::EE1006, __func__, "non aclGraph mode" );
     return impl_->ModelUpdate(mdl);
 }
 
@@ -6173,8 +6173,8 @@ rtError_t ApiErrorDecorator::FunctionGetAttribute(rtFuncHandle funcHandle, rtFun
             static_cast<int32_t>(chipType));
         const Kernel *const kernel = RtPtrToPtr<Kernel *>(funcHandle);
         const KernelRegisterType kernelRegType = kernel->GetKernelRegisterType();
-        COND_RETURN_AND_MSG_OUTER(kernelRegType != RT_KERNEL_REG_TYPE_NON_CPU, RT_ERROR_INVALID_VALUE, 
-            ErrorCode::EE1006, __func__, "kernelRegType=" + std::to_string(kernelRegType));
+        COND_RETURN_OUT_ERROR_MSG_CALL(kernelRegType != RT_KERNEL_REG_TYPE_NON_CPU, RT_ERROR_INVALID_VALUE, 
+            "The funcHandle is invalid. funcHandle obtained after registering the AICPU operator is not supported.");
     }
     return impl_->FunctionGetAttribute(funcHandle, attrType, attrValue);
 }

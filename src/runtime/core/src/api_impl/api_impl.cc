@@ -5844,7 +5844,12 @@ rtError_t ApiImpl::GetOpExecuteTimeoutV2(uint32_t *const timeout)
         timeoutUs = kernelCreditScaleUS * static_cast<float64_t>(defaultKernelCredit);
     }
 
-    *timeout = static_cast<uint32_t>(ceil(timeoutUs / static_cast<float64_t>(RT_TIMEOUT_MS_TO_US)));
+    if ((timeoutCfg.isOpTimeoutMs) && (timeoutCfg.isCfgOpExcTaskTimeout) &&
+        (timeoutCfg.opExcTaskTimeout == 0UL)) {
+        *timeout = UINT32_MAX; // never timeout
+    } else {
+        *timeout = static_cast<uint32_t>(ceil(timeoutUs / static_cast<float64_t>(RT_TIMEOUT_MS_TO_US)));
+    }
     RT_LOG(RT_LOG_INFO, "get OP execute timeout=%u ms.", *timeout);
     return RT_ERROR_NONE;
 }
@@ -5909,9 +5914,14 @@ rtError_t ApiImpl::SetOpExecuteTimeOutV2(uint64_t timeout, uint64_t *actualTimeo
     const rtError_t error = rtInstance->SetTimeoutConfig(RT_TIMEOUT_TYPE_OP_EXECUTE, timeout, RT_TIME_UNIT_TYPE_US);
     ERROR_RETURN_MSG_INNER(error, "set op execute timeout failed, retCode=%#x.", static_cast<uint32_t>(error));
 
-    uint16_t credit = 0U;
-    TransExeTimeoutCfgToKernelCredit(timeout, credit);
-    *actualTimeout =  static_cast<uint64_t>(static_cast<double>(credit) * timeoutCfg.interval);
+    if ((timeoutCfg.isOpTimeoutMs) && (timeoutCfg.isCfgOpExcTaskTimeout) &&
+        (timeoutCfg.opExcTaskTimeout == 0UL)) {
+        *actualTimeout = MAX_UINT64_NUM; // never timeout
+    } else {
+        uint16_t credit = 0U;
+        TransExeTimeoutCfgToKernelCredit(timeout, credit);
+        *actualTimeout =  static_cast<uint64_t>(static_cast<double>(credit) * timeoutCfg.interval);
+    }
     RT_LOG(RT_LOG_INFO, "set op execute timeout, timeout=%" PRIu64 "us, actualTimeout=%" PRIu64 "us.",
         timeout, *actualTimeout);
     return RT_ERROR_NONE;

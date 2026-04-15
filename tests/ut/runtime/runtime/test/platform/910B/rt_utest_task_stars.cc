@@ -1339,16 +1339,30 @@ TEST_F(StarsTaskTest, TransExeTimeoutCfgToKernelCredit_Test)
     Runtime *rtInstance = (Runtime *)Runtime::Instance();
     std::string socVersion = rtInstance->GetSocVersion();
     rtInstance->SetSocVersion("AS31XM1X");
-    bool oldflag1 = rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout;
-    bool oldflag2 = rtInstance->timeoutConfig_.isCfgOpWaitTaskTimeout;
+    RtTimeoutConfig originTimeout;
+    originTimeout.isCfgOpExcTaskTimeout = Runtime::Instance()->timeoutConfig_.isCfgOpExcTaskTimeout;
+    originTimeout.opExcTaskTimeout = Runtime::Instance()->timeoutConfig_.opExcTaskTimeout;
+    originTimeout.isOpTimeoutMs = Runtime::Instance()->timeoutConfig_.isOpTimeoutMs;
+
     rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout = true;
     rtInstance->timeoutConfig_.opExcTaskTimeout = 10;
     GetAicoreKernelCredit(0);
     uint16_t kernelCredit = GetAicoreKernelCredit(UINT64_MAX); // never timeout
     EXPECT_EQ(kernelCredit, RT_STARS_NEVER_TIMEOUT_KERNEL_CREDIT);
+
+    rtInstance->timeoutConfig_.opExcTaskTimeout = 0UL;
+    rtInstance->timeoutConfig_.isOpTimeoutMs = false;
+    kernelCredit = GetAicoreKernelCredit(0UL); // max timeout
+    EXPECT_EQ(kernelCredit, RT_STARS_MAX_KERNEL_CREDIT);
+
+    rtInstance->timeoutConfig_.isOpTimeoutMs = true;
+    kernelCredit = GetAicoreKernelCredit(0UL); // never timeout
+    EXPECT_EQ(kernelCredit, RT_STARS_NEVER_TIMEOUT_KERNEL_CREDIT);
+
     rtInstance->SetSocVersion(socVersion);
-    rtInstance->timeoutConfig_.isCfgOpExcTaskTimeout = oldflag1;
-    rtInstance->timeoutConfig_.isCfgOpWaitTaskTimeout = oldflag2;
+    Runtime::Instance()->timeoutConfig_.isCfgOpExcTaskTimeout = originTimeout.isCfgOpExcTaskTimeout;
+    Runtime::Instance()->timeoutConfig_.opExcTaskTimeout = originTimeout.opExcTaskTimeout;
+    Runtime::Instance()->timeoutConfig_.isOpTimeoutMs =  originTimeout.isOpTimeoutMs;
 }
 
 TEST_F(StarsTaskTest, streamclear_ConstructSqe)

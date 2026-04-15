@@ -64,7 +64,11 @@ uint16_t GetAicoreKernelCredit(const uint64_t customTimeoutUs)
     } else if (customTimeoutUs != 0ULL) {
         TransExeTimeoutCfgToKernelCredit(customTimeoutUs, kernelCredit);
     } else if (timeoutCfg.isCfgOpExcTaskTimeout) {
-        TransExeTimeoutCfgToKernelCredit(timeoutCfg.opExcTaskTimeout, kernelCredit);
+        if ((timeoutCfg.isOpTimeoutMs) && (timeoutCfg.opExcTaskTimeout == 0UL)) {
+            kernelCredit = RT_STARS_NEVER_TIMEOUT_KERNEL_CREDIT; // never timeout
+        } else {
+            TransExeTimeoutCfgToKernelCredit(timeoutCfg.opExcTaskTimeout, kernelCredit);
+        }
     } else {
         kernelCredit = Runtime::Instance()->GetStarsFftsDefaultKernelCredit();
     }

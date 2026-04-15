@@ -54,6 +54,7 @@
 #include "ctrl_sq.hpp"
 #include "raw_device.hpp"
 #include "cmo_task.h"
+#include "aicpu_c.hpp"
 
 namespace cce {
 namespace runtime {
@@ -67,7 +68,6 @@ constexpr int32_t CONTEXT_STREAM_SYNC_TIMEOUT = (36 * 60 * 1000); // 36min
 constexpr uint64_t STREAM_ABORT_TIMEOUT = (60UL * RT_MS_PER_S); // 60s
 constexpr uint64_t REDUCE_ALIGN_SIZE = 0x4ULL;
 constexpr uint64_t REDUCE16_ALIGN_SIZE = 0x2ULL;
-constexpr uint64_t LOAD_CPU_SO_KERNEL_TIMEOUT = 60U * RT_MS_PER_S * RT_US_TO_MS;
 
 rtError_t CheckMemoryParam(const rtDebugMemoryParam_t *const param)
 {
@@ -118,7 +118,8 @@ rtError_t CheckMemAddrAlign2B(const uint64_t memAddr)
 }
 } // namespace
 
-static rtError_t LaunchAicpuKernelForCpuSoImpl(const rtKernelLaunchNames_t * const launchNames, const rtArgsEx_t * const argsInfo, Stream * const stm)
+static rtError_t LaunchAicpuKernelForCpuSoImpl(const rtKernelLaunchNames_t * const launchNames,
+    const rtArgsEx_t * const argsInfo, Stream * const stm, const uint64_t timeout)
 {
     rtError_t error = RT_ERROR_NONE;
     Device *device = stm->Device_();
@@ -149,11 +150,7 @@ static rtError_t LaunchAicpuKernelForCpuSoImpl(const rtKernelLaunchNames_t * con
 
     // Set kernel type and flags
     aicpuTaskInfo->aicpuKernelType = static_cast<uint8_t>(TS_AICPU_KERNEL_AICPU);
-
-    // for batchLoadsoFrombuf and deleteCustOp set timeout 60s
-    if (Runtime::Instance()->IsSupportOpTimeoutMs()) {
-        aicpuTaskInfo->timeout = LOAD_CPU_SO_KERNEL_TIMEOUT;
-    }
+    aicpuTaskInfo->timeout = timeout;
 
     error = stm->Device_()->SubmitTask(tsk);
     COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, device->GetTaskFactory()->Recycle(tsk),
@@ -163,10 +160,15 @@ static rtError_t LaunchAicpuKernelForCpuSoImpl(const rtKernelLaunchNames_t * con
 
 rtError_t LaunchAicpuKernelForCpuSo(const rtKernelLaunchNames_t * const launchNames, const rtArgsEx_t * const argsInfo, Stream * const stm) {
     rtError_t error = RT_ERROR_NONE;
+    uint64_t timeout = 0UL;
+    // for batchLoadsoFrombuf and deleteCustOp set never timeout
+    if (Runtime::Instance()->IsSupportOpTimeoutMs()) {
+        timeout = MAX_UINT64_NUM;
+    }
     if (stm->Device_()->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_ALLOC_FROM_STREAM_POOL_DOT_CPUKERNEL)) {
-        error = StreamLaunchCpuKernel(launchNames, 1, argsInfo, stm, RT_KERNEL_DEFAULT);
+        error = StreamLaunchCpuKernel(launchNames, 1, argsInfo, stm, RT_KERNEL_DEFAULT, timeout);
     } else {
-        error = LaunchAicpuKernelForCpuSoImpl(launchNames, argsInfo, stm);
+        error = LaunchAicpuKernelForCpuSoImpl(launchNames, argsInfo, stm, timeout);
     }
     return error;
 }

@@ -1541,13 +1541,33 @@ TEST_F(CloudV2ApiTest, rtGetOpTimeOutV2_notset)
 
     //not set timeout
     uint32_t timeout = 0;
+    RtTimeoutConfig originTimeout;
+    originTimeout.isCfgOpExcTaskTimeout = Runtime::Instance()->timeoutConfig_.isCfgOpExcTaskTimeout;
+    originTimeout.opExcTaskTimeout = Runtime::Instance()->timeoutConfig_.opExcTaskTimeout;
+    originTimeout.isOpTimeoutMs = Runtime::Instance()->timeoutConfig_.isOpTimeoutMs;
+
     Runtime::Instance()->timeoutConfig_.isInit = false;
     rtInstance->SetSocVersion("Ascend910B1");
     error = rtGetOpExecuteTimeoutV2(&timeout);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
     EXPECT_EQ(timeout, 1090922);
 
+    Runtime::Instance()->timeoutConfig_.isOpTimeoutMs = false;
+    Runtime::Instance()->timeoutConfig_.isCfgOpExcTaskTimeout = true;
+    Runtime::Instance()->timeoutConfig_.opExcTaskTimeout = 0UL;
+    error = rtGetOpExecuteTimeoutV2(&timeout);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+    EXPECT_EQ(timeout, 1090922);
+
+    Runtime::Instance()->timeoutConfig_.isOpTimeoutMs = true;
+    error = rtGetOpExecuteTimeoutV2(&timeout);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
+    EXPECT_EQ(timeout, UINT32_MAX); // never timeout
+
     rtInstance->SetSocVersion(socVersion);
+    Runtime::Instance()->timeoutConfig_.isCfgOpExcTaskTimeout = originTimeout.isCfgOpExcTaskTimeout;
+    Runtime::Instance()->timeoutConfig_.opExcTaskTimeout = originTimeout.opExcTaskTimeout;
+    Runtime::Instance()->timeoutConfig_.isOpTimeoutMs = originTimeout.isOpTimeoutMs;
 }
 
 TEST_F(CloudV2ApiTest, rtGetOpTimeOutV2_set)

@@ -167,7 +167,7 @@ static rtError_t StreamLaunchCpuKernelForAicpuStream(const rtKernelLaunchNames_t
 }
 
 rtError_t StreamLaunchCpuKernel(const rtKernelLaunchNames_t * const launchNames, const uint32_t coreDim,
-    const rtArgsEx_t * const argsInfo, Stream * const stm, const uint32_t flag)
+    const rtArgsEx_t * const argsInfo, Stream * const stm, const uint32_t flag, const uint64_t timeout)
 {
     ArgLoader * const devArgLdr = stm->Device_()->ArgLoader_();
     const char_t * const launchSoName = launchNames->soName;
@@ -231,6 +231,7 @@ rtError_t StreamLaunchCpuKernel(const rtKernelLaunchNames_t * const launchNames,
     const tsAicpuKernelType aicpuKernelType = ((flag & RT_KERNEL_CUSTOM_AICPU) != 0U) ?
                                         TS_AICPU_KERNEL_CUSTOM_AICPU : TS_AICPU_KERNEL_AICPU;
     aicpuTask->aicpuKernelType = static_cast<uint8_t>(aicpuKernelType);
+    aicpuTask->timeout = timeout;
 
     error = DavidSendTask(kernelTask, dstStm);
     ERROR_RETURN_MSG_INNER(error,  "stream_id=%d submit task failed, retCode=%#x.",

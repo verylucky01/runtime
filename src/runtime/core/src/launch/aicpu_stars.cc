@@ -169,8 +169,9 @@ ERROR_RECYCLE:
 }
 
 rtError_t StreamLaunchCpuKernel(const rtKernelLaunchNames_t* const launchNames, const uint32_t coreDim,
-    const rtArgsEx_t* const argsInfo, Stream* const stm, const uint32_t flag)
+    const rtArgsEx_t* const argsInfo, Stream* const stm, const uint32_t flag, const uint64_t timeout)
 {
+    UNUSED(timeout);
     rtError_t error = RT_ERROR_NONE;
     Context* const curCtx = stm->Context_();
     ArgLoader* const devArgLdr = curCtx->Device_()->ArgLoader_();

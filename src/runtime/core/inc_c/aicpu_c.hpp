@@ -18,7 +18,7 @@ namespace runtime {
     rtError_t StreamLaunchKernelEx(const void * const args, const uint32_t argsSize, const uint32_t flags,
         Stream * const stm);
     rtError_t StreamLaunchCpuKernel(const rtKernelLaunchNames_t * const launchNames, const uint32_t coreDim,
-        const rtArgsEx_t * const argsInfo, Stream * const stm, const uint32_t flag);
+        const rtArgsEx_t * const argsInfo, Stream * const stm, const uint32_t flag, const uint64_t timeout = 0UL);
     rtError_t StreamLaunchCpuKernelExWithArgs(const uint32_t coreDim, const rtAicpuArgsEx_t * const argsInfo,
         const TaskCfg * const taskCfg, Stream * const stm, const uint32_t flag, const uint32_t kernelType,
         const Kernel * const kernel, const size_t cpuParamHeadOffset = 0U);

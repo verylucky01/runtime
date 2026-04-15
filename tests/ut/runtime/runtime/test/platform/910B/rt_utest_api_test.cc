@@ -2322,7 +2322,18 @@ TEST_F(NewCloudV2ApiTest, rtSetOpExecuteTimeOutV2)
     ApiImpl apiImpl;
     ApiDecorator apiDecorator(&apiImpl);
     error = apiDecorator.SetOpExecuteTimeOutV2(timeout, &actualTimeout);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 
+    error = apiDecorator.SetOpExecuteTimeOutV2(0UL, &actualTimeout);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(actualTimeout, static_cast<uint64_t>(254 * RT_STARS_TASK_KERNEL_CREDIT_SCALE_US)); // largest timeout
+
+    Runtime::Instance()->timeoutConfig_.isOpTimeoutMs = true;
+    error = apiDecorator.SetOpExecuteTimeOutV2(0UL, &actualTimeout);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(actualTimeout, MAX_UINT64_NUM); // never timeout
+
+    Runtime::Instance()->timeoutConfig_.isOpTimeoutMs = false;
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
 }
 

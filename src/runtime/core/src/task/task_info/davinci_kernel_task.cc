@@ -762,7 +762,7 @@ void ConstructAICpuSqeForDavinciTask(TaskInfo* taskInfo, rtStarsSqe_t *const com
         ((sqe->kernel_type == KERNEL_TYPE_AICPU_KFC) || (sqe->kernel_type == KERNEL_TYPE_CUSTOM_KFC));
     const bool isNeedNoTimeout = ((aicpuTaskInfo->timeout > RUNTIME_DAVINCI_MAX_TIMEOUT) && isSupportTimeout) ||
         (aicpuTaskInfo->timeout == MAX_UINT64_NUM);
-    sqe->kernel_credit = isNeedNoTimeout ? 0xFFU : static_cast<uint8_t>(GetAicpuKernelCredit(aicpuTaskInfo->timeout));
+    sqe->kernel_credit = isNeedNoTimeout ? RT_STARS_NEVER_TIMEOUT_KERNEL_CREDIT : static_cast<uint8_t>(GetAicpuKernelCredit(aicpuTaskInfo->timeout));
 
     // old tsagent not suport config aicpu timeout  to  0xFF
     sqe->kernel_credit = (isNeedNoTimeout && (!isNewVersion)) ? RT_STARS_MAX_KERNEL_CREDIT : sqe->kernel_credit;

@@ -76,7 +76,7 @@ rtError_t CtrlSQ::CreateCtrlMsg(RtCtrlMsgType msgType, const RtCtrlMsgParam &par
     return error;
 }
 
-rtError_t CtrlSQ::CreateDavidCtrlMsg(RtCtrlMsgType msgType, const RtCtrlMsgParam &param, uint32_t * const msgId)
+rtError_t CtrlSQ::CreateDavidCtrlMsg(RtCtrlMsgType msgType, const RtCtrlMsgParam &param, uint32_t * const msgId) const
 {
     TaskInfo *taskInfo = nullptr;
     rtError_t error = CheckTaskCanSend(stream_);

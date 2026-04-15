@@ -2,6 +2,42 @@
 
 本章节描述 CANN Runtime 的 Kernel 加载与执行接口，包括二进制加载、函数获取、参数组装及 Kernel 启动。
 
+---
+
+- [概念及使用说明](#概念及使用说明)
+- [`aclError aclrtBinaryLoadFromFile(const char* binPath, aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle)`](#aclrtBinaryLoadFromFile)：从文件加载并解析算子二进制文件，输出指向算子二进制的binHandle。
+- [`aclError aclrtBinaryLoadFromData(const void *data, size_t length, const aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle)`](#aclrtBinaryLoadFromData)：从内存加载并解析算子二进制数据，输出指向算子二进制的binHandle。
+- [`aclError aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kernelName, aclrtFuncHandle *funcHandle)`](#aclrtBinaryGetFunction)：根据核函数名称，查找到对应的核函数，并使用funcHandle表达。
+- [`aclError aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle, uint64_t funcEntry, aclrtFuncHandle *funcHandle)`](#aclrtBinaryGetFunctionByEntry)：根据Function Entry获取核函数句柄。
+- [`aclError aclrtBinaryGetDevAddress(const aclrtBinHandle binHandle, void **binAddr, size_t *binSize)`](#aclrtBinaryGetDevAddress)：获取算子二进制数据在Device上的内存地址及内存大小。
+- [`aclError aclrtBinarySetExceptionCallback(aclrtBinHandle binHandle, aclrtOpExceptionCallback callback, void *userData)`](#aclrtBinarySetExceptionCallback)：调用本接口注册回调函数。若多次设置回调函数，以最后一次设置为准。
+- [`aclError aclrtGetArgsFromExceptionInfo(const aclrtExceptionInfo *info, void **devArgsPtr, uint32_t *devArgsLen)`](#aclrtGetArgsFromExceptionInfo)：从aclrtExceptionInfo异常信息中获取用户下发算子执行任务时的参数。
+- [`aclError aclrtGetFuncHandleFromExceptionInfo(const aclrtExceptionInfo *info, aclrtFuncHandle *func)`](#aclrtGetFuncHandleFromExceptionInfo)：从aclrtExceptionInfo异常信息中获取核函数句柄。
+- [`aclError aclrtGetFunctionAddr(aclrtFuncHandle funcHandle, void **aicAddr, void **aivAddr)`](#aclrtGetFunctionAddr)：根据核函数句柄获取Device侧算子起始地址。
+- [`aclError aclrtGetFunctionSize(aclrtFuncHandle funcHandle, size_t *aicSize, size_t *aivSize)`](#aclrtGetFunctionSize)：根据核函数句柄获取核函数代码段的大小。
+- [`aclError aclrtGetFunctionName(aclrtFuncHandle funcHandle, uint32_t maxLen, char *name)`](#aclrtGetFunctionName)：根据核函数句柄获取核函数名称。
+- [`aclError aclrtGetFunctionAttribute(aclrtFuncHandle funcHandle, aclrtFuncAttribute attrType, int64_t *attrValue)`](#aclrtGetFunctionAttribute)：根据核函数句柄获取核函数属性信息。
+- [`aclError aclrtGetHardwareSyncAddr(void **addr)`](#aclrtGetHardwareSyncAddr)：获取Cube Core、Vector Core之间的同步地址。
+- [`aclError aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName, const char *kernelName, aclrtFuncHandle *funcHandle)`](#aclrtRegisterCpuFunc)：若使用[aclrtBinaryLoadFromData](#aclrtBinaryLoadFromData)接口加载AI CPU算子二进制数据，还需配合使用本接口注册AI CPU算子信息，得到对应的funcHandle。
+- [`aclError aclrtKernelArgsInit(aclrtFuncHandle funcHandle, aclrtArgsHandle *argsHandle)`](#aclrtKernelArgsInit)：根据核函数句柄初始化参数列表，并获取标识参数列表的句柄。
+- [`aclError aclrtKernelArgsInitByUserMem(aclrtFuncHandle funcHandle, aclrtArgsHandle argsHandle, void *userHostMem, size_t actualArgsSize)`](#aclrtKernelArgsInitByUserMem)：根据核函数句柄初始化参数列表，并获取标识参数列表的句柄。
+- [`aclError aclrtKernelArgsGetMemSize(aclrtFuncHandle funcHandle, size_t userArgsSize, size_t *actualArgsSize)`](#aclrtKernelArgsGetMemSize)：获取Kernel Launch时参数列表所需内存的实际大小。
+- [`aclError aclrtKernelArgsGetHandleMemSize(aclrtFuncHandle funcHandle, size_t *memSize)`](#aclrtKernelArgsGetHandleMemSize)：获取参数列表句柄占用的内存大小。
+- [`aclError aclrtKernelArgsAppend(aclrtArgsHandle argsHandle, void *param, size_t paramSize, aclrtParamHandle *paramHandle)`](#aclrtKernelArgsAppend)：调用本接口将用户设置的参数值追加拷贝到argsHandle指向的参数数据区域。若参数列表中有多个参数，则需按顺序追加参数。
+- [`aclError aclrtKernelArgsAppendPlaceHolder(aclrtArgsHandle argsHandle, aclrtParamHandle *paramHandle)`](#aclrtKernelArgsAppendPlaceHolder)：对于placeholder参数，调用本接口先占位，返回的是paramHandle占位符。
+- [`aclError aclrtKernelArgsGetPlaceHolderBuffer(aclrtArgsHandle argsHandle, aclrtParamHandle paramHandle, size_t dataSize, void **bufferAddr)`](#aclrtKernelArgsGetPlaceHolderBuffer)：根据用户指定的内存大小，获取paramHandle占位符指向的内存地址。
+- [`aclError aclrtKernelArgsParaUpdate(aclrtArgsHandle argsHandle, aclrtParamHandle paramHandle, void *param, size_t paramSize)`](#aclrtKernelArgsParaUpdate)：通过aclrtKernelArgsAppend接口追加的参数，可调用本接口更新参数值。
+- [`aclError aclrtKernelArgsFinalize(aclrtArgsHandle argsHandle)`](#aclrtKernelArgsFinalize)：在所有参数追加完成后，调用本接口以标识参数组装完毕。
+- [`aclError aclrtLaunchKernel(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData, size_t argsSize, aclrtStream stream)`](#aclrtLaunchKernel)：启动对应算子的计算任务，异步接口。此处的算子为使用Ascend C语言开发的自定义算子。
+- [`aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData, size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream)`](#aclrtLaunchKernelV2)：指定任务下发的配置信息，并启动对应算子的计算任务。异步接口。
+- [`aclError aclrtLaunchKernelWithConfig(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream, aclrtLaunchKernelCfg *cfg, aclrtArgsHandle argsHandle, void *reserve)`](#aclrtLaunchKernelWithConfig)：指定任务下发的配置信息，并启动对应算子的计算任务。异步接口。
+- [`aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize, aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum)`](#aclrtLaunchKernelWithHostArgs)：指定任务下发的配置信息，并启动对应算子的计算任务。异步接口。
+- [`aclrtBinary aclrtCreateBinary(const void *data, size_t dataLen)`](#aclrtCreateBinary)：创建aclrtBinary类型的数据，该数据类型用于描述算子二进制信息。此处的算子为使用Ascend C语言开发的自定义算子。
+- [`aclError aclrtDestroyBinary(aclrtBinary binary)`](#aclrtDestroyBinary)：销毁通过[aclrtCreateBinary](#aclrtCreateBinary)接口创建的aclrtBinary类型的数据。
+- [`aclError aclrtBinaryLoad(const aclrtBinary binary, aclrtBinHandle *binHandle)`](#aclrtBinaryLoad)：解析、加载算子二进制文件，输出指向算子二进制的binHandle，同时将算子二进制文件数据拷贝至当前Context对应的Device上。
+- [`aclError aclrtBinaryUnLoad(aclrtBinHandle binHandle)`](#aclrtBinaryUnLoad)：删除binHandle指向的算子二进制数据，同时也删除加载算子二进制文件时拷贝到Device上的算子二进制数据。
+- [`aclError aclrtFunctionGetBinary(const aclrtFuncHandle funcHandle, aclrtBinHandle *binHandle)`](#aclrtFunctionGetBinary)：根据核函数句柄获取算子二进制句柄。
+
 ## 概念及使用说明
 
 ### 相关概念
@@ -60,42 +96,6 @@
 7.  调用接口[aclrtBinaryUnLoad](#aclrtBinaryUnLoad)卸载算子二进制文件。
 8.  释放运行时资源，包括调用[aclrtDestroyStream](06_Stream管理.md#aclrtDestroyStream)接口释放Stream、调用[aclrtResetDevice](04_Device管理.md#aclrtResetDevice)接口释放Device上的资源。
 9.  调用[aclFinalize](02_初始化与去初始化.md#aclFinalize)接口去初始化。
-
----
-
-- [`aclError aclrtBinaryLoadFromFile(const char* binPath, aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle)`](#aclrtBinaryLoadFromFile)：从文件加载并解析算子二进制文件，输出指向算子二进制的binHandle。
-- [`aclError aclrtBinaryLoadFromData(const void *data, size_t length, const aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle)`](#aclrtBinaryLoadFromData)：从内存加载并解析算子二进制数据，输出指向算子二进制的binHandle。
-- [`aclError aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kernelName, aclrtFuncHandle *funcHandle)`](#aclrtBinaryGetFunction)：根据核函数名称，查找到对应的核函数，并使用funcHandle表达。
-- [`aclError aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle, uint64_t funcEntry, aclrtFuncHandle *funcHandle)`](#aclrtBinaryGetFunctionByEntry)：根据Function Entry获取核函数句柄。
-- [`aclError aclrtBinaryGetDevAddress(const aclrtBinHandle binHandle, void **binAddr, size_t *binSize)`](#aclrtBinaryGetDevAddress)：获取算子二进制数据在Device上的内存地址及内存大小。
-- [`aclError aclrtBinarySetExceptionCallback(aclrtBinHandle binHandle, aclrtOpExceptionCallback callback, void *userData)`](#aclrtBinarySetExceptionCallback)：调用本接口注册回调函数。若多次设置回调函数，以最后一次设置为准。
-- [`aclError aclrtGetArgsFromExceptionInfo(const aclrtExceptionInfo *info, void **devArgsPtr, uint32_t *devArgsLen)`](#aclrtGetArgsFromExceptionInfo)：从aclrtExceptionInfo异常信息中获取用户下发算子执行任务时的参数。
-- [`aclError aclrtGetFuncHandleFromExceptionInfo(const aclrtExceptionInfo *info, aclrtFuncHandle *func)`](#aclrtGetFuncHandleFromExceptionInfo)：从aclrtExceptionInfo异常信息中获取核函数句柄。
-- [`aclError aclrtGetFunctionAddr(aclrtFuncHandle funcHandle, void **aicAddr, void **aivAddr)`](#aclrtGetFunctionAddr)：根据核函数句柄获取Device侧算子起始地址。
-- [`aclError aclrtGetFunctionSize(aclrtFuncHandle funcHandle, size_t *aicSize, size_t *aivSize)`](#aclrtGetFunctionSize)：根据核函数句柄获取核函数代码段的大小。
-- [`aclError aclrtGetFunctionName(aclrtFuncHandle funcHandle, uint32_t maxLen, char *name)`](#aclrtGetFunctionName)：根据核函数句柄获取核函数名称。
-- [`aclError aclrtGetFunctionAttribute(aclrtFuncHandle funcHandle, aclrtFuncAttribute attrType, int64_t *attrValue)`](#aclrtGetFunctionAttribute)：根据核函数句柄获取核函数属性信息。
-- [`aclError aclrtGetHardwareSyncAddr(void **addr)`](#aclrtGetHardwareSyncAddr)：获取Cube Core、Vector Core之间的同步地址。
-- [`aclError aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName, const char *kernelName, aclrtFuncHandle *funcHandle)`](#aclrtRegisterCpuFunc)：若使用[aclrtBinaryLoadFromData](#aclrtBinaryLoadFromData)接口加载AI CPU算子二进制数据，还需配合使用本接口注册AI CPU算子信息，得到对应的funcHandle。
-- [`aclError aclrtKernelArgsInit(aclrtFuncHandle funcHandle, aclrtArgsHandle *argsHandle)`](#aclrtKernelArgsInit)：根据核函数句柄初始化参数列表，并获取标识参数列表的句柄。
-- [`aclError aclrtKernelArgsInitByUserMem(aclrtFuncHandle funcHandle, aclrtArgsHandle argsHandle, void *userHostMem, size_t actualArgsSize)`](#aclrtKernelArgsInitByUserMem)：根据核函数句柄初始化参数列表，并获取标识参数列表的句柄。
-- [`aclError aclrtKernelArgsGetMemSize(aclrtFuncHandle funcHandle, size_t userArgsSize, size_t *actualArgsSize)`](#aclrtKernelArgsGetMemSize)：获取Kernel Launch时参数列表所需内存的实际大小。
-- [`aclError aclrtKernelArgsGetHandleMemSize(aclrtFuncHandle funcHandle, size_t *memSize)`](#aclrtKernelArgsGetHandleMemSize)：获取参数列表句柄占用的内存大小。
-- [`aclError aclrtKernelArgsAppend(aclrtArgsHandle argsHandle, void *param, size_t paramSize, aclrtParamHandle *paramHandle)`](#aclrtKernelArgsAppend)：调用本接口将用户设置的参数值追加拷贝到argsHandle指向的参数数据区域。若参数列表中有多个参数，则需按顺序追加参数。
-- [`aclError aclrtKernelArgsAppendPlaceHolder(aclrtArgsHandle argsHandle, aclrtParamHandle *paramHandle)`](#aclrtKernelArgsAppendPlaceHolder)：对于placeholder参数，调用本接口先占位，返回的是paramHandle占位符。
-- [`aclError aclrtKernelArgsGetPlaceHolderBuffer(aclrtArgsHandle argsHandle, aclrtParamHandle paramHandle, size_t dataSize, void **bufferAddr)`](#aclrtKernelArgsGetPlaceHolderBuffer)：根据用户指定的内存大小，获取paramHandle占位符指向的内存地址。
-- [`aclError aclrtKernelArgsParaUpdate(aclrtArgsHandle argsHandle, aclrtParamHandle paramHandle, void *param, size_t paramSize)`](#aclrtKernelArgsParaUpdate)：通过aclrtKernelArgsAppend接口追加的参数，可调用本接口更新参数值。
-- [`aclError aclrtKernelArgsFinalize(aclrtArgsHandle argsHandle)`](#aclrtKernelArgsFinalize)：在所有参数追加完成后，调用本接口以标识参数组装完毕。
-- [`aclError aclrtLaunchKernel(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData, size_t argsSize, aclrtStream stream)`](#aclrtLaunchKernel)：启动对应算子的计算任务，异步接口。此处的算子为使用Ascend C语言开发的自定义算子。
-- [`aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData, size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream)`](#aclrtLaunchKernelV2)：指定任务下发的配置信息，并启动对应算子的计算任务。异步接口。
-- [`aclError aclrtLaunchKernelWithConfig(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream, aclrtLaunchKernelCfg *cfg, aclrtArgsHandle argsHandle, void *reserve)`](#aclrtLaunchKernelWithConfig)：指定任务下发的配置信息，并启动对应算子的计算任务。异步接口。
-- [`aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize, aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum)`](#aclrtLaunchKernelWithHostArgs)：指定任务下发的配置信息，并启动对应算子的计算任务。异步接口。
-- [`aclrtBinary aclrtCreateBinary(const void *data, size_t dataLen)`](#aclrtCreateBinary)：创建aclrtBinary类型的数据，该数据类型用于描述算子二进制信息。此处的算子为使用Ascend C语言开发的自定义算子。
-- [`aclError aclrtDestroyBinary(aclrtBinary binary)`](#aclrtDestroyBinary)：销毁通过[aclrtCreateBinary](#aclrtCreateBinary)接口创建的aclrtBinary类型的数据。
-- [`aclError aclrtBinaryLoad(const aclrtBinary binary, aclrtBinHandle *binHandle)`](#aclrtBinaryLoad)：解析、加载算子二进制文件，输出指向算子二进制的binHandle，同时将算子二进制文件数据拷贝至当前Context对应的Device上。
-- [`aclError aclrtBinaryUnLoad(aclrtBinHandle binHandle)`](#aclrtBinaryUnLoad)：删除binHandle指向的算子二进制数据，同时也删除加载算子二进制文件时拷贝到Device上的算子二进制数据。
-- [`aclError aclrtFunctionGetBinary(const aclrtFuncHandle funcHandle, aclrtBinHandle *binHandle)`](#aclrtFunctionGetBinary)：根据核函数句柄获取算子二进制句柄。
-
 
 <a id="aclrtBinaryLoadFromFile"></a>
 

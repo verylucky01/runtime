@@ -948,8 +948,6 @@ aclError aclrtRegStreamStateCallback(const char *regName, aclrtStreamStateCallba
 ### 返回值说明
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](25_数据类型及其操作接口.md#aclError)。
-
-
 <br>
 <br>
 <br>

@@ -75,6 +75,7 @@ __THREAD_LOCAL__ bool Stream::isNeedStreamAsyncRecycle_ = false;
 
 constexpr uint64_t TASK_SENDING_WAIT_CHECK_TIME = 840000U;
 constexpr uint16_t TASK_SENDING_WAIT_CHECK_COUNT = 2U;
+constexpr uint16_t SQE_DEPTH_1k = 1024U;
 Stream::Stream(Device * const dev, const uint32_t prio) : Stream(dev, prio, 0U)
 {
 }
@@ -253,6 +254,7 @@ Stream::~Stream()
         DELETE_A(sqeBuffer_);
     } catch(...) {
     }
+
     latestModelId_ = MAX_INT32_NUM;
 }
 
@@ -269,7 +271,7 @@ void Stream::FreeStreamId() const
         Runtime::Instance()->FreeAiCpuStreamId(streamId_);
     } else {
         RT_LOG(RT_LOG_INFO, "Free stream_id=%d.", streamId_);
-        if (!IsSoftwareSqEnable()) {
+        if (!IsSoftwareSqEnable() && !IsAutoSplitSq()) {
             TIMESTAMP_BEGIN(rtStreamDestroy_drvStreamIdFree);
             uint32_t drvFlag = ((flags_ & RT_STREAM_CP_PROCESS_USE) != 0) ?
                 static_cast<uint32_t>(TSDRV_FLAG_REMOTE_ID) : 0U;
@@ -840,6 +842,143 @@ rtError_t Stream::SetupWithoutBindSq()
     SetSqIdMemAddr(sqIdMemAddr);
     RT_LOG(RT_LOG_INFO, "stream setup end, stream_id=%d, IsTaskSink=%d, sqId=%u, cqId=%u, deviceId=%u, streamResId=%u, sqAddr=0x%llx",
            streamId_, static_cast<int32_t>(IsTaskSink()), sqId_, cqId_, device_->Id_(), streamResId, sqAddr_);
+
+    StreamStateCallbackManager::Instance().Notify(this, true);
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::InitAutoSplitBasicParams()
+{
+    SetSqDepth(STREAM_SQ_MAX_DEPTH);
+    SetIsSupportASyncRecycle(false);
+    streamSwitchInfo_ = new (std::nothrow) struct sq_switch_stream_info[1U]();
+    COND_RETURN_ERROR(streamSwitchInfo_ == nullptr, RT_ERROR_STREAM_NEW,
+                "new sq switch info failed, stream_id=%u.", Id_()); 
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::AllocPosToTaskIdMap()
+{
+    posToTaskIdMapSize_ = GetSqDepth();
+    posToTaskIdMap_ = new (std::nothrow) uint16_t[posToTaskIdMapSize_];
+    COND_RETURN_ERROR(posToTaskIdMap_ == nullptr, RT_ERROR_STREAM_NEW,
+        "new posToTaskIdMap_ failed, size=%u", posToTaskIdMapSize_);
+
+    errno_t ret = memset_s(posToTaskIdMap_, posToTaskIdMapSize_ * sizeof(uint16_t), 0XFF,
+        posToTaskIdMapSize_ * sizeof(uint16_t));
+    COND_RETURN_ERROR(ret != EOK, RT_ERROR_STREAM_NEW,
+        "Memset posToTaskIdMap failed, retCode=%d.", ret);
+
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::AllocAutoSplitContext()
+{
+    autoSplitCtx_ = new (std::nothrow) AutoSplitSqContext();
+    COND_RETURN_ERROR(autoSplitCtx_ == nullptr, RT_ERROR_STREAM_NEW,
+        "new AutoSplitSqContext failed");
+
+    autoSplitCtx_->masterStream = nullptr;  // master stream 此字段为空
+    autoSplitCtx_->exposedStreamId = streamId_;
+    autoSplitCtx_->curStreamSqeCount = 0U;
+
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::AllocSqeBufferForAutoSplit()
+{
+    sqeBufferSize_ = STREAM_SQE_BUFFER_INIT_SIZE;
+    sqeBuffer_ = new (std::nothrow) uint8_t[sqeBufferSize_];
+    COND_RETURN_ERROR(sqeBuffer_ == nullptr, RT_ERROR_STREAM_NEW,
+        "new sqeBuffer_ failed, size=%u", sqeBufferSize_);
+
+    errno_t ret = memset_s(sqeBuffer_, sqeBufferSize_, 0U, sqeBufferSize_);
+    COND_RETURN_ERROR(ret != EOK, RT_ERROR_STREAM_NEW,
+        "Memset sqeBuffer_ failed, retCode=%d.", ret);
+
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::AllocStreamIdForAutoSplit()
+{
+    TIMESTAMP_BEGIN(rtStreamCreate_drvStreamIdAlloc);
+    rtError_t error = device_->Driver_()->StreamIdAlloc(&streamId_, device_->Id_(), device_->DevGetTsId(), priority_);
+    device_->GetStreamSqCqManage()->SetStreamIdToStream(static_cast<uint32_t>(streamId_), this);
+    TIMESTAMP_END(rtStreamCreate_drvStreamIdAlloc);
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error,
+        "Failed to alloc stream id, retCode=%#x.", error);
+    RT_LOG(RT_LOG_DEBUG, "Alloc stream for auto split, master_stream_id=%d, cur_stream_id=%d",
+        GetExposedStreamId(), Id_());
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::AllocSqCqForAutoSplitWithRetry()
+{
+    rtDeviceSqCqInfo_t sqCqInfo = {};
+    rtError_t error = device_->GetDeviceSqCqManage()->AllocSqCqForAutoSplit(&sqCqInfo);
+    if (error == RT_ERROR_DRV_NO_RESOURCES) {
+        RT_LOG(RT_LOG_DEBUG, "Auto-split SQ/CQ alloc no resources, retry recycling, master_stream_id=%d, cur_stream_id=%d",
+            GetExposedStreamId(), Id_());
+        DeviceSqCqPool *sqcqPool = device_->GetDeviceSqCqManage();
+        if ((sqcqPool->GetSqCqPoolFreeResNum() == 0U) && (Context_() != nullptr)) {
+            Context_()->TryRecycleCaptureModelResource(1U, 0U, nullptr);
+        }
+
+        if ((sqcqPool != nullptr) && (sqcqPool->GetSqCqPoolFreeResNum() != 0U)) {
+            if (sqcqPool->TryFreeSqCqToDrv() == RT_ERROR_NONE) {
+                error = device_->GetDeviceSqCqManage()->AllocSqCqForAutoSplit(&sqCqInfo);
+            }
+        }
+    }
+
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error,
+        "[SqCqManage]Alloc sq cq fail, stream_id=%d, retCode=%#x.", streamId_, static_cast<uint32_t>(error));
+
+    UpdateSqCq(&sqCqInfo);
+    return RT_ERROR_NONE;
+}
+
+rtError_t Stream::SetupForAutoSplit()
+{
+    RT_LOG(RT_LOG_DEBUG, "Enter SetupForAutoSplit, master_stream_id=%d, cur_stream_id=%d",
+        GetExposedStreamId(), Id_());
+    const bool isDisableThread = Runtime::Instance()->GetDisableThread();
+
+    rtError_t error = InitAutoSplitBasicParams();
+    ERROR_RETURN_MSG_INNER(error, "Init auto split basic params failed, retCode=%#x.",
+        static_cast<uint32_t>(error));
+
+    error = AllocPosToTaskIdMap();
+    ERROR_RETURN_MSG_INNER(error, "Alloc pos to task id map failed, retCode=%#x.",
+        static_cast<uint32_t>(error));
+
+    error = CreateStreamArgRes();
+    ERROR_RETURN_MSG_INNER(error, "Create stream arg res failed.");
+
+    error = AllocStreamIdForAutoSplit();
+    ERROR_RETURN_MSG_INNER(error, "Failed to alloc stream id for auto split.");
+
+    error = AllocExecutedTimesSvm();
+    ERROR_RETURN_MSG_INNER(error, "Failed to alloc svm for executed times, retCode=%#x.",
+        static_cast<uint32_t>(error));
+
+    SetSatMode(device_->GetSatMode());
+
+    error = AllocAutoSplitContext();
+    ERROR_RETURN_MSG_INNER(error, "Alloc auto split context failed.");
+
+    error = AllocSqeBufferForAutoSplit();
+    ERROR_RETURN_MSG_INNER(error, "Alloc sqe buffer failed.");
+
+    error = AllocSqCqForAutoSplitWithRetry();
+    ERROR_RETURN_MSG_INNER(error, "Alloc sq cq for auto split failed.");
+
+    SetMaxTaskId(isDisableThread);
+    isFlowCtrl = false;
+    BufferAllocator::OpenHugeBuff();
+
+    RT_LOG(RT_LOG_INFO, "stream setup for auto split end, master_stream_id=%d, cur_stream_id=%d, sq_id=%u, cq_id=%u, deviceId=%u, sqeBufferSize=%u",
+           GetExposedStreamId(), Id_(), sqId_, cqId_, device_->Id_(), sqeBufferSize_);
 
     StreamStateCallbackManager::Instance().Notify(this, true);
     return RT_ERROR_NONE;
@@ -4452,6 +4591,35 @@ rtError_t Stream::AllocSoftwareSqAddr(uint32_t additionalSqeNum)
     return ret;
 }
 
+rtError_t Stream::AllocAutoSplitSqAddr()
+{
+    rtError_t ret = RT_ERROR_NONE;
+    const uint32_t deviceId = Context_()->Device_()->Id_();
+    SqAddrMemoryOrder *sqAddrMemoryManage = Context_()->Device_()->GetSqAddrMemoryManage();
+    COND_RETURN_ERROR((sqAddrMemoryManage == nullptr), RT_ERROR_INVALID_VALUE,
+        "sqAddrMemoryManage is null. device_id=%u", deviceId);
+    uint32_t sqeNum = GetDelayRecycleTaskSqeNum() + Device_()->GetDevProperties().expandStreamAdditionalSqeNum;
+
+    // 按1k粒度向上取整
+    uint32_t sqDepth = (sqeNum + SQE_DEPTH_1k - 1U) / SQE_DEPTH_1k * SQE_DEPTH_1k;
+    sqDepth = sqDepth > STREAM_SQ_MAX_DEPTH ? STREAM_SQ_MAX_DEPTH : sqDepth;
+    if (GetSqBaseAddr() == 0ULL) {
+        const uint32_t allocMemSize = sqDepth * sizeof(rtStarsSqe_t);
+        const uint32_t memOrderType = sqAddrMemoryManage->GetMemOrderTypeByMemSize(allocMemSize);
+        uint64_t *sqBaseAddr = nullptr;
+        ret = Context_()->Device_()->GetSqAddrMemoryManage()->AllocSqAddr(memOrderType, &sqBaseAddr);
+        COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "AllocSqAddr failed. device_id=%u, stream_id=%d, "
+            "retCode=%#x,", deviceId, Id_(), ret);
+        
+        SetSqMemOrderType(memOrderType);
+        SetSqBaseAddr(RtPtrToValue(sqBaseAddr));
+    }
+        
+    // stars v2要求sq深度必须是8的整数倍+1
+    SetSqDepth(sqDepth - Device_()->GetDevProperties().expandStreamSqDepthAdapt);
+    return ret;
+}
+
 void Stream::DebugDotPrintForModelStm()
 {
     if (!GetBindFlag()) {
@@ -4793,6 +4961,24 @@ rtError_t Stream::StreamTaskClean(void)
     error = device_->Driver_()->SetSqHead(devId, tsId, sqId_, 0U);
     COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "SetSqHead fail, retCode=%#x.", static_cast<uint32_t>(error));
     RT_LOG(RT_LOG_INFO, "stream task clean finish, stream_id=%d", streamId_);
+    return error;
+}
+
+rtError_t Stream::ReBuildStreamId()
+{
+    rtError_t error = RT_ERROR_NONE;
+    if (GetSqBaseAddr() != 0U) {
+        streamSwitchInfo_[0].stream_id = UINT32_MAX;
+        streamSwitchInfo_[0].sq_id = GetSqId();
+        streamSwitchInfo_[0].sq_depth = GetSqDepth();
+        streamSwitchInfo_[0].stream_mem = RtValueToPtr<void *>(GetSqBaseAddr());
+        /* stream unbind sq */
+        error = device_->Driver_()->SqSwitchStreamBatch(device_->Id_(), streamSwitchInfo_, 1U);
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "stream unbind sq failed, stream_id=%u, sq_id=%u, retCode=%#x.", Id_(), GetSqId(), static_cast<uint32_t>(error));
+    }
+    error = ReBuildDriverStreamResource();
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "free stream id and realloc stream id failed, stream_id=%u, retCode=%#x.", Id_(), static_cast<uint32_t>(error));
+    SetSqDepth(STREAM_SQ_MAX_DEPTH);
     return error;
 }
 

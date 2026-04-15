@@ -111,6 +111,29 @@ rtError_t ModelDebugUnRegister(Model * const mdl, Stream * const dftStm)
     return error;
 }
 
+static uint32_t GetRealStreamId(const Stream * const desStm, uint32_t desTaskId) {
+    uint32_t realStreamId = desStm->Id_();
+    if (desStm->IsAutoSplitSq() && !desStm->IsSlaveStream()) {
+        for (Stream *slave : desStm->GetAutoSplitCtx()->slaveStreams) {
+            bool isFind = false;
+            const std::vector<uint16_t>& taskIds = slave->GetDelayRecycleTaskId();
+            for(uint16_t i = 0U; i < taskIds.size(); i++) {
+                const uint16_t taskId = taskIds[i];
+                TaskInfo *task = desStm->Device_()->GetTaskFactory()->GetTask(slave->Id_(), taskId);
+                if (desTaskId == task->taskSn) {
+                    realStreamId = slave->Id_();
+                    isFind = true;
+                    break;
+                }
+            }
+            if (isFind) {
+                break;
+            }
+        }
+    }
+    return realStreamId;
+}
+
 rtError_t MdlTaskUpdate(const Stream * const desStm, uint32_t desTaskId, Stream *sinkStm,
     rtMdlTaskUpdateInfo_t *para)
 {
@@ -128,24 +151,26 @@ rtError_t MdlTaskUpdate(const Stream * const desStm, uint32_t desTaskId, Stream 
     ERROR_PROC_RETURN_MSG_INNER(error, (void)dev->Driver_()->DevMemFree(devCopyMem, sinkStm->Device_()->Id_());,
         "stream_id=%d check fail, retCode=%#x.", sinkStm->Id_(), static_cast<uint32_t>(error));
     sinkStm->StreamLock();
-    error = AllocTaskInfo(&tsk, sinkStm, pos);
+    Stream *dstStm = sinkStm;  // 用于存储实际发送任务的 stream
+    error = AllocTaskInfoForCapture(&tsk, sinkStm, pos, dstStm);
     ERROR_PROC_RETURN_MSG_INNER(error,
                                 sinkStm->StreamUnLock();
                                 (void)dev->Driver_()->DevMemFree(devCopyMem, sinkStm->Device_()->Id_());,
                                 "Failed to alloc task, stream_id=%d, retCode=%#x.",
                                 sinkStm->Id_(), static_cast<uint32_t>(error));
-    SaveTaskCommonInfo(tsk, sinkStm, pos);
-    (void)ModelTaskUpdateInit(tsk, static_cast<uint16_t>(desStm->Id_()), desTaskId,
-                              static_cast<uint16_t>(sinkStm->Id_()), devCopyMem, tilingTabLen, para);
-    error = DavidSendTask(tsk, sinkStm);
+    SaveTaskCommonInfo(tsk, dstStm, pos);
+    uint32_t realStreamId = GetRealStreamId(desStm, desTaskId);
+    (void)ModelTaskUpdateInit(tsk, static_cast<uint16_t>(realStreamId), desTaskId,
+                              static_cast<uint16_t>(dstStm->Id_()), devCopyMem, tilingTabLen, para);
+    error = DavidSendTask(tsk, dstStm);
     ERROR_PROC_RETURN_MSG_INNER(error,
                                 TaskUnInitProc(tsk);
-                                TaskRollBack(sinkStm, pos);
+                                TaskRollBack(dstStm, pos);
                                 sinkStm->StreamUnLock();
                                 (void)dev->Driver_()->DevMemFree(devCopyMem, dev->Id_());,
                                 "Failed to submit model update task, error=%#x.", static_cast<uint32_t>(error));
     sinkStm->StreamUnLock();
-    sinkStm->PushbackTilingTblAddr(devCopyMem);
+    dstStm->PushbackTilingTblAddr(devCopyMem);
     RT_LOG(RT_LOG_INFO, "device_id=%u, devCopyMem=%p, stream_id=%d pos=%u.",
         dev->Id_(), devCopyMem, sinkStm->Id_(),pos);
     return RT_ERROR_NONE;
@@ -612,6 +637,7 @@ rtError_t MdlUnBindTaskSubmit(Model * const mdl, Stream * const streamIn,
     }
     defaultStream->StreamUnLock();
     defaultStream->Synchronize();
+    streamIn->SetIsTsBind(false);
     return RT_ERROR_NONE;
 }
 

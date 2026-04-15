@@ -108,6 +108,7 @@ private:
     uint32_t publicQueueTail_{0U};
     DavidArgManage *argManage_{nullptr};
     void ReleaseStreamArgRes();
+    void FreeStreamIdAndSqCq();
 };
 
 }  // namespace runtime

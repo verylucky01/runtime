@@ -799,7 +799,6 @@ private:
                                 const uint32_t* sourceCapabilities);
     rtError_t CheckHostAtomicSupport(int32_t deviceId, bool &supported);
     rtError_t CheckP2PAtomicSupport(int32_t srcDeviceId, int32_t dstDeviceId, bool &supported);
-
     // task
     rtError_t TaskGetParams(rtTask_t task, rtTaskParams* const params) override;
     rtError_t TaskSetParams(rtTask_t task, rtTaskParams* const params) override;

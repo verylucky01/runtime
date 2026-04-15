@@ -99,8 +99,9 @@ ERROR_RECYCLE:
     return error;
 }
 
-rtError_t CondStreamActive(const Stream* const activeStream, Stream* const stm, Context* const ctx)
+rtError_t CondStreamActive(const Stream* const activeStream, Stream* const stm, Context* const ctx, const bool alreadyCascaded)
 {
+    UNUSED(alreadyCascaded);
     Context* curCtx = ctx;
     if (curCtx == nullptr) {
         curCtx = stm->Context_();

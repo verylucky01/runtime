@@ -87,10 +87,13 @@ Model::~Model() noexcept
     const std::list<Stream *> streamsCpy(streams_);
     for (Stream * const streamObj : streamsCpy) {
         (void)UnbindStream(streamObj, true);
-        if (streamObj->GetModelNum() == 0) {
+        if (streamObj->GetModelNum() == 0 && !(streamObj->IsAutoSplitSq() && streamObj->IsSlaveStream())) {
             context_->InsertStreamList(streamObj);
         }
     }
+
+    DELETE_A(modelSwitchInfo_);
+    SetIsSendSqe(false);
 
     {
         const std::unique_lock<std::mutex> lk(labelMapMutex_);
@@ -508,6 +511,11 @@ rtError_t Model::DisableSq(const Stream * const streamIn) const
 
 rtError_t Model::ModelUnBindTaskSubmit(Stream * const streamIn, const bool force)
 {
+    if (streamIn->IsAutoSplitSq() && !streamIn->IsTsBind()) {
+        RT_LOG(RT_LOG_INFO, "no need to send unbind task, model_id=%u, stream_id=%d.", Id_(), streamIn->Id_());
+        ModelRemoveStream(streamIn);
+        return RT_ERROR_NONE;
+    }
     Device * const dev = context_->Device_();
     if (dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_ALLOC_FROM_STREAM_POOL)) {
         return MdlUnBindTaskSubmit(this, streamIn, force);
@@ -699,8 +707,101 @@ uint32_t Model::GetStreamIdBySqId(const uint16_t sqId) const
     return UINT32_MAX;
 }
 
+rtError_t Model::SendSqe(void)
+{
+    COND_PROC((IsSendSqe() == true), return RT_ERROR_NONE);
+    const uint32_t deviceId = Context_()->Device_()->Id_();
+
+    for (auto stm : StreamList_()) {
+        const uint32_t totalSqeNum = stm->GetDelayRecycleTaskSqeNum();
+        if (totalSqeNum != 0U) {
+            const rtError_t ret = Context_()->Device_()->Driver_()->StreamTaskFill(deviceId,
+                static_cast<uint32_t>(stm->Id_()),
+                RtValueToPtr<void *>(stm->GetSqBaseAddr()), RtPtrToPtr<void *, uint8_t *>(stm->GetSqeBuffer()),
+                totalSqeNum);
+            COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "StreamTaskFill failed. device_id=%u, software_sq_enable=%d, auto_split_sq=%d, "
+                "stream_id=%d, model_id=%u, sqe_num=%u, retCode=%#x.", deviceId, stm->IsSoftwareSqEnable(), stm->IsAutoSplitSq(), stm->Id_(), Id_(), totalSqeNum, static_cast<uint32_t>(ret));
+        }
+
+        RT_LOG(RT_LOG_INFO, "send sqe success, device_id=%u, software_sq_enable=%d, auto_split_sq=%d, stream_id=%d, model_id=%u, sqe_num=%u, sq_addr=0x%llx.",
+            deviceId, stm->IsSoftwareSqEnable(), stm->IsAutoSplitSq(), stm->Id_(), Id_(), totalSqeNum, stm->GetSqBaseAddr());
+    }
+
+    SetIsSendSqe(true);
+    return RT_ERROR_NONE;
+}
+
+rtError_t Model::ConfigSqTail(void) const
+{
+    rtError_t error = RT_ERROR_NONE;
+    Device * const dev = Context_()->Device_();
+    /* config sq tail */
+    for (auto stm : StreamList_()) {
+        error = dev->Driver_()->SetSqTail(dev->Id_(), dev->DevGetTsId(), stm->GetSqId(), stm->GetCurSqPos());
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+            "set sq tail failed, device_id=%u, model_id=%u, software_sq_enable=%d, auto_split_sq=%d, stream_id=%d, sq_id=%u, retCode=%#x.",
+            dev->Id_(), Id_(), stm->IsSoftwareSqEnable(), stm->IsAutoSplitSq(), stm->Id_(), stm->GetSqId(), static_cast<uint32_t>(error));
+    }
+    return error;
+}
+
+rtError_t Model::BuildSqCqForAutoSplit()
+{
+    Device * const dev = Context_()->Device_();
+    for (auto stm : StreamList_()) {
+        rtError_t ret = stm->AllocAutoSplitSqAddr();
+        COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "AllocAutoSplitSqAddr failed. device_id=%u, stream_id=%d, "
+            "model_id=%u, retCode=%#x.", dev->Id_(), stm->Id_(), Id_(), static_cast<uint32_t>(ret));
+    }
+    const uint32_t streamNum = static_cast<uint32_t>(StreamList_().size());
+
+    if (modelSwitchInfo_ == nullptr) {
+        modelSwitchInfo_ = new (std::nothrow) struct sq_switch_stream_info[streamNum]();
+        COND_RETURN_ERROR(modelSwitchInfo_ == nullptr, RT_ERROR_STREAM_NEW,
+            "new sq switch info failed, model_id=%u, auto_split_sq=%d, sq_num=%u.", Id_(), IsAutoSplitSq(), streamNum);    
+    }
+    uint32_t index = 0U;
+    for (auto stm : StreamList_()) {
+        /* prepare sq switch Info */
+        modelSwitchInfo_[index].stream_id = static_cast<uint32_t>(stm->Id_());
+        modelSwitchInfo_[index].sq_id = stm->GetSqId();
+        modelSwitchInfo_[index].sq_depth = stm->GetSqDepth();
+        modelSwitchInfo_[index].stream_mem = RtValueToPtr<void *>(stm->GetSqBaseAddr());
+        index++;
+        RT_LOG(RT_LOG_INFO, "stream bind sq, device_id=%u, model_id=%u, auto_split_sq=%d, stream_id=%d, sq_id=%u, sq_tail=%u, sq_depth=%u.",
+            dev->Id_(), Id_(), stm->IsAutoSplitSq(), stm->Id_(), stm->GetSqId(), stm->GetCurSqPos(), stm->GetSqDepth());
+    }
+
+    /* switch stream to sq */
+    rtError_t error = dev->Driver_()->SqSwitchStreamBatch(dev->Id_(), modelSwitchInfo_, streamNum);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "stream bind sq failed, device_id=%u, model_id=%u, auto_split_sq=%d, sq_num=%u, retCode=%#x.",
+        dev->Id_(), Id_(), IsAutoSplitSq(), streamNum, static_cast<uint32_t>(error));
+    error = SendSqe();
+    ERROR_RETURN_MSG_INNER(error, "send sqe failed, model_id=%u, auto_split_sq=%d, retCode=%#x.", Id_(), IsAutoSplitSq(), static_cast<uint32_t>(error));
+
+    for (auto stm : StreamList_()) {
+        uint32_t streamFlag = static_cast<uint32_t>(RT_INVALID_FLAG);
+        COND_PROC(IsModelHeadStream(stm), streamFlag = RT_HEAD_STREAM);
+        error = EnterBindStream(stm, streamFlag);
+        COND_PROC(error != RT_ERROR_NONE, break);
+        stm->SetIsTsBind(true);    
+    }
+    ERROR_RETURN_MSG_INNER(error, "bind stream to model failed, model_id=%u, auto_split_sq=%d, retCode=%#x.", Id_(), IsAutoSplitSq(), static_cast<uint32_t>(error));
+
+    error = ConfigSqTail();
+    ERROR_RETURN_MSG_INNER(error, "config sq tail failed, model_id=%u, auto_split_sq=%d, retCode=%#x.", Id_(), IsAutoSplitSq(), static_cast<uint32_t>(error));
+    
+    return RT_ERROR_NONE;
+}
+
 rtError_t Model::LoadComplete()
 {
+    if (IsAutoSplitSq()) {
+        rtError_t error = BuildSqCqForAutoSplit();
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
+        "build sq cq failed, model_id=%u, auto_split_sq=%d.", Id_(), IsAutoSplitSq());  
+    }
     Device * const dev = context_->Device_();
     if (dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TASK_ALLOC_FROM_STREAM_POOL)) {
         return ModelLoadCompleteByStream(this);

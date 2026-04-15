@@ -45,6 +45,11 @@ constexpr uint32_t STREAM_TO_FULL_CNT = 64U;
 constexpr uint32_t CAPTURE_TASK_RESERVED_NUM = 32U;
 constexpr uint32_t STREAM_SQE_BUFFER_MAX_SIZE = 2 * 1024 * 1024;  // 2M, max sq depth 32768
 constexpr uint32_t STREAM_SQ_MAX_DEPTH = 32768U;
+
+// 自动切分SQ相关常量
+constexpr uint32_t STREAM_SQE_BUFFER_INIT_SIZE = 2U * 1024U * 64U;  // host sq buffer初始化大小 128K (128 * 1024)
+constexpr uint32_t HOST_SQ_MAX_COUNT = 32767U;          // 32K-1后创建slave stream
+
 constexpr float NOP_TASK_DURATION = 0.5f;
 constexpr float RECORD_TASK_DURATION = 4.5f;
 constexpr float WAIT_TASK_DURATION = 14.5f;
@@ -130,6 +135,14 @@ struct TaskGroup {
     uint32_t updateTaskIndex{0};
 };
 
+// 自动切分SQ上下文结构体
+struct AutoSplitSqContext {
+    Stream *masterStream{nullptr};            // slave stream指向master
+    std::vector<Stream *> slaveStreams;       // master stream的slave列表
+    int32_t exposedStreamId{-1};              // 对外暴露的streamId (master的)
+    uint32_t curStreamSqeCount{0U};           // 当前stream已分配的SQE数量
+};
+
 enum class StreamInfoExHeaderType : uint8_t {
     TS_SQCQ_NORMAL_TYPE = 0,
     TS_SQCQ_TOPIC_TYPE,
@@ -166,6 +179,7 @@ public:
     virtual rtError_t Setup();
 
     virtual rtError_t SetupWithoutBindSq();
+    virtual rtError_t SetupForAutoSplit();
     virtual rtError_t CreateStreamArgRes();
 
     // init L2 addr
@@ -1208,6 +1222,7 @@ public:
     }
     virtual rtError_t PrintStmDfxAndCheckDevice(uint64_t& beginCnt, uint64_t& endCnt, uint16_t& checkCount, uint32_t tryCount);
     virtual rtError_t StreamTaskClean(void);
+    rtError_t ReBuildStreamId();
     void PushbackTilingTblAddr(void *addr)
     {
         devTilingTblAddr.push_back(addr);
@@ -1232,6 +1247,7 @@ public:
     rtError_t AllocCaptureTask(tsTaskType_t taskType, uint32_t sqeNum, TaskInfo **task, bool isNeedLock = true);
     void GetTaskEventIdOrNotifyId(TaskInfo *taskInfo, int32_t &eventId, uint32_t &notifyId, uint64_t &devAddr) const;
     rtError_t AllocSoftwareSqAddr(uint32_t additionalSqeNum);
+    rtError_t AllocAutoSplitSqAddr();
 
     uint64_t GetSqBaseAddr(void) const
     {
@@ -1268,6 +1284,32 @@ public:
         return isSoftwareSqEnable_;
     }
 
+    bool IsAutoSplitSq() const { return isAutoSplitSq_; }
+    void SetAutoSplitSq(bool enable) { isAutoSplitSq_ = enable; }
+    AutoSplitSqContext* GetAutoSplitCtx() const { return autoSplitCtx_; }
+    void SetAutoSplitCtx(AutoSplitSqContext * ctx) { autoSplitCtx_ = ctx; }
+    bool IsSlaveStream() const { return isSlaveStream_; }
+    void SetIsSlaveStream(bool isSlave) { isSlaveStream_ = isSlave; }
+    Stream* GetMasterStream() const {
+        return (autoSplitCtx_ != nullptr) ? autoSplitCtx_->masterStream : nullptr;
+    }
+    int32_t GetExposedStreamId() const {
+        return (autoSplitCtx_ != nullptr) ? autoSplitCtx_->exposedStreamId : streamId_;
+    }
+    uint32_t GetHostSqeCount() const {
+        return (autoSplitCtx_ != nullptr) ? autoSplitCtx_->curStreamSqeCount : 0U;
+    }
+    std::vector<Stream*>& GetSlaveStreams() {
+        return autoSplitCtx_->slaveStreams;
+    }
+    bool IsTsBind() const { return isTsBind_; }
+    void SetIsTsBind(bool isTsBind) { isTsBind_ = isTsBind; }
+    void IncHostSqeCount(uint32_t num) {
+        if (autoSplitCtx_ != nullptr) {
+            autoSplitCtx_->curStreamSqeCount += num;
+        }
+    }
+
     uint32_t GetSqDepth(void) const
     {
         return sqDepth_;
@@ -1281,6 +1323,21 @@ public:
     uint8_t* GetSqeBuffer(void)
     {
         return sqeBuffer_;
+    }
+
+    uint32_t GetSqeBufferSize(void) const
+    {
+        return sqeBufferSize_;
+    }
+
+    void SetSqeBufferSize(uint32_t size)
+    {
+        sqeBufferSize_ = size;
+    }
+
+    void SetSqeBuffer(uint8_t *buffer)
+    {
+        sqeBuffer_ = buffer;
     }
 
     void UpdateSqCq(const rtDeviceSqCqInfo_t * const sqCqInfo);
@@ -1399,6 +1456,14 @@ private:
     rtError_t HandleTaskUpdate(TaskInfo* workTask, CaptureModel* model, uint8_t* sqeBufferBackup, uint32_t sendSqeNum);
     rtError_t HandleTaskDisable(TaskInfo* workTask, CaptureModel* model);
     rtError_t HandleTaskDefault(TaskInfo* workTask, CaptureModel* model, uint8_t* sqeBufferBackup, uint32_t sendSqeNum);
+
+    // Auto Split 辅助方法
+    rtError_t InitAutoSplitBasicParams();
+    rtError_t AllocPosToTaskIdMap();
+    rtError_t AllocAutoSplitContext();
+    rtError_t AllocSqeBufferForAutoSplit();
+    rtError_t AllocStreamIdForAutoSplit();
+    rtError_t AllocSqCqForAutoSplitWithRetry();
 public:
     bool isDeviceSyncFlag = false;
     uint32_t streamResId;
@@ -1556,6 +1621,7 @@ public:
     std::vector<void *> devTilingTblAddr;
     void *memContainOverflowAddr_{nullptr};
     bool isRecycleThreadProc_{false};
+    struct sq_switch_stream_info *streamSwitchInfo_{nullptr};
 protected:
     bool isCtrlStream_;
     uint32_t sqTailPos_;
@@ -1563,6 +1629,10 @@ protected:
     std::mutex modeMutex;
     uint64_t failureMode_; //遇错即停状态
     std::shared_ptr<Stream> myself = nullptr;
+    bool isAutoSplitSq_{false};                // 是否为自动切分SQ模式
+    bool isSlaveStream_{false};                // 是否为slave stream
+    bool isTsBind_{false};
+    AutoSplitSqContext *autoSplitCtx_{nullptr};  // 自动切分上下文
 public:
     uint32_t fftsMemAllocCnt;
     uint32_t fftsMemFreeCnt;

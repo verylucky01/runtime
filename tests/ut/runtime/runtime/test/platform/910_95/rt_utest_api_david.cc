@@ -5018,6 +5018,101 @@ TEST_F(ApiDavidTest, test_model_kinds_task_on_david1)
     sqe = nullptr;
 }
 
+static void MockBeforeLoadComplete(Stream *stream, rtDavidSqe_t *sqe) {
+    uint16_t head = 4U;
+    Driver *driver = ((Runtime *)Runtime::Instance())->driverFactory_.GetDriver(NPU_DRIVER);
+    MOCKER(GetDrvSqHead).stubs()
+        .with(mockcpp::any(), outBound(head))
+        .will(returnValue(RT_ERROR_NONE));
+    Context *curCtx = Runtime::Instance()->CurrentContext();
+    Stream *defaultStm = curCtx->DefaultStream_();
+    MOCKER_CPP_VIRTUAL(defaultStm, &Stream::Synchronize).stubs().will(returnValue(RT_ERROR_NONE));
+    TaskInfo task = {};
+    MOCKER(ModelExecuteTaskInit).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL(driver, &Driver::GetSqTail).stubs().will(returnValue(1));
+    MOCKER_CPP_VIRTUAL((NpuDriver *)driver, &NpuDriver::SqSwitchStreamBatch)
+        .stubs()
+        .will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP_VIRTUAL((NpuDriver *)driver, &NpuDriver::StreamTaskFill)
+        .stubs()
+        .will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&Model::BindSqPerStream).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&Model::UnBindSqPerStream).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&CaptureModel::ConfigSqTail).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&DavidStream::RecordPosToTaskIdMap).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&StreamSqCqManage::GetStreamById).stubs()
+        .with(mockcpp::any(), outBoundP(&stream))
+        .will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&TaskFactory::GetTask).stubs().will(returnValue(&task));
+    rtPointerAttributes_t rtAttributes;
+    rtAttributes.deviceID = 0;
+    rtAttributes.memoryType = RT_MEMORY_TYPE_DEVICE;
+    rtAttributes.locationType = RT_MEMORY_LOC_DEVICE;
+    MOCKER_CPP_VIRTUAL((NpuDriver *)driver, &NpuDriver::PointerGetAttributes).stubs()
+        .with(outBoundP(&rtAttributes, sizeof(rtAttributes)), mockcpp::any())
+        .will(returnValue(RT_ERROR_NONE));
+    stream->SetAutoSplitSq(true);
+    stream->SetIsSlaveStream(false);
+    uint64_t newSqAddr = reinterpret_cast<uint64_t>(sqe);
+    uint64_t *addr = (uint64_t *)newSqAddr;
+    MOCKER_CPP(&SqAddrMemoryOrder::AllocSqAddr).stubs()
+        .with(mockcpp::any(), outBoundP(&addr))
+        .will(returnValue(RT_ERROR_NONE));
+    defaultStm->SetSqBaseAddr(newSqAddr);
+}
+
+TEST_F(ApiDavidTest, test_auto_split_model_load_complete)
+{
+    void *hostPtr;
+    void *devPtr;
+    rtDavidSqe_t *sqe = (rtDavidSqe_t *)malloc(7 * sizeof(rtDavidSqe_t));
+    uint64_t oldSqAddr = stream_->GetSqBaseAddr();
+    Stream *defaultStm = Runtime::Instance()->CurrentContext()->DefaultStream_();
+    rtError_t error = rtMalloc(&hostPtr, 64, RT_MEMORY_HBM, DEFAULT_MODULEID);//RT_MEMORY_TYPE_HOST
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtMalloc(&devPtr, 64, RT_MEMORY_HBM, DEFAULT_MODULEID);//RT_MEMORY_TYPE_DEVICE
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    MockBeforeLoadComplete(stream_, sqe);
+    rtModel_t model;
+    error = rtModelCreate(&model, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    uint32_t oldFlags = stream_->Flags();
+    stream_->flags_ = oldFlags | RT_STREAM_PERSISTENT;
+    AutoSplitSqContext *autoSplitCtx_ = new (std::nothrow) AutoSplitSqContext();
+    stream_->SetAutoSplitCtx(autoSplitCtx_);
+    ((Model *)model)->SetAutoSplitSq(true);
+    error = rtModelBindStream(model, stream_, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtEndGraphEx(model, stream_, 2);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    stream_->SetSqBaseAddr(0);
+    error = rtModelLoadComplete(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtModelExecute(model, stream_->Context_()->DefaultStream_(), 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelUnbindStream(model, stream_);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    stream_->SetSqBaseAddr(oldSqAddr);
+    defaultStm->SetSqBaseAddr(oldSqAddr);
+    stream_->SetAutoSplitSq(false);
+    stream_->SetAutoSplitCtx(nullptr);
+    stream_->flags_ = oldFlags;
+    delete autoSplitCtx_;
+
+    error = rtFree(devPtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtFree(hostPtr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    free(sqe);
+    sqe = nullptr;
+}
+
 static rtError_t StreamLabelSwitchByIndexTaskInitStub(TaskInfo* taskInfo, void *const idPtr, const uint32_t maxIndex,
     void *const labelPtr)
 {

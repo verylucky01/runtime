@@ -236,7 +236,7 @@ static void RecycleLabelInfoWithModel(TaskInfo* labeltask)
 
 void RecycleModelBindStreamAllTask(Stream *const stm, const bool cleanFlag)
 {
-    if (stm->IsSoftwareSqEnable()) {
+    if (stm->IsSoftwareSqEnable() || stm->IsAutoSplitSq()) {
         stm->ExpandStreamRecycleModelBindStreamAllTask();
         return;
     }

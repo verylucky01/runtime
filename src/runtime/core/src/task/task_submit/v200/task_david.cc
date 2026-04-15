@@ -77,7 +77,7 @@ void TaskRollBack(Stream * const stm, uint32_t pos)
         return;
     }
 
-    if (stm->IsSoftwareSqEnable()) {
+    if (stm->IsSoftwareSqEnable() || stm->IsAutoSplitSq()) {
         Device *dev = stm->Device_();
         TaskInfo *taskInfo = dev->GetTaskFactory()->GetTask(stm->Id_(), static_cast<uint16_t>(pos));
         if (taskInfo == nullptr) {
@@ -110,6 +110,183 @@ static inline void UpdateNeedLogStatus(bool *needLog, uint32_t *needLogCnt, cons
         *needLog = true;
         *needLogCnt = 0U;
     }
+}
+
+// 注意：此函数假设调用者已持有 ctx->mutex 锁
+static rtError_t ExpandHostSqeBufferLocked(Stream * const stm)
+{
+    RT_LOG(RT_LOG_DEBUG, "Enter ExpandHostSqeBufferLocked, master_stream_id=%d, cur_stream_id=%d",
+        stm->GetExposedStreamId(), stm->Id_());
+    AutoSplitSqContext *ctx = stm->GetAutoSplitCtx();
+    if (ctx == nullptr) {
+        RT_LOG(RT_LOG_ERROR, "AutoSplitSqContext is null, master_stream_id=%d, cur_stream_id=%d",
+            stm->GetExposedStreamId(), stm->Id_());
+        return RT_ERROR_INVALID_VALUE;
+    }
+
+    uint32_t newSize = stm->GetSqeBufferSize() + STREAM_SQE_BUFFER_INIT_SIZE;
+    uint8_t *newBuffer = new (std::nothrow) uint8_t[newSize];
+    COND_RETURN_ERROR(newBuffer == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+        "new sqeBuffer failed, newSize=%u", newSize);
+
+    errno_t ret = memset_s(newBuffer, newSize, 0U, newSize);
+    if (ret != EOK) {
+        delete[] newBuffer;
+        RT_LOG(RT_LOG_ERROR, "Memset new sqeBuffer failed, master_stream_id=%d, cur_stream_id=%d, retCode=%d.",
+            stm->GetExposedStreamId(), stm->Id_(), ret);
+        return RT_ERROR_MEMORY_ALLOCATION;
+    }
+
+    // 复制原有数据
+    uint8_t *oldBuffer = stm->GetSqeBuffer();
+    if (oldBuffer != nullptr) {
+        ret = memcpy_s(newBuffer, newSize,
+            oldBuffer, ctx->curStreamSqeCount * sizeof(rtDavidSqe_t));
+        if (ret != EOK) {
+            DELETE_A(newBuffer);
+            RT_LOG(RT_LOG_ERROR, "memcpy_s sqeBuffer failed, master_stream_id=%d, cur_stream_id=%d, retCode=%d.",
+                stm->GetExposedStreamId(), stm->Id_(), ret);
+            return RT_ERROR_MEMORY_ALLOCATION;
+        }
+        DELETE_A(oldBuffer);
+    }
+
+    stm->SetSqeBuffer(newBuffer);
+    stm->SetSqeBufferSize(newSize);
+    RT_LOG(RT_LOG_INFO, "Expanded host SQ buffer, master_stream_id=%d, cur_stream_id=%d, newSize=%u",
+        stm->GetExposedStreamId(), stm->Id_(), newSize);
+    return RT_ERROR_NONE;
+}
+
+// 获取 auto-split stream 的当前活跃 stream（可能是 master 或最新的 slave）
+// 注意：调用此函数前必须持有 StreamLock()
+static Stream *GetAutoSplitCurStream(AutoSplitSqContext *masterCtx) noexcept
+{
+    if (!masterCtx->slaveStreams.empty()) {
+        return masterCtx->slaveStreams.back();
+    }
+    return nullptr;  // 返回 nullptr 表示使用 master stream
+}
+
+// 检查容量并在需要时创建新的 slave stream
+// 返回值：RT_ERROR_NONE 成功，其他值失败
+// 注意: 调用方已持有 StreamLock()，保护了对 slaveStreams 的访问
+// 输出参数：curStream 更新后的当前 stream
+static rtError_t TryCreateAutoSplitSlaveStream(Stream * const masterStm, uint32_t sqeNum,
+    Stream *&curStream)
+{
+    RT_LOG(RT_LOG_DEBUG, "Enter TryCreateAutoSplitSlaveStream, master_stream_id=%d, cur_stream_id=%d, sqeNum=%u",
+        masterStm->GetExposedStreamId(), curStream->Id_(), sqeNum);
+    AutoSplitSqContext *splitCtx = curStream->GetAutoSplitCtx();
+    COND_RETURN_ERROR(splitCtx == nullptr, RT_ERROR_INVALID_VALUE,
+        "curStream AutoSplitSqContext is null, stream_id=%d", curStream->Id_());
+
+    if ((splitCtx->curStreamSqeCount + sqeNum + CAPTURE_TASK_RESERVED_NUM + masterStm->Device_()->GetDevProperties().expandStreamRsvTaskNum) < HOST_SQ_MAX_COUNT) {
+        return RT_ERROR_NONE;  // 容量充足，无需创建
+    }
+
+    Stream *prevStream = curStream;
+    Context *ctx = masterStm->Context_();
+
+    // 必须先释放 StreamLock 再调用 CreateAutoSplitSlaveStream，否则会在
+    // 持有 StreamLock 的同时尝试获取 context 内部锁，导致 AB-BA 死锁。
+    // 不可删除此处的 UnLock/Lock 对。
+    masterStm->StreamUnLock();
+    Stream *newSlaveStream = nullptr;
+    rtError_t error = ctx->CreateAutoSplitSlaveStream(masterStm, &newSlaveStream);
+    masterStm->StreamLock();  // 立即重新获取锁
+
+    if (error != RT_ERROR_NONE) {
+        RT_LOG(RT_LOG_ERROR, "Create slave stream failed, master_stream_id=%d, cur_stream_id=%d, retCode=%#x.",
+            masterStm->GetExposedStreamId(), prevStream->Id_(), error);
+        return error;  // 返回时锁被持有
+    }
+
+    // 添加到列表
+    masterStm->GetSlaveStreams().push_back(newSlaveStream);
+
+    // 释放锁执行 stream active
+    masterStm->StreamUnLock();
+    error = CondStreamActive(newSlaveStream, prevStream, nullptr, true);
+    masterStm->StreamLock();  // 立即重新获取锁
+
+    if (error != RT_ERROR_NONE) {
+        RT_LOG(RT_LOG_ERROR, "CondStreamActive failed, master_stream_id=%d, slave_stream_id=%d, retCode=%#x.",
+            masterStm->GetExposedStreamId(), newSlaveStream->Id_(), error);
+        return error;  // 返回时锁被持有
+    }
+
+    curStream = newSlaveStream;
+    return RT_ERROR_NONE;  // 锁保持持有状态
+}
+
+// 在 auto-split stream 上分配 TaskInfo
+rtError_t AllocTaskInfoOnAutoSplitStream(Stream *curStream, uint32_t sqeNum, TaskInfo **taskInfo, uint32_t &pos)
+{
+    RT_LOG(RT_LOG_DEBUG, "Enter AllocTaskInfoOnAutoSplitStream, master_stream_id=%d, cur_stream_id=%d, sqeNum=%u",
+        curStream->GetExposedStreamId(), curStream->Id_(), sqeNum);
+    AutoSplitSqContext *splitCtx = curStream->GetAutoSplitCtx();
+    // 检查是否需要扩容 host SQ buffer
+    if ((splitCtx->curStreamSqeCount + sqeNum) > (curStream->GetSqeBufferSize() / sizeof(rtDavidSqe_t))) {
+        rtError_t error = ExpandHostSqeBufferLocked(curStream);
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Expand host SQ buffer failed, retCode=%#x.", error);
+
+    }
+
+    rtError_t error = RT_ERROR_NONE;
+    *taskInfo = curStream->Device_()->GetTaskFactory()->Alloc(curStream, TS_TASK_TYPE_RESERVED, error);
+    if (*taskInfo == nullptr) {
+        // 如果 Alloc 返回 nullptr 但 error 为 RT_ERROR_NONE，设置正确的错误码
+        if (error == RT_ERROR_NONE) {
+            error = RT_ERROR_MEMORY_ALLOCATION;
+        }
+        RT_LOG(RT_LOG_ERROR, "Alloc task info failed, master_stream_id=%d, cur_stream_id=%d, error=%#x",
+            curStream->GetExposedStreamId(), curStream->Id_(), error);
+        return error;
+    }
+    (*taskInfo)->stream = curStream;
+    Runtime::Instance()->AllocTaskSn((*taskInfo)->taskSn);
+    pos = (*taskInfo)->id;
+
+    splitCtx->curStreamSqeCount += sqeNum;
+    return RT_ERROR_NONE;
+}
+
+static rtError_t AllocAutoSplitTaskInfo(TaskInfo **taskInfo, Stream * const stm, uint32_t &pos, Stream *&dstStm, uint32_t sqeNum)
+{
+    RT_LOG(RT_LOG_DEBUG, "Enter AllocAutoSplitTaskInfo, master_stream_id=%d, sqeNum=%u",
+        stm->GetExposedStreamId(), sqeNum);
+
+    AutoSplitSqContext *masterCtx = stm->GetAutoSplitCtx();
+    COND_RETURN_ERROR(masterCtx == nullptr, RT_ERROR_INVALID_VALUE,
+        "AutoSplitSqContext is null, stream_id=%d", stm->Id_());
+
+    // 获取当前活跃的 stream
+    // 注意: 调用方已持有 StreamLock()，保护了对 slaveStreams 的访问
+    Stream *curStream = stm;
+    Stream *slaveStream = GetAutoSplitCurStream(masterCtx);
+    if (slaveStream != nullptr) {
+        curStream = slaveStream;
+        RT_LOG(RT_LOG_DEBUG, "Auto-split using slave stream, master_stream_id=%d, cur_stream_id=%d",
+            stm->GetExposedStreamId(), curStream->Id_());
+    }
+
+    // 检查容量并创建 slave stream
+    rtError_t error = TryCreateAutoSplitSlaveStream(stm, sqeNum, curStream);
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "Try create slave stream failed.");
+
+    AutoSplitSqContext *splitCtx = curStream->GetAutoSplitCtx();
+    COND_RETURN_ERROR(splitCtx == nullptr, RT_ERROR_INVALID_VALUE,
+        "curStream AutoSplitSqContext is null, stream_id=%d", curStream->Id_());
+
+    // 分配 TaskInfo
+    error = AllocTaskInfoOnAutoSplitStream(curStream, sqeNum, taskInfo, pos);
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "Alloc task info failed.");
+
+    dstStm = curStream;
+    RT_LOG(RT_LOG_DEBUG, "Alloc auto-split task, master_stream_id=%d, cur_stream_id=%d, sqeNum=%u, ctxSqeNum=%u",
+        stm->GetExposedStreamId(), curStream->Id_(), sqeNum, splitCtx->curStreamSqeCount);
+    return RT_ERROR_NONE;
 }
 
 static rtError_t AllocCaptureTaskInfo(TaskInfo **taskInfo, Stream * const stm, uint32_t &pos, Stream *&dstStm, uint32_t sqeNum)
@@ -174,11 +351,14 @@ static rtError_t AllocCaptureTaskInfo(TaskInfo **taskInfo, Stream * const stm, u
 rtError_t AllocTaskInfoForCapture(TaskInfo **taskInfo, Stream * const stm, uint32_t &pos, Stream *&dstStm,
                                   uint32_t sqeNum, bool isKernelLaunch)
 {
-    if ((taskInfo == nullptr) || (stm == nullptr) || ((stm->taskResMang_ == nullptr) && (!stm->IsSoftwareSqEnable()))) {
+    if ((taskInfo == nullptr) || (stm == nullptr) ||
+        ((stm->taskResMang_ == nullptr) && (!stm->IsSoftwareSqEnable()) && (!stm->IsAutoSplitSq()))) {
         return RT_ERROR_INVALID_VALUE;
     }
 
     rtError_t error = RT_ERROR_NONE;
+
+    // 处理 TaskGroupUpdate
     if (stm->IsTaskGroupUpdate()) {
         if (isKernelLaunch) {
             error = stm->UpdateTask(taskInfo);
@@ -187,6 +367,11 @@ rtError_t AllocTaskInfoForCapture(TaskInfo **taskInfo, Stream * const stm, uint3
             RT_LOG(RT_LOG_ERROR, "Unsupported task type for task update.");
             return RT_ERROR_TASK_NOT_SUPPORT;
         }
+    }
+
+    // 自动切分场景单独处理
+    if (stm->IsAutoSplitSq()) {
+        return AllocAutoSplitTaskInfo(taskInfo, stm, pos, dstStm, sqeNum);
     }
 
     if (stm->GetCaptureStatus() != RT_STREAM_CAPTURE_STATUS_NONE) {
@@ -420,6 +605,37 @@ static void SetFlipTaskNum(Stream *const stream, uint32_t prePos, uint32_t sqeNu
     return;
 }
 
+static rtError_t WriteAutoSplitSqeToHostBuffer(TaskInfo *taskInfo, Stream * const stm, rtDavidSqe_t *sqeAddr)
+{
+    AutoSplitSqContext *ctx = stm->GetAutoSplitCtx();
+    uint8_t *sqeBuffer = stm->GetSqeBuffer();
+    if (ctx == nullptr || sqeBuffer == nullptr) {
+        RT_LOG(RT_LOG_ERROR, "auto-split ctx or sqeBuffer is null, stream_id=%d, task_id=%u",
+            stm->Id_(), taskInfo->id);
+        return RT_ERROR_INVALID_VALUE;
+    }
+    const uint32_t hostPos = ctx->curStreamSqeCount - taskInfo->sqeNum;
+    // 边界检查：确保写入位置在有效范围内
+    uint32_t hostSqeCapacity = stm->GetSqeBufferSize() / sizeof(rtDavidSqe_t);
+    if ((hostPos + taskInfo->sqeNum) > hostSqeCapacity) {
+        RT_LOG(RT_LOG_ERROR, "hostSqeBuffer boundary check failed, stream_id=%d, task_id=%u, "
+            "hostPos=%u, sqeNum=%u, capacity=%u",
+            stm->Id_(), taskInfo->id, hostPos, taskInfo->sqeNum, hostSqeCapacity);
+        return RT_ERROR_INVALID_VALUE;
+    }
+    uint8_t *hostSqPos = sqeBuffer + hostPos * sizeof(rtDavidSqe_t);
+    const errno_t ret = memcpy_s(hostSqPos, taskInfo->sqeNum * sizeof(rtDavidSqe_t),
+        sqeAddr, taskInfo->sqeNum * sizeof(rtDavidSqe_t));
+    if (ret != EOK) {
+        RT_LOG(RT_LOG_ERROR, "memcpy_s to host SQ buffer failed, stream_id=%d, task_id=%u, error=%d",
+            stm->Id_(), taskInfo->id, ret);
+        return RT_ERROR_INVALID_VALUE;
+    }
+    RT_LOG(RT_LOG_DEBUG, "Auto-split SQE written to host buffer, stream_id=%d, task_id=%u, sqeNum=%u, hostPos=%u",
+        stm->Id_(), taskInfo->id, taskInfo->sqeNum, hostPos);
+    return RT_ERROR_NONE;
+}
+
 rtError_t DavidSendTask(TaskInfo *taskInfo, Stream * const stm)
 {
     rtDavidSqe_t davidSqe[SQE_NUM_PER_DAVID_TASK_MAX];
@@ -436,7 +652,7 @@ rtError_t DavidSendTask(TaskInfo *taskInfo, Stream * const stm)
     uint64_t sqBaseAddr = stm->GetSqBaseAddr();
     Profiler *profilerPtr = Runtime::Instance()->Profiler_();
 
-    if (stm->IsSoftwareSqEnable()) {
+    if (stm->IsSoftwareSqEnable() || stm->IsAutoSplitSq()) {
         dev->GetTaskFactory()->SetSerialId(stm, taskInfo);
         sqBaseAddr = 0ULL;
     } else {
@@ -455,6 +671,11 @@ rtError_t DavidSendTask(TaskInfo *taskInfo, Stream * const stm)
     if (error != RT_ERROR_NONE) {
         RT_LOG(RT_LOG_ERROR, "Add task failed stream_id=%d, task_id=%u.", stm->Id_(), taskInfo->id);
         return error;
+    }
+
+    // auto-split stream 处理：SQE 写入 host SQ buffer
+    if (stm->IsAutoSplitSq()) {
+        return WriteAutoSplitSqeToHostBuffer(taskInfo, stm, sqeAddr);
     }
 
     if (stm->IsSoftwareSqEnable()) {
@@ -519,7 +740,7 @@ rtError_t CheckTaskCanSend(Stream * const stm)
         stm->Device_()->Id_(), stm->Id_());
 
     TaskResManageDavid *taskResManag = RtPtrToPtr<TaskResManageDavid *, TaskResManage *>(stm->taskResMang_);
-    if (unlikely(taskResManag == nullptr) && (!stm->IsSoftwareSqEnable())) {
+    if (unlikely(taskResManag == nullptr) && (!stm->IsSoftwareSqEnable()) && (!stm->IsAutoSplitSq())) {
         RT_LOG(RT_LOG_WARNING, "device_id=%u stream_id=%d(flags=0x%x) does not support send task.",
             stm->Device_()->Id_(), stm->Id_(), stm->Flags());
         return RT_ERROR_STREAM_INVALID;

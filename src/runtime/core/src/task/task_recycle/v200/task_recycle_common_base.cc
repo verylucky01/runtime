@@ -291,7 +291,7 @@ TaskInfo* GetTaskInfo(const Device * const dev, uint32_t streamId, uint32_t pos,
     (void)dev->GetStreamSqCqManage()->GetStreamById(streamId, &recycleStm);
     COND_PROC((recycleStm == nullptr), return nullptr;);
 
-    if (recycleStm->IsSoftwareSqEnable()) {
+    if (recycleStm->IsSoftwareSqEnable() || recycleStm->IsAutoSplitSq()) {
         uint32_t task_id = pos;
         COND_PROC(posIsSqHead, recycleStm->GetTaskIdByPos(static_cast<uint16_t>(pos), task_id););
         return dev->GetTaskFactory()->GetTask(static_cast<int32_t>(streamId), static_cast<uint16_t>(task_id));

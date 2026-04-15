@@ -42,7 +42,7 @@ static rtError_t CondStreamActiveForAicpuStream(const Stream * const activeStrea
     return RT_ERROR_NONE;
 }
 
-rtError_t CondStreamActive(const Stream * const activeStream, Stream * const stm, Context * const ctx)
+rtError_t CondStreamActive(const Stream * const activeStream, Stream * const stm, Context * const ctx, const bool alreadyCascaded)
 {
     UNUSED(ctx);
     const uint32_t activeStreamId = static_cast<uint32_t>(activeStream->Id_());
@@ -67,21 +67,21 @@ rtError_t CondStreamActive(const Stream * const activeStream, Stream * const stm
     uint32_t pos = 0xFFFFU;
     TaskInfo *tsk = nullptr;
     Stream *dstStm = stm;
-    std::function<void()> const errRecycle = [&tsk, &stm, &pos]() {
+    std::function<void()> const errRecycle = [&tsk, &stm, &pos, &dstStm]() {
         TaskUnInitProc(tsk);
-        TaskRollBack(stm, pos);
+        TaskRollBack(dstStm, pos);
         stm->StreamUnLock();
     };
     stm->StreamLock();
-    error = AllocTaskInfoForCapture(&tsk, stm, pos, dstStm);
+    error = alreadyCascaded ? AllocTaskInfoOnAutoSplitStream(dstStm, 1U, &tsk, pos) : AllocTaskInfoForCapture(&tsk, stm, pos, dstStm);
     ERROR_PROC_RETURN_MSG_INNER(error, stm->StreamUnLock();, "Failed to alloc task, stream_id=%d, retCode=%#x.",
         stm->Id_(), static_cast<uint32_t>(error));
-    SaveTaskCommonInfo(tsk, stm, pos);
+    SaveTaskCommonInfo(tsk, dstStm, pos);
     ScopeGuard tskErrRecycle(errRecycle);
     error = StreamActiveTaskInit(tsk, activeStream);
     ERROR_RETURN_MSG_INNER(error, "Active task init failed, stream_id=%d, pos=%u, retCode=%#x",
         streamId, pos, static_cast<uint32_t>(error));
-    error = DavidSendTask(tsk, stm);
+    error = DavidSendTask(tsk, dstStm);
     ERROR_RETURN_MSG_INNER(error, "Active task submit task failed, stream_id=%d, pos=%u, retCode=%#x.",
         streamId, pos, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
@@ -98,28 +98,29 @@ rtError_t CondStreamSwitchEx(const void * const ptr, const rtCondition_t conditi
     const int32_t streamId = stm->Id_();
     TaskInfo *rtStreamSwitchTask = nullptr;
     uint32_t pos = 0xFFFFU;
+    Stream *dstStm = stm;
     rtError_t error = CheckTaskCanSend(stm);
     ERROR_RETURN_MSG_INNER(error, "stream_id=%d check failed, retCode=%#x.", streamId, static_cast<uint32_t>(error));
-    std::function<void()> const errRecycle = [&rtStreamSwitchTask, &stm, &pos]() {
+    std::function<void()> const errRecycle = [&rtStreamSwitchTask, &stm, &pos, &dstStm]() {
         TaskUnInitProc(rtStreamSwitchTask);
-        TaskRollBack(stm, pos);
+        TaskRollBack(dstStm, pos);
         stm->StreamUnLock();
     };
     stm->StreamLock();
-    error = AllocTaskInfo(&rtStreamSwitchTask, stm, pos);
+    error = AllocTaskInfoForCapture(&rtStreamSwitchTask, stm, pos, dstStm);
     ERROR_PROC_RETURN_MSG_INNER(error, stm->StreamUnLock();, "Failed to alloc task, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
-    SaveTaskCommonInfo(rtStreamSwitchTask, stm, pos);
+    SaveTaskCommonInfo(rtStreamSwitchTask, dstStm, pos);
     ScopeGuard tskErrRecycle(errRecycle);
     error = StreamSwitchTaskInitV2(rtStreamSwitchTask, ptr, condition, trueStream, valuePtr, dataType);
     ERROR_RETURN_MSG_INNER(error, "Stream switch task init failed, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
-    error = DavidSendTask(rtStreamSwitchTask, stm);
+    error = DavidSendTask(rtStreamSwitchTask, dstStm);
     ERROR_RETURN_MSG_INNER(error, "Active task submit task failed, stream_id=%d, pos=%u, retCode=%#x.",
         streamId, pos, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(streamId, rtStreamSwitchTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), rtStreamSwitchTask->taskSn);
     return error;
 }
 
@@ -170,7 +171,7 @@ rtError_t CondMemWaitValue(const void * const devAddr, const uint64_t value,
         streamId, pos, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), rtMemWaitValueTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), rtMemWaitValueTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", streamId, static_cast<uint32_t>(error));
     return RT_ERROR_NONE;

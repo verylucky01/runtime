@@ -47,7 +47,7 @@ CaptureModel::~CaptureModel() noexcept
     DeconstructSqCq();
     ClearStreamActiveTask();
     DELETE_A(switchInfo_);
-    isSqeSendFinish_ = false;
+    SetIsSendSqe(false);
     
     const std::list<Stream *> streamsCpy(StreamList_());
     // all stream need unbind first
@@ -600,19 +600,8 @@ rtError_t CaptureModel::ReleaseSqCq(uint32_t &releaseNum)
 
     return RT_ERROR_NONE;
 }
-rtError_t CaptureModel::ConfigSqTail(void) const
-{
-    rtError_t error = RT_ERROR_NONE;
-    Device * const dev = Context_()->Device_();
-    /* config sq tail */
-    for (auto stm : StreamList_()) {
-        error = dev->Driver_()->SetSqTail(dev->Id_(), dev->DevGetTsId(), stm->GetSqId(), stm->GetCurSqPos());
-        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
-            "set sq tail failed, device_id=%u, model_id=%u, stream_id=%d, sqId=%u, retCode=%#x.",
-            dev->Id_(), Id_(), stm->Id_(), stm->GetSqId(), static_cast<uint32_t>(error));
-    }
-    return error;
-}
+
+
 rtError_t CaptureModel::BindStreamToModel(void)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -626,6 +615,7 @@ rtError_t CaptureModel::BindStreamToModel(void)
     }
     return error;
 }
+
 rtError_t CaptureModel::BindSqCq(void)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -775,29 +765,8 @@ rtError_t CaptureModel::AllocSqAddr(void) const
 
     return RT_ERROR_NONE;
 }
-rtError_t CaptureModel::SendSqe(void)
-{
-    COND_PROC((isSqeSendFinish_ == true), return RT_ERROR_NONE);
-    const uint32_t deviceId = Context_()->Device_()->Id_();
 
-    for (auto stm : StreamList_()) {
-        const uint32_t totalSqeNum = stm->GetDelayRecycleTaskSqeNum();
-        if (totalSqeNum != 0U) {
-            const rtError_t ret = Context_()->Device_()->Driver_()->StreamTaskFill(deviceId,
-                static_cast<uint32_t>(stm->Id_()),
-                RtValueToPtr<void *>(stm->GetSqBaseAddr()), RtPtrToPtr<void *, uint8_t *>(stm->GetSqeBuffer()),
-                totalSqeNum);
-            COND_RETURN_ERROR((ret != RT_ERROR_NONE), ret, "StreamTaskFill fail. device_id=%u, "
-                "stream_id=%d, model_id=%u, retCode=%#x.", deviceId, stm->Id_(), Id_(), static_cast<uint32_t>(ret));
-        }
 
-        RT_LOG(RT_LOG_INFO, "send sqe success, device_id=%u, stream_id=%d, model_id=%u, sqeNum=%u, sqAddr=0x%llx.",
-            deviceId, stm->Id_(), Id_(), totalSqeNum, stm->GetSqBaseAddr());
-    }
-
-    isSqeSendFinish_ = true;
-    return RT_ERROR_NONE;
-}
 void CaptureModel::BackupArgHandle(const uint16_t streamId, const uint16_t taskId)
 {
     void* argHandle = GetAndEraseArgHandle(streamId, taskId);
@@ -824,7 +793,7 @@ rtError_t CaptureModel::Update(void)
         }
     }
 
-    isSqeSendFinish_ = false;
+    SetIsSendSqe(false);
     RT_LOG(RT_LOG_INFO, "update finish, model_id=%u, releaseNum=%u.", Id_(), releaseNum);
     return RT_ERROR_NONE;
 }
@@ -978,7 +947,7 @@ rtError_t CaptureModel::RestoreForSoftwareSq(Device * const dev)
     DELETE_A(sqCqArray_);
     sqCqNum_ = 0U;
     DELETE_A(switchInfo_);
-    isSqeSendFinish_ = false;
+    SetIsSendSqe(false);
     refCount_ = 0;
     return RT_ERROR_NONE;
 }

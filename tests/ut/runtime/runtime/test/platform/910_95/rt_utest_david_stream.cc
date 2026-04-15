@@ -353,6 +353,89 @@ TEST_F(DavidStreamTest, setup_persisit_modelexe_suc)
     rtStreamDestroy(stream);
 }
 
+TEST_F(DavidStreamTest, auto_split_stream_destroy)
+{
+    MOCKER_CPP_VIRTUAL((NpuDriver *)device_->Driver_(), &NpuDriver::DevMemAlloc)
+        .stubs()
+        .will(returnValue(0));
+    MOCKER_CPP_VIRTUAL((NpuDriver *)device_->Driver_(), &NpuDriver::GetSqRegVirtualAddrBySqid)
+        .stubs()
+        .will(returnValue(0));
+    MOCKER_CPP_VIRTUAL((NpuDriver *)device_->Driver_(), &NpuDriver::MemCopySync)
+        .stubs()
+        .will(returnValue(0));
+    MOCKER_CPP_VIRTUAL((NpuDriver *)device_->Driver_(), &NpuDriver::SqSwitchStreamBatch)
+        .stubs()
+        .will(returnValue(0));
+    MOCKER_CPP(&SqAddrMemoryOrder::FreeSqAddr)
+        .stubs()
+        .will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&DeviceSqCqPool::FreeSqCqToDrv)
+        .stubs()
+        .will(returnValue(RT_ERROR_NONE));
+    rtStream_t stream = 0;
+    rtError_t res = rtStreamCreateWithFlags(&stream, 0, RT_STREAM_PERSISTENT);
+    EXPECT_EQ(res, RT_ERROR_NONE);
+    ((Stream *)stream)->SetAutoSplitSq(true);
+    AutoSplitSqContext *autoSplitCtx_ = new (std::nothrow) AutoSplitSqContext();
+    autoSplitCtx_->masterStream = nullptr;
+    autoSplitCtx_->curStreamSqeCount = 0U;
+    ((Stream *)stream)->SetIsSlaveStream(false);
+    ((Stream *)stream)->SetAutoSplitCtx(autoSplitCtx_);
+    ((Stream *)stream)->SetSqBaseAddr(100);
+    ((Stream *)stream)->streamSwitchInfo_ = new (std::nothrow) struct sq_switch_stream_info[1U]();
+    Stream *stream2 = nullptr;
+    ((Stream *)stream)->Context_()->CreateAutoSplitSlaveStream(((Stream *)stream), &stream2);
+    autoSplitCtx_->slaveStreams.push_back((Stream *)stream2);
+    rtStreamDestroy(stream);
+}
+
+TEST_F(DavidStreamTest, auto_split_task_clean)
+{
+    MOCKER_CPP_VIRTUAL((NpuDriver *)device_->Driver_(), &NpuDriver::DevMemAlloc)
+        .stubs()
+        .will(returnValue(0));
+    bool enable = false;
+    MOCKER_CPP_VIRTUAL((NpuDriver *)device_->Driver_(), &NpuDriver::GetSqEnable)
+        .stubs()
+        .with(mockcpp::any(), mockcpp::any(), mockcpp::any(), outBound(enable))
+        .will(returnValue(0));
+    MOCKER_CPP_VIRTUAL((NpuDriver *)device_->Driver_(), &NpuDriver::MemCopySync)
+        .stubs()
+        .will(returnValue(0));
+    MOCKER_CPP_VIRTUAL((NpuDriver *)device_->Driver_(), &NpuDriver::SqSwitchStreamBatch)
+        .stubs()
+        .will(returnValue(0));
+    MOCKER_CPP(&Model::UnbindStream).stubs().will(returnValue(RT_ERROR_NONE));
+    MOCKER_CPP(&Model::ModelUnBindTaskSubmit).stubs().will(returnValue(RT_ERROR_NONE));
+    rtStream_t stream = 0;
+    rtError_t res = rtStreamCreateWithFlags(&stream, 0, RT_STREAM_PERSISTENT);
+    EXPECT_EQ(res, RT_ERROR_NONE);
+    ((Stream *)stream)->SetAutoSplitSq(true);
+    AutoSplitSqContext *autoSplitCtx_ = new (std::nothrow) AutoSplitSqContext();
+    ((Stream *)stream)->SetIsSlaveStream(false);
+    ((Stream *)stream)->SetAutoSplitCtx(autoSplitCtx_);
+    ((Stream *)stream)->SetSqBaseAddr(100);
+    autoSplitCtx_->masterStream = nullptr;
+    autoSplitCtx_->curStreamSqeCount = 0U;
+    ((Stream *)stream)->streamSwitchInfo_ = new (std::nothrow) struct sq_switch_stream_info[1U]();
+    rtModel_t rtModel;
+    rtError_t error = rtModelCreate(&rtModel, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtModelBindStream(rtModel, stream, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    Stream *stream2 = nullptr;
+    ((Stream *)stream)->Context_()->CreateAutoSplitSlaveStream(((Stream *)stream), &stream2);
+    autoSplitCtx_->slaveStreams.push_back((Stream *)stream2);
+    MOCKER_CPP_VIRTUAL(((Stream *)stream)->Context_(), &Context::TearDownStream)
+        .stubs()
+        .will(returnValue(0));
+    error= ((DavidStream *)stream)->StreamTaskClean();
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    rtModelUnbindStream(rtModel, stream);
+    rtStreamDestroy(stream);
+}
+
 TEST_F(DavidStreamTest, setup_aicpu)
 {
     DavidStream *stream = new DavidStream(device_, 0, RT_STREAM_AICPU, nullptr);
@@ -732,6 +815,19 @@ TEST_F(DavidStreamTest, TestCreateStreamAndGet)
         .will(returnValue(true));
     rtStream_t stream = 0;
     rtError_t res = rtStreamCreateWithFlags(&stream, 0, RT_STREAM_CP_PROCESS_USE);
+    EXPECT_EQ(res, RT_ERROR_NONE);
+    res = rtStreamDestroy(stream);
+    EXPECT_EQ(res, RT_ERROR_NONE);
+    GlobalMockObject::verify();
+}
+
+TEST_F(DavidStreamTest, TestCreateAutoSplitStreamAndGet)
+{
+    MOCKER_CPP_VIRTUAL(device_, &Device::CheckFeatureSupport)
+        .stubs()
+        .will(returnValue(true));
+    rtStream_t stream = 0;
+    rtError_t res = rtStreamCreateWithFlags(&stream, 0, RT_STREAM_PERSISTENT);
     EXPECT_EQ(res, RT_ERROR_NONE);
     res = rtStreamDestroy(stream);
     EXPECT_EQ(res, RT_ERROR_NONE);

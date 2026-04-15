@@ -1480,6 +1480,48 @@ TEST_F(TaskTestDavid, TestSyncTaskSuccess) {
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
+TEST_F(TaskTestDavid, TestAllocAutoSplitTaskInfo)
+{
+    TaskInfo *taskInfo = nullptr;
+    Device *dev;
+    rtError_t res;
+    rtStream_t stream;
+ 
+    MOCKER_CPP_VIRTUAL(device_, &Device::CheckFeatureSupport)
+        .stubs()
+        .will(returnValue(true));
+    res = rtStreamCreateWithFlags(&stream, 0, RT_STREAM_PERSISTENT);
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
+    MOCKER_CPP(&Runtime::AllocTaskSn).stubs().will(ignoreReturnValue());
+
+    uint32_t pos = 0xFFFFU;
+    Stream *dstStm = static_cast<Stream *>(stream);
+    rtError_t error = AllocTaskInfoForCapture(&taskInfo, static_cast<Stream *>(stream), pos, dstStm, 1U, true);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    rtStreamDestroy(stream);
+}
+
+TEST_F(TaskTestDavid, TestAllocAutoSplitTaskInfo2)
+{
+    TaskInfo *taskInfo = nullptr;
+    Device *dev;
+    rtError_t res;
+    rtStream_t stream;
+
+    MOCKER_CPP_VIRTUAL(device_, &Device::CheckFeatureSupport)
+        .stubs()
+        .will(returnValue(true));
+    res = rtStreamCreateWithFlags(&stream, 0, RT_STREAM_PERSISTENT);
+    MOCKER_CPP(&Stream::IsSeparateSendAndRecycle).stubs().will(returnValue(true));
+    MOCKER_CPP(&Runtime::AllocTaskSn).stubs().will(ignoreReturnValue());
+
+    uint32_t pos = 0xFFFFU;
+    Stream *dstStm = static_cast<Stream *>(stream);
+    rtError_t error = AllocTaskInfoForCapture(&taskInfo, static_cast<Stream *>(stream), pos, dstStm, 3270U, true);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    rtStreamDestroy(stream);
+}
+
 TEST_F(TaskTestDavid, TestTaskInfoAllocationWithQueueFull)
 {
     TaskInfo *taskInfo = nullptr;

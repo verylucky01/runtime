@@ -21,18 +21,19 @@ rtError_t CondLabelSwitchByIndex(void* const ptr, const uint32_t maxIndex, void*
     const int32_t streamId = stm->Id_();
     TaskInfo* rtStreamLabelSwitchIndexTask = nullptr;
     uint32_t pos = 0xFFFFU;
+    Stream *dstStm = stm;
     rtError_t error = CheckTaskCanSend(stm);
     ERROR_RETURN_MSG_INNER(error, "stream_id=%d check failed, retCode=%#x.", streamId, static_cast<uint32_t>(error));
-    std::function<void()> const errRecycle = [&rtStreamLabelSwitchIndexTask, &stm, &pos]() {
+    std::function<void()> const errRecycle = [&rtStreamLabelSwitchIndexTask, &stm, &pos, &dstStm]() {
         TaskUnInitProc(rtStreamLabelSwitchIndexTask);
-        TaskRollBack(stm, pos);
+        TaskRollBack(dstStm, pos);
         stm->StreamUnLock();
     };
     stm->StreamLock();
-    error = AllocTaskInfo(&rtStreamLabelSwitchIndexTask, stm, pos);
+    error = AllocTaskInfoForCapture(&rtStreamLabelSwitchIndexTask, stm, pos, dstStm);
     ERROR_PROC_RETURN_MSG_INNER(error, stm->StreamUnLock();, "Failed to alloc task, stream_id=%d, retCode=%#x.",
                                                            streamId, static_cast<uint32_t>(error));
-    SaveTaskCommonInfo(rtStreamLabelSwitchIndexTask, stm, pos);
+    SaveTaskCommonInfo(rtStreamLabelSwitchIndexTask, dstStm, pos);
     ScopeGuard tskErrRecycle(errRecycle);
     error = StreamLabelSwitchByIndexTaskInit(
         rtStreamLabelSwitchIndexTask, RtPtrToUnConstPtr<void* const>(ptr), maxIndex, labelInfoPtr);
@@ -42,14 +43,14 @@ rtError_t CondLabelSwitchByIndex(void* const ptr, const uint32_t maxIndex, void*
         "retCode=%#x.",
         streamId, pos, static_cast<uint32_t>(error));
 
-    error = DavidSendTask(rtStreamLabelSwitchIndexTask, stm);
+    error = DavidSendTask(rtStreamLabelSwitchIndexTask, dstStm);
     ERROR_RETURN_MSG_INNER(
-        error, "Stream label switch submit failed, stream_id=%d, pos=%u, retCode=%#x.", stm->Id_(), pos,
+        error, "Stream label switch submit failed, stream_id=%d, pos=%u, retCode=%#x.", dstStm->Id_(), pos,
         static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
 
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(streamId, rtStreamLabelSwitchIndexTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), rtStreamLabelSwitchIndexTask->taskSn);
     return error;
 }
 
@@ -72,19 +73,34 @@ rtError_t CondLabelSet(Label* const lbl, Stream* const stm)
     const int32_t streamId = stm->Id_();
     rtError_t error = CheckTaskCanSend(stm);
     ERROR_RETURN_MSG_INNER(error, "stream_id=%d check failed, retCode=%#x.", streamId, static_cast<uint32_t>(error));
+
+    Stream *dstStm = stm;
+
     stm->StreamLock();
-    error = AllocTaskInfo(&labelTask, stm, pos);
+    error = AllocTaskInfoForCapture(&labelTask, stm, pos, dstStm);
     ERROR_PROC_RETURN_MSG_INNER(error, stm->StreamUnLock();, "Failed to alloc task, stream_id=%d, retCode=%#x.",
                                                            streamId, static_cast<uint32_t>(error));
-    SaveTaskCommonInfo(labelTask, stm, pos);
+
+    SaveTaskCommonInfo(labelTask, dstStm, pos);
     (void)LabelSetTaskInit(labelTask, lbl->Id_(), lbl->DevDstAddr_());
-    SetSqPos(labelTask, pos);
-    error = DavidSendTask(labelTask, stm);
-    ERROR_PROC_RETURN_MSG_INNER(error, TaskUnInitProc(labelTask); TaskRollBack(stm, pos); stm->StreamUnLock();
-                                , "label task submit failed, stream_id=%d, pos=%u, retCode=%#x.", stm->Id_(), pos,
+
+    uint32_t realPos = pos;
+    if (dstStm->IsAutoSplitSq()) {
+        realPos = dstStm->GetCurSqPos();
+    }
+    SetSqPos(labelTask, realPos);
+
+    error = DavidSendTask(labelTask, dstStm);
+    ERROR_PROC_RETURN_MSG_INNER(error, TaskUnInitProc(labelTask); TaskRollBack(dstStm, pos); stm->StreamUnLock();,
+                                "label task submit failed, stream_id=%d, pos=%u, retCode=%#x.", dstStm->Id_(), pos,
                                 static_cast<uint32_t>(error));
 
     stm->StreamUnLock();
+
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), labelTask->taskSn);
+
+    // Label 绑定到 master stream (原始 stm)，而非 dstStm
+    // 生命周期由 master stream 管理
     lbl->SetSetFlag(true);
     lbl->ForceSetStream(stm);
     stm->InsertLabelList(lbl);

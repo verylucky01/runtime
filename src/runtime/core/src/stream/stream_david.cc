@@ -54,7 +54,7 @@ DavidStream::~DavidStream()
             return;
         }
         (void)FreeExecutedTimesSvm();
-        
+
         if (((flags_ & RT_STREAM_PERSISTENT) != 0U) && (sqRegVirtualAddr_ != 0U)) {
             (void)device_->Driver_()->UnmapSqRegVirtualAddrBySqid(
                 static_cast<int32_t>(device_->Id_()), device_->DevGetTsId(), sqId_);
@@ -86,7 +86,6 @@ DavidStream::~DavidStream()
                     device_->Id_(), streamId_, cntNotifyId_, static_cast<uint32_t>(error));
             }
         }
-        FreeStreamId();
 
         if (GetMemContainOverflowAddr() != nullptr) {
             (void)device_->Driver_()->DevMemFree(GetMemContainOverflowAddr(), device_->Id_());
@@ -97,17 +96,7 @@ DavidStream::~DavidStream()
             RT_LOG(RT_LOG_INFO, "Id=%u, devCopyMem=%p", device_->Id_(), addr);
             (void)device_->Driver_()->DevMemFree(addr, device_->Id_());
         }
-
-        if (IsSoftwareSqEnable() && (GetSqBaseAddr() != 0U)) {
-            SqAddrMemoryOrder *sqAddrMemoryManage = device_->GetSqAddrMemoryManage();
-            if (sqAddrMemoryManage != nullptr) {
-                (void)sqAddrMemoryManage->FreeSqAddr(RtValueToPtr<uint64_t *>(GetSqBaseAddr()), GetSqMemOrderType());
-            }
-        }
-
-        if (GetSqIdMemAddr() != 0UL) {
-            device_->FreeSqIdMemAddr(GetSqIdMemAddr());
-        }
+        FreeStreamIdAndSqCq();
         ReleaseStreamArgRes();
         devTilingTblAddr.clear();
         streamResId = RTS_INVALID_RES_ID;
@@ -122,6 +111,33 @@ DavidStream::~DavidStream()
     DELETE_O(lastHalfRecord_);
     DELETE_A(taskPublicBuff_);
     latestModelId_ = MAX_INT32_NUM;
+}
+
+void DavidStream::FreeStreamIdAndSqCq()
+{
+    DELETE_O(autoSplitCtx_);
+    if (IsAutoSplitSq()) {
+        if (GetSqBaseAddr() != 0U) {
+            streamSwitchInfo_[0].stream_id = UINT32_MAX;
+            streamSwitchInfo_[0].sq_id = GetSqId();
+            streamSwitchInfo_[0].sq_depth = GetSqDepth();
+            streamSwitchInfo_[0].stream_mem = RtValueToPtr<void *>(GetSqBaseAddr());
+            /* stream unbind sq */
+            (void)device_->Driver_()->SqSwitchStreamBatch(device_->Id_(), streamSwitchInfo_, 1U);
+        }
+        (void)device_->GetDeviceSqCqManage()->FreeSqCqToDrv(sqId_, cqId_);
+    }
+    DELETE_A(streamSwitchInfo_);
+    FreeStreamId();
+    if ((IsSoftwareSqEnable() || IsAutoSplitSq()) && (GetSqBaseAddr() != 0U)) {
+        SqAddrMemoryOrder *sqAddrMemoryManage = device_->GetSqAddrMemoryManage();
+        if (sqAddrMemoryManage != nullptr) {
+            (void)sqAddrMemoryManage->FreeSqAddr(RtValueToPtr<uint64_t *>(GetSqBaseAddr()), GetSqMemOrderType());
+        }
+    }
+    if (GetSqIdMemAddr() != 0UL) {
+        device_->FreeSqIdMemAddr(GetSqIdMemAddr());
+    }
 }
 
 rtError_t DavidStream::CreateStreamArgRes()
@@ -440,6 +456,15 @@ rtError_t DavidStream::TearDown(const bool terminal, bool flag)
     uint16_t tail = 0U;
     uint32_t tryWaitCnt = 0U;
 
+    if (IsAutoSplitSq() && autoSplitCtx_ != nullptr && !isSlaveStream_) {
+        for (Stream *slave : autoSplitCtx_->slaveStreams) {
+            if (slave != nullptr) {
+                (void)Context_()->TearDownStream(slave, true);
+            }
+        }
+        autoSplitCtx_->slaveStreams.clear();
+    }
+    
     if ((flags_ & RT_STREAM_PERSISTENT) != 0U) {
         RecycleModelBindStreamAllTask(this, false);
         return RT_ERROR_NONE;
@@ -642,7 +667,7 @@ void DavidStream::RecordPosToTaskIdMap(TaskInfo * const tsk, const uint32_t send
 rtError_t DavidStream::StarsAddTaskToStream(TaskInfo * const tsk, const uint32_t sendSqeNum)
 {
     NULL_PTR_RETURN_MSG(tsk, RT_ERROR_TASK_NULL);
-    if (!GetBindFlag()) {
+    if (!GetBindFlag() && !IsAutoSplitSq()) {
         const rtError_t ret = AddTaskToList(tsk);
         if (ret != RT_ERROR_NONE) {
             return ret;
@@ -652,7 +677,7 @@ rtError_t DavidStream::StarsAddTaskToStream(TaskInfo * const tsk, const uint32_t
         COND_PROC_RETURN_ERROR(ret != RT_ERROR_NONE, ret, SetTaskGroupErrCode(ret),
             "pack task group failed, stream_id=%d, task_id=%hu.", streamId_, tsk->id);
         if ((this->Model_()!= nullptr) && (tsk->type != TS_TASK_TYPE_MODEL_MAINTAINCE)) {
-            this->Model_()->SetKernelTaskId(tsk->taskSn, streamId_);
+            this->Model_()->SetKernelTaskId(tsk->taskSn, GetExposedStreamId());
         }
         delayRecycleTaskid_.push_back(tsk->id);
     }
@@ -665,7 +690,7 @@ rtError_t DavidStream::StarsAddTaskToStream(TaskInfo * const tsk, const uint32_t
         tsk->stream->latestConcernedTaskId.Set(tsk->id);
     }
 
-    if (IsSoftwareSqEnable()) {
+    if (IsSoftwareSqEnable() || IsAutoSplitSq()) {
         RecordPosToTaskIdMap(tsk, sendSqeNum);
     } else {
         SetEndGraphNotifyWaitSqPos(tsk, tsk->id); // 非aclgraph模型流，task->id就是pos
@@ -723,7 +748,7 @@ void DavidStream::GetCntNotifyId(int32_t &newEventId)
 
 uint32_t DavidStream::GetCurSqPos() const
 {
-    if (IsSoftwareSqEnable()) {
+    if (IsSoftwareSqEnable() || IsAutoSplitSq()) {
         return Stream::GetCurSqPos();
     }
 
@@ -1008,7 +1033,7 @@ void DavidStream::ResetDavidStreamConstruct()
 
 uint32_t DavidStream::GetDelayRecycleTaskSqeNum(void) const
 {
-    if (IsSoftwareSqEnable()) {
+    if (IsSoftwareSqEnable() || IsAutoSplitSq()) {
         return Stream::GetDelayRecycleTaskSqeNum();
     }
 
@@ -1061,6 +1086,7 @@ void DavidStream::ModelTaskClean()
 {
     RecycleModelBindStreamAllTask(this, true);
     isModelComplete = false;
+    Model_()->SetIsSendSqe(false);
 }
 
 rtError_t DavidStream::StreamRecoverAbort()
@@ -1125,7 +1151,22 @@ rtError_t DavidStream::StreamTaskClean()
     COND_RETURN_ERROR((enable != false), RT_ERROR_STREAM_INVALID,
         "Sq must be disable when clean task, device_id=%u, ts_id=%d, stream_id=%d, sq_id=%d",
         devId, tsId, streamId_, sqId_);
+    if (IsAutoSplitSq() && !IsSlaveStream() && autoSplitCtx_ != nullptr) {
+        for (Stream *slave : autoSplitCtx_->slaveStreams) {
+            error = Model_()->UnbindStream(slave, true);
+            COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "UnbindStream failed, stream_id=%u, retCode=%#x.", slave->Id_(), static_cast<uint32_t>(error));
+            (void)Context_()->TearDownStream(slave, true);
+        }
+        error = Model_()->ModelUnBindTaskSubmit(this, true);
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Stream unbind failed, stream_id=%d, retCode=%#x!", Id_(), static_cast<uint32_t>(error));
+        Model_()->ModelPushFrontStream(this);
+        error = ReBuildStreamId();
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "ReBuildStreamId failed, stream_id=%u, retCode=%#x.", Id_(), static_cast<uint32_t>(error));
+        autoSplitCtx_->slaveStreams.clear();
+        autoSplitCtx_->curStreamSqeCount = 0;
+    }
     ModelTaskClean();
+    COND_PROC((IsAutoSplitSq()), return RT_ERROR_NONE);
     // set tail 0
     error = device_->Driver_()->SetSqTail(device_->Id_(), device_->DevGetTsId(), sqId_, 0U);
     COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "SetSqTail fail, retCode=%#x.", static_cast<uint32_t>(error));
@@ -1263,7 +1304,7 @@ bool DavidStream::IsTaskExcuted(const uint32_t executeEndTaskid, const uint32_t 
 
 rtError_t DavidStream::GetTaskIdByPos(const uint16_t pos, uint32_t &taskId)
 {
-    if (IsSoftwareSqEnable()) {
+    if (IsSoftwareSqEnable() || IsAutoSplitSq()) {
         return Stream::GetTaskIdByPos(pos, taskId);
     }
 
@@ -1359,7 +1400,7 @@ void DavidStream::ExpandStreamRecycleModelBindStreamAllTask()
 }
 
 void DavidStream::GetTaskQueueHeadTail(uint16_t& head, uint16_t& tail) {
-    if (IsSoftwareSqEnable()) {
+    if (IsSoftwareSqEnable() || IsAutoSplitSq()) {
         if (!delayRecycleTaskid_.empty()) {
             head = *delayRecycleTaskid_.begin();
             tail = *(delayRecycleTaskid_.end() - 1);

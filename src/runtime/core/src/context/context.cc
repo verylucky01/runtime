@@ -2210,7 +2210,7 @@ rtError_t Context::MemsetAsync(void * const ptr, const uint64_t destMax, const u
 }
 
 rtError_t Context::StreamCreate(const uint32_t prio, const uint32_t flag, Stream ** const result, DvppGrp *grp,
-    const bool isSoftWareSqEnable)
+    const bool isSoftWareSqEnable, const bool isAutoSplitEnable)
 {
     rtError_t error = RT_ERROR_NONE;
     if ((flag & RT_STREAM_CP_PROCESS_USE) != 0U) {
@@ -2232,11 +2232,20 @@ rtError_t Context::StreamCreate(const uint32_t prio, const uint32_t flag, Stream
     }
 
     newStream->SetContext(this);
-    if (!isSoftWareSqEnable) {
-        error = newStream->Setup();
-    } else {
+    if (isAutoSplitEnable) {
+        newStream->SetAutoSplitSq(true);
+        error = newStream->SetupForAutoSplit();
+        RT_LOG(RT_LOG_INFO, "Stream setup with auto split, stream_id=%d, prio=%u, flag=%u.",
+            newStream->Id_(), prio, flag);
+    } else if (isSoftWareSqEnable) {
         newStream->SetSoftWareSqEnable();
         error = newStream->SetupWithoutBindSq();
+        RT_LOG(RT_LOG_INFO, "Stream setup without bind sq, stream_id=%d, prio=%u, flag=%u.",
+            newStream->Id_(), prio, flag);
+    } else {
+        error = newStream->Setup();
+        RT_LOG(RT_LOG_INFO, "Stream setup normal, stream_id=%d, prio=%u, flag=%u.",
+            newStream->Id_(), prio, flag);
     }
 
     ERROR_GOTO(error, ERROR_RECYCLE, "Setup stream failed, retCode=%#x.", error);
@@ -2263,6 +2272,46 @@ rtError_t Context::StreamDestroy(Stream * const stm, bool flag)
     taskLock.unlock();
     error = TearDownStream(stm, flag);
     return error;
+}
+
+rtError_t Context::CreateAutoSplitSlaveStream(Stream * const masterStm, Stream **newSlaveStream)
+{
+    COND_RETURN_ERROR(masterStm == nullptr, RT_ERROR_INVALID_VALUE, "Master stream is null");
+    COND_RETURN_ERROR(newSlaveStream == nullptr, RT_ERROR_INVALID_VALUE, "Output stream pointer is null");
+    RT_LOG(RT_LOG_DEBUG, "Enter CreateAutoSplitSlaveStream, master_stream_id=%d",
+        masterStm->GetExposedStreamId());
+
+    Stream *slaveStream = nullptr;
+    rtError_t error = StreamCreate(masterStm->Priority(), masterStm->Flags(), &slaveStream, nullptr, false, true);
+    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Create slave stream failed, retCode=%#x.", error);
+
+    // 设置 slave stream 的 AutoSplitCtx 关联信息
+    AutoSplitSqContext *slaveCtx = slaveStream->GetAutoSplitCtx();
+    slaveCtx->masterStream = masterStm;
+    slaveCtx->exposedStreamId = masterStm->Id_();
+    slaveStream->SetAutoSplitSq(true);
+    slaveStream->SetIsSlaveStream(true);
+    // 绑定 slave stream 到 master stream 所在的 model
+    Model *model = masterStm->Model_();
+    if (model == nullptr) {
+        StreamDestroy(slaveStream, true);
+        RT_LOG(RT_LOG_ERROR, "Master stream has no model, master_stream_id=%d, slave_stream_id=%d.",
+            masterStm->GetExposedStreamId(), slaveStream->Id_());
+        return RT_ERROR_INVALID_VALUE;
+    }
+    
+    error = ModelAddStream(model, slaveStream, RT_INVALID_FLAG);
+    if (error != RT_ERROR_NONE) {
+        RT_LOG(RT_LOG_ERROR, "Add stream to model failed, master_stream_id=%d, slave_stream_id=%d, retCode=%#x.",
+            masterStm->GetExposedStreamId(), slaveStream->Id_(), error);
+        (void)StreamDestroy(slaveStream, true);
+        return error;
+    }
+
+    *newSlaveStream = slaveStream;
+    RT_LOG(RT_LOG_INFO, "Created slave stream, master_stream_id=%d, slave_stream_id=%d",
+        masterStm->GetExposedStreamId(), slaveStream->Id_());
+    return RT_ERROR_NONE;
 }
 
 void Context::SetStreamsStatus(rtError_t status)
@@ -2448,6 +2497,8 @@ bool Context::TearDownIsCanExecute()
 rtError_t Context::ModelCreate(Model ** const result, ModelType type)
 {
     rtError_t error = RT_ERROR_NONE;
+    const bool isHostSupport = device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_MODEL_PERSISTENT_STREAM_UNLIMITED_DEPTH);
+    const bool isTsSupport = device_->CheckFeatureSupport(TS_FEATURE_SOFTWARE_SQ_ENABLE);
     Model *newModel = (type == RT_MODEL_CAPTURE_MODEL) ?
         new (std::nothrow) CaptureModel() :
         new (std::nothrow) Model();
@@ -2456,6 +2507,10 @@ rtError_t Context::ModelCreate(Model ** const result, ModelType type)
 
     error = newModel->Setup(this);
     ERROR_GOTO(error, ERROR_RECYCLE, "Setup model failed, retCode=%#x.", error);
+
+    if (type == RT_MODEL_NORMAL && isHostSupport && isTsSupport && !(Runtime::Instance()->GetConnectUbFlag())) {
+        newModel->SetAutoSplitSq(true);
+    }
     modelLock_.Lock();
     models_.push_back(newModel);
     modelLock_.Unlock();
@@ -2512,7 +2567,7 @@ rtError_t Context::ModelUnbindStream(Model * const mdl, Stream * const stm)
     ERROR_GOTO_MSG_INNER(error, COMPLETE, "Unbind stream failed, model_id=%u, stream_id=%d, retCode=%#x.",
         modelId, streamId, error);
 
-    if (stm->GetModelNum() == 0) {
+    if (stm->GetModelNum() == 0 && !(stm->IsAutoSplitSq() && stm->IsSlaveStream())) {
         streams_.push_back(stm);
     }
 COMPLETE:

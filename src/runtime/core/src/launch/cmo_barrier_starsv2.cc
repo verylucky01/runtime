@@ -57,7 +57,7 @@ rtError_t CmoTaskLaunch(const rtCmoTaskInfo_t* const taskInfo, Stream* const stm
         error, "CMO task submit failed, stream_id=%d, retCode=%#x.", streamId, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), rtCmoTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), rtCmoTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
     return RT_ERROR_NONE;

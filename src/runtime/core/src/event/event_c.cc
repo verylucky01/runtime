@@ -54,7 +54,7 @@ rtError_t EvtRecord(Event * const evt, Stream * const stm)
         stm->StreamUnLock();,
         "Failed to submit record task, retCode=%#x.", static_cast<uint32_t>(error));
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), tsk->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), tsk->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
     return error;
@@ -100,7 +100,7 @@ rtError_t EvtRecordSoftwareMode(Event * const evt, Stream * const stm)
         stm->StreamUnLock();,
         "Failed to submit record task, retCode=%#x.", static_cast<uint32_t>(error));
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), tsk->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), tsk->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
     davidEvt->SetRecord(true);
@@ -198,7 +198,7 @@ rtError_t EvtWait(Event * const evt, Stream * const stm, const uint32_t timeout)
                                        "Failed to submit wait task, stream_id=%d, retCode=%#x.",
                                        stm->Id_(), static_cast<uint32_t>(error));
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), tsk->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), tsk->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
@@ -242,7 +242,7 @@ rtError_t EvtWaitSoftwareMode(Event * const evt, Stream * const stm)
         stm->StreamUnLock();,
         "Failed to submit wait task, retCode=%#x.", static_cast<uint32_t>(error));
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), tsk->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), tsk->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
     RT_LOG(RT_LOG_INFO, "capture wait task submit success, device_id=%u, src_stream_id=%d->dst_stream_id=%d, task_id=%hu, event_id=%d, task_pos=%u",
@@ -276,7 +276,7 @@ rtError_t EvtReset(Event * const evt, Stream * const stm)
                                 "Failed to submit reset task, stream_id=%d, retCode=%#x.",
                                 stm->Id_(), static_cast<uint32_t>(error));
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), tsk->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), tsk->taskSn);
     davidEvt->SetHasReset(true);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
@@ -319,7 +319,7 @@ rtError_t EvtResetSoftwareMode(Event * const evt, Stream * const stm)
         stm->StreamUnLock();,
         "Failed to submit reset task, retCode=%#x.", static_cast<uint32_t>(error));
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), tsk->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), tsk->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
     RT_LOG(RT_LOG_INFO, "reset task submit success, device_id=%u, src_stream_id=%d->dst_stream_id=%d, task_id=%hu, event_id=%d, task_pos=%u",

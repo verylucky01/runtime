@@ -49,7 +49,7 @@ rtError_t ProfTraceEx(const uint64_t id, const uint64_t modelId, const uint16_t 
                                        "stream_id=%d send task failed, retCode=%#x.",
                                        stm->Id_(), static_cast<uint32_t>(error));
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), rtProfTraceExTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), rtProfTraceExTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
     return error;

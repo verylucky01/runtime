@@ -247,11 +247,6 @@ public:
         return sqBindMutex_.unlock();
     }
 
-    bool IsSendSqe(void) const
-    {
-        return isSqeSendFinish_;
-    }
-
     void ResetTrackDataReportFlag()
     {
         trackDataReportFlag_ = false;
@@ -278,7 +273,6 @@ public:
     rtError_t RestoreForSoftwareSq(Device * const dev);
     
 private:
-    rtError_t SendSqe(void);      // copy sqe to sqe addr
     rtError_t AllocSqAddr(void) const;  // alloc sq addr
     rtError_t AllocSqCqProc(const uint32_t streamNum) const;
     rtError_t BindSqCq(void);
@@ -288,7 +282,6 @@ private:
     Stream* GetOriginalCaptureStream(void) const;
     rtError_t ExecuteCommon(Stream * const stm, int32_t timeout, const uint8_t executeMode);
     rtError_t BindSqCqAndSendSqe(void);
-    rtError_t ConfigSqTail(void) const;
     rtError_t BindStreamToModel(void);
     void ReportCacheTrackData();
 
@@ -315,7 +308,6 @@ private:
     std::vector<TaskInfo *> streamActiveTaskList_;
     std::mutex sqBindMutex_;
     uint32_t refCount_{0U};
-    bool isSqeSendFinish_{false};
     bool isNeedUpdateEndGraph_{false};
     uint64_t beginCaptureTimeStamp_{0UL};
     bool trackDataReportFlag_{false};

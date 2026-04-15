@@ -213,7 +213,7 @@ static void TaskFailCallBackForFusionKernelTask(const TaskInfo * const taskInfo,
     const StarsDeviceErrorInfo * const info)
 {
     COND_RETURN_VOID(taskInfo == nullptr, "taskInfo is nullptr.");
-    const int32_t streamId = taskInfo->stream->Id_();
+    const int32_t streamId = taskInfo->stream->GetExposedStreamId();
     const uint32_t threadId = taskInfo->tid;
     rtExceptionInfo_t exceptionInfo;
     (void)memset_s(&exceptionInfo, sizeof(rtExceptionInfo_t), 0U, sizeof(rtExceptionInfo_t));
@@ -243,7 +243,7 @@ static void TaskFailCallBackForCcuTask(const TaskInfo * const taskInfo, const ui
     const StarsDeviceErrorInfo * const info)
 {
     COND_RETURN_VOID(taskInfo == nullptr, "taskInfo is nullptr.");
-    const int32_t streamId = taskInfo->stream->Id_();
+    const int32_t streamId = taskInfo->stream->GetExposedStreamId();
     const uint32_t threadId = taskInfo->tid;
     rtExceptionInfo_t exceptionInfo;
     (void)memset_s(&exceptionInfo, sizeof(rtExceptionInfo_t), 0U, sizeof(rtExceptionInfo_t));

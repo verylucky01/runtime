@@ -96,7 +96,7 @@ rtError_t CountNotify::Record(Stream * const streamIn, const rtCntNtyRecordInfo_
         streamIn->Id_(), static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     streamIn->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), recordTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), recordTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.",
         streamIn->Id_(), static_cast<uint32_t>(error));
@@ -146,7 +146,7 @@ rtError_t CountNotify::Wait(Stream * const streamIn, const rtCntNtyWaitInfo_t * 
         streamIn->Id_(), static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     streamIn->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), waitTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), waitTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.",
         streamIn->Id_(), static_cast<uint32_t>(error));

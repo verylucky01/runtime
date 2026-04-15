@@ -151,9 +151,11 @@ public:
         Stream * const stm, const uint64_t fixedSize);
 
     virtual rtError_t StreamCreate(const uint32_t prio, const uint32_t flag, Stream ** const result, DvppGrp *grp = nullptr,
-        const bool isSoftWareSqEnable = false);
+        const bool isSoftWareSqEnable = false, const bool isAutoSplitEnable = false);
 
     virtual rtError_t StreamDestroy(Stream * const stm, bool flag = true);
+
+    rtError_t CreateAutoSplitSlaveStream(Stream * const masterStm, Stream **newSlaveStream);
 
     void SetStreamsStatus(rtError_t status);
 
@@ -556,12 +558,12 @@ public:
         const CaptureModel * const excludeMdl);
     void PushContextErrMsg();
     void PopContextErrMsg();
+    virtual rtError_t TearDownStream(Stream *stm, bool flag = true) const;
 
 private:
     rtError_t Init();
     rtError_t OnlineStreamInit(const rtChipType_t chipType);
 
-    virtual rtError_t TearDownStream(Stream *stm, bool flag = true) const;
     bool IsStreamNotSync(const uint32_t flags) const;
 
     void TryAllocFastCq();

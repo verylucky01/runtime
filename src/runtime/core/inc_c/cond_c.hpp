@@ -18,7 +18,7 @@ namespace cce {
 namespace runtime {
 
     rtError_t CondStreamActive(const Stream * const activeStream, Stream * const stm,
-        Context * const ctx = nullptr);
+        Context * const ctx = nullptr, const bool alreadyCascaded = false);
     rtError_t CondStreamSwitchEx(const void * const ptr, const rtCondition_t condition, const void * const valuePtr,
         const Stream * const trueStream, Stream * const stm, const rtSwitchDataType_t dataType,
         Context * const ctx = nullptr);

@@ -24,7 +24,7 @@ public:
     XpuContext(Device * const ctxDevice, const bool primaryCtx);
     ~XpuContext() override;
 
-    rtError_t StreamCreate(const uint32_t prio, const uint32_t flag, Stream ** const result, DvppGrp *grp = nullptr, const bool isSoftWareSqEnable = false) override;
+    rtError_t StreamCreate(const uint32_t prio, const uint32_t flag, Stream ** const result, DvppGrp *grp = nullptr, const bool isSoftWareSqEnable = false, const bool isAutoSplitEnable = false) override;
 
     // init context
     rtError_t Setup() override;

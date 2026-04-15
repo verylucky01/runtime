@@ -60,10 +60,11 @@ rtError_t XpuContext::Setup()
 }
 
 rtError_t XpuContext::StreamCreate(
-    const uint32_t prio, const uint32_t flag, Stream **const result, DvppGrp *grp, const bool isSoftWareSqEnable)
+    const uint32_t prio, const uint32_t flag, Stream **const result, DvppGrp *grp, const bool isSoftWareSqEnable, const bool isAutoSplitEnable)
 {
     UNUSED(grp);
     UNUSED(isSoftWareSqEnable);
+    UNUSED(isAutoSplitEnable);
 
     rtError_t error = RT_ERROR_NONE;
     if (prio != RT_STREAM_PRIORITY_DEFAULT) {

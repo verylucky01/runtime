@@ -478,6 +478,22 @@ public:
         isHaveProcJettyInfo_ = flag;
     }
 
+    rtError_t BuildSqCqForAutoSplit();
+    rtError_t SendSqe(void);      // copy sqe to sqe addr
+    rtError_t ConfigSqTail(void) const;
+    bool IsSendSqe(void) const
+    {
+        return isSqeSendFinish_;
+    }
+
+    void SetIsSendSqe(bool isSendSqe)
+    {
+        isSqeSendFinish_ = isSendSqe;
+    }
+
+    void SetAutoSplitSq(bool enable) { isAutoSplitSq_ = enable; }
+    bool IsAutoSplitSq() const { return isAutoSplitSq_; }
+
 private:
     /*
      * Disable sq when the stream is bound to the model,
@@ -549,6 +565,10 @@ private:
     void *dfxPtr_;
     ModelType modelType_;
     bool isModelComplete_ = false;
+    bool isAutoSplitSq_{false};  // 是否为自动切分SQ模式
+    struct sq_switch_stream_info *modelSwitchInfo_{nullptr};
+    bool isSqeSendFinish_{false};
+
     std::mutex memWaitMutex_;
     void *currentAddr_ = nullptr;
     uint8_t allocTimes_ = 0;

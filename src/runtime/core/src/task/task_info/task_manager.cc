@@ -675,13 +675,14 @@ void TaskFailCallBack(const uint32_t streamId, const uint32_t taskId,
     GetExceptionArgs(workTask, &(exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs));
     exceptionInfo.retcode = static_cast<uint32_t>(RT_TRANS_EXT_ERRCODE(rtErrCode));
     exceptionInfo.taskid = exceptionTaskId;
-    exceptionInfo.streamid = streamId;
+    uint32_t exposedStreamId = workTask != nullptr ? workTask->stream->GetExposedStreamId() : streamId;
+    exceptionInfo.streamid = exposedStreamId;
     exceptionInfo.tid = threadId;
     exceptionInfo.deviceid = dev->Id_();
     exceptionInfo.expandInfo.type = type;
 
-    RT_LOG(RT_LOG_WARNING, "stream_id=%u, exception_task_id=%u, retCode=%#x,[%s]",
-        streamId, exceptionTaskId, rtErrCode, retDes);
+    RT_LOG(RT_LOG_WARNING, "stream_id=%u, exposed_stream_id=%u, exception_task_id=%u, retCode=%#x,[%s]",
+        streamId, exposedStreamId, exceptionTaskId, rtErrCode, retDes);
 
     TaskFailCallBackNotify(&exceptionInfo);
     if (exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.exceptionKernelInfo.kernelName != nullptr) {

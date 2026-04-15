@@ -39,7 +39,7 @@ rtError_t StreamCCULaunch(Stream *stm, rtCcuTaskInfo_t *taskInfo)
                                 "ccuLaunchTask submit failed, stream_id=%d, retCode=%#x.",
                                 stm->Id_(), static_cast<uint32_t>(error));
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), ccuLaunchTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), ccuLaunchTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.",
         stm->Id_(), static_cast<uint32_t>(error));

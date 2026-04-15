@@ -332,7 +332,7 @@ rtError_t StreamLaunchKernelV1(const void * const stubFunc, const uint32_t coreD
     ERROR_RETURN_MSG_INNER(error, "stream_id=%d submit task failed, retCode=%#x.", stm->Id_(), static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), kernelTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), kernelTask->taskSn);
     rt->PutProgram(prog);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "kernel launch submit fail, stream_id=%d, retCode=%#x.",
@@ -440,7 +440,7 @@ rtError_t StreamLaunchKernelWithHandle(void * const progHandle, const uint64_t t
         static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), kernelTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), kernelTask->taskSn);
     rt->PutProgram(prog);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "kernel launch submit fail, stream_id=%d, retCode=%#x.", stm->Id_(),
@@ -555,7 +555,7 @@ rtError_t StreamLaunchKernelV2(Kernel * const kernel, const uint32_t coreDim, St
         static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), kernelTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), kernelTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "kernel launch submit fail, stream_id=%d, retCode=%#x.", stm->Id_(),
         static_cast<uint32_t>(error));

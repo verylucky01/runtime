@@ -1383,7 +1383,15 @@ rtError_t ApiImpl::StreamCreate(Stream ** const stm, const int32_t priority, con
         return RT_ERROR_FEATURE_NOT_SUPPORT;
     }
 
-    rtError_t error = curCtx->StreamCreate(static_cast<uint32_t>(priority), flags, stm, grp);
+    bool isHostSupport = dev->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_MODEL_PERSISTENT_STREAM_UNLIMITED_DEPTH);
+    bool isTsSupport = dev->CheckFeatureSupport(TS_FEATURE_SOFTWARE_SQ_ENABLE);
+
+    bool isAutoSplitEnable = false;
+    if (((flags & RT_STREAM_PERSISTENT) != 0U) && isHostSupport && isTsSupport && !(Runtime::Instance()->GetConnectUbFlag())) {
+        isAutoSplitEnable = true;
+    }
+
+    rtError_t error = curCtx->StreamCreate(static_cast<uint32_t>(priority), flags, stm, grp, false, isAutoSplitEnable);
 
     COND_RETURN_WARN(error == RT_ERROR_FEATURE_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
                      "Create stream failed, not support flags=%u", flags);
@@ -3940,6 +3948,10 @@ rtError_t ApiImpl::ModelBindStream(Model * const mdl, Stream * const stm, const 
     COND_RETURN_ERROR_MSG_INNER(mdl->Context_() != curCtx, RT_ERROR_MODEL_CONTEXT,
         "Model bind to stream failed, model is not in current ctx.");
 
+    // 自动切分模式仅 Runtime 侧绑定
+    if (mdl->IsAutoSplitSq()) {
+        return curCtx->ModelAddStream(mdl, stm, flag);
+    }
     return curCtx->ModelBindStream(mdl, stm, flag);
 }
 
@@ -3951,6 +3963,19 @@ rtError_t ApiImpl::ModelUnbindStream(Model * const mdl, Stream * const stm)
     COND_RETURN_ERROR_MSG_INNER(mdl->Context_() != curCtx, RT_ERROR_MODEL_CONTEXT,
         "Model unbind to stream failed, model is not in current ctx.");
 
+    // 自动切分场景需解绑 slave streams
+    if (mdl->IsAutoSplitSq() && stm->GetAutoSplitCtx() != nullptr) {
+        AutoSplitSqContext *autoSplitCtx = stm->GetAutoSplitCtx();
+        for (Stream *slave : autoSplitCtx->slaveStreams) {
+            if (slave != nullptr) {
+                rtError_t slaveErr = curCtx->ModelUnbindStream(mdl, slave);
+                COND_RETURN_ERROR_MSG_INNER(slaveErr != RT_ERROR_NONE, slaveErr,
+                    "Unbind slave stream failed, stream_id=%d, retCode=%#x.", slave->Id_(), slaveErr);
+            }
+        }   
+    }
+
+    // 解绑 master stream
     return curCtx->ModelUnbindStream(mdl, stm);
 }
 
@@ -5236,15 +5261,30 @@ rtError_t ApiImpl::GetPairPhyDevicesInfo(const uint32_t devId, const uint32_t ot
     return ret;
 }
 
+static rtError_t HandlePersistentStreamFeature(const rtChipType_t chipType, int64_t * const val, Context * const curCtx)
+{
+    rtError_t error = RT_ERROR_NONE;
+    bool haveDevice = Runtime::Instance()->HaveDevice();
+    bool isUBFlag = Runtime::Instance()->GetConnectUbFlag();
+    bool isChipSupport = IS_SUPPORT_CHIP_FEATURE(chipType, RtOptionalFeatureType::RT_FEATURE_MODEL_PERSISTENT_STREAM_UNLIMITED_DEPTH);
+    *val = isChipSupport ? 
+        static_cast<int64_t>(RT_CAPABILITY_SUPPORT) : static_cast<int64_t>(RT_CAPABILITY_NOT_SUPPORT);
+    if (haveDevice) {
+        CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
+        Device * const dev = curCtx->Device_();
+        bool isTsSupport = dev->CheckFeatureSupport(TS_FEATURE_SOFTWARE_SQ_ENABLE);
+        *val = isChipSupport && isTsSupport && !isUBFlag ? 
+            static_cast<int64_t>(RT_CAPABILITY_SUPPORT) : static_cast<int64_t>(RT_CAPABILITY_NOT_SUPPORT);
+    } else {
+        *val = static_cast<int64_t>(RT_CAPABILITY_NOT_SUPPORT); 
+    }
+    return error;
+}
+
 rtError_t ApiImpl::GetRtCapability(const rtFeatureType_t featureType, const int32_t featureInfo, int64_t * const val)
 {
     const rtChipType_t chipType = Runtime::Instance()->GetChipType();
     RT_LOG(RT_LOG_INFO, "GetRtCapability chip_type=%d", chipType);
-
-    if (featureType == FEATURE_TYPE_PERSISTENT_STREAM_UNLIMITED_DEPTH) {
-        *val = static_cast<int64_t>(RT_CAPABILITY_NOT_SUPPORT);
-        return RT_ERROR_NONE;
-    }
 
     if ((featureType == FEATURE_TYPE_MEMCPY) && (featureInfo == static_cast<int32_t>(MEMCPY_INFO_SUPPORT_ZEROCOPY))) {
         *val = static_cast<int64_t>(RT_CAPABILITY_SUPPORT);
@@ -5253,6 +5293,12 @@ rtError_t ApiImpl::GetRtCapability(const rtFeatureType_t featureType, const int3
 
     if (featureType == FEATURE_TYPE_AICPU_OVERFLOW_DUMP) {
         return GetOverflowDetectionCapability(chipType, val);
+    }
+
+    if (featureType == FEATURE_TYPE_PERSISTENT_STREAM_UNLIMITED_DEPTH) {
+        Context * const curCtx = CurrentContext();
+        (void)HandlePersistentStreamFeature(chipType, val, curCtx);
+        return RT_ERROR_NONE;
     }
 
     DevProperties props;

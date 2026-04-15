@@ -185,8 +185,8 @@ void Profiler::ModifyTrackData(TaskInfo *const taskInfo, const uint32_t devId, R
     trackData->compactInfo.threadId = GetCurrentTid(); 
     trackData->compactInfo.dataLen = static_cast<uint32_t>(sizeof(MsprofRuntimeTrack));
     trackData->compactInfo.data.runtimeTrack.deviceId = static_cast<uint16_t>(devId); 
-    trackData->compactInfo.data.runtimeTrack.streamId = 
-        (stm == nullptr) ? RT_MAX_STREAM_ID : static_cast<uint16_t>(stm->Id_());
+    trackData->compactInfo.data.runtimeTrack.streamId =
+        (stm == nullptr) ? RT_MAX_STREAM_ID : static_cast<uint16_t>(stm->GetExposedStreamId());
 
     if (taskInfo->type == TS_TASK_TYPE_FLIP) { 
         trackData->compactInfo.data.runtimeTrack.taskId = 
@@ -287,7 +287,7 @@ void Profiler::ReportDestroyFlipTask(const Stream *const stm, const uint32_t dev
     compactInfo.threadId = GetCurrentTid();
     compactInfo.dataLen = static_cast<uint32_t>(sizeof(MsprofRuntimeTrack));
     compactInfo.data.runtimeTrack.deviceId = static_cast<uint16_t>(devId);
-    compactInfo.data.runtimeTrack.streamId = (stm == nullptr) ? RT_MAX_STREAM_ID : static_cast<uint16_t>(stm->Id_());
+    compactInfo.data.runtimeTrack.streamId = (stm == nullptr) ? RT_MAX_STREAM_ID : static_cast<uint16_t>(stm->GetExposedStreamId());
     compactInfo.data.runtimeTrack.taskId = 0xFFFFFFFFU;
     compactInfo.data.runtimeTrack.taskType = TS_TASK_TYPE_FLIP;
 
@@ -400,10 +400,10 @@ void Profiler::ReportTrackData(const Stream *const s, const uint16_t taskId) con
 
     const int32_t steamId = s->Id_();
     const uint32_t devId = s->Device_()->Id_();
-    RT_LOG(RT_LOG_DEBUG, "Report track data, deviceId=%u, streamId=%d, taskId=%u", devId, steamId, taskId);
+    RT_LOG(RT_LOG_DEBUG, "Report track data, deviceId=%u, streamId=%d, master streamId=%d, taskId=%u", devId, steamId, s->GetExposedStreamId(), taskId);
     TaskInfo *task = GetTaskInfo(s->Device_(), static_cast<uint32_t>(steamId), static_cast<uint32_t>(taskId));
     if (task == nullptr) {
-        RT_LOG(RT_LOG_WARNING, "Get task info is null, deviceId=%u, streamId=%d, taskId=%u", devId, steamId, taskId);
+        RT_LOG(RT_LOG_WARNING, "Get task info is null, deviceId=%u, streamId=%d, master streamId=%d, taskId=%u", devId, steamId, s->GetExposedStreamId(), taskId);
         return;
     }
 
@@ -416,7 +416,7 @@ void Profiler::ReportTrackData(const Stream *const s, const uint16_t taskId) con
     trackData.compactInfo.dataLen = static_cast<uint32_t>(sizeof(MsprofRuntimeTrack));
 
     trackData.compactInfo.data.runtimeTrack.deviceId = static_cast<uint16_t>(devId);
-    trackData.compactInfo.data.runtimeTrack.streamId = static_cast<uint32_t>(steamId);
+    trackData.compactInfo.data.runtimeTrack.streamId = static_cast<uint32_t>(s->GetExposedStreamId());
     trackData.compactInfo.data.runtimeTrack.taskId = GetProfTaskId(task);
     trackData.compactInfo.data.runtimeTrack.taskType = task->type;
     ChangeTrackDataTaskType(trackData.compactInfo.data.runtimeTrack, task);

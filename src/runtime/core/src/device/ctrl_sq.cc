@@ -198,6 +198,7 @@ rtError_t CtrlSQ::SendModelUnbindMsg(Model * const mdl, Stream * const streamIn,
         mdl->ModelPushFrontStream(streamIn);
         ERROR_RETURN_MSG_INNER(error, "Ctrl msg wait failed, retCode=%#x", static_cast<uint32_t>(error));
     }
+    streamIn->SetIsTsBind(false);
     return RT_ERROR_NONE;
 }
 
@@ -217,6 +218,7 @@ rtError_t CtrlSQ::SendModelBindMsg(Model * const mdl, Stream * const streamIn, c
 
     error = WaitComplete();
     ERROR_RETURN_MSG_INNER(error, "Ctrl msg wait failed, retCode=%#x", static_cast<uint32_t>(error));
+    streamIn->SetIsTsBind(true);
     return RT_ERROR_NONE;
 }
 

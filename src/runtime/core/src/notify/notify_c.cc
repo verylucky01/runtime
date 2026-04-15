@@ -52,7 +52,7 @@ rtError_t NtyWait(Notify * const inNotify, Stream * const streamIn, const uint32
         streamIn->Id_(), static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     streamIn->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), waitTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), waitTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.",
         streamIn->Id_(), static_cast<uint32_t>(error));
@@ -99,7 +99,7 @@ rtError_t NtyRecord(Notify * const inNotify, Stream * const streamIn)
     streamIn->StreamUnLock();
     RT_LOG(RT_LOG_INFO, "device_id=%u, stream_id=%d, pos=%u, notify_id=%u",
         streamIn->Device_()->Id_(), streamId, pos, inNotify->GetNotifyId());
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), recordTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), recordTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.", streamId, static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
@@ -145,7 +145,7 @@ rtError_t NtyReset(Notify * const inNotify, Stream * const streamIn)
     ERROR_RETURN_MSG_INNER(error, "NotifyResetTask submit failed, retCode=%#x", static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     streamIn->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), resetTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), resetTask->taskSn);
 
     error = streamIn->Synchronize();
     ERROR_RETURN_MSG_INNER(error, "Failed to synchronize notify reset Task, device_id=%u, streamId=%d, retCode=%#x",

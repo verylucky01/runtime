@@ -61,7 +61,7 @@ rtError_t MemcpyAsyncPtrForDavid(rtDavidMemcpyAddrInfo *const memcpyAddrInfo, co
         stm->Id_(), static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), cpyAsyncTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), cpyAsyncTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.",
         stm->Id_(), static_cast<uint32_t>(error));
@@ -103,7 +103,7 @@ rtError_t Memcpy2DAsync(void * const dst, const uint64_t dstPitch, const void * 
         stm->Id_(), pos, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), taskAsync2d->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), taskAsync2d->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.",
         stm->Id_(), static_cast<uint32_t>(error));
@@ -181,7 +181,7 @@ rtError_t MemcopyAsync(void * const dst, const uint64_t destMax, const void * co
         stm->Id_(), pos, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), rtMemcpyAsyncTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), rtMemcpyAsyncTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.",
         stm->Id_(), static_cast<uint32_t>(error));
@@ -245,7 +245,7 @@ rtError_t MemcpyReduceAsync(void * const dst, const void * const src, const uint
         streamId, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
-    SET_THREAD_TASKID_AND_STREAMID(dstStm->Id_(), rtMemcpyAsyncTask->taskSn);
+    SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), rtMemcpyAsyncTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
     ERROR_RETURN_MSG_INNER(error, "recycle fail, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));

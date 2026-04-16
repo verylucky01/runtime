@@ -100,7 +100,7 @@
 
 1. **安装CANN toolkit包**
 
-    单击[下载链接](https://ascend.devcloud.huaweicloud.com/cann/run/software/8.5.0-beta.1)，根据实际环境架构，获取对应的`Ascend-cann-toolkit_${cann_version}_linux-${arch}.run`包。
+    单击[下载链接](https://ascend.devcloud.huaweicloud.com/artifactory/cann-run/software/)，根据实际环境架构和[release仓库](https://gitcode.com/cann/release-management)中的版本说明，获取对应的`Ascend-cann-toolkit_${cann_version}_linux-${arch}.run`包。
 
     ```bash
     # 确保安装包具有可执行权限

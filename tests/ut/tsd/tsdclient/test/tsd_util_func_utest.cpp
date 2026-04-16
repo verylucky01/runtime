@@ -18,7 +18,6 @@
 #include "log.h"
 #include "tsd_util_func.h"
 #include "common_util_func.h"
-#include "inc/message_parse_server.h"
 
 using namespace tsd;
 using namespace std;
@@ -385,7 +384,6 @@ TEST_F(TsdUtilFuncTest, CalcUniqueVfIdVfIdZero)
 
 TEST_F(TsdUtilFuncTest, CalcUniqueVfIdBothZero)
 {
-    MessageParseServer *ptr = MessageParseServer::GetInstance();
     uint32_t deviceId = 0U;
     uint32_t vfId = 0U;
     uint32_t ret = CalcUniqueVfId(deviceId, vfId);

@@ -28,7 +28,6 @@ set(TSD_COMMON_SRC_FILE
     ${TSD_SRC_PATH}/common/src/hdc_common.cpp
     ${TSD_SRC_PATH}/pub_facility/util_func/tsd_util_func.cpp
     ${TSD_SRC_PATH}/common/src/message_parse_client.cpp
-    ${TSD_SRC_PATH}/common/src/message_parse_server.cpp
     ${TSD_SRC_PATH}/common/src/message_parse_interface.cpp
     ${TSD_SRC_PATH}/common/src/package_process_config.cpp
     ${TSD_SRC_PATH}/common/src/package_verify.cpp

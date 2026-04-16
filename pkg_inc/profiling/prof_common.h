@@ -1,16 +1,12 @@
 /**
- * @file prof_common.h
- *
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- *
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
- *
- */
+ */
 #ifndef MSPROFILER_PROF_COMMON_H
 #define MSPROFILER_PROF_COMMON_H
 
@@ -44,6 +40,9 @@ enum ProfileCallbackType {
     PROFILE_REPORT_REG_TYPE_INFO_C_CALLBACK,
     PROFILE_REPORT_GET_HASH_ID_C_CALLBACK,
     PROFILE_HOST_FREQ_IS_ENABLE_C_CALLBACK,
+    PROFILE_REPORT_REG_DATA_FORMAT_CALLBACK,
+    PROFILE_REPORT_REG_DATA_FORMAT_C_CALLBACK,
+    PROFILE_DEVICE_STATE_C_CALLBACK,
 };
 
 enum MsprofDataTag {
@@ -716,7 +715,7 @@ struct MsprofMemoryInfo {
  * @brief struct of data reported by msproftx
  */
 #define PAYLOAD_VALUE_LEN 2
-#define MAX_MESSAGE_LEN 128
+#define MAX_MESSAGE_LEN 156
 struct MsprofStampInfo {
     uint16_t magicNumber;
     uint16_t dataTag;
@@ -859,6 +858,31 @@ typedef struct ProfStepInfoCmd {
     uint16_t tag_id;
     void *stream;
 } ProfStepInfoCmd_t;
+
+/**
+ * @brief  the struct of raw data, using in acp, acp will be discarded in later versions.
+ */
+enum RawDataType {
+    API_DATA_TYPE = 0,
+    EVENT_DATA_TYPE = 1,
+    RUNTIMETRACK_DATA_TYPE = 3,
+    PMU_DATA_TYPE = 4,
+    DEFAULT_DATA_TYPE = 5
+};
+
+#define RAW_DATA_MAXSIZE (256)
+
+typedef struct {
+    bool isLastChunk;
+    size_t offset;
+    int32_t chunkModule;
+    int32_t deviceId;
+    enum RawDataType type;
+    size_t chunkSize;
+    char chunk[RAW_DATA_MAXSIZE];
+} MsprofRawData;
+
+typedef int32_t(*MsprofRawDataCallback)(MsprofRawData* rawData);
 
 #ifdef __cplusplus
 }

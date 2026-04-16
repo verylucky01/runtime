@@ -127,9 +127,6 @@ new_install() {
         setenv_option="--setenv"
     fi
 
-    # update filelist.csv if ge-executor package installed
-    filelist_update "$common_parse_dir"
-
     # 执行安装
     custom_options="--custom-options=--common-parse-dir=$common_parse_dir,--logfile=$logfile,--stage=install,--quiet=$is_quiet,--hetero-arch=$hetero_arch"
     sh "$curpath/install_common_parser.sh" --copy_all --package="runtime" --install --username="$username" --usergroup="$usergroup" --set-cann-uninstall \
@@ -143,6 +140,9 @@ new_install() {
 
     # create softlinks for stub libs in devlib/linux/$(ARCH)
     create_stub_softlink "$common_parse_dir"
+
+    # process acl empty headers
+    process_acl_empty_headers "$common_parse_dir"
 
     return 0
 }

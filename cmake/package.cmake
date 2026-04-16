@@ -314,6 +314,9 @@ install(DIRECTORY
     DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/include/acl
     ${INSTALL_OPTIONAL}
     COMPONENT npu-runtime
+    PATTERN "acl_base_mdl.h" EXCLUDE
+    PATTERN "acl_mdl.h" EXCLUDE
+    PATTERN "acl_op.h" EXCLUDE
 )
 
 install(DIRECTORY

@@ -115,11 +115,8 @@
         <file value="acl_rt_memory_soma.h" install_mod="440" entity="true"/>
         <file value="acl_base_rt.h" install_mod="440" entity="true"/>
         <file value="acl_base.h" install_mod="440" entity="true"/>
-        <file value="acl_base_mdl.h" install_mod="440" entity="true"/>
         <file value="acl_tdt.h" install_mod="440" entity="true"/>
         <file value="acl_tdt_queue.h" install_mod="440" entity="true"/>
-        <file value="acl_op.h" install_mod="440" entity="true"/>
-        <file value="acl_mdl.h" install_mod="440" entity="true"/>
         <file value="acl_dump.h" install_mod="440" entity="true"/>
         <file value="acl_prof.h" install_mod="440" entity="true"/>
     </file_info>

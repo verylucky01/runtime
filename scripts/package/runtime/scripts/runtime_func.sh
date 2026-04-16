@@ -257,29 +257,61 @@ remove_stub_softlink() {
     })
 }
 
-
-filelist_remove_acl_empty_headers() {
-    local curpath=$(dirname $(readlink -f "$0"))
-    chmod u+w "$curpath" "$curpath/filelist.csv" 2> /dev/null
-    sed -i 's/.*\/include\/acl\/\(acl_base_mdl\|acl_mdl\|acl_op\)\.h/# &/' $curpath/filelist.csv
+gen_acl_header() {
+    local header="$1"
+    local mod="$2"
+    local bname="$(basename $header)"
+    if [ "$bname" = "acl_base_mdl.h" ] || [ "$bname" = "acl_mdl.h" ]; then
+        cat - << 'EOF' > "$header" 2> /dev/null
+/*!
+ * This is an empty file, included for compatibility with old version.
+ * If you want to use aclmdl api, please install the corresponding package to overrite this file.
+ * */
+EOF
+    elif [ "$bname" = "acl_op.h" ]; then
+        cat - << 'EOF' > "$header" 2> /dev/null
+/*!
+ * This is an empty file, included for compatibility with old version.
+ * If you want to use aclop api, please install the corresponding package to overrite this file.
+ * */
+EOF
+    fi
+    [ -n "$mod" ] && chmod "$mod" "$header" > /dev/null 2>&1
 }
 
-filelist_recover_acl_empty_headers() {
-    local curpath=$(dirname $(readlink -f "$0"))
-    chmod u+w "$curpath" "$curpath/filelist.csv" 2> /dev/null
-    sed -i 's/^# \(.*\/include\/acl\/\(acl_base_mdl\|acl_mdl\|acl_op\)\.h\)/\1/' $curpath/filelist.csv
+create_acl_empty_headers() {
+    local install_path="$1"
+    local arch_name="$pkg_arch_name"
+    local acl_headers_dir="$install_path/$arch_name-linux/include/acl"
+    [ -d "$acl_headers_dir" ] && chmod u+w "$acl_headers_dir" && \
+    local mod="$(get_dir_mod $(ls $acl_headers_dir/*.h 2> /dev/null | head -1) 2> /dev/null)" && \
+    for header in acl_base_mdl.h acl_mdl.h acl_op.h; do
+        gen_acl_header "$acl_headers_dir/$header" "$mod"
+    done
+    chmod u-w "$acl_headers_dir" > /dev/null 2>&1
 }
 
-filelist_update() {
-    local install_dir="$1"
+remove_acl_empty_headers() {
+    local install_path="$1"
+    local arch_name="$pkg_arch_name"
+    local acl_headers_dir="$install_path/$arch_name-linux/include/acl"
+    [ -d "$acl_headers_dir" ] && chmod u+w "$acl_headers_dir" && \
+    for header in acl_base_mdl.h acl_mdl.h acl_op.h; do
+        rm -rf "$acl_headers_dir/$header" > /dev/null 2>&1
+    done
+    chmod u-w "$acl_headers_dir" > /dev/null 2>&1
+}
+
+process_acl_empty_headers() {
+    local install_path="$1"
     local stage="$2"
-    if [ -f "$install_dir/share/info/ge-executor/version.info" ] && \
-       [ -f "$install_dir/share/info/ge-executor/ascend_install.info" ]; then # if ge-executor package installed
-        filelist_remove_acl_empty_headers
-        find . -maxdepth 5 -type f \( -name "acl_mdl.h" -o -name "acl_op.h" -o -name "acl_base_mdl.h" \) -print0 2>/dev/null | \
-            xargs -0 rm -f 2>/dev/null
-    elif [ "$stage" = "uninstall" ]; then
-        filelist_recover_acl_empty_headers
+    if [ ! -e "$install_path/share/info/ge-executor/version.info" ] && \
+       [ ! -e "$install_path/share/info/ge-executor/ascend_install.info" ]; then # if ge-executor package not installed
+        if [ "$stage" != "uninstall" ]; then    # install or upgrade
+            create_acl_empty_headers "$install_path"
+        else
+            remove_acl_empty_headers "$install_path"
+        fi
     fi
 }
 

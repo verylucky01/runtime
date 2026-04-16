@@ -94,11 +94,11 @@ new_uninstall() {
     # remove softlinks for stub libs in devlib/linux/$(ARCH)
     remove_stub_softlink "$common_parse_dir"
 
+    # process acl empty headers
+    process_acl_empty_headers "$common_parse_dir" "uninstall"
+
     # 赋可写权限
     chmod +w -R "${SOURCE_INSTALL_COMMON_PARSER_FILE}"
-
-    # update filelist.csv if ge-executor package installed
-    filelist_update "$common_parse_dir" "uninstall"
 
     # 执行卸载
     custom_options="--custom-options=--common-parse-dir=$common_parse_dir,--logfile=$logfile,--stage=uninstall,--quiet=$is_quiet,--hetero-arch=$hetero_arch"

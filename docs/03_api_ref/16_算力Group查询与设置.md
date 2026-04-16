@@ -12,7 +12,7 @@
 
 <a id="aclrtSetGroup"></a>
 
-# aclrtSetGroup
+## aclrtSetGroup
 
 ```c
 aclError aclrtSetGroup(int32_t groupId)
@@ -51,7 +51,7 @@ aclError aclrtSetGroup(int32_t groupId)
 
 <a id="aclrtGetGroupCount"></a>
 
-# aclrtGetGroupCount
+## aclrtGetGroupCount
 
 ```c
 aclError  aclrtGetGroupCount(uint32_t *count)
@@ -86,7 +86,7 @@ aclError  aclrtGetGroupCount(uint32_t *count)
 
 <a id="aclrtGetAllGroupInfo"></a>
 
-# aclrtGetAllGroupInfo
+## aclrtGetAllGroupInfo
 
 ```c
 aclError  aclrtGetAllGroupInfo(aclrtGroupInfo *groupInfo)
@@ -125,7 +125,7 @@ aclError  aclrtGetAllGroupInfo(aclrtGroupInfo *groupInfo)
 
 <a id="aclrtGetGroupInfoDetail"></a>
 
-# aclrtGetGroupInfoDetail
+## aclrtGetGroupInfoDetail
 
 ```c
 aclError  aclrtGetGroupInfoDetail(const aclrtGroupInfo *groupInfo, int32_t groupIndex, aclrtGroupAttr attr, void *attrValue, size_t valueLen, size_t *paramRetSize)
@@ -169,7 +169,7 @@ aclError  aclrtGetGroupInfoDetail(const aclrtGroupInfo *groupInfo, int32_t group
 
 <a id="aclrtCreateGroupInfo"></a>
 
-# aclrtCreateGroupInfo
+## aclrtCreateGroupInfo
 
 ```c
 aclrtGroupInfo *aclrtCreateGroupInfo()
@@ -207,7 +207,7 @@ aclrtGroupInfo *aclrtCreateGroupInfo()
 
 <a id="aclrtDestroyGroupInfo"></a>
 
-# aclrtDestroyGroupInfo
+## aclrtDestroyGroupInfo
 
 ```c
 aclError aclrtDestroyGroupInfo(aclrtGroupInfo *groupInfo)

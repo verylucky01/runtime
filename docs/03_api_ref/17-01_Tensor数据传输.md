@@ -15,7 +15,7 @@
 
 <a id="acltdtCreateChannel"></a>
 
-# acltdtCreateChannel
+## acltdtCreateChannel
 
 ```c
 acltdtChannelHandle *acltdtCreateChannel(uint32_t deviceId, const char *name)
@@ -56,7 +56,7 @@ acltdtChannelHandle *acltdtCreateChannel(uint32_t deviceId, const char *name)
 
 <a id="acltdtCreateChannelWithCapacity"></a>
 
-# acltdtCreateChannelWithCapacity
+## acltdtCreateChannelWithCapacity
 
 ```c
 acltdtChannelHandle *acltdtCreateChannelWithCapacity(uint32_t deviceId, const char *name, size_t capacity)
@@ -98,7 +98,7 @@ acltdtChannelHandle *acltdtCreateChannelWithCapacity(uint32_t deviceId, const ch
 
 <a id="acltdtSendTensor"></a>
 
-# acltdtSendTensor
+## acltdtSendTensor
 
 ```c
 aclError acltdtSendTensor(const acltdtChannelHandle *handle, const acltdtDataset *dataset, int32_t timeout)
@@ -139,7 +139,7 @@ aclError acltdtSendTensor(const acltdtChannelHandle *handle, const acltdtDataset
 
 <a id="acltdtReceiveTensor"></a>
 
-# acltdtReceiveTensor
+## acltdtReceiveTensor
 
 ```c
 aclError acltdtReceiveTensor(const acltdtChannelHandle *handle, acltdtDataset *dataset, int32_t timeout)
@@ -180,7 +180,7 @@ aclError acltdtReceiveTensor(const acltdtChannelHandle *handle, acltdtDataset *d
 
 <a id="acltdtStopChannel"></a>
 
-# acltdtStopChannel
+## acltdtStopChannel
 
 ```c
 aclError acltdtStopChannel(acltdtChannelHandle *handle)
@@ -219,7 +219,7 @@ aclError acltdtStopChannel(acltdtChannelHandle *handle)
 
 <a id="acltdtDestroyChannel"></a>
 
-# acltdtDestroyChannel
+## acltdtDestroyChannel
 
 ```c
 aclError acltdtDestroyChannel(acltdtChannelHandle *handle)
@@ -258,7 +258,7 @@ aclError acltdtDestroyChannel(acltdtChannelHandle *handle)
 
 <a id="acltdtQueryChannelSize"></a>
 
-# acltdtQueryChannelSize
+## acltdtQueryChannelSize
 
 ```c
 aclError acltdtQueryChannelSize(const acltdtChannelHandle *handle, size_t *size)
@@ -298,7 +298,7 @@ aclError acltdtQueryChannelSize(const acltdtChannelHandle *handle, size_t *size)
 
 <a id="acltdtGetSliceInfoFromItem"></a>
 
-# acltdtGetSliceInfoFromItem
+## acltdtGetSliceInfoFromItem
 
 ```c
 aclError acltdtGetSliceInfoFromItem(const acltdtDataItem *dataItem, size_t *sliceNum, size_t* sliceId)
@@ -341,7 +341,7 @@ aclError acltdtGetSliceInfoFromItem(const acltdtDataItem *dataItem, size_t *slic
 
 <a id="acltdtCleanChannel"></a>
 
-# acltdtCleanChannel
+## acltdtCleanChannel
 
 ```c
 aclError acltdtCleanChannel(acltdtChannelHandle *handle)

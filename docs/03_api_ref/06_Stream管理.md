@@ -30,7 +30,7 @@
 
 <a id="aclrtCreateStream"></a>
 
-# aclrtCreateStream
+## aclrtCreateStream
 
 ```c
 aclError aclrtCreateStream(aclrtStream *stream)
@@ -82,7 +82,7 @@ aclError aclrtCreateStream(aclrtStream *stream)
 
 <a id="aclrtCreateStreamV2"></a>
 
-# aclrtCreateStreamV2
+## aclrtCreateStreamV2
 
 ```c
 aclError aclrtCreateStreamV2(aclrtStream *stream, const aclrtStreamConfigHandle *handle)
@@ -129,7 +129,7 @@ aclError aclrtCreateStreamV2(aclrtStream *stream, const aclrtStreamConfigHandle 
 
 <a id="aclrtSetStreamConfigOpt"></a>
 
-# aclrtSetStreamConfigOpt
+## aclrtSetStreamConfigOpt
 
 ```c
 aclError aclrtSetStreamConfigOpt(aclrtStreamConfigHandle *handle, aclrtStreamConfigAttr attr, const void *attrValue, size_t valueSize)
@@ -178,7 +178,7 @@ aclError aclrtSetStreamConfigOpt(aclrtStreamConfigHandle *handle, aclrtStreamCon
 
 <a id="aclrtCreateStreamWithConfig"></a>
 
-# aclrtCreateStreamWithConfig
+## aclrtCreateStreamWithConfig
 
 ```c
 aclError aclrtCreateStreamWithConfig(aclrtStream *stream, uint32_t priority, uint32_t flag)
@@ -273,7 +273,7 @@ aclError aclrtCreateStreamWithConfig(aclrtStream *stream, uint32_t priority, uin
 
 <a id="aclrtDestroyStream"></a>
 
-# aclrtDestroyStream
+## aclrtDestroyStream
 
 ```c
 aclError aclrtDestroyStream(aclrtStream stream)
@@ -318,7 +318,7 @@ aclError aclrtDestroyStream(aclrtStream stream)
 
 <a id="aclrtDestroyStreamForce"></a>
 
-# aclrtDestroyStreamForce
+## aclrtDestroyStreamForce
 
 ```c
 aclError aclrtDestroyStreamForce(aclrtStream stream)
@@ -361,7 +361,7 @@ aclError aclrtDestroyStreamForce(aclrtStream stream)
 
 <a id="aclrtSetStreamOverflowSwitch"></a>
 
-# aclrtSetStreamOverflowSwitch
+## aclrtSetStreamOverflowSwitch
 
 ```c
 aclError aclrtSetStreamOverflowSwitch(aclrtStream stream, uint32_t flag)
@@ -406,7 +406,7 @@ aclError aclrtSetStreamOverflowSwitch(aclrtStream stream, uint32_t flag)
 
 <a id="aclrtGetStreamOverflowSwitch"></a>
 
-# aclrtGetStreamOverflowSwitch
+## aclrtGetStreamOverflowSwitch
 
 ```c
 aclError aclrtGetStreamOverflowSwitch(aclrtStream stream, uint32_t *flag)
@@ -446,7 +446,7 @@ aclError aclrtGetStreamOverflowSwitch(aclrtStream stream, uint32_t *flag)
 
 <a id="aclrtSetStreamFailureMode"></a>
 
-# aclrtSetStreamFailureMode
+## aclrtSetStreamFailureMode
 
 ```c
 aclError aclrtSetStreamFailureMode(aclrtStream stream, uint64_t mode)
@@ -495,7 +495,7 @@ aclError aclrtSetStreamFailureMode(aclrtStream stream, uint64_t mode)
 
 <a id="aclrtStreamQuery"></a>
 
-# aclrtStreamQuery
+## aclrtStreamQuery
 
 ```c
 aclError aclrtStreamQuery(aclrtStream stream, aclrtStreamStatus *status)
@@ -535,7 +535,7 @@ aclError aclrtStreamQuery(aclrtStream stream, aclrtStreamStatus *status)
 
 <a id="aclrtSynchronizeStream"></a>
 
-# aclrtSynchronizeStream
+## aclrtSynchronizeStream
 
 ```c
 aclError aclrtSynchronizeStream(aclrtStream stream)
@@ -574,7 +574,7 @@ aclError aclrtSynchronizeStream(aclrtStream stream)
 
 <a id="aclrtSynchronizeStreamWithTimeout"></a>
 
-# aclrtSynchronizeStreamWithTimeout
+## aclrtSynchronizeStreamWithTimeout
 
 ```c
 aclError aclrtSynchronizeStreamWithTimeout(aclrtStream stream, int32_t timeout)
@@ -614,7 +614,7 @@ aclError aclrtSynchronizeStreamWithTimeout(aclrtStream stream, int32_t timeout)
 
 <a id="aclrtStreamAbort"></a>
 
-# aclrtStreamAbort
+## aclrtStreamAbort
 
 ```c
 aclError aclrtStreamAbort(aclrtStream stream)
@@ -660,7 +660,7 @@ aclError aclrtStreamAbort(aclrtStream stream)
 
 <a id="aclrtStreamGetId"></a>
 
-# aclrtStreamGetId
+## aclrtStreamGetId
 
 ```c
 aclError aclrtStreamGetId(aclrtStream stream, int32_t *streamId)
@@ -700,7 +700,7 @@ aclError aclrtStreamGetId(aclrtStream stream, int32_t *streamId)
 
 <a id="aclrtGetStreamAvailableNum"></a>
 
-# aclrtGetStreamAvailableNum
+## aclrtGetStreamAvailableNum
 
 ```c
 aclError aclrtGetStreamAvailableNum(uint32_t *streamCount)
@@ -739,7 +739,7 @@ aclError aclrtGetStreamAvailableNum(uint32_t *streamCount)
 
 <a id="aclrtSetStreamAttribute"></a>
 
-# aclrtSetStreamAttribute
+## aclrtSetStreamAttribute
 
 ```c
 aclError aclrtSetStreamAttribute(aclrtStream stream, aclrtStreamAttr stmAttrType, aclrtStreamAttrValue *value)
@@ -785,7 +785,7 @@ aclError aclrtSetStreamAttribute(aclrtStream stream, aclrtStreamAttr stmAttrType
 
 <a id="aclrtGetStreamAttribute"></a>
 
-# aclrtGetStreamAttribute
+## aclrtGetStreamAttribute
 
 ```c
 aclError aclrtGetStreamAttribute(aclrtStream stream, aclrtStreamAttr stmAttrType, aclrtStreamAttrValue *value)
@@ -826,7 +826,7 @@ aclError aclrtGetStreamAttribute(aclrtStream stream, aclrtStreamAttr stmAttrType
 
 <a id="aclrtActiveStream"></a>
 
-# aclrtActiveStream
+## aclrtActiveStream
 
 ```c
 aclError aclrtActiveStream(aclrtStream activeStream, aclrtStream stream)
@@ -868,7 +868,7 @@ aclError aclrtActiveStream(aclrtStream activeStream, aclrtStream stream)
 
 <a id="aclrtSwitchStream"></a>
 
-# aclrtSwitchStream
+## aclrtSwitchStream
 
 ```c
 aclError aclrtSwitchStream(void *leftValue, aclrtCondition cond, void *rightValue, aclrtCompareDataType dataType, aclrtStream trueStream, aclrtStream falseStream, aclrtStream stream)
@@ -915,7 +915,7 @@ aclError aclrtSwitchStream(void *leftValue, aclrtCondition cond, void *rightValu
 
 <a id="aclrtRegStreamStateCallback"></a>
 
-# aclrtRegStreamStateCallback
+## aclrtRegStreamStateCallback
 
 ```c
 aclError aclrtRegStreamStateCallback(const char *regName, aclrtStreamStateCallback callback, void *args)
@@ -956,7 +956,7 @@ aclError aclrtRegStreamStateCallback(const char *regName, aclrtStreamStateCallba
 
 <a id="acIrtStreamStop"></a>
 
-# acIrtStreamStop
+## acIrtStreamStop
 
 ```c
 aclError aclrtStreamStop(aclrtStream stream)
@@ -1001,7 +1001,7 @@ aclError aclrtStreamStop(aclrtStream stream)
 
 <a id="aclrtPersistentTaskClean"></a>
 
-# aclrtPersistentTaskClean
+## aclrtPersistentTaskClean
 
 ```c
 aclError aclrtPersistentTaskClean(aclrtStream stream)
@@ -1042,7 +1042,7 @@ ACL\_STREAM\_PERSISTENT类型的Stream需调用[aclrtCreateStreamWithConfig](#ac
 
 <a id="aclrtStreamGetPriority"></a>
 
-# aclrtStreamGetPriority
+## aclrtStreamGetPriority
 
 ```c
 aclError aclrtStreamGetPriority(aclrtStream stream, uint32_t *priority)
@@ -1082,7 +1082,7 @@ aclError aclrtStreamGetPriority(aclrtStream stream, uint32_t *priority)
 
 <a id="aclrtStreamGetFlags"></a>
 
-# aclrtStreamGetFlags
+## aclrtStreamGetFlags
 
 ```c
 aclError aclrtStreamGetFlags(aclrtStream stream, uint32_t *flags)

@@ -7,7 +7,7 @@
 
 <a id="aclprofGetStepTimestamp"></a>
 
-# aclprofGetStepTimestamp
+## aclprofGetStepTimestamp
 
 ```c
 aclError aclprofGetStepTimestamp(aclprofStepInfo* stepInfo, aclprofStepTag tag, aclrtStream stream)

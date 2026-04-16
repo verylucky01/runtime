@@ -12,7 +12,7 @@
 
 <a id="aclrtCreateLabel"></a>
 
-# aclrtCreateLabel
+## aclrtCreateLabel
 
 ```c
 aclError aclrtCreateLabel(aclrtLabel *label)
@@ -53,7 +53,7 @@ aclError aclrtCreateLabel(aclrtLabel *label)
 
 <a id="aclrtSetLabel"></a>
 
-# aclrtSetLabel
+## aclrtSetLabel
 
 ```c
 aclError aclrtSetLabel(aclrtLabel label, aclrtStream stream)
@@ -93,7 +93,7 @@ aclError aclrtSetLabel(aclrtLabel label, aclrtStream stream)
 
 <a id="aclrtDestroyLabel"></a>
 
-# aclrtDestroyLabel
+## aclrtDestroyLabel
 
 ```c
 aclError aclrtDestroyLabel(aclrtLabel label)
@@ -132,7 +132,7 @@ aclError aclrtDestroyLabel(aclrtLabel label)
 
 <a id="aclrtCreateLabelList"></a>
 
-# aclrtCreateLabelList
+## aclrtCreateLabelList
 
 ```c
 aclError aclrtCreateLabelList(aclrtLabel *labels, size_t num, aclrtLabelList *labelList)
@@ -173,7 +173,7 @@ aclError aclrtCreateLabelList(aclrtLabel *labels, size_t num, aclrtLabelList *la
 
 <a id="aclrtDestroyLabelList"></a>
 
-# aclrtDestroyLabelList
+## aclrtDestroyLabelList
 
 ```c
 aclError aclrtDestroyLabelList(aclrtLabelList labelList)
@@ -212,7 +212,7 @@ aclError aclrtDestroyLabelList(aclrtLabelList labelList)
 
 <a id="aclrtSwitchLabelByIndex"></a>
 
-# aclrtSwitchLabelByIndex
+## aclrtSwitchLabelByIndex
 
 ```c
 aclError aclrtSwitchLabelByIndex(void *ptr, uint32_t maxValue, aclrtLabelList labelList, aclrtStream stream)

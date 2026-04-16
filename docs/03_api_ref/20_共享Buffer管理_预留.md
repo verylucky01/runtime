@@ -17,7 +17,7 @@
 
 <a id="aclrtAllocBuf"></a>
 
-# aclrtAllocBuf
+## aclrtAllocBuf
 
 ```c
 aclError aclrtAllocBuf(aclrtMbuf *buf, size_t size)
@@ -48,7 +48,7 @@ aclError aclrtAllocBuf(aclrtMbuf *buf, size_t size)
 
 <a id="aclrtFreeBuf"></a>
 
-# aclrtFreeBuf
+## aclrtFreeBuf
 
 ```c
 aclError aclrtFreeBuf(aclrtMbuf buf)
@@ -78,7 +78,7 @@ aclError aclrtFreeBuf(aclrtMbuf buf)
 
 <a id="aclrtGetBufData"></a>
 
-# aclrtGetBufData
+## aclrtGetBufData
 
 ```c
 aclError aclrtGetBufData(const aclrtMbuf buf, void **dataPtr, size_t *size)
@@ -112,7 +112,7 @@ aclError aclrtGetBufData(const aclrtMbuf buf, void **dataPtr, size_t *size)
 
 <a id="aclrtSetBufUserData"></a>
 
-# aclrtSetBufUserData
+## aclrtSetBufUserData
 
 ```c
 aclError aclrtSetBufUserData(aclrtMbuf buf, const void *dataPtr, size_t size, size_t offset)
@@ -145,7 +145,7 @@ aclError aclrtSetBufUserData(aclrtMbuf buf, const void *dataPtr, size_t size, si
 
 <a id="aclrtGetBufUserData"></a>
 
-# aclrtGetBufUserData
+## aclrtGetBufUserData
 
 ```c
 aclError aclrtGetBufUserData(const aclrtMbuf buf, void *dataPtr, size_t size, size_t offset)
@@ -178,7 +178,7 @@ aclError aclrtGetBufUserData(const aclrtMbuf buf, void *dataPtr, size_t size, si
 
 <a id="aclrtGetBufDataLen"></a>
 
-# aclrtGetBufDataLen
+## aclrtGetBufDataLen
 
 ```c
 aclError aclrtGetBufDataLen(aclrtMbuf buf, size_t *len)
@@ -211,7 +211,7 @@ aclError aclrtGetBufDataLen(aclrtMbuf buf, size_t *len)
 
 <a id="aclrtSetBufDataLen"></a>
 
-# aclrtSetBufDataLen
+## aclrtSetBufDataLen
 
 ```c
 aclError aclrtSetBufDataLen(aclrtMbuf buf, size_t len)
@@ -244,7 +244,7 @@ aclError aclrtSetBufDataLen(aclrtMbuf buf, size_t len)
 
 <a id="aclrtCopyBufRef"></a>
 
-# aclrtCopyBufRef
+## aclrtCopyBufRef
 
 ```c
 aclError aclrtCopyBufRef(const aclrtMbuf buf, aclrtMbuf *newBuf)
@@ -275,7 +275,7 @@ aclError aclrtCopyBufRef(const aclrtMbuf buf, aclrtMbuf *newBuf)
 
 <a id="aclrtAppendBufChain"></a>
 
-# aclrtAppendBufChain
+## aclrtAppendBufChain
 
 ```c
 aclError aclrtAppendBufChain(aclrtMbuf headBuf, aclrtMbuf buf)
@@ -306,7 +306,7 @@ aclError aclrtAppendBufChain(aclrtMbuf headBuf, aclrtMbuf buf)
 
 <a id="aclrtGetBufFromChain"></a>
 
-# aclrtGetBufFromChain
+## aclrtGetBufFromChain
 
 ```c
 aclError aclrtGetBufFromChain(aclrtMbuf headBuf, uint32_t index, aclrtMbuf *buf)
@@ -338,7 +338,7 @@ aclError aclrtGetBufFromChain(aclrtMbuf headBuf, uint32_t index, aclrtMbuf *buf)
 
 <a id="aclrtGetBufChainNum"></a>
 
-# aclrtGetBufChainNum
+## aclrtGetBufChainNum
 
 ```c
 aclError aclrtGetBufChainNum(aclrtMbuf headBuf, uint32_t *num)

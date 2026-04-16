@@ -224,7 +224,7 @@ int main() {
 
 <a id="aclrtMemPoolCreate"></a>
 
-# aclrtMemPoolCreate
+## aclrtMemPoolCreate
 
 ```c
 aclError aclrtMemPoolCreate(aclrtMemPool *memPool, const aclrtMemPoolProps *poolProps)
@@ -266,7 +266,7 @@ aclError aclrtMemPoolCreate(aclrtMemPool *memPool, const aclrtMemPoolProps *pool
 
 <a id="aclrtMemPoolDestroy"></a>
 
-# aclrtMemPoolDestroy
+## aclrtMemPoolDestroy
 
 ```c
 aclError aclrtMemPoolDestroy(const aclrtMemPool memPool)
@@ -307,7 +307,7 @@ aclError aclrtMemPoolDestroy(const aclrtMemPool memPool)
 
 <a id="aclrtMemPoolSetAttr"></a>
 
-# aclrtMemPoolSetAttr
+## aclrtMemPoolSetAttr
 
 ```c
 aclError aclrtMemPoolSetAttr(aclrtMemPool memPool, aclrtMemPoolAttr attr, void *value)
@@ -352,7 +352,7 @@ aclError aclrtMemPoolSetAttr(aclrtMemPool memPool, aclrtMemPoolAttr attr, void *
 
 <a id="aclrtMemPoolGetAttr"></a>
 
-# aclrtMemPoolGetAttr
+## aclrtMemPoolGetAttr
 
 ```c
 aclError aclrtMemPoolGetAttr(aclrtMemPool memPool, aclrtMemPoolAttr attr, void *value)
@@ -397,7 +397,7 @@ aclError aclrtMemPoolGetAttr(aclrtMemPool memPool, aclrtMemPoolAttr attr, void *
 
 <a id="aclrtMemPoolMallocAsync"></a>
 
-# aclrtMemPoolMallocAsync
+## aclrtMemPoolMallocAsync
 
 ```c
 aclError aclrtMemPoolMallocAsync(void **ptr, size_t size, aclrtMemPool memPool, aclrtStream stream)
@@ -441,7 +441,7 @@ aclError aclrtMemPoolMallocAsync(void **ptr, size_t size, aclrtMemPool memPool, 
 
 <a id="aclrtMemPoolFreeAsync"></a>
 
-# aclrtMemPoolFreeAsync
+## aclrtMemPoolFreeAsync
 
 ```c
 aclError aclrtMemPoolFreeAsync(void *ptr, aclrtStream stream)
@@ -482,7 +482,7 @@ aclError aclrtMemPoolFreeAsync(void *ptr, aclrtStream stream)
 
 <a id="aclrtMemPoolFreeAsync"></a>
 
-# aclrtMemPoolFreeAsync
+## aclrtMemPoolFreeAsync
 
 ```c
 aclError aclrtMemPoolFreeAsync(void *ptr, aclrtStream stream)
@@ -523,7 +523,7 @@ aclError aclrtMemPoolFreeAsync(void *ptr, aclrtStream stream)
 
 <a id="aclrtMemPoolTrimTo"></a>
 
-# aclrtMemPoolTrimTo
+## aclrtMemPoolTrimTo
 
 ```c
 aclError aclrtMemPoolTrimTo(aclrtMemPool memPool, size_t minBytesToKeep)

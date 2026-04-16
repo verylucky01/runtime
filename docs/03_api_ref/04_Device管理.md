@@ -1,4 +1,4 @@
-# 4. Device管理
+﻿# 4. Device管理
 
 本章节描述 CANN Runtime 的设备管理接口，用于设备的设置、重置、查询、同步及 P2P 访问等操作。
 
@@ -39,7 +39,7 @@
 
 <a id="aclrtSetDevice"></a>
 
-# aclrtSetDevice
+## aclrtSetDevice
 
 ```c
 aclError aclrtSetDevice(int32_t deviceId)
@@ -93,7 +93,7 @@ aclError aclrtSetDevice(int32_t deviceId)
 
 <a id="aclrtResetDevice"></a>
 
-# aclrtResetDevice
+## aclrtResetDevice
 
 ```c
 aclError aclrtResetDevice(int32_t deviceId)
@@ -142,7 +142,7 @@ aclrtResetDevice接口内部涉及引用计数的实现，建议aclrtResetDevice
 
 <a id="aclrtResetDeviceForce"></a>
 
-# aclrtResetDeviceForce
+## aclrtResetDeviceForce
 
 ```c
 aclError aclrtResetDeviceForce(int32_t deviceId)
@@ -164,10 +164,10 @@ aclError aclrtResetDeviceForce(int32_t deviceId)
 aclrtResetDeviceForce接口可与aclrtSetDevice接口配对使用，也可不与aclrtSetDevice接口配对使用，若不配对使用，一个进程中，针对同一个Device，调用一次或多次aclrtSetDevice接口后，仅需调用一次aclrtResetDeviceForce接口可释放Device上的资源。
 
 ```
-## 与aclrtSetDevice接口配对使用：
+### 与aclrtSetDevice接口配对使用：
 aclrtSetDevice(1) -> aclrtResetDeviceForce(1) -> aclrtSetDevice(1) -> aclrtResetDeviceForce(1)
  
-## 与aclrtSetDevice接口不配对使用：
+### 与aclrtSetDevice接口不配对使用：
 aclrtSetDevice(1) -> aclrtSetDevice(1) -> aclrtResetDeviceForce(1)
 ```
 
@@ -225,7 +225,7 @@ aclrtSetDevice(1) -> aclrtSetDevice(1) -> aclrtResetDeviceForce(1)
 
 <a id="aclrtGetDevice"></a>
 
-# aclrtGetDevice
+## aclrtGetDevice
 
 ```c
 aclError aclrtGetDevice(int32_t *deviceId)
@@ -268,7 +268,7 @@ aclError aclrtGetDevice(int32_t *deviceId)
 
 <a id="aclrtGetRunMode"></a>
 
-# aclrtGetRunMode
+## aclrtGetRunMode
 
 ```c
 aclError aclrtGetRunMode(aclrtRunMode *runMode)
@@ -307,7 +307,7 @@ aclError aclrtGetRunMode(aclrtRunMode *runMode)
 
 <a id="aclrtSetTsDevice"></a>
 
-# aclrtSetTsDevice
+## aclrtSetTsDevice
 
 ```c
 aclError aclrtSetTsDevice(aclrtTsId tsId)
@@ -346,7 +346,7 @@ aclError aclrtSetTsDevice(aclrtTsId tsId)
 
 <a id="aclrtGetDeviceCount"></a>
 
-# aclrtGetDeviceCount
+## aclrtGetDeviceCount
 
 ```c
 aclError aclrtGetDeviceCount(uint32_t *count)
@@ -385,7 +385,7 @@ aclError aclrtGetDeviceCount(uint32_t *count)
 
 <a id="aclrtGetDeviceUtilizationRate"></a>
 
-# aclrtGetDeviceUtilizationRate
+## aclrtGetDeviceUtilizationRate
 
 ```c
 aclError aclrtGetDeviceUtilizationRate(int32_t deviceId, aclrtUtilizationInfo *utilizationInfo)
@@ -432,7 +432,7 @@ aclError aclrtGetDeviceUtilizationRate(int32_t deviceId, aclrtUtilizationInfo *u
 
 <a id="aclrtQueryDeviceStatus"></a>
 
-# aclrtQueryDeviceStatus
+## aclrtQueryDeviceStatus
 
 ```c
 aclError aclrtQueryDeviceStatus(int32_t deviceId, aclrtDeviceStatus *deviceStatus)
@@ -472,7 +472,7 @@ aclError aclrtQueryDeviceStatus(int32_t deviceId, aclrtDeviceStatus *deviceStatu
 
 <a id="aclrtGetSocName"></a>
 
-# aclrtGetSocName
+## aclrtGetSocName
 
 ```c
 const char *aclrtGetSocName()
@@ -508,7 +508,7 @@ const char *aclrtGetSocName()
 
 <a id="aclrtSetDeviceSatMode"></a>
 
-# aclrtSetDeviceSatMode
+## aclrtSetDeviceSatMode
 
 ```c
 aclError aclrtSetDeviceSatMode(aclrtFloatOverflowMode mode)
@@ -549,7 +549,7 @@ aclError aclrtSetDeviceSatMode(aclrtFloatOverflowMode mode)
 
 <a id="aclrtGetDeviceSatMode"></a>
 
-# aclrtGetDeviceSatMode
+## aclrtGetDeviceSatMode
 
 ```c
 aclError aclrtGetDeviceSatMode(aclrtFloatOverflowMode *mode)
@@ -588,7 +588,7 @@ aclError aclrtGetDeviceSatMode(aclrtFloatOverflowMode *mode)
 
 <a id="aclrtDeviceCanAccessPeer"></a>
 
-# aclrtDeviceCanAccessPeer
+## aclrtDeviceCanAccessPeer
 
 ```c
 aclError aclrtDeviceCanAccessPeer(int32_t *canAccessPeer, int32_t deviceId, int32_t peerDeviceId)
@@ -636,7 +636,7 @@ aclError aclrtDeviceCanAccessPeer(int32_t *canAccessPeer, int32_t deviceId, int3
 
 <a id="aclrtDeviceEnablePeerAccess"></a>
 
-# aclrtDeviceEnablePeerAccess
+## aclrtDeviceEnablePeerAccess
 
 ```c
 aclError aclrtDeviceEnablePeerAccess(int32_t peerDeviceId, uint32_t flags)
@@ -680,7 +680,7 @@ aclError aclrtDeviceEnablePeerAccess(int32_t peerDeviceId, uint32_t flags)
 
 <a id="aclrtDeviceDisablePeerAccess"></a>
 
-# aclrtDeviceDisablePeerAccess
+## aclrtDeviceDisablePeerAccess
 
 ```c
 aclError aclrtDeviceDisablePeerAccess(int32_t peerDeviceId)
@@ -721,7 +721,7 @@ aclError aclrtDeviceDisablePeerAccess(int32_t peerDeviceId)
 
 <a id="aclrtDevicePeerAccessStatus"></a>
 
-# aclrtDevicePeerAccessStatus
+## aclrtDevicePeerAccessStatus
 
 ```c
 aclError aclrtDevicePeerAccessStatus(int32_t deviceId, int32_t peerDeviceId, int32_t *status)
@@ -762,7 +762,7 @@ aclError aclrtDevicePeerAccessStatus(int32_t deviceId, int32_t peerDeviceId, int
 
 <a id="aclrtGetOverflowStatus"></a>
 
-# aclrtGetOverflowStatus
+## aclrtGetOverflowStatus
 
 ```c
 aclError aclrtGetOverflowStatus(void *outputAddr, size_t outputSize, aclrtStream stream)
@@ -811,7 +811,7 @@ aclError aclrtGetOverflowStatus(void *outputAddr, size_t outputSize, aclrtStream
 
 <a id="aclrtResetOverflowStatus"></a>
 
-# aclrtResetOverflowStatus
+## aclrtResetOverflowStatus
 
 ```c
 aclError aclrtResetOverflowStatus(aclrtStream stream)
@@ -858,7 +858,7 @@ aclError aclrtResetOverflowStatus(aclrtStream stream)
 
 <a id="aclrtSynchronizeDevice"></a>
 
-# aclrtSynchronizeDevice
+## aclrtSynchronizeDevice
 
 ```c
 aclError aclrtSynchronizeDevice(void)
@@ -894,7 +894,7 @@ aclError aclrtSynchronizeDevice(void)
 
 <a id="aclrtSynchronizeDeviceWithTimeout"></a>
 
-# aclrtSynchronizeDeviceWithTimeout
+## aclrtSynchronizeDeviceWithTimeout
 
 ```c
 aclError aclrtSynchronizeDeviceWithTimeout(int32_t timeout)
@@ -935,7 +935,7 @@ aclError aclrtSynchronizeDeviceWithTimeout(int32_t timeout)
 
 <a id="aclrtGetDeviceInfo"></a>
 
-# aclrtGetDeviceInfo
+## aclrtGetDeviceInfo
 
 ```c
 aclError aclrtGetDeviceInfo(uint32_t deviceId, aclrtDevAttr attr, int64_t *value)
@@ -976,7 +976,7 @@ aclError aclrtGetDeviceInfo(uint32_t deviceId, aclrtDevAttr attr, int64_t *value
 
 <a id="aclrtDeviceGetStreamPriorityRange"></a>
 
-# aclrtDeviceGetStreamPriorityRange
+## aclrtDeviceGetStreamPriorityRange
 
 ```c
 aclError aclrtDeviceGetStreamPriorityRange(int32_t *leastPriority, int32_t *greatestPriority)
@@ -1016,7 +1016,7 @@ aclError aclrtDeviceGetStreamPriorityRange(int32_t *leastPriority, int32_t *grea
 
 <a id="aclrtGetDeviceCapability"></a>
 
-# aclrtGetDeviceCapability
+## aclrtGetDeviceCapability
 
 ```c
 aclError aclrtGetDeviceCapability(int32_t deviceId, aclrtDevFeatureType devFeatureType, int32_t *value)
@@ -1057,7 +1057,7 @@ aclError aclrtGetDeviceCapability(int32_t deviceId, aclrtDevFeatureType devFeatu
 
 <a id="aclrtGetDevicesTopo"></a>
 
-# aclrtGetDevicesTopo
+## aclrtGetDevicesTopo
 
 ```c
 aclError aclrtGetDevicesTopo(uint32_t deviceId, uint32_t otherDeviceId, uint64_t *value)
@@ -1098,7 +1098,7 @@ aclError aclrtGetDevicesTopo(uint32_t deviceId, uint32_t otherDeviceId, uint64_t
 
 <a id="aclrtRegDeviceStateCallback"></a>
 
-# aclrtRegDeviceStateCallback
+## aclrtRegDeviceStateCallback
 
 ```c
 aclError aclrtRegDeviceStateCallback(const char *regName, aclrtDeviceStateCallback callback, void *args)
@@ -1141,7 +1141,7 @@ aclError aclrtRegDeviceStateCallback(const char *regName, aclrtDeviceStateCallba
 
 <a id="aclrtGetLogicDevIdByUserDevId"></a>
 
-# aclrtGetLogicDevIdByUserDevId
+## aclrtGetLogicDevIdByUserDevId
 
 ```c
 aclError aclrtGetLogicDevIdByUserDevId(const int32_t userDevid, int32_t *const logicDevId)
@@ -1191,7 +1191,7 @@ aclError aclrtGetLogicDevIdByUserDevId(const int32_t userDevid, int32_t *const l
 
 <a id="aclrtGetUserDevIdByLogicDevId"></a>
 
-# aclrtGetUserDevIdByLogicDevId
+## aclrtGetUserDevIdByLogicDevId
 
 ```c
 aclError aclrtGetUserDevIdByLogicDevId(const int32_t logicDevId, int32_t *const userDevid)
@@ -1241,7 +1241,7 @@ aclError aclrtGetUserDevIdByLogicDevId(const int32_t logicDevId, int32_t *const 
 
 <a id="aclrtGetLogicDevIdByPhyDevId"></a>
 
-# aclrtGetLogicDevIdByPhyDevId
+## aclrtGetLogicDevIdByPhyDevId
 
 ```c
 aclError aclrtGetLogicDevIdByPhyDevId(const int32_t phyDevId, int32_t *const logicDevId)
@@ -1291,7 +1291,7 @@ aclError aclrtGetLogicDevIdByPhyDevId(const int32_t phyDevId, int32_t *const log
 
 <a id="aclrtGetPhyDevIdByLogicDevId"></a>
 
-# aclrtGetPhyDevIdByLogicDevId
+## aclrtGetPhyDevIdByLogicDevId
 
 ```c
 aclError aclrtGetPhyDevIdByLogicDevId(const int32_t logicDevId, int32_t *const phyDevId)
@@ -1341,7 +1341,7 @@ aclError aclrtGetPhyDevIdByLogicDevId(const int32_t logicDevId, int32_t *const p
 
 <a id="aclrtDeviceGetUuid"></a>
 
-# aclrtDeviceGetUuid
+## aclrtDeviceGetUuid
 
 ```c
 aclError aclrtDeviceGetUuid(int32_t deviceId, aclrtUuid *uuid)
@@ -1381,7 +1381,7 @@ aclError aclrtDeviceGetUuid(int32_t deviceId, aclrtUuid *uuid)
 
 <a id="aclrtDeviceGetBareTgid"></a>
 
-# aclrtDeviceGetBareTgid
+## aclrtDeviceGetBareTgid
 
 ```c
 aclError aclrtDeviceGetBareTgid(int32_t *pid)
@@ -1422,7 +1422,7 @@ aclError aclrtDeviceGetBareTgid(int32_t *pid)
 
 <a id="aclrtDeviceGetHostAtomicCapabilities"></a>
 
-# aclrtDeviceGetHostAtomicCapabilities
+## aclrtDeviceGetHostAtomicCapabilities
 
 ```c
 aclError aclrtDeviceGetHostAtomicCapabilities(uint32_t* capabilities, const aclrtAtomicOperation* operations, const uint32_t count, int32_t deviceId)
@@ -1464,7 +1464,7 @@ aclError aclrtDeviceGetHostAtomicCapabilities(uint32_t* capabilities, const aclr
 
 <a id="aclrtDeviceGetP2PAtomicCapabilities"></a>
 
-# aclrtDeviceGetP2PAtomicCapabilities
+## aclrtDeviceGetP2PAtomicCapabilities
 
 ```c
 aclError aclrtDeviceGetP2PAtomicCapabilities(uint32_t* capabilities, const aclrtAtomicOperation* operations, const uint32_t count, int32_t srcDeviceId, int32_t dstDeviceId)

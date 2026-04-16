@@ -16,7 +16,7 @@
 
 <a id="aclrtCreateNotify"></a>
 
-# aclrtCreateNotify
+## aclrtCreateNotify
 
 ```c
 aclError aclrtCreateNotify(aclrtNotify *notify, uint64_t flag)
@@ -66,7 +66,7 @@ aclError aclrtCreateNotify(aclrtNotify *notify, uint64_t flag)
 
 <a id="aclrtDestroyNotify"></a>
 
-# aclrtDestroyNotify
+## aclrtDestroyNotify
 
 ```c
 aclError aclrtDestroyNotify(aclrtNotify notify)
@@ -105,7 +105,7 @@ aclError aclrtDestroyNotify(aclrtNotify notify)
 
 <a id="aclrtRecordNotify"></a>
 
-# aclrtRecordNotify
+## aclrtRecordNotify
 
 ```c
 aclError aclrtRecordNotify(aclrtNotify notify, aclrtStream stream)
@@ -147,7 +147,7 @@ aclrtRecordNotify接口与aclrtWaitAndResetNotify接口配合使用时，主要�
 
 <a id="aclrtWaitAndResetNotify"></a>
 
-# aclrtWaitAndResetNotify
+## aclrtWaitAndResetNotify
 
 ```c
 aclError aclrtWaitAndResetNotify(aclrtNotify notify, aclrtStream stream, uint32_t timeout)
@@ -188,7 +188,7 @@ aclError aclrtWaitAndResetNotify(aclrtNotify notify, aclrtStream stream, uint32_
 
 <a id="aclrtGetNotifyId"></a>
 
-# aclrtGetNotifyId
+## aclrtGetNotifyId
 
 ```c
 aclError aclrtGetNotifyId(aclrtNotify notify, uint32_t *notifyId)
@@ -228,7 +228,7 @@ aclError aclrtGetNotifyId(aclrtNotify notify, uint32_t *notifyId)
 
 <a id="aclrtNotifyBatchReset"></a>
 
-# aclrtNotifyBatchReset
+## aclrtNotifyBatchReset
 
 ```c
 aclError aclrtNotifyBatchReset(aclrtNotify *notifies, size_t num)
@@ -272,7 +272,7 @@ aclError aclrtNotifyBatchReset(aclrtNotify *notifies, size_t num)
 
 <a id="aclrtNotifyGetExportKey"></a>
 
-# aclrtNotifyGetExportKey
+## aclrtNotifyGetExportKey
 
 ```c
 aclError aclrtNotifyGetExportKey(aclrtNotify notify, char *key, size_t len, uint64_t flags)
@@ -343,7 +343,7 @@ aclError aclrtNotifyGetExportKey(aclrtNotify notify, char *key, size_t len, uint
 
 <a id="aclrtNotifySetImportPid"></a>
 
-# aclrtNotifySetImportPid
+## aclrtNotifySetImportPid
 
 ```c
 aclError aclrtNotifySetImportPid(aclrtNotify notify, int32_t *pid, size_t num)
@@ -390,7 +390,7 @@ aclError aclrtNotifySetImportPid(aclrtNotify notify, int32_t *pid, size_t num)
 
 <a id="aclrtNotifySetImportPidInterServer"></a>
 
-# aclrtNotifySetImportPidInterServer
+## aclrtNotifySetImportPidInterServer
 
 ```c
 aclError aclrtNotifySetImportPidInterServer(aclrtNotify notify, aclrtServerPid *serverPids, size_t num)
@@ -433,7 +433,7 @@ aclError aclrtNotifySetImportPidInterServer(aclrtNotify notify, aclrtServerPid *
 
 <a id="aclrtNotifyImportByKey"></a>
 
-# aclrtNotifyImportByKey
+## aclrtNotifyImportByKey
 
 ```c
 aclError aclrtNotifyImportByKey(aclrtNotify *notify, const char *key, uint64_t flags)

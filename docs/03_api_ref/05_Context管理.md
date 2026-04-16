@@ -15,7 +15,7 @@
 
 <a id="aclrtCreateContext"></a>
 
-# aclrtCreateContext
+## aclrtCreateContext
 
 ```c
 aclError aclrtCreateContext(aclrtContext *context, int32_t deviceId)
@@ -64,7 +64,7 @@ aclError aclrtCreateContext(aclrtContext *context, int32_t deviceId)
 
 <a id="aclrtDestroyContext"></a>
 
-# aclrtDestroyContext
+## aclrtDestroyContext
 
 ```c
 aclError aclrtDestroyContext(aclrtContext context)
@@ -103,7 +103,7 @@ aclError aclrtDestroyContext(aclrtContext context)
 
 <a id="aclrtSetCurrentContext"></a>
 
-# aclrtSetCurrentContext
+## aclrtSetCurrentContext
 
 ```c
 aclError aclrtSetCurrentContext(aclrtContext context)
@@ -153,7 +153,7 @@ aclError aclrtSetCurrentContext(aclrtContext context)
 
 <a id="aclrtGetCurrentContext"></a>
 
-# aclrtGetCurrentContext
+## aclrtGetCurrentContext
 
 ```c
 aclError aclrtGetCurrentContext(aclrtContext *context)
@@ -194,7 +194,7 @@ aclError aclrtGetCurrentContext(aclrtContext *context)
 
 <a id="aclrtCtxSetSysParamOpt"></a>
 
-# aclrtCtxSetSysParamOpt
+## aclrtCtxSetSysParamOpt
 
 ```c
 aclError aclrtCtxSetSysParamOpt(aclSysParamOpt opt, int64_t value)
@@ -236,7 +236,7 @@ aclError aclrtCtxSetSysParamOpt(aclSysParamOpt opt, int64_t value)
 
 <a id="aclrtCtxGetSysParamOpt"></a>
 
-# aclrtCtxGetSysParamOpt
+## aclrtCtxGetSysParamOpt
 
 ```c
 aclError aclrtCtxGetSysParamOpt(aclSysParamOpt opt, int64_t *value)
@@ -278,7 +278,7 @@ aclError aclrtCtxGetSysParamOpt(aclSysParamOpt opt, int64_t *value)
 
 <a id="aclrtCtxGetCurrentDefaultStream"></a>
 
-# aclrtCtxGetCurrentDefaultStream
+## aclrtCtxGetCurrentDefaultStream
 
 ```c
 aclError aclrtCtxGetCurrentDefaultStream(aclrtStream *stream)
@@ -317,7 +317,7 @@ aclError aclrtCtxGetCurrentDefaultStream(aclrtStream *stream)
 
 <a id="aclrtGetPrimaryCtxState"></a>
 
-# aclrtGetPrimaryCtxState
+## aclrtGetPrimaryCtxState
 
 ```c
 aclError aclrtGetPrimaryCtxState(int32_t deviceId, uint32_t *flags, int32_t *active)
@@ -358,7 +358,7 @@ aclError aclrtGetPrimaryCtxState(int32_t deviceId, uint32_t *flags, int32_t *act
 
 <a id="aclrtCtxGetFloatOverflowAddr"></a>
 
-# aclrtCtxGetFloatOverflowAddr
+## aclrtCtxGetFloatOverflowAddr
 
 ```c
 aclError aclrtCtxGetFloatOverflowAddr(void **overflowAddr)

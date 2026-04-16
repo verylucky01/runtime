@@ -14,7 +14,7 @@
 
 <a id="aclmdlInitDump"></a>
 
-# aclmdlInitDump
+## aclmdlInitDump
 
 ```c
 aclError aclmdlInitDump()
@@ -80,7 +80,7 @@ Dump初始化。
 
 <a id="aclmdlSetDump"></a>
 
-# aclmdlSetDump
+## aclmdlSetDump
 
 ```c
 aclError aclmdlSetDump(const char *dumpCfgPath)
@@ -371,7 +371,7 @@ Atlas A2 训练系列产品/Atlas A2 推理系列产品
 
 <a id="acldumpRegCallback"></a>
 
-# acldumpRegCallback
+## acldumpRegCallback
 
 ```c
 aclError acldumpRegCallback(int32_t (* const messageCallback)(const acldumpChunk *, int32_t len), int32_t flag)
@@ -429,7 +429,7 @@ Dump数据回调函数注册接口。
 
 <a id="acldumpUnregCallback"></a>
 
-# acldumpUnregCallback
+## acldumpUnregCallback
 
 ```c
 void acldumpUnregCallback()
@@ -475,7 +475,7 @@ Dump数据回调函数取消注册接口。acldumpUnregCallback需要和acldumpR
 
 <a id="acldumpGetPath"></a>
 
-# acldumpGetPath
+## acldumpGetPath
 
 ```c
 const char* acldumpGetPath(acldumpType dumpType)
@@ -516,7 +516,7 @@ const char* acldumpGetPath(acldumpType dumpType)
 
 <a id="aclmdlFinalizeDump"></a>
 
-# aclmdlFinalizeDump
+## aclmdlFinalizeDump
 
 ```c
 aclError aclmdlFinalizeDump()
@@ -577,7 +577,7 @@ Dump去初始化。
 
 <a id="aclopStartDumpArgs"></a>
 
-# aclopStartDumpArgs
+## aclopStartDumpArgs
 
 ```c
 aclError aclopStartDumpArgs(uint32_t dumpType, const char *path)
@@ -623,7 +623,7 @@ aclError aclopStartDumpArgs(uint32_t dumpType, const char *path)
 
 <a id="aclopStopDumpArgs"></a>
 
-# aclopStopDumpArgs
+## aclopStopDumpArgs
 
 ```c
 aclError aclopStopDumpArgs(uint32_t dumpType)

@@ -1,4 +1,4 @@
-# 14. Kernel加载与执行
+﻿# 14. Kernel加载与执行
 
 本章节描述 CANN Runtime 的 Kernel 加载与执行接口，包括二进制加载、函数获取、参数组装及 Kernel 启动。
 
@@ -99,7 +99,7 @@
 
 <a id="aclrtBinaryLoadFromFile"></a>
 
-# aclrtBinaryLoadFromFile
+## aclrtBinaryLoadFromFile
 
 ```c
 aclError aclrtBinaryLoadFromFile(const char* binPath, aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle)
@@ -146,7 +146,7 @@ aclError aclrtBinaryLoadFromFile(const char* binPath, aclrtBinaryLoadOptions *op
 
 <a id="aclrtBinaryLoadFromData"></a>
 
-# aclrtBinaryLoadFromData
+## aclrtBinaryLoadFromData
 
 ```c
 aclError aclrtBinaryLoadFromData(const void *data, size_t length, const aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle)
@@ -192,7 +192,7 @@ aclError aclrtBinaryLoadFromData(const void *data, size_t length, const aclrtBin
 
 <a id="aclrtBinaryGetFunction"></a>
 
-# aclrtBinaryGetFunction
+## aclrtBinaryGetFunction
 
 ```c
 aclError aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kernelName, aclrtFuncHandle *funcHandle)
@@ -235,7 +235,7 @@ aclError aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kern
 
 <a id="aclrtBinaryGetFunctionByEntry"></a>
 
-# aclrtBinaryGetFunctionByEntry
+## aclrtBinaryGetFunctionByEntry
 
 ```c
 aclError aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle, uint64_t funcEntry, aclrtFuncHandle *funcHandle)
@@ -271,7 +271,7 @@ aclError aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle, uint64_t funcEn
 
 <a id="aclrtBinaryGetDevAddress"></a>
 
-# aclrtBinaryGetDevAddress
+## aclrtBinaryGetDevAddress
 
 ```c
 aclError aclrtBinaryGetDevAddress(const aclrtBinHandle binHandle, void **binAddr, size_t *binSize)
@@ -312,7 +312,7 @@ aclError aclrtBinaryGetDevAddress(const aclrtBinHandle binHandle, void **binAddr
 
 <a id="aclrtBinarySetExceptionCallback"></a>
 
-# aclrtBinarySetExceptionCallback
+## aclrtBinarySetExceptionCallback
 
 ```c
 aclError aclrtBinarySetExceptionCallback(aclrtBinHandle binHandle, aclrtOpExceptionCallback callback, void *userData)
@@ -355,7 +355,7 @@ aclError aclrtBinarySetExceptionCallback(aclrtBinHandle binHandle, aclrtOpExcept
 
 <a id="aclrtGetArgsFromExceptionInfo"></a>
 
-# aclrtGetArgsFromExceptionInfo
+## aclrtGetArgsFromExceptionInfo
 
 ```c
 aclError aclrtGetArgsFromExceptionInfo(const aclrtExceptionInfo *info, void **devArgsPtr, uint32_t *devArgsLen)
@@ -396,7 +396,7 @@ aclError aclrtGetArgsFromExceptionInfo(const aclrtExceptionInfo *info, void **de
 
 <a id="aclrtGetFuncHandleFromExceptionInfo"></a>
 
-# aclrtGetFuncHandleFromExceptionInfo
+## aclrtGetFuncHandleFromExceptionInfo
 
 ```c
 aclError aclrtGetFuncHandleFromExceptionInfo(const aclrtExceptionInfo *info, aclrtFuncHandle *func)
@@ -436,7 +436,7 @@ aclError aclrtGetFuncHandleFromExceptionInfo(const aclrtExceptionInfo *info, acl
 
 <a id="aclrtGetFunctionAddr"></a>
 
-# aclrtGetFunctionAddr
+## aclrtGetFunctionAddr
 
 ```c
 aclError aclrtGetFunctionAddr(aclrtFuncHandle funcHandle, void **aicAddr, void **aivAddr)
@@ -479,7 +479,7 @@ aclError aclrtGetFunctionAddr(aclrtFuncHandle funcHandle, void **aicAddr, void *
 
 <a id="aclrtGetFunctionSize"></a>
 
-# aclrtGetFunctionSize
+## aclrtGetFunctionSize
 
 ```c
 aclError aclrtGetFunctionSize(aclrtFuncHandle funcHandle, size_t *aicSize, size_t *aivSize)
@@ -520,7 +520,7 @@ aclError aclrtGetFunctionSize(aclrtFuncHandle funcHandle, size_t *aicSize, size_
 
 <a id="aclrtGetFunctionName"></a>
 
-# aclrtGetFunctionName
+## aclrtGetFunctionName
 
 ```c
 aclError aclrtGetFunctionName(aclrtFuncHandle funcHandle, uint32_t maxLen, char *name)
@@ -561,7 +561,7 @@ aclError aclrtGetFunctionName(aclrtFuncHandle funcHandle, uint32_t maxLen, char 
 
 <a id="aclrtGetFunctionAttribute"></a>
 
-# aclrtGetFunctionAttribute
+## aclrtGetFunctionAttribute
 
 ```c
 aclError aclrtGetFunctionAttribute(aclrtFuncHandle funcHandle, aclrtFuncAttribute attrType, int64_t *attrValue)
@@ -602,7 +602,7 @@ aclError aclrtGetFunctionAttribute(aclrtFuncHandle funcHandle, aclrtFuncAttribut
 
 <a id="aclrtGetHardwareSyncAddr"></a>
 
-# aclrtGetHardwareSyncAddr
+## aclrtGetHardwareSyncAddr
 
 ```c
 aclError aclrtGetHardwareSyncAddr(void **addr)
@@ -641,7 +641,7 @@ aclError aclrtGetHardwareSyncAddr(void **addr)
 
 <a id="aclrtRegisterCpuFunc"></a>
 
-# aclrtRegisterCpuFunc
+## aclrtRegisterCpuFunc
 
 ```c
 aclError aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName, const char *kernelName, aclrtFuncHandle *funcHandle)
@@ -685,7 +685,7 @@ aclError aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName,
 
 <a id="aclrtKernelArgsInit"></a>
 
-# aclrtKernelArgsInit
+## aclrtKernelArgsInit
 
 ```c
 aclError aclrtKernelArgsInit(aclrtFuncHandle funcHandle, aclrtArgsHandle *argsHandle)
@@ -727,7 +727,7 @@ aclError aclrtKernelArgsInit(aclrtFuncHandle funcHandle, aclrtArgsHandle *argsHa
 
 <a id="aclrtKernelArgsInitByUserMem"></a>
 
-# aclrtKernelArgsInitByUserMem
+## aclrtKernelArgsInitByUserMem
 
 ```c
 aclError aclrtKernelArgsInitByUserMem(aclrtFuncHandle funcHandle, aclrtArgsHandle argsHandle, void *userHostMem, size_t actualArgsSize)
@@ -771,7 +771,7 @@ aclError aclrtKernelArgsInitByUserMem(aclrtFuncHandle funcHandle, aclrtArgsHandl
 
 <a id="aclrtKernelArgsGetMemSize"></a>
 
-# aclrtKernelArgsGetMemSize
+## aclrtKernelArgsGetMemSize
 
 ```c
 aclError aclrtKernelArgsGetMemSize(aclrtFuncHandle funcHandle, size_t userArgsSize, size_t *actualArgsSize)
@@ -812,7 +812,7 @@ aclError aclrtKernelArgsGetMemSize(aclrtFuncHandle funcHandle, size_t userArgsSi
 
 <a id="aclrtKernelArgsGetHandleMemSize"></a>
 
-# aclrtKernelArgsGetHandleMemSize
+## aclrtKernelArgsGetHandleMemSize
 
 ```c
 aclError aclrtKernelArgsGetHandleMemSize(aclrtFuncHandle funcHandle, size_t *memSize)
@@ -852,7 +852,7 @@ aclError aclrtKernelArgsGetHandleMemSize(aclrtFuncHandle funcHandle, size_t *mem
 
 <a id="aclrtKernelArgsAppend"></a>
 
-# aclrtKernelArgsAppend
+## aclrtKernelArgsAppend
 
 ```c
 aclError aclrtKernelArgsAppend(aclrtArgsHandle argsHandle, void *param, size_t paramSize, aclrtParamHandle *paramHandle)
@@ -896,7 +896,7 @@ aclError aclrtKernelArgsAppend(aclrtArgsHandle argsHandle, void *param, size_t p
 
 <a id="aclrtKernelArgsAppendPlaceHolder"></a>
 
-# aclrtKernelArgsAppendPlaceHolder
+## aclrtKernelArgsAppendPlaceHolder
 
 ```c
 aclError aclrtKernelArgsAppendPlaceHolder(aclrtArgsHandle argsHandle, aclrtParamHandle *paramHandle)
@@ -938,7 +938,7 @@ aclError aclrtKernelArgsAppendPlaceHolder(aclrtArgsHandle argsHandle, aclrtParam
 
 <a id="aclrtKernelArgsGetPlaceHolderBuffer"></a>
 
-# aclrtKernelArgsGetPlaceHolderBuffer
+## aclrtKernelArgsGetPlaceHolderBuffer
 
 ```c
 aclError aclrtKernelArgsGetPlaceHolderBuffer(aclrtArgsHandle argsHandle, aclrtParamHandle paramHandle, size_t dataSize, void **bufferAddr)
@@ -980,7 +980,7 @@ aclError aclrtKernelArgsGetPlaceHolderBuffer(aclrtArgsHandle argsHandle, aclrtPa
 
 <a id="aclrtKernelArgsParaUpdate"></a>
 
-# aclrtKernelArgsParaUpdate
+## aclrtKernelArgsParaUpdate
 
 ```c
 aclError aclrtKernelArgsParaUpdate(aclrtArgsHandle argsHandle, aclrtParamHandle paramHandle, void *param, size_t paramSize)
@@ -1022,7 +1022,7 @@ aclError aclrtKernelArgsParaUpdate(aclrtArgsHandle argsHandle, aclrtParamHandle 
 
 <a id="aclrtKernelArgsFinalize"></a>
 
-# aclrtKernelArgsFinalize
+## aclrtKernelArgsFinalize
 
 ```c
 aclError aclrtKernelArgsFinalize(aclrtArgsHandle argsHandle)
@@ -1061,7 +1061,7 @@ aclError aclrtKernelArgsFinalize(aclrtArgsHandle argsHandle)
 
 <a id="aclrtLaunchKernel"></a>
 
-# aclrtLaunchKernel
+## aclrtLaunchKernel
 
 ```c
 aclError aclrtLaunchKernel(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData, size_t argsSize, aclrtStream stream)
@@ -1087,7 +1087,7 @@ aclError aclrtLaunchKernel(aclrtFuncHandle funcHandle, uint32_t numBlocks, const
 | --- | :---: | --- |
 | funcHandle | 输入 | 核函数句柄。类型定义请参见[aclrtFuncHandle](25_数据类型及其操作接口.md#aclrtFuncHandle)。<br>调用[aclrtBinaryGetFunction](#aclrtBinaryGetFunction)接口根据kernelName获取funcHandle。 |
 | numBlocks | 输入 | 指定核函数将会在几个核上执行。 |
-| argsData | 输入 | 存放核函数所有入参数据的Device内存地址指针。<br>内存申请接口请参见[内存管理](内存管理.md)。<br>注意，执行本接口下发任务的Device需与argsData中使用的Device内存要是同一个Device。 |
+| argsData | 输入 | 存放核函数所有入参数据的Device内存地址指针。<br>内存申请接口请参见[内存管理](11_内存管理.md)。<br>注意，执行本接口下发任务的Device需与argsData中使用的Device内存要是同一个Device。 |
 | argsSize | 输入 | argsData参数值的大小，单位为Byte。 |
 | stream | 输入 | 指定执行任务的Stream。类型定义请参见[aclrtStream](25_数据类型及其操作接口.md#aclrtStream)。 |
 
@@ -1116,7 +1116,7 @@ aclError aclrtLaunchKernel(aclrtFuncHandle funcHandle, uint32_t numBlocks, const
 
 <a id="aclrtLaunchKernelV2"></a>
 
-# aclrtLaunchKernelV2
+## aclrtLaunchKernelV2
 
 ```c
 aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData, size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream)
@@ -1142,7 +1142,7 @@ aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks, con
 | --- | :---: | --- |
 | funcHandle | 输入 | 核函数句柄。类型定义请参见[aclrtFuncHandle](25_数据类型及其操作接口.md#aclrtFuncHandle)。 |
 | numBlocks | 输入 | 指定核函数将会在几个核上执行。 |
-| argsData | 输入 | 存放核函数所有入参数据的Device内存地址指针。<br>内存申请接口请参见[内存管理](内存管理.md)。<br>注意，执行本接口下发任务的Device需与argsData中使用的Device内存要是同一个Device。 |
+| argsData | 输入 | 存放核函数所有入参数据的Device内存地址指针。<br>内存申请接口请参见[内存管理](11_内存管理.md)。<br>注意，执行本接口下发任务的Device需与argsData中使用的Device内存要是同一个Device。 |
 | argsSize | 输入 | argsData参数值的大小，单位为Byte。 |
 | cfg | 输入 | 任务下发的配置信息。类型定义请参见[aclrtLaunchKernelCfg](25_数据类型及其操作接口.md#aclrtLaunchKernelCfg)。<br>不指定配置时，此处可传NULL。 |
 | stream | 输入 | 指定执行任务的Stream。类型定义请参见[aclrtStream](25_数据类型及其操作接口.md#aclrtStream)。 |
@@ -1172,7 +1172,7 @@ aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks, con
 
 <a id="aclrtLaunchKernelWithConfig"></a>
 
-# aclrtLaunchKernelWithConfig
+## aclrtLaunchKernelWithConfig
 
 ```c
 aclError aclrtLaunchKernelWithConfig(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream, aclrtLaunchKernelCfg *cfg, aclrtArgsHandle argsHandle, void *reserve)
@@ -1230,7 +1230,7 @@ aclError aclrtLaunchKernelWithConfig(aclrtFuncHandle funcHandle, uint32_t numBlo
 
 <a id="aclrtLaunchKernelWithHostArgs"></a>
 
-# aclrtLaunchKernelWithHostArgs
+## aclrtLaunchKernelWithHostArgs
 
 ```c
 aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize, aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum)
@@ -1288,7 +1288,7 @@ aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numB
 
 <a id="aclrtCreateBinary"></a>
 
-# aclrtCreateBinary
+## aclrtCreateBinary
 
 ```c
 aclrtBinary aclrtCreateBinary(const void *data, size_t dataLen)
@@ -1330,7 +1330,7 @@ aclrtBinary aclrtCreateBinary(const void *data, size_t dataLen)
 
 <a id="aclrtDestroyBinary"></a>
 
-# aclrtDestroyBinary
+## aclrtDestroyBinary
 
 ```c
 aclError aclrtDestroyBinary(aclrtBinary binary)
@@ -1371,7 +1371,7 @@ aclError aclrtDestroyBinary(aclrtBinary binary)
 
 <a id="aclrtBinaryLoad"></a>
 
-# aclrtBinaryLoad
+## aclrtBinaryLoad
 
 ```c
 aclError aclrtBinaryLoad(const aclrtBinary binary, aclrtBinHandle *binHandle)
@@ -1411,7 +1411,7 @@ aclError aclrtBinaryLoad(const aclrtBinary binary, aclrtBinHandle *binHandle)
 
 <a id="aclrtBinaryUnLoad"></a>
 
-# aclrtBinaryUnLoad
+## aclrtBinaryUnLoad
 
 ```c
 aclError aclrtBinaryUnLoad(aclrtBinHandle binHandle)
@@ -1454,7 +1454,7 @@ aclError aclrtBinaryUnLoad(aclrtBinHandle binHandle)
 
 <a id="aclrtFunctionGetBinary"></a>
 
-# aclrtFunctionGetBinary
+## aclrtFunctionGetBinary
 
 ```c
 aclError aclrtFunctionGetBinary(const aclrtFuncHandle funcHandle, aclrtBinHandle *binHandle)
@@ -1484,3 +1484,4 @@ aclError aclrtFunctionGetBinary(const aclrtFuncHandle funcHandle, aclrtBinHandle
 ### 返回值说明
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](25_数据类型及其操作接口.md#aclError)。
+

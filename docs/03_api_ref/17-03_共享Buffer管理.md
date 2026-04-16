@@ -17,7 +17,7 @@
 
 <a id="acltdtAllocBuf"></a>
 
-# acltdtAllocBuf
+## acltdtAllocBuf
 
 ```c
 aclError acltdtAllocBuf(size_t size, uint32_t type, acltdtBuf *buf)
@@ -62,7 +62,7 @@ aclError acltdtAllocBuf(size_t size, uint32_t type, acltdtBuf *buf)
 
 <a id="acltdtFreeBuf"></a>
 
-# acltdtFreeBuf
+## acltdtFreeBuf
 
 ```c
 aclError acltdtFreeBuf(acltdtBuf buf)
@@ -101,7 +101,7 @@ aclError acltdtFreeBuf(acltdtBuf buf)
 
 <a id="acltdtGetBufData"></a>
 
-# acltdtGetBufData
+## acltdtGetBufData
 
 ```c
 aclError acltdtGetBufData(const acltdtBuf buf, void **dataPtr, size_t *size)
@@ -144,7 +144,7 @@ aclError acltdtGetBufData(const acltdtBuf buf, void **dataPtr, size_t *size)
 
 <a id="acltdtSetBufUserData"></a>
 
-# acltdtSetBufUserData
+## acltdtSetBufUserData
 
 ```c
 aclError acltdtSetBufUserData(acltdtBuf buf, const void *dataPtr, size_t size, size_t offset)
@@ -186,7 +186,7 @@ aclError acltdtSetBufUserData(acltdtBuf buf, const void *dataPtr, size_t size, s
 
 <a id="acltdtGetBufUserData"></a>
 
-# acltdtGetBufUserData
+## acltdtGetBufUserData
 
 ```c
 aclError acltdtGetBufUserData(const acltdtBuf buf, void *dataPtr, size_t size, size_t offset)
@@ -228,7 +228,7 @@ aclError acltdtGetBufUserData(const acltdtBuf buf, void *dataPtr, size_t size, s
 
 <a id="acltdtSetBufDataLen"></a>
 
-# acltdtSetBufDataLen
+## acltdtSetBufDataLen
 
 ```c
 aclError acltdtSetBufDataLen(acltdtBuf buf, size_t len)
@@ -270,7 +270,7 @@ aclError acltdtSetBufDataLen(acltdtBuf buf, size_t len)
 
 <a id="acltdtGetBufDataLen"></a>
 
-# acltdtGetBufDataLen
+## acltdtGetBufDataLen
 
 ```c
 aclError acltdtGetBufDataLen(acltdtBuf buf, size_t *len)
@@ -312,7 +312,7 @@ aclError acltdtGetBufDataLen(acltdtBuf buf, size_t *len)
 
 <a id="acltdtCopyBufRef"></a>
 
-# acltdtCopyBufRef
+## acltdtCopyBufRef
 
 ```c
 aclError acltdtCopyBufRef(const acltdtBuf buf, acltdtBuf *newBuf)
@@ -352,7 +352,7 @@ aclError acltdtCopyBufRef(const acltdtBuf buf, acltdtBuf *newBuf)
 
 <a id="acltdtAppendBufChain"></a>
 
-# acltdtAppendBufChain
+## acltdtAppendBufChain
 
 ```c
 aclError acltdtAppendBufChain(acltdtBuf headBuf, acltdtBuf buf)
@@ -392,7 +392,7 @@ aclError acltdtAppendBufChain(acltdtBuf headBuf, acltdtBuf buf)
 
 <a id="acltdtGetBufChainNum"></a>
 
-# acltdtGetBufChainNum
+## acltdtGetBufChainNum
 
 ```c
 aclError acltdtGetBufChainNum(acltdtBuf headBuf, uint32_t *num)
@@ -432,7 +432,7 @@ aclError acltdtGetBufChainNum(acltdtBuf headBuf, uint32_t *num)
 
 <a id="acltdtGetBufFromChain"></a>
 
-# acltdtGetBufFromChain
+## acltdtGetBufFromChain
 
 ```c
 aclError acltdtGetBufFromChain(acltdtBuf headBuf, uint32_t index, acltdtBuf *buf)

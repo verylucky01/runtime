@@ -24,7 +24,8 @@ include(${ASCENDC_CMAKE_DIR}/ascendc.cmake)
 
 ascendc_library(kernels STATIC 
 ../../../kernel_func/easy_OP.cpp
-../../../kernel_func/error_OP.cpp)
+../../../kernel_func/error_OP.cpp
+../../../kernel_func/long_OP.cpp)
 
 # Include directories and libraries
 include_directories(

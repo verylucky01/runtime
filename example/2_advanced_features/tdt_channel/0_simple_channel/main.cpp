@@ -16,50 +16,6 @@
 #include "utils.h"
 
 namespace {
-acltdtDataset *CreateDataset(std::vector<float> &values)
-{
-    int64_t dims[] = {1, static_cast<int64_t>(values.size())};
-    acltdtDataItem *item = acltdtCreateDataItem(
-        ACL_TENSOR_DATA_TENSOR,
-        dims,
-        sizeof(dims) / sizeof(dims[0]),
-        ACL_FLOAT,
-        values.data(),
-        values.size() * sizeof(float));
-    if (item == nullptr) {
-        return nullptr;
-    }
-
-    acltdtDataset *dataset = acltdtCreateDataset();
-    if (dataset == nullptr) {
-        acltdtDestroyDataItem(item);
-        return nullptr;
-    }
-
-    if (acltdtAddDataItem(dataset, item) != ACL_SUCCESS) {
-        acltdtDestroyDataItem(item);
-        acltdtDestroyDataset(dataset);
-        return nullptr;
-    }
-    return dataset;
-}
-
-void DestroyDataset(acltdtDataset *dataset)
-{
-    if (dataset == nullptr) {
-        return;
-    }
-
-    const size_t datasetSize = acltdtGetDatasetSize(dataset);
-    for (size_t i = 0; i < datasetSize; ++i) {
-        acltdtDataItem *item = acltdtGetDataItem(dataset, i);
-        if (item != nullptr) {
-            (void)acltdtDestroyDataItem(item);
-        }
-    }
-    (void)acltdtDestroyDataset(dataset);
-}
-
 int DumpDataset(const acltdtDataset *dataset)
 {
     const size_t datasetSize = acltdtGetDatasetSize(dataset);
@@ -97,52 +53,81 @@ int DumpDataset(const acltdtDataset *dataset)
 int main()
 {
     const uint32_t deviceId = 0;
+    constexpr size_t kChannelCapacity = 2;
+    constexpr int32_t kTimeoutMs = 1000;
     std::vector<float> hostTensor = {1.0F, 2.0F, 3.0F, 4.0F};
     acltdtDataset *sendDataset = nullptr;
     acltdtDataset *recvDataset = nullptr;
     acltdtChannelHandle *channel = nullptr;
+    bool aclInitialized = false;
+    bool deviceSet = false;
 
-    CHECK_ERROR(aclInit(nullptr));
-    CHECK_ERROR(aclrtSetDevice(deviceId));
+    const int32_t result = [&]() -> int32_t {
+        CHECK_ERROR(aclInit(nullptr));
+        aclInitialized = true;
+        CHECK_ERROR(aclrtSetDevice(deviceId));
+        deviceSet = true;
 
-    channel = acltdtCreateChannel(deviceId, "simple_tdt_channel");
-    if (!tdt::CheckNotNull(channel, "acltdtCreateChannel")) {
-        return -1;
+        channel = acltdtCreateChannelWithCapacity(deviceId, "simple_tdt_channel", kChannelCapacity);
+        if (channel == nullptr) {
+            WARN_LOG(
+                "acltdtCreateChannelWithCapacity returned nullptr: this sample needs a queue-backed TDT channel "
+                "so it can send and receive within one host process");
+            return 0;
+        }
+
+        sendDataset = tdt::CreateFloatDataset(hostTensor);
+        if (!tdt::CheckNotNull(sendDataset, "sendDataset")) {
+            return -1;
+        }
+
+        recvDataset = acltdtCreateDataset();
+        if (!tdt::CheckNotNull(recvDataset, "acltdtCreateDataset")) {
+            return -1;
+        }
+
+        if (DumpDataset(sendDataset) != 0) {
+            return -1;
+        }
+
+        CHECK_ERROR(acltdtSendTensor(channel, sendDataset, kTimeoutMs));
+
+        size_t channelSize = 0;
+        CHECK_ERROR(acltdtQueryChannelSize(channel, &channelSize));
+        INFO_LOG("Channel size after send: %zu", channelSize);
+
+        CHECK_ERROR(acltdtReceiveTensor(channel, recvDataset, kTimeoutMs));
+
+        if (DumpDataset(recvDataset) != 0) {
+            return -1;
+        }
+
+        CHECK_ERROR(acltdtQueryChannelSize(channel, &channelSize));
+        INFO_LOG("Channel size after receive: %zu", channelSize);
+        return 0;
+    }();
+
+    int32_t finalResult = result;
+    if (channel != nullptr) {
+        tdt::UpdateFinalResultOnError("acltdtCleanChannel(channel)", acltdtCleanChannel(channel), finalResult);
+        tdt::UpdateFinalResultOnError("acltdtStopChannel(channel)", acltdtStopChannel(channel), finalResult);
+        tdt::UpdateFinalResultOnError("acltdtDestroyChannel(channel)", acltdtDestroyChannel(channel), finalResult);
     }
 
-    sendDataset = CreateDataset(hostTensor);
-    if (!tdt::CheckNotNull(sendDataset, "sendDataset")) {
-        return -1;
+    tdt::DestroyDataset(recvDataset);
+    tdt::DestroyDatasetAndItems(sendDataset);
+
+    if (deviceSet) {
+        tdt::UpdateFinalResultOnError(
+            "aclrtResetDeviceForce(static_cast<int32_t>(deviceId))",
+            aclrtResetDeviceForce(static_cast<int32_t>(deviceId)),
+            finalResult);
     }
-
-    recvDataset = acltdtCreateDataset();
-    if (!tdt::CheckNotNull(recvDataset, "acltdtCreateDataset")) {
-        return -1;
+    if (aclInitialized) {
+        tdt::UpdateFinalResultOnError("aclFinalize()", aclFinalize(), finalResult);
     }
-
-    if (DumpDataset(sendDataset) != 0) {
-        return -1;
+    if (finalResult == 0 && channel != nullptr) {
+        INFO_LOG("Run the simple_channel sample successfully.");
     }
-
-    CHECK_ERROR(acltdtSendTensor(channel, sendDataset, 1000));
-    CHECK_ERROR(acltdtReceiveTensor(channel, recvDataset, 1000));
-
-    if (DumpDataset(recvDataset) != 0) {
-        return -1;
-    }
-
-    size_t channelSize = 0;
-    CHECK_ERROR(acltdtQueryChannelSize(channel, &channelSize));
-    INFO_LOG("Channel size after send/receive: %zu", channelSize);
-
-    CHECK_ERROR(acltdtStopChannel(channel));
-    CHECK_ERROR(acltdtCleanChannel(channel));
-    CHECK_ERROR(acltdtDestroyChannel(channel));
-
-    DestroyDataset(recvDataset);
-    DestroyDataset(sendDataset);
-
-    CHECK_ERROR(aclrtResetDeviceForce(static_cast<int32_t>(deviceId)));
-    CHECK_ERROR(aclFinalize());
-    return 0;
+    return finalResult;
 }

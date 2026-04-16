@@ -8,28 +8,10 @@
 
 本样例关键接口在不同产品上的支持情况如下：
 
-| 接口 | Atlas A3 训练系列产品/Atlas A3 推理系列产品 | Atlas A2 训练系列产品/Atlas A2 推理系列产品 |
-| --- | --- | --- |
-| acltdtCreateChannel | x | x |
-| acltdtCreateDataItem | √ | √ |
-| acltdtCreateDataset | √ | √ |
-| acltdtAddDataItem | √ | √ |
-| acltdtSendTensor | √ | √ |
-| acltdtReceiveTensor | √ | √ |
-| acltdtGetDataItem | √ | √ |
-| acltdtGetDatasetSize | √ | √ |
-| acltdtGetDataAddrFromItem | √ | √ |
-| acltdtGetDataSizeFromItem | √ | √ |
-| acltdtGetDataTypeFromItem | √ | √ |
-| acltdtGetDimNumFromItem | √ | √ |
-| acltdtGetDimsFromItem | √ | √ |
-| acltdtGetTensorTypeFromItem | √ | √ |
-| acltdtQueryChannelSize | √ | √ |
-| acltdtStopChannel | √ | √ |
-| acltdtCleanChannel | √ | √ |
-| acltdtDestroyDataset | √ | √ |
-| acltdtDestroyDataItem | √ | √ |
-| acltdtDestroyChannel | √ | √ |
+| 产品 | 是否支持 |
+| --- | --- |
+| Atlas A3 训练系列产品/Atlas A3 推理系列产品 | √ |
+| Atlas A2 训练系列产品/Atlas A2 推理系列产品 | √ |
 
 如需在当前产品上体验 TDT Channel，可参考 [1_channel_capacity](../1_channel_capacity/README.md)。
 
@@ -65,7 +47,7 @@ bash run.sh
     - 调用aclrtSetDevice接口指定用于运算的Device。
     - 调用aclrtResetDeviceForce接口强制复位当前运算的Device，回收Device上的资源。
 - Channel与Dataset创建
-    - 调用acltdtCreateChannel接口创建TDT Channel。
+    - 调用acltdtCreateChannelWithCapacity接口创建TDT Channel。
     - 调用acltdtCreateDataItem接口基于Tensor数据构造DataItem。
     - 调用acltdtCreateDataset和acltdtAddDataItem接口封装Dataset。
 - Tensor收发与信息查询

@@ -9,6 +9,9 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
+set -e
+set -o pipefail
+
 _ASCEND_INSTALL_PATH=$ASCEND_INSTALL_PATH
 source $_ASCEND_INSTALL_PATH/bin/setenv.bash
 
@@ -20,6 +23,4 @@ cmake --build build -j
 cmake --install build
 
 file_path=output_msg.txt
-./build/main | tee $file_path
-
-exit 0
+./build/main 2>&1 | tee $file_path

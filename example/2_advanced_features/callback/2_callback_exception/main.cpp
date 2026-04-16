@@ -14,8 +14,15 @@ using namespace std;
 
 int main()
 {
-    ExceptionCallBackSpace::ExceptionCallBackSample exceptionCallBackSample;
-    (void)exceptionCallBackSample.Init();
-    (void)exceptionCallBackSample.Callback();
+    {
+        ExceptionCallBackSpace::ExceptionCallBackSample exceptionCallBackSample;
+        if (exceptionCallBackSample.Init() != 0) {
+            return -1;
+        }
+        if (exceptionCallBackSample.Callback() != 0) {
+            return -1;
+        }
+    }
+    INFO_LOG("Run the callback_exception sample successfully.");
     return 0;
 }

@@ -15,11 +15,15 @@
 
 ## 功能说明
 
-- 创建一个容量为 1 的 Channel。
+- 创建一个容量为 2 的 Channel，以满足接口文档要求的最小容量限制。
 - 发送第一份 Dataset 后查询通道大小。
-- 尝试再次发送 Dataset 观察容量受限时的返回结果。
+- 以非阻塞方式继续发送 Dataset，观察容量受限时的返回结果；如果第二次发送成功，则继续第三次发送直到触发容量压力。
 - 调用 SliceInfo、TensorType 和 DatasetName 查询接口补充检查。
 - 完成 Channel 清理、停止和销毁。
+
+## 说明
+
+在当前 Runtime 未启用队列式 TDT Channel 能力、相关依赖未就绪，或底层队列初始化/创建失败时，`acltdtCreateChannelWithCapacity` 可能返回 `nullptr`。样例当前会将该情况记录为告警，跳过容量受限演示流程，并在完成清理后正常退出。
 
 ## 编译运行
 
@@ -46,11 +50,11 @@ bash run.sh
     - 调用aclrtSetDevice接口指定用于运算的Device。
     - 调用aclrtResetDeviceForce接口强制复位当前运算的Device，回收Device上的资源。
 - 容量受限Channel创建
-    - 调用acltdtCreateChannelWithCapacity接口创建带容量限制的Channel。
+    - 调用acltdtCreateChannelWithCapacity接口创建带容量限制的Channel，并将容量设置为文档允许的最小值 2。
     - 调用acltdtCreateDataItem、acltdtCreateDataset和acltdtAddDataItem接口构造Dataset。
 - Tensor发送与容量查询
-    - 调用acltdtSendTensor接口发送Dataset，并观察容量受限时的返回结果。
-    - 调用acltdtQueryChannelSize接口查询Channel当前大小。
+    - 调用acltdtSendTensor接口发送第一份Dataset，并调用acltdtQueryChannelSize接口查询Channel当前大小。
+    - 在非阻塞模式下继续调用acltdtSendTensor接口，观察当前环境下何时触发容量受限返回结果。
 - 附加信息查询
     - 调用acltdtGetDataItem和acltdtGetDatasetSize接口读取Dataset中的DataItem。
     - 调用acltdtGetSliceInfoFromItem、acltdtGetTensorTypeFromItem和acltdtGetDatasetName接口查看Slice信息、Tensor类型和Dataset名称。

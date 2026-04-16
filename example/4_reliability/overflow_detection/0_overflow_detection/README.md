@@ -6,9 +6,10 @@
 
 ## 功能说明
 
-- 为 Stream 打开溢出检测开关，并读取当前配置。
-- 获取一次溢出状态并同步到 Host。
-- 调用 ResetOverflowStatus 后再次查询状态。
+- 查询当前 Device 的浮点溢出模式，并切换为 `ACL_RT_OVERFLOW_MODE_SATURATION`。
+- 在饱和模式下创建 Stream，打开溢出检测开关并读取当前配置。
+- 申请固定 `64 Byte` 的 Device 状态缓冲区，获取一次溢出状态并同步到 Host。
+- 调用 `aclrtResetOverflowStatus` 后再次查询状态，并在结束时恢复原始饱和模式。
 - 销毁 Stream、Context 和状态缓存。
 
 ## 产品支持情况
@@ -42,6 +43,8 @@ bash run.sh
     - 调用 `aclrtSetDevice` 、`aclrtResetDeviceForce` 接口管理 Device。
     - 调用 `aclrtCreateContext` 和 `aclrtDestroyContext` 接口创建和销毁 Context。
     - 调用 `aclrtCreateStream` 、`aclrtSynchronizeStream` 和 `aclrtDestroyStream` 接口管理 Stream。
+- Device 浮点溢出模式管理
+    - 调用 `aclrtGetDeviceSatMode` 和 `aclrtSetDeviceSatMode` 接口查询并设置 Device 饱和模式。
 - 溢出检测状态管理
     - 调用 `aclrtSetStreamOverflowSwitch` 和 `aclrtGetStreamOverflowSwitch` 接口开启或查询 Stream 溢出检测开关。
     - 调用 `aclrtGetOverflowStatus` 接口获取当前溢出状态。
@@ -52,4 +55,4 @@ bash run.sh
 
 ## 已知 issue
 
-暂无。
+- `aclrtSetStreamOverflowSwitch` 仅在 `ACL_RT_OVERFLOW_MODE_SATURATION` 模式下可用；如果当前产品或运行时不支持该能力，相关接口可能返回 `ACL_ERROR_RT_FEATURE_NOT_SUPPORT (207000)`。样例会记录告警并在完成资源清理后退出。

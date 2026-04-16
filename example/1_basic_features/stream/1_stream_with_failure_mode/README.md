@@ -12,6 +12,14 @@
 | Atlas A3 训练系列产品/Atlas A3 推理系列产品 | √ |
 | Atlas A2 训练系列产品/Atlas A2 推理系列产品 | √ |
 
+## 说明
+本样例包含三部分内容：普通 Stream 上的遇错即停演示、`aclrtStreamStop` 辅助演示、`aclrtStreamAbort` 辅助演示。
+
+- `aclrtStreamStop` 在 Atlas A2/Atlas A3 上要求目标 Stream 通过 `aclrtCreateStreamWithConfig(..., ACL_STREAM_DEVICE_USE_ONLY)` 创建，因此样例会单独创建一条 device-use-only Stream 并在其上提交长时核任务后调用 `aclrtStreamStop`。
+- `aclrtStreamAbort` 不支持 `ACL_STREAM_DEVICE_USE_ONLY` Stream，因此样例会在普通 Stream 上单独演示 `aclrtStreamAbort`。
+- 如果当前环境不满足 `stop/abort` 辅助演示的额外前置条件，样例会打印 `WARN` 并跳过对应辅助演示；主流程中的 `aclrtSetStreamFailureMode` 演示仍然会继续执行。
+- `aclrtStreamAbort` 演示后再次调用 `aclrtSynchronizeStream` 时，可能返回 stream abort 类状态码，这属于该辅助演示的预期结果，样例会按说明记录日志而不会将整个流程判定为失败。
+
 ## 编译运行
 环境安装详情以及运行详情请见example目录下的[README](../../../README.md)。
 
@@ -46,8 +54,11 @@ bash run.sh
     - 调用aclrtDestroyContext接口销毁Context。
 - Stream管理
     - 调用aclrtCreateStream接口创建Stream。
+    - 调用aclrtCreateStreamWithConfig接口创建`ACL_STREAM_DEVICE_USE_ONLY`类型的Stream。
     - 调用aclrtSynchronizeStream可以阻塞等待Stream上任务的完成。
     - 调用aclrtSetStreamFailureMode可以设置Stream执行任务遇到错误的操作，默认为遇错继续，可以设置为遇错即停。
+    - 调用aclrtRegStreamStateCallback接口注册Stream状态回调。
+    - 调用aclrtStreamStop和aclrtStreamAbort接口演示辅助Stream上的停止 / 中止行为。
     - 调用aclrtDestroyStreamForce接口强制销毁Stream，丢弃所有任务。
 - 内存管理
     - 调用aclrtMalloc接口申请Device上的内存。

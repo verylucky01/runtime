@@ -37,7 +37,6 @@ struct ProfHalModuleConfig {
 };
 
 enum ProfHalServerType {
-    PROF_HAL_AICPU,
     PROF_HAL_HELPER,
 };
 

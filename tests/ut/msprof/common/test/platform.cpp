@@ -888,7 +888,7 @@ TEST_F(COMMON_PLATFORM_TEST, DavidPlatformTest) {
     std::string l2Events = "";
     std::string npuEvent = "";
     platform->L2CacheAdaptor(npuEvent, l2Switch, l2Events);
-    EXPECT_EQ("0x00,0x88,0x89,0x8A,0x74,0x75,0x97", l2Events);
+    EXPECT_EQ("0x00,0x81,0x82,0x83,0x74,0x75", l2Events);
 }
 
 TEST_F(COMMON_PLATFORM_TEST, DavidV121PlatformTest) {

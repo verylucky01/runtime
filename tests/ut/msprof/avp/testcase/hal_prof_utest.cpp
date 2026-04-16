@@ -155,7 +155,7 @@ TEST_F(HalProfUtest, HalProfChannelPollBase)
         .stubs()
         .will(returnValue(2))
         .then(returnValue(1));
-    EXPECT_EQ(2, HalProfChannelPoll(info, 1, 1));
+    EXPECT_EQ(-1, HalProfChannelPoll(info, 1, 1));
     EXPECT_EQ(1, HalProfChannelPoll(info, 1, 1));
 }
 

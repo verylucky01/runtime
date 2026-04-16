@@ -63,7 +63,7 @@ extern "C" {
 #define OSAL_REQUIRED_ARG                       required_argument
 #define OSAL_OPTIONAL_ARG                       optional_argument
 #ifdef LITE_OS
-#define OSAL_THREAD_POOL_STACK_SIZE             3072
+#define OSAL_THREAD_POOL_STACK_SIZE             4096
 #define OSAL_THREAD_MIN_STACK_SIZE              8192 // 8k
 #define VOID                                    void
 #define CLOCK_MONOTONIC_RAW                     4

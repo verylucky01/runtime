@@ -89,35 +89,6 @@ TEST_F(HAL_SERVER_UTEST, Simulate_ProfHdcServer) {
     device_aicpu.reset();
 }
 
-TEST_F(HAL_SERVER_UTEST, Simulate_ServerManager) {
-    GlobalMockObject::verify();
-    uint32_t configSize =
-        static_cast<uint32_t>(sizeof(ProfHalModuleConfig) + sizeof(uint32_t));
-    auto moduleConfigP = static_cast<ProfHalModuleConfig *>(malloc(configSize));
-    EXPECT_NE(nullptr, moduleConfigP);
-    (void)memset_s(moduleConfigP, configSize, 0, configSize);
-    const uint32_t devIdList[2] = {64, 0};
-    moduleConfigP->devIdList = const_cast<uint32_t *>(devIdList);
-    moduleConfigP->devIdListNums = 2;
-    ProfHalModuleInitialize(PROF_HAL_AICPU, moduleConfigP, 512);
-    ProfHalModuleInitialize(PROF_HAL_AICPU, moduleConfigP, sizeof(moduleConfigP));
-    EXPECT_EQ(1, ServerManager::instance()->hdcDevMap_.size());
-    sleep(1);
-    MOCKER_CPP(&Dvvp::Hal::Server::ProfHdcServer::UnInit)
-        .stubs()
-        .will(returnValue(PROFILING_FAILED))
-        .then(returnValue(PROFILING_SUCCESS));
-    ProfHalModuleFinalize();
-    EXPECT_EQ(1, ServerManager::instance()->hdcDevMap_.size());
-    ProfHalModuleFinalize();
-    EXPECT_EQ(0, ServerManager::instance()->hdcDevMap_.size());
-    MOCKER_CPP(&Dvvp::Hal::Server::ProfHdcServer::Init)
-        .stubs()
-        .will(returnValue(PROFILING_FAILED));
-    EXPECT_EQ(PROFILING_FAILED, ProfHalModuleInitialize(PROF_HAL_AICPU, moduleConfigP, sizeof(moduleConfigP)));
-    free(moduleConfigP);
-}
-
 TEST_F(HAL_SERVER_UTEST, Simulate_HelperServerManager) {
     GlobalMockObject::verify();
     uint32_t configSize =

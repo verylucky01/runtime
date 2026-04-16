@@ -190,8 +190,9 @@ int32_t FileSlice::HandleFileCompletion(const std::string &key, const std::strin
         MSPROF_LOGI("create done file:%s.done", Utils::BaseName(absolutePath).c_str());
         return PROFILING_SUCCESS;
     }
+    int64_t fileSizeUnit = 64;
     if ((fileSize >= sliceFileMaxKByte_ * MEGABYTE_CONVERT || (isLastChunk && Utils::IsFileExist(absolutePath)))
-        && (fileName.find("stars_soc.data") == std::string::npos || (fileSize % 64 == 0))) {
+        && (fileName.find("stars_soc.data") == std::string::npos || (fileSize % fileSizeUnit == 0))) {
         if (!(CreateDoneFile(absolutePath, std::to_string(fileSize), std::to_string(chunkStartTime_[absolutePath]),
             std::to_string(chunkEndTime_[absolutePath]), absolutePath))) {
             MSPROF_LOGE("Failed to create file:%s_%" PRIu64, Utils::BaseName(key).c_str(), sliceNum_[key]);

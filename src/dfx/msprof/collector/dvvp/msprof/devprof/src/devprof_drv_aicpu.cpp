@@ -232,10 +232,11 @@ int32_t DevprofDrvAicpu::ReportStr2IdInfoToHost(std::string& dataStr) {
         }
         if (currentSize > 0) {
             sendStr.append(STR2ID_DELIMITER + item);
+            currentSize += item.length() + 1;
         } else {
             sendStr.append(item);
+            currentSize += item.length();
         }
-        currentSize += item.length();
     }
     if (currentSize > 0) {
         MSPROF_LOGD("AddStr2IdIntoBuffer str lenght:%u str:%s", sendStr.length(), sendStr.c_str());

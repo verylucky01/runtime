@@ -3056,13 +3056,7 @@ TEST_F(MSPROF_ACL_CORE_UTEST, ProfStartAscendProfHalTask) {
         .stubs()
         .will(returnValue(PROFILING_FAILED))
         .then(returnValue(PROFILING_SUCCESS));
-    EXPECT_EQ(PROFILING_FAILED, ProfAclMgr::instance()->ProfStartAscendProfHalTask(config.dataTypeConfig, config.devNums, config.devIdList));
     EXPECT_EQ(PROFILING_SUCCESS, ProfAclMgr::instance()->ProfStartAscendProfHalTask(config.dataTypeConfig, config.devNums, config.devIdList));
-
-    MOCKER(malloc)
-        .stubs()
-        .will(returnValue((void*)NULL));
-    EXPECT_EQ(PROFILING_FAILED, ProfAclMgr::instance()->ProfStartAscendProfHalTask(config.dataTypeConfig, config.devNums, config.devIdList));
 }
 
 TEST_F(MSPROF_ACL_CORE_UTEST, ProfStartAscendProfHalTask_Helper) {

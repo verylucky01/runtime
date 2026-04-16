@@ -213,7 +213,15 @@ TEST_F(ThreadPoolUtest, ChannelManagerBasic)
 TEST_F(ThreadPoolUtest, ChannelMgrFlushUnInit)
 {
     GlobalMockObject::verify();
+    MOCKER(PlatformGetDevNum)
+        .stubs()
+        .will(returnValue(uint32_t(1)));
+    int32_t ret = ProfThreadPoolInit(10, 0, 20);
+    ret =ChannelMgrInitialize(0);
+    EXPECT_EQ(GetChannelNum(0), CHANNEL_NUM);
     EXPECT_EQ(GetChannelIdByIndex(0, 0), 0);
+    ChannelMgrFinalize();
+    ProfThreadPoolFinalize();
 }
 
 TEST_F(ThreadPoolUtest, ChannelReadBasic)

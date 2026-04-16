@@ -1055,12 +1055,6 @@ int32_t ProfAclMgr::ProfStartAscendProfHalTask(const uint64_t dataTypeConfig, co
         MSPROF_LOGI("Collect aicpu data from driver channel.");
         return PROFILING_SUCCESS;
     }
-    if (!Platform::instance()->PlatformIsHelperHostSide() && (dataTypeConfig & PROF_AICPU_TRACE_MASK) != 0) {
-        ret = ProfStartHostServer(PROF_HAL_AICPU, devNums, devIdList);
-        if (ret != PROFILING_SUCCESS) {
-            return ret;
-        }
-    }
     return PROFILING_SUCCESS;
 }
 

@@ -67,9 +67,7 @@ int32_t ServerManager::ProfServerInit(uint32_t moduleType, const ProfHalModuleCo
         if (devId >= DEFAULT_HOST_ID) {
             continue;
         }
-        if (moduleType == PROF_HAL_AICPU) {
-            ret = ProfAiCpuServerInit(devId);
-        } else if (moduleType == PROF_HAL_HELPER) {
+        if (moduleType == PROF_HAL_HELPER) {
             ret = ProfHelperServerInit(devId);
         }
         if (ret != PROFILING_SUCCESS) {

@@ -126,8 +126,9 @@ public:
         const uint32_t key = (streamId << 16U) | taskId;
         auto iter = argLoaderRecord_.find(key);
         if (iter != argLoaderRecord_.end()) {
+            void* res = iter->second;
             argLoaderRecord_.erase(iter);
-            return iter->second;
+            return res;
         }
         return nullptr;
     }

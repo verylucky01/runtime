@@ -18,7 +18,7 @@
 
 #include "log_inner.h"
 #include "acl/acl_tdt_queue.h"
-#include "queue.h"
+#include "acl_tdt_queue/queue.h"
 #include "runtime/rt_mem_queue.h"
 #include "runtime/mem.h"
 #include "runtime/context.h"

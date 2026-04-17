@@ -12,7 +12,7 @@
 #include <map>
 #include "common/log_inner.h"
 #include "toolchain/prof_api_reg.h"
-#include "toolchain/resource_statistics.h"
+#include "common/resource_statistics.h"
 #include "queue_process.h"
 #include "queue_manager.h"
 #include "runtime/rt_mem_queue.h"

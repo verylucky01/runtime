@@ -42,7 +42,7 @@ add_library(tsdclient SHARED
     src/process_mode_msg_parse.cpp
     src/stub/stub_process_mode_win.cpp
     src/thread_mode_manager.cpp
-    src/env_internal_api.cpp
+    ${BASE_DIR}/pub_facility/env_manager/env_internal_api.cpp
     ${tdt_common_files}
     ${PROTO_SRCS}
 )
@@ -56,6 +56,7 @@ target_include_directories(tsdclient PRIVATE
     ${RUNTIME_DIR}/include/
     ${RUNTIME_DIR}/src/tsd/pub_facility/tsdlog/
     ${RUNTIME_DIR}/src/tsd/pub_facility/util_func/
+    ${RUNTIME_DIR}/src/tsd/pub_facility/env_manager/
     ${RUNTIME_DIR}/src/tsd/client/common/inc/
     ${RUNTIME_DIR}/src/tsd/client/common/inc/stub/
     ${RUNTIME_DIR}/pkg_in/aicpu/queue_schedule
@@ -122,7 +123,7 @@ add_library(tsdclient SHARED
     src/process_mode_base.cpp
     src/process_mode_msg_parse.cpp
     src/thread_mode_manager.cpp
-    src/env_internal_api.cpp
+    ${BASE_DIR}/pub_facility/env_manager/env_internal_api.cpp
     ${BASE_DIR}/common/src/package_worker.cpp
     ${BASE_DIR}/common/src/package_worker_utils.cpp
     ${BASE_DIR}/common/src/package_worker_factory.cpp
@@ -146,7 +147,8 @@ target_include_directories(tsdclient PRIVATE
     ${RUNTIME_DIR}/include/
     ${RUNTIME_DIR}/src/tsd/
     ${RUNTIME_DIR}/src/tsd/pub_facility/tsdlog/
- 	${RUNTIME_DIR}/src/tsd/pub_facility/util_func/
+    ${RUNTIME_DIR}/src/tsd/pub_facility/util_func/
+    ${RUNTIME_DIR}/src/tsd/pub_facility/env_manager/
     ${RUNTIME_DIR}/src/tsd/client/common/inc/
     ${RUNTIME_DIR}/src/tsd/client/common/inc/stub/
     ${RUNTIME_DIR}/src/inc/

@@ -9,8 +9,8 @@
 # -----------------------------------------------------------------------------------------------------------
 set(TSD_CLIENT_SRC_FILE
     ${TSD_SRC_PATH}/tsdclient/src/client_manager.cpp
-    ${TSD_SRC_PATH}/tsdclient/src/env_internal_api.cpp
-    ${TSD_SRC_PATH}/tsdclient/src/env_internal_api.h
+    ${TSD_SRC_PATH}/pub_facility/env_manager/env_internal_api.cpp
+    ${TSD_SRC_PATH}/pub_facility/env_manager/env_internal_api.h
     ${TSD_SRC_PATH}/tsdclient/src/process_mode_base.cpp
     ${TSD_SRC_PATH}/tsdclient/src/process_mode_manager.cpp
     ${TSD_SRC_PATH}/tsdclient/src/process_mode_msg_parse.cpp
@@ -52,6 +52,7 @@ set(TSD_UT_TEST_SRC_FILE
     test/package_worker_utils_utest.cpp
     test/path_mgr_utest.cpp
     test/tsd_util_func_utest.cpp
+    test/env_internal_api_utest.cpp
     test/main.cpp
     test/common_util_func.cpp
     ../stub/stub_server_reply.cpp
@@ -94,6 +95,7 @@ target_include_directories(tsd_client_utest PRIVATE
     ${RUNTIME_DIR}/src/tsd/
     ${RUNTIME_DIR}/src/tsd/pub_facility/tsdlog/
     ${RUNTIME_DIR}/src/tsd/pub_facility/util_func/
+    ${RUNTIME_DIR}/src/tsd/pub_facility/env_manager/
     ${RUNTIME_DIR}/src/tsd/client/common/inc/
     ${RUNTIME_DIR}/src/tsd/client/common/inc/stub/
     ${RUNTIME_DIR}/src/inc/

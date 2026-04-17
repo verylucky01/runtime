@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef TDT_TSDCLIENT_INC_ENV_INTERNAL_API_H
-#define TDT_TSDCLIENT_INC_ENV_INTERNAL_API_H
+#ifndef TSD_PUB_FACILITY_ENV_MANAGER_ENV_INTERNAL_API_H
+#define TSD_PUB_FACILITY_ENV_MANAGER_ENV_INTERNAL_API_H
 
 #include "log.h"
 #include "mmpa/mmpa_api.h"
@@ -49,4 +49,4 @@ namespace tsd {
      */
     bool GetFlagFromMmSys(mmEnvId id, const char_t * const envStr, const char_t * const envValue);
 }
-#endif  // TDT_TSDCLIENT_INC_ENV_INTERNAL_API_H
+#endif  // TSD_PUB_FACILITY_ENV_MANAGER_ENV_INTERNAL_API_H

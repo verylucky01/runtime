@@ -18,7 +18,7 @@
 #include "inc/process_mode_manager.h"
 #include "inc/hdc_client.h"
 #include "inc/weak_ascend_hal.h"
-#include "src/env_internal_api.h"
+#include "env_internal_api.h"
 #include "platform_manager_v2.h"
 #undef private
 #undef protected

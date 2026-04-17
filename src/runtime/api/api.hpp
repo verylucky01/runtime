@@ -557,7 +557,7 @@ public:
     virtual rtError_t RegStreamStateCallback(const char_t *regName, void *callback, void *args,
         StreamStateCallback type) = 0;
     virtual rtError_t XpuSetTaskFailCallback(
-        const rtXpuDevType devType, const char_t *regName, void *callback) = 0;
+        const rtXpuDevType devType, const char_t *moduleName, void *callback) = 0;
 
     // IPC API
     virtual rtError_t IpcSetMemoryName(const void * const ptr, const uint64_t byteCount, char_t * const name,

@@ -51,5 +51,15 @@ void UpdateDavidAICoreSqeForDavinciTask(RtDavidStarsAicAivKernelSqe * const sqe)
     UNUSED(sqe);
 }
 
+void UpdateDavidAICpuSqeForDavinciTask(RtDavidStarsAicpuKernelSqe * const sqe)
+{
+ 	UNUSED(sqe);
+}
+
+void UpdateDavidAICpuControlSqeForDavinciTask(RtDavidStarsAicpuControlSqe * const sqe)
+{
+ 	UNUSED(sqe);
+}
+
 }  // namespace runtime
 }  // namespace cce

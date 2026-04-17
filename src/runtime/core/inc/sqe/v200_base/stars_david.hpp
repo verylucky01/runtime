@@ -571,6 +571,8 @@ void ConstructDavidMemcpySqe(TaskInfo * const taskInfo, rtDavidSqe_t *const davi
 
 void PrintErrorInfoForDavidCmoTask(TaskInfo* taskInfo, const uint32_t devId);
 void UpdateDavidAICoreSqeForDavinciTask(RtDavidStarsAicAivKernelSqe * const sqe);
+void UpdateDavidAICpuSqeForDavinciTask(RtDavidStarsAicpuKernelSqe * const sqe);
+void UpdateDavidAICpuControlSqeForDavinciTask(RtDavidStarsAicpuControlSqe * const sqe);
 void ConstructDavidSqeForDebugUnRegisterForStreamTask(TaskInfo * const taskInfo, rtDavidSqe_t *const davidSqe,
     uint64_t sqBaseAddr);
 void ConstructDavidSqeForDebugRegisterTask(TaskInfo *taskInfo, rtDavidSqe_t * const davidSqe,

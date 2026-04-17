@@ -1279,6 +1279,13 @@ TEST_F(TaskTestV201, Test_Construct_Sqe)
  
     task.u.aicpuTaskInfo.comm.kernelFlag = 0x10;
     ToConstructDavidSqe(&task, sqe, sqBaseAddr);
+
+    task.type = TS_TASK_TYPE_MODEL_END_GRAPH;
+ 	ToConstructDavidSqe(&task, sqe, sqBaseAddr);
+
+ 	task.type = TS_TASK_TYPE_MODEL_TO_AICPU;
+ 	ToConstructDavidSqe(&task, sqe, sqBaseAddr);
+
     free(sqe);
     sqe = nullptr;
 }

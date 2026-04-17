@@ -59,5 +59,17 @@ void UpdateDavidAICoreSqeForDavinciTask(RtDavidStarsAicAivKernelSqe * const sqe)
     sqe->piMix = 1U;
 }
 
+void UpdateDavidAICpuSqeForDavinciTask(RtDavidStarsAicpuKernelSqe * const sqe)
+{
+ 	sqe->topicType = TOPIC_TYPE_DEVICE_AICPU_SRC_PID;
+ 	return;
+}
+
+void UpdateDavidAICpuControlSqeForDavinciTask(RtDavidStarsAicpuControlSqe * const sqe)
+{
+ 	sqe->topicType = TOPIC_TYPE_DEVICE_AICPU_SRC_PID;
+ 	return;
+}
+
 }  // namespace runtime
 }  // namespace cce

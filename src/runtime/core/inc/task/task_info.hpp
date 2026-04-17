@@ -298,7 +298,6 @@ rtError_t DavidModelMaintainceTaskInit(TaskInfo * const taskInfo, const MmtType 
 rtError_t ModelExecuteTaskInit(TaskInfo * const taskInfo, Model *const modelPtr, const uint32_t modelIndex,
                                const uint32_t firstTaskIndex);
 // task init func
-rtError_t DebugUnRegisterForStreamTaskInit(TaskInfo* taskInfo, const uint32_t stmId);
 rtError_t AddEndGraphTaskInit(TaskInfo* taskInfo, const uint32_t modelId, const uint32_t exeFlag,
                               const uint64_t argParam, const uint64_t endGraphName,
                               const uint8_t flags);
@@ -344,19 +343,10 @@ rtError_t LabelSwitchTaskInit(TaskInfo* taskInfo, const void *const ptr, const r
 rtError_t LabelGotoTaskInit(TaskInfo* taskInfo, const uint16_t lblId);
 rtError_t ProfilerTraceTaskInit(TaskInfo* taskInfo, const uint64_t id, const bool notifyFlag, const uint32_t flags);
 rtError_t ProfilerTraceExTaskInit(TaskInfo* taskInfo, const uint64_t id, const uint64_t mdlId, const uint16_t tag);
-rtError_t FusionDumpAddrSetTaskInit(TaskInfo* taskInfo, const uint16_t modelIndex, const void *const address,
-    const uint32_t dumpDataSize, const uint32_t fusionFlag);
-rtError_t DataDumpLoadInfoTaskInit(TaskInfo* taskInfo, const void *const dumpInfoPtr,
-    const uint32_t len, const uint16_t kernelType);
 rtError_t AicpuInfoLoadTaskInit(TaskInfo* taskInfo, const void *const aicpuInfo, const uint32_t len);
-rtError_t DebugRegisterTaskInit(TaskInfo* taskInfo, const uint32_t mdlId, const void *const address,
-    const uint32_t curFlag);
-rtError_t DebugUnRegisterTaskInit(TaskInfo* taskInfo, const uint32_t mdlId);
 rtError_t TimeoutSetTaskInit(TaskInfo* taskInfo, const rtTaskTimeoutType_t type, const uint32_t timeout);
 rtError_t GetDevMsgTaskInit(TaskInfo* taskInfo, const void *const devMemAddr,
     const uint32_t devMemSize, const rtGetDevMsgType_t messageType);
-rtError_t DebugRegisterForStreamTaskInit(TaskInfo* taskInfo, const uint32_t stmId, const void *const address,
-    const uint32_t curFlag);
 uint32_t CovertToFlipTaskId(const int32_t streamId, const uint32_t taskId, const Device * const dev);
 uint32_t CovertToFlipTaskId(const TaskInfo* const taskInfo, const uint32_t taskId);
 void FlipTaskInit(TaskInfo* taskInfo, const uint16_t flipNum);

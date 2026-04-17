@@ -26,6 +26,7 @@
 #include "module.hpp"
 #include "stream.hpp"
 #include "task_info.hpp"
+#include "dump_task.h"
 #include "arg_loader.hpp"
 #include "stream.hpp"
 #include "stream_sqcq_manage.hpp"

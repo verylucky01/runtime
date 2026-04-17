@@ -18,6 +18,7 @@
 #include "stream_david.hpp"
 #include "stream_c.hpp"
 #include "ctrl_sq.hpp"
+#include "dump_task.h"
 
 namespace cce {
 namespace runtime {

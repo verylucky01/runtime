@@ -13,11 +13,10 @@
 #include "context.hpp"
 #include "task_manager.h"
 #include "error_code.h"
-#include "debug_task.h"
+#include "dump_task.h"
 
 namespace cce {
 namespace runtime {
-constexpr const uint16_t STARS_DATADUMP_LOADINFO_END_BITMAP = 0x20U;
 #if F_DESC("FusionDumpAddrSetTask")
 rtError_t FusionDumpAddrSetTaskInit(TaskInfo* taskInfo, const uint16_t modelIndex, const void *const address,
                                     const uint32_t dumpDataSize,
@@ -80,44 +79,6 @@ void ToCommandBodyForDataDumpLoadInfoTask(TaskInfo* taskInfo, rtCommand_t *const
     command->u.dataDumpLoadInfoTask.length = taskInfo->u.dataDumpLoadInfoTask.length;
 }
 
-void ConstructSqeForDataDumpLoadInfoTask(TaskInfo* taskInfo, rtStarsSqe_t *const command)
-{
-    Stream * const stm = taskInfo->stream;
-    RtStarsPhSqe *const sqe = &(command->phSqe);
-    sqe->type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
-    sqe->ie = 0U;
-    sqe->pre_p = 1U;
-    sqe->post_p = 0U;
-    sqe->wr_cqe = stm->GetStarsWrCqeFlag();
-    sqe->res0 = 0U;
-    sqe->task_type = 0U;
-
-    sqe->rt_streamID = static_cast<uint16_t>(stm->Id_());
-    sqe->task_id = taskInfo->id;
-    sqe->task_type = TS_TASK_TYPE_DATADUMP_LOADINFO;
-    sqe->kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-    sqe->u.data_dump_load_info.dumpinfoPtr = taskInfo->u.dataDumpLoadInfoTask.dumpInfo;
-    sqe->u.data_dump_load_info.length = taskInfo->u.dataDumpLoadInfoTask.length;
-    sqe->u.data_dump_load_info.stream_id = static_cast<uint16_t>(stm->Id_());
-    sqe->u.data_dump_load_info.task_id = taskInfo->id;
-    sqe->u.data_dump_load_info.kernel_type = taskInfo->u.dataDumpLoadInfoTask.kernelType;
-    sqe->u.data_dump_load_info.reserved = STARS_DATADUMP_LOADINFO_END_BITMAP;
-
-    PrintSqe(command, "DataDumpLoadInfoTask");
-    RT_LOG(RT_LOG_INFO, "DataDumpLoadInfoTask stream_id:%d task_id:%hu", stm->Id_(), taskInfo->id);
-}
-
-void DoCompleteSuccessForDataDumpLoadInfoTask(TaskInfo* taskInfo, const uint32_t devId)
-{
-    UNUSED(devId);
-    const uint32_t errorCode = taskInfo->errorCode;
-    if (unlikely(errorCode != static_cast<uint32_t>(RT_ERROR_NONE))) {
-        taskInfo->stream->SetErrCode(errorCode);
-        RT_LOG(RT_LOG_ERROR, "Data Dump Load Info retCode=%#x, [%s].",
-               errorCode, GetTsErrCodeDesc(errorCode));
-    }
-}
-
 void SetStarsResultForDataDumpLoadInfoTask(TaskInfo* taskInfo, const rtLogicCqReport_t &logicCq)
 {
     if ((logicCq.errorType & RT_STARS_EXIST_ERROR) != 0U) {
@@ -171,29 +132,6 @@ void ToCommandBodyForDebugRegisterTask(TaskInfo* taskInfo, rtCommand_t *const co
     command->u.debugRegisterTask.flag = taskInfo->u.debugRegisterTask.flag;
 }
 
-void ConstructSqeForDebugRegisterTask(TaskInfo* taskInfo, rtStarsSqe_t *const command)
-{
-    Stream * const stm = taskInfo->stream;
-    RtStarsPhSqe *const sqe = &(command->phSqe);
-    sqe->type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
-    sqe->ie = 0U;
-    sqe->pre_p = 1U;
-    sqe->post_p = 0U;
-    sqe->wr_cqe = stm->GetStarsWrCqeFlag();
-    sqe->res0 = 0U;
-    sqe->task_type = TS_TASK_TYPE_DEBUG_REGISTER;
-    sqe->rt_streamID = static_cast<uint16_t>(stm->Id_());
-    sqe->task_id = taskInfo->id;
-    sqe->kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-
-    sqe->u.model_debug_register_info.addr = taskInfo->u.debugRegisterTask.addr;
-    sqe->u.model_debug_register_info.modelId = taskInfo->u.debugRegisterTask.modelId;
-    sqe->u.model_debug_register_info.flag = taskInfo->u.debugRegisterTask.flag;
-
-    PrintSqe(command, "DebugRegister");
-    RT_LOG(RT_LOG_INFO, "DebugRegisterTask stream_id:%d task_id:%u", stm->Id_(), static_cast<uint32_t>(taskInfo->id));
-}
-
 #endif
 
 #if F_DESC("DebugUnRegisterTask")
@@ -211,33 +149,12 @@ void ToCommandBodyForDebugUnRegisterTask(TaskInfo* taskInfo, rtCommand_t *const 
     command->u.debugUnRegisterTask.modelId = taskInfo->u.debugUnRegisterTask.modelId;
 }
 
-void ConstructSqeForDebugUnRegisterTask(TaskInfo* taskInfo, rtStarsSqe_t *const command)
-{
-    Stream * const stm = taskInfo->stream;
-    RtStarsPhSqe *const sqe = &(command->phSqe);
-    sqe->type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
-    sqe->ie = 0U;
-    sqe->pre_p = 1U;
-    sqe->post_p = 0U;
-    sqe->wr_cqe = stm->GetStarsWrCqeFlag();
-    sqe->res0 = 0U;
-    sqe->task_type = TS_TASK_TYPE_DEBUG_UNREGISTER;
-    sqe->rt_streamID = static_cast<uint16_t>(stm->Id_());
-    sqe->task_id = taskInfo->id;
-    sqe->kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-
-    sqe->u.model_debug_register_info.modelId = taskInfo->u.debugUnRegisterTask.modelId;
-
-    PrintSqe(command, "DebugUnRegister");
-    RT_LOG(RT_LOG_INFO, "DebugUnRegisterTask stream_id:%d task_id:%u", stm->Id_(), static_cast<uint32_t>(taskInfo->id));
-}
-
 #endif
 
 #if F_DESC("DebugRegisterForStreamTask")
 rtError_t DebugRegisterForStreamTaskInit(TaskInfo* taskInfo, const uint32_t stmId,
-                                         const void *const address,
-                                         const uint32_t curFlag)
+                                          const void *const address,
+                                          const uint32_t curFlag)
 {
     TaskCommonInfoInit(taskInfo);
     taskInfo->u.debugRegisterForStreamTask.addr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(address));
@@ -275,31 +192,6 @@ void ToCommandBodyForDebugRegisterForStreamTask(TaskInfo* taskInfo, rtCommand_t 
     command->u.debugRegisterForStreamTask.flag = taskInfo->u.debugRegisterForStreamTask.flag;
 }
 
-void ConstructSqeForDebugRegisterForStreamTask(TaskInfo* taskInfo, rtStarsSqe_t *const command)
-{
-    Stream * const stm = taskInfo->stream;
-    RtStarsPhSqe *const sqe = &(command->phSqe);
-    sqe->type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
-    sqe->ie = 0U;
-    sqe->pre_p = 1U;
-    sqe->post_p = 0U;
-    sqe->wr_cqe = stm->GetStarsWrCqeFlag();
-    sqe->res0 = 0U;
-    sqe->task_type = 0U;
-
-    sqe->rt_streamID = static_cast<uint16_t>(stm->Id_());
-    sqe->task_id = taskInfo->id;
-    sqe->task_type = TS_TASK_TYPE_DEBUG_REGISTER_FOR_STREAM;
-    sqe->kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-    sqe->u.stream_debug_register_info.addr = taskInfo->u.debugRegisterForStreamTask.addr;
-    sqe->u.stream_debug_register_info.streamId = taskInfo->u.debugRegisterForStreamTask.streamId;
-    sqe->u.stream_debug_register_info.flag = taskInfo->u.debugRegisterForStreamTask.flag;
-
-    PrintSqe(command, "DebugRegisterForStream");
-    RT_LOG(RT_LOG_INFO, "DebugRegisterForStreamTask stream_id:%d task_id:%u",
-        stm->Id_(), static_cast<uint32_t>(taskInfo->id));
-}
-
 #endif
 
 #if F_DESC("DebugUnRegisterForStreamTask")
@@ -316,30 +208,6 @@ rtError_t DebugUnRegisterForStreamTaskInit(TaskInfo* taskInfo, const uint32_t st
 void ToCmdBodyForDebugUnRegisterForStreamTask(TaskInfo* taskInfo, rtCommand_t *const command)
 {
     command->u.debugUnRegisterForStreamTask.streamId = taskInfo->u.debugUnRegisterForStreamTask.streamId;
-}
-
-void ConstructSqeForDebugUnRegisterForStreamTask(TaskInfo* taskInfo, rtStarsSqe_t *const command)
-{
-    RtStarsPhSqe *const sqe = &(command->phSqe);
-    Stream *stm = taskInfo->stream;
-
-    sqe->type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
-    sqe->ie = 0U;
-    sqe->pre_p = 1U;
-    sqe->post_p = 0U;
-    sqe->wr_cqe = stm->GetStarsWrCqeFlag();
-    sqe->res0 = 0U;
-    sqe->task_type = 0U;
-
-    sqe->rt_streamID = static_cast<uint16_t>(stm->Id_());
-    sqe->task_id = taskInfo->id;
-    sqe->task_type = TS_TASK_TYPE_DEBUG_UNREGISTER_FOR_STREAM;
-    sqe->kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-    sqe->u.stream_debug_register_info.streamId = taskInfo->u.debugUnRegisterForStreamTask.streamId;
-
-    PrintSqe(command, "DebugUnRegisterForStream");
-    RT_LOG(RT_LOG_INFO, "DebugUnRegisterForStreamTask stream_id:%d task_id:%u",
-        stm->Id_(), static_cast<uint32_t>(taskInfo->id));
 }
 #endif
 

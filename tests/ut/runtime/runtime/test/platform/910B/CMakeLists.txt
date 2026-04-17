@@ -33,7 +33,8 @@ set(runtimeut_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_label_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_stream_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling_task.cc
-    ${TOP_DIR}/src/runtime/core/src/task/task_info/dump_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/davinci_multiple_task.cc

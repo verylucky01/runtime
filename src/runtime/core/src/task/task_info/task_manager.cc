@@ -28,6 +28,7 @@
 #include "davinci_multiple_task.h"
 #include "stars_common_task.h"
 #include "cmo_task.h"
+#include "dump_task.h"
 #include "barrier_task.h"
 #include "model_maintaince_task.h"
 #include "notify_record_task.h"

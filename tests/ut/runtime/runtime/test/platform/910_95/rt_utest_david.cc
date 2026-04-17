@@ -17,6 +17,7 @@
 #include "task_res.hpp"
 #include "task_submit.hpp"
 #include "rdma_task.h"
+#include "dump_task.h"
 #include "base.hpp"
 #include "stars_david.hpp"
 #include "task_res_da.hpp"

@@ -571,6 +571,16 @@ void ConstructDavidMemcpySqe(TaskInfo * const taskInfo, rtDavidSqe_t *const davi
 
 void PrintErrorInfoForDavidCmoTask(TaskInfo* taskInfo, const uint32_t devId);
 void UpdateDavidAICoreSqeForDavinciTask(RtDavidStarsAicAivKernelSqe * const sqe);
+void ConstructDavidSqeForDebugUnRegisterForStreamTask(TaskInfo * const taskInfo, rtDavidSqe_t *const davidSqe,
+    uint64_t sqBaseAddr);
+void ConstructDavidSqeForDebugRegisterTask(TaskInfo *taskInfo, rtDavidSqe_t * const davidSqe,
+    uint64_t sqBaseAddr);
+void ConstructDavidSqeForDebugUnRegisterTask(TaskInfo *taskInfo, rtDavidSqe_t * const davidSqe,
+    uint64_t sqBaseAddr);
+void ConstructDavidSqeForDebugRegisterForStreamTask(TaskInfo *taskInfo, rtDavidSqe_t * const davidSqe,
+    uint64_t sqBaseAddr);
+void ConstructDavidSqeForDataDumpLoadInfoTask(TaskInfo *taskInfo, rtDavidSqe_t *const davidSqe,
+    uint64_t sqBaseAddr);
 }  // namespace runtime
 }  // namespace cce
 #endif  // __CCE_RUNTIME_STARS_DAVID_HPP__

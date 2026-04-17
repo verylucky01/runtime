@@ -21,6 +21,7 @@
 #include "stars_engine.hpp"
 #include "raw_device.hpp"
 #include "barrier_task.h"
+#include "dump_task.h"
 #include "count_notify.hpp"
 #include "ffts_task.h"
 #include "kernel.hpp"

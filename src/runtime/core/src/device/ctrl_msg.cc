@@ -11,6 +11,7 @@
 #include "ctrl_sq.hpp"
 #include "task_info.hpp"
 #include "stream_task.h"
+#include "dump_task.h"
 #include "model.hpp"
 #include "stream.hpp"
 #include "raw_device.hpp"

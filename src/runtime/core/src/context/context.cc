@@ -25,6 +25,7 @@
 #include "npu_driver.hpp"
 #include "onlineprof.hpp"
 #include "task.hpp"
+#include "dump_task.h"
 #include "osal.hpp"
 #include "error_message_manage.hpp"
 #include "profiler.hpp"

@@ -25,7 +25,8 @@ set(libruntime_cmodel_v100_task_src_files
     ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_stream_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/profiling_task.cc
-    ${RUNTIME_CORE_DIR}/src/task/task_info/dump_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/stream/stream_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/stream/stream_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_execute_time.cc
@@ -70,7 +71,8 @@ set(david_series_common_task_src_file_cmodel
     ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_stream_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/profiling_task.cc
-    ${RUNTIME_CORE_DIR}/src/task/task_info/dump_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task_v200_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/stream/stream_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/stream/stream_task_v200_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_execute_time.cc
@@ -113,6 +115,7 @@ set(david_series_common_task_src_file_cmodel
     ${RUNTIME_CORE_DIR}/src/task/task_info/barrier/barrier_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cmo/cmo_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/stream/stream_task_v100.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task_v100.cc
 )
 
 set(libruntime_cmodel_v200_task_src_files

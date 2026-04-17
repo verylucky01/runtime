@@ -21,6 +21,7 @@
 #include "ctrl_sq.hpp"
 #include "cmo_task.h"
 #include "stream_task.h"
+#include "dump_task.h"
 
 namespace cce {
 namespace runtime {

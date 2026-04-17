@@ -30,7 +30,7 @@ set(runtimeut_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_label_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_stream_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling_task.cc
-    ${TOP_DIR}/src/runtime/core/src/task/task_info/dump_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/davinci_multiple_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stars_common_task.cc
@@ -57,6 +57,7 @@ set(runtimeut_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/task_info/barrier/barrier_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cmo/cmo_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task_v100.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task_v100.cc
 )
 
 set(runtimeut_david_series_common_src_task_list
@@ -90,11 +91,13 @@ set(runtimeut_david_series_common_src_task_list
     ${TOP_DIR}/src/runtime/feature/ccu/ccu_sqe.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cmo/cmo_task_v200_base.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task_v200_base.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task_v200_base.cc
 
     # mechanism dependance
     ${TOP_DIR}/src/runtime/core/src/task/task_info/barrier/barrier_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cmo/cmo_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task_v100.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task_v100.cc
 )
 
 set(runtimeut_david_src_task_list

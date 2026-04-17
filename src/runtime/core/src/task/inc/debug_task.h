@@ -24,22 +24,9 @@ void ToCommandBodyForOnlineProfDisableTask(TaskInfo * const taskInfo, rtCommand_
 void ToCommandBodyForAdcProfTask(TaskInfo * const taskInfo, rtCommand_t *const command);
 void ToCommandBodyForProfilerTraceTask(TaskInfo* taskInfo, rtCommand_t *const command);
 void ToCommandBodyForProfilerTraceExTask(TaskInfo* taskInfo, rtCommand_t *const command);
-void ToCommandBodyForFusionDumpAddrSetTask(TaskInfo* taskInfo, rtCommand_t *const command);
-void ToCommandBodyForDataDumpLoadInfoTask(TaskInfo* taskInfo, rtCommand_t *const command);
-void ToCommandBodyForDebugRegisterTask(TaskInfo* taskInfo, rtCommand_t *const command);
-void ToCommandBodyForDebugUnRegisterTask(TaskInfo* taskInfo, rtCommand_t *const command);
-void ToCommandBodyForDebugRegisterForStreamTask(TaskInfo* taskInfo, rtCommand_t *const command);
-void ToCmdBodyForDebugUnRegisterForStreamTask(TaskInfo* taskInfo, rtCommand_t *const command);
 void ConstructSqeForProfilingEnableTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command);
 void ConstructSqeForProfilingDisableTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command);
 void ConstructSqeForProfilerTraceExTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
-void ConstructSqeForDebugRegisterForStreamTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
-void ConstructSqeForDebugUnRegisterForStreamTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
-void ConstructSqeForDataDumpLoadInfoTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
-void ConstructSqeForDebugRegisterTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
-void ConstructSqeForDebugUnRegisterTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
-void DoCompleteSuccessForDataDumpLoadInfoTask(TaskInfo* taskInfo, const uint32_t devId);
-void SetStarsResultForDataDumpLoadInfoTask(TaskInfo* taskInfo, const rtLogicCqReport_t &logicCq);
 }  // namespace runtime
 }  // namespace cce
 #endif

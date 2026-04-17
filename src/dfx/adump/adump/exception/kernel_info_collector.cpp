@@ -374,12 +374,6 @@ int32_t KernelInfoCollector::CollectKernelFile(const std::string &kernelName, co
 
 int32_t KernelInfoCollector::GetExceptionRegInfo(const rtExceptionInfo &exception, ExceptionRegInfo &exceptionRegInfo)
 {
-    uint32_t platform = 0;
-    IDE_CTRL_VALUE_FAILED(AdumpDsmi::DrvGetPlatformType(platform), return ADUMP_FAILED, "Get platform type failed.");
-    if (static_cast<PlatformType>(platform) != PlatformType::CHIP_CLOUD_V2) {
-        IDE_LOGW("Not support to get error register information from RTS.");
-        return ADUMP_FAILED;
-    }
     rtError_t rtRet = rtGetExceptionRegInfo(&exception, &exceptionRegInfo.errRegInfo, &exceptionRegInfo.coreNum);
     IDE_CTRL_VALUE_FAILED(rtRet == RT_ERROR_NONE, return ADUMP_FAILED,
         "Call rtGetExceptionRegInfo for error register information failed. ret: %d", static_cast<int32_t>(rtRet));

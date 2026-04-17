@@ -25,7 +25,9 @@ using namespace Adx;
 
 class DUMP_CORE_UTEST : public testing::Test {
 protected:
-    virtual void SetUp() {}
+    virtual void SetUp() {
+        MOCKER(&Adx::KernelInfoCollector::ParseKernelSymbols).stubs().will(invoke(Adx::ParseKernelSymbolsStub));
+    }
     virtual void TearDown() {
         DumpManager::Instance().Reset();
         FreeExceptionRegInfo();
@@ -100,25 +102,18 @@ std::vector<uint8_t> GetTensorData(T &tensor)
     return tensorData;
 }
 
-TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
+void EnableCoreDump(uint32_t chipType)
 {
-    uint32_t type = 5; // CHIP_CLOUD_V2
+    uint32_t type = 5;
     MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(type)).will(returnValue(true));
-    MOCKER(&Adx::KernelInfoCollector::ParseKernelSymbols).stubs().will(invoke(Adx::ParseKernelSymbolsStub));
-
     DumpConfig dumpConf;
     dumpConf.dumpPath = "/tmp/adump_coredump_utest";
     dumpConf.dumpStatus = "on";
     EXPECT_EQ(AdumpSetDumpConfig(DumpType::AIC_ERR_DETAIL_DUMP, dumpConf), ADUMP_SUCCESS);
-    rtSetDevice(0);
-    rtDeviceReset(0);
-    rtSetDevice(0);
+}
 
-    rtExceptionInfo exceptionInfo = {0};
-    exceptionInfo.streamid = 1;
-    exceptionInfo.taskid = 1;
-    exceptionInfo.deviceid = 1;
-    exceptionInfo.expandInfo.type = RT_EXCEPTION_AICORE;
+void InitCoreDumpExceptionArgs(rtExceptionInfo &exceptionInfo)
+{
     char fftsAddr[] = "ffts addr";
     int32_t tensor[] = {1, 2, 3, 4, 5, 6};
     float input0[] = {1, 2, 3, 4, 5, 6};
@@ -155,8 +150,10 @@ TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
     args[21] = reinterpret_cast<uint64_t>(&shapePtrScalar);
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.argAddr = args;
     exceptionInfo.expandInfo.u.aicoreInfo.exceptionArgs.argsize = sizeof(args);
+}
 
-    std::vector<uint8_t> dfxInfoValue;
+void InitCoreDumpExceptionDfxFftsAddrTensor(std::vector<uint8_t> &dfxInfoValue)
+{
     // ffts addr
     std::vector<uint8_t> fftsAddrDfxInfo;
     WithoutSizeTensor fftsAddrTensor = {
@@ -164,8 +161,12 @@ TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
         (static_cast<uint16_t>(DfxPointerType::LEVEL_1_POINTER) << POINTER_TYPE_SHIFT_BITS)};
     generateDfxInfo(fftsAddrDfxInfo, fftsAddrTensor);
     dfxInfoValue.insert(dfxInfoValue.end(), fftsAddrDfxInfo.begin(), fftsAddrDfxInfo.end());
+}
 
+void InitCoreDumpExceptionDfxGeneralTensor(std::vector<uint8_t> &dfxInfoValue)
+{
     // general tensor
+    int32_t tensor[] = {1, 2, 3, 4, 5, 6};
     std::vector<uint8_t> tensorDfxInfo;
     StaticL1PointerTensor generalTensor;
     generalTensor.argsType = static_cast<uint16_t>(DfxTensorType::GENERAL_TENSOR) |
@@ -175,8 +176,12 @@ TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
     generalTensor.shape = {1, 6};
     generateDfxInfo(tensorDfxInfo, generalTensor);
     dfxInfoValue.insert(dfxInfoValue.end(), tensorDfxInfo.begin(), tensorDfxInfo.end());
+}
 
+void InitCoreDumpExceptionDfxInputTensor(std::vector<uint8_t> &dfxInfoValue)
+{
     // input0
+    float input0[] = {1, 2, 3, 4, 5, 6};
     std::vector<uint8_t> inputDfxInfo;
     StaticL1PointerTensor inputTensor;
     inputTensor.argsType = static_cast<uint16_t>(DfxTensorType::INPUT_TENSOR) |
@@ -186,18 +191,25 @@ TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
     inputTensor.shape = {2, 3};
     generateDfxInfo(inputDfxInfo, inputTensor);
     dfxInfoValue.insert(dfxInfoValue.end(), inputDfxInfo.begin(), inputDfxInfo.end());
+}
 
+void InitCoreDumpExceptionDfxOutputTensor(std::vector<uint8_t> &dfxInfoValue)
+{
     // output0
+    float output0[] = {2, 4, 6, 8, 10, 12};
     std::vector<uint8_t> outputDfxInfo;
     StaticL1PointerTensor outputTensor;
     outputTensor.argsType = static_cast<uint16_t>(DfxTensorType::OUTPUT_TENSOR) |
                             (static_cast<uint16_t>(DfxPointerType::LEVEL_1_POINTER) << POINTER_TYPE_SHIFT_BITS);
-    outputTensor.size = sizeof(input0);
+    outputTensor.size = sizeof(output0);
     outputTensor.dim = 2;
     outputTensor.shape = {3, 2};
     generateDfxInfo(outputDfxInfo, outputTensor);
     dfxInfoValue.insert(dfxInfoValue.end(), outputDfxInfo.begin(), outputDfxInfo.end());
+}
 
+void InitCoreDumpExceptionDfxPlaceholdTensor(std::vector<uint8_t> &dfxInfoValue)
+{
     // placehold
     std::vector<uint8_t> placeholdDfxInfo;
     StaticL1PointerTensor placeholdTensor;
@@ -208,7 +220,10 @@ TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
     placeholdTensor.shape = {4, 2};
     generateDfxInfo(placeholdDfxInfo, placeholdTensor);
     dfxInfoValue.insert(dfxInfoValue.end(), placeholdDfxInfo.begin(), placeholdDfxInfo.end());
+}
 
+void InitCoreDumpExceptionDfxNormalTensor(std::vector<uint8_t> &dfxInfoValue)
+{
     // normal pointer
     std::vector<uint8_t> normalPointerDfxInfo;
     L2PointerTensor normalPointerTensor;
@@ -218,7 +233,10 @@ TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
     normalPointerTensor.dataTypeSize = 4;
     generateDfxInfo(normalPointerDfxInfo, normalPointerTensor);
     dfxInfoValue.insert(dfxInfoValue.end(), normalPointerDfxInfo.begin(), normalPointerDfxInfo.end());
+}
 
+void InitCoreDumpExceptionDfxShapePointerTensor(std::vector<uint8_t> &dfxInfoValue)
+{
     // shape pointer
     std::vector<uint8_t> shapePointerDfxInfo;
     L2PointerTensor shapePointerTensor;
@@ -229,8 +247,12 @@ TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
     shapePointerTensor.dataTypeSize = 4;
     generateDfxInfo(shapePointerDfxInfo, shapePointerTensor);
     dfxInfoValue.insert(dfxInfoValue.end(), shapePointerDfxInfo.begin(), shapePointerDfxInfo.end());
+}
 
+void InitCoreDumpExceptionDfxWorkspaceTensor(std::vector<uint8_t> &dfxInfoValue)
+{
     // workspace
+    int32_t workspace[] = {100, 100, 100};
     std::vector<uint8_t> workspaceDfxInfo;
     WithSizeTensor workspaceTensor = {
         static_cast<uint16_t>(DfxTensorType::WORKSPACE_TENSOR) |
@@ -238,6 +260,29 @@ TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
         sizeof(workspace)};
     generateDfxInfo(workspaceDfxInfo, workspaceTensor);
     dfxInfoValue.insert(dfxInfoValue.end(), workspaceDfxInfo.begin(), workspaceDfxInfo.end());
+}
+
+void CoreDumpBaseProcess(uint32_t chipType)
+{
+    uint32_t type = chipType;
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(type)).will(returnValue(true));
+    rtSetDevice(0);
+    rtDeviceReset(0);
+    rtSetDevice(0);
+
+    rtExceptionInfo exceptionInfo = {1, 1, 0, 1, 0, {RT_EXCEPTION_AICORE, {0}}};
+    // exceptionInfo.expandInfo.type = RT_EXCEPTION_AICORE;
+    InitCoreDumpExceptionArgs(exceptionInfo);
+
+    std::vector<uint8_t> dfxInfoValue;
+    InitCoreDumpExceptionDfxFftsAddrTensor(dfxInfoValue);
+    InitCoreDumpExceptionDfxGeneralTensor(dfxInfoValue);
+    InitCoreDumpExceptionDfxInputTensor(dfxInfoValue);
+    InitCoreDumpExceptionDfxOutputTensor(dfxInfoValue);
+    InitCoreDumpExceptionDfxPlaceholdTensor(dfxInfoValue);
+    InitCoreDumpExceptionDfxNormalTensor(dfxInfoValue);
+    InitCoreDumpExceptionDfxShapePointerTensor(dfxInfoValue);
+    InitCoreDumpExceptionDfxWorkspaceTensor(dfxInfoValue);
 
     // total dfxInfo
     std::vector<uint8_t> dfxInfo;
@@ -272,6 +317,21 @@ TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP)
     EXPECT_EQ(0, system("readelf /tmp/adump_coredump_utest/*.core -p .ascend.local.1"));
 
     system("rm -r /tmp/adump_coredump_utest");
+}
+
+TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP_A2A3)
+{
+    // CHIP_CLOUD_V2
+    uint32_t chipType = 5;
+    EnableCoreDump(chipType);
+    CoreDumpBaseProcess(chipType);
+}
+
+TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP_A5)
+{
+    // CHIP_CLOUD_V4
+    uint32_t chipType = 15;
+    CoreDumpBaseProcess(chipType);
 }
 
 TEST_F(DUMP_CORE_UTEST, TEST_CORE_DUMP_OLD)

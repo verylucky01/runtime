@@ -295,6 +295,7 @@ int32_t DumpCore::D2HMemcpyWithCheck(const GlobalMemInfo &memInfo, std::string &
 
 int32_t DumpCore::ProcessGlobalMemory(GlobalMemInfo &memInfo, std::vector<GlobalMemInfo> &memInfoList, bool checkAddr)
 {
+    IDE_LOGI("Dump device data. data type: %hu, addr: 0x%llx, size: %llu", memInfo.type, memInfo.devAddr, memInfo.size);
     std::string curData(memInfo.size, 0);
     if (memInfo.size != 0) {
         if (checkAddr) {
@@ -416,21 +417,34 @@ void DumpCore::DumpWorkSpace(const DumpArgs &args, std::vector<GlobalMemInfo> &m
 void DumpCore::DumpStack(const rtBinHandle &binHandle, std::vector<GlobalMemInfo> &memInfoList)
 {
     for (uint16_t aicId : aiCoreIds_) {
-        DumpCoreStack(binHandle, CORE_TYPE_AIC, aicId, memInfoList);
+        IDE_LOGI("Dump core stack data. coreType: aic, coreId: %hu", aicId);
+        DumpCoreStack(
+            binHandle, CORE_TYPE_AIC, aicId, false, RT_STACK_TYPE_SCALAR, DfxTensorType::STACK, memInfoList);
+        DumpCoreStack(
+            binHandle, CORE_TYPE_AIC, aicId, true, RT_STACK_TYPE_SIMT, DfxTensorType::SIMT_STACK, memInfoList);
     }
     for (uint16_t aivId : aiVectorCoreIds_) {
-        DumpCoreStack(binHandle, CORE_TYPE_AIV, aivId, memInfoList);
+        IDE_LOGI("Dump core stack data. coreType: aiv, coreId: %hu", aivId);
+        DumpCoreStack(
+            binHandle, CORE_TYPE_AIV, aivId, false, RT_STACK_TYPE_SCALAR, DfxTensorType::STACK, memInfoList);
+        DumpCoreStack(
+            binHandle, CORE_TYPE_AIV, aivId, true, RT_STACK_TYPE_SIMT, DfxTensorType::SIMT_STACK, memInfoList);
     }
 }
 
-void DumpCore::DumpCoreStack(const rtBinHandle &binHandle, uint8_t coreType, uint16_t coreId,
+void DumpCore::DumpCoreStack(const rtBinHandle& binHandle, const uint8_t coreType, const uint16_t coreId,
+    bool checkAddr, const rtStackType_t rtStackType, DfxTensorType dumpStackType,
     std::vector<GlobalMemInfo> &memInfoList)
 {
     const void *stackAddr = nullptr;
     uint32_t stackSize = 0;
-    rtError_t rtRet = rtGetStackBuffer(binHandle, 0U, RT_STACK_TYPE_SCALAR, coreType, coreId, &stackAddr, &stackSize);
+    rtError_t rtRet = rtGetStackBuffer(binHandle, 0U, rtStackType, coreType, coreId, &stackAddr, &stackSize);
+    if (rtRet == ACL_ERROR_RT_FEATURE_NOT_SUPPORT) {
+        IDE_LOGW("RTS does not support rtGetStackBuffer feature. stackType: %d, ret: %d", rtStackType, rtRet);
+        return;
+    }
     if ((rtRet != RT_ERROR_NONE) || (stackAddr == nullptr)) {
-        IDE_LOGE("Call rtGetStackBuffer to get stack data failed, coreType: %hhu coreId: %hu, ret: %d",
+        IDE_LOGE("Call rtGetStackBuffer to get stack data failed, coreType: %hhu, coreId: %hu, ret: %d",
             coreType, coreId, static_cast<int32_t>(rtRet));
         return;
     }
@@ -438,12 +452,12 @@ void DumpCore::DumpCoreStack(const rtBinHandle &binHandle, uint8_t coreType, uin
         .devAddr = reinterpret_cast<uint64_t>(stackAddr),
         .size = stackSize,
         .sectionIndex = 0,
-        .type = DfxTensorType::STACK,
+        .type = dumpStackType,
         .reserve = 0,
         .extraInfo = {.coreInfo = {ConvertCoreId(coreType, coreId)}}
     };
 
-    int32_t ret = ProcessGlobalMemory(memInfo, memInfoList, false);
+    int32_t ret = ProcessGlobalMemory(memInfo, memInfoList, checkAddr);
     IDE_CTRL_VALUE_FAILED(ret == ADUMP_SUCCESS, return,
             "Save stack section failed, core type: %hhu, core id: %hu", coreType, coreId);
 

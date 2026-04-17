@@ -37,7 +37,9 @@ using namespace Adx;
 
 class DumpArgsUtest : public testing::Test {
 protected:
-    virtual void SetUp() {}
+    virtual void SetUp() {
+        MOCKER(&Adx::KernelInfoCollector::ParseKernelSymbols).stubs().will(invoke(Adx::ParseKernelSymbolsStub));
+    }
     virtual void TearDown()
     {
         ThreadManager::Instance().WaitAll();

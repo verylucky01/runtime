@@ -46,6 +46,8 @@ typedef enum ErrRegInfoIdxV200 {
     RT_V200_CUBE_ERROR_T0_1,
     RT_V200_L1_ERROR_T0_0,
     RT_V200_L1_ERROR_T0_1,
+    RT_V200_SC_ERR_INFO_T0_0,
+    RT_V200_SC_ERR_INFO_T0_1,
 } rtErrRegInfoIdxV200_t;
 
 #if defined(__cplusplus)

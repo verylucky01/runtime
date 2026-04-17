@@ -27,7 +27,6 @@ set(ascendDumpSrcList
     ${ADUMP_ADUMP_DIR}/exception/dump_args.cpp
     ${ADUMP_ADUMP_DIR}/exception/dump_core/dump_core.cpp
     ${ADUMP_ADUMP_DIR}/exception/dump_core/dump_core_register.cpp
-    ${ADUMP_ADUMP_DIR}/exception/dump_core/dump_core_platform.cpp
     ${ADUMP_ADUMP_DIR}/exception/dump_ELF.cpp
     ${ADUMP_ADUMP_DIR}/exception/dump_file.cpp
     ${ADUMP_ADUMP_DIR}/exception/dump_operator.cpp
@@ -37,7 +36,6 @@ set(ascendDumpSrcList
     ${ADUMP_ADUMP_DIR}/exception/exception_info_common.cpp
     ${ADUMP_ADUMP_DIR}/exception/kernel_info_collector.cpp
     ${ADUMP_ADUMP_DIR}/exception/register_config/register_config.cpp
-    ${ADUMP_ADUMP_DIR}/exception/register_config/register_config_platform.cpp
     ${ADUMP_ADUMP_DIR}/exception/thread_manager.cpp
     ${ADUMP_ADUMP_DIR}/impl/dump_datatype.cpp
     ${ADUMP_ADUMP_DIR}/impl/dump_memory.cpp

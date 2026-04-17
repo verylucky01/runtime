@@ -26,16 +26,16 @@ constexpr uint32_t MOUDLE_TYPE_SHIFT = 52U;
 
 struct RegisterTable {
     RegisterTable(uint64_t regStartAddr, uint32_t regNum, uint8_t regByteWidth):
-        startAddr(regStartAddr), num(regNum), byteWith(regByteWidth) {}
+        startAddr(regStartAddr), num(regNum), byteWidth(regByteWidth) {}
     uint64_t startAddr;
     uint32_t num;
-    uint8_t byteWith;
+    uint8_t byteWidth;
 };
 
 struct RegisterStepTable {
     uint64_t startAddr;
     uint32_t num;
-    uint8_t byteWith;
+    uint8_t byteWidth;
     uint8_t step;
 };
 
@@ -88,6 +88,7 @@ public:
 private:
     uint64_t GetAddr(uint64_t type, uint64_t regAddrHigh, uint64_t regAddrLow) const;
     void GenAddrByStep(RegisterType regType, const std::vector<RegisterStepTable> &regStepTab);
+    void InitErrorRegisterMap();
 };
 
 class RegisterManager {

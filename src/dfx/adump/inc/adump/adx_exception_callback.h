@@ -51,9 +51,10 @@ enum class DfxTensorType : uint16_t {
     OVERFLOW_ADDRESS = 10,
     FFTS_ADDRESS,
     SHAPE_TENSOR,
-    ARGS = 101,    // args以下为 coredump 新增的，中间预留，从101开始定义
-    STACK = 102,
-    DEVICE_KERNEL_OBJECT = 103,   //device侧GM中算子.o数据
+    ARGS = 101, // args以下为 coredump 新增的，中间预留，从101开始定义
+    STACK = 102, // scalar算子stack数据
+    DEVICE_KERNEL_OBJECT = 103, // device侧GM中算子.o数据
+    SIMT_STACK = 104, // simt算子stack数据
 };
 
 /**

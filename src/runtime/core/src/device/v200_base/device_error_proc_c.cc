@@ -483,19 +483,8 @@ static void ProcessCoreErrorClass(const Device * const dev, const StarsDeviceErr
     SetDeviceFaultTypeByAixErrClass(dev, info, errTaskPtr);
 }
 
-static void AddExceptionRegInfo(const StarsDeviceErrorInfo * const starsInfo, const uint32_t coreIdx,
-    const uint16_t type, const TaskInfo *errTaskPtr)
+static void GetRegInfoErrReg(const DavidOneCoreErrorInfo& info, rtExceptionErrRegInfo_t &regInfo)
 {
-    COND_RETURN_NORMAL(type != AICORE_ERROR && type != AIVECTOR_ERROR, "the type[%hu] not match", type);
-    COND_RETURN_VOID(errTaskPtr == nullptr || errTaskPtr->stream == nullptr ||
-        errTaskPtr->stream->Device_() == nullptr, "cannot get the device by errTaskPtr");
-
-    const DavidOneCoreErrorInfo& info = starsInfo->u.davidCoreErrorInfo.info[coreIdx];
-    rtExceptionErrRegInfo_t regInfo = {};
-    regInfo.coreId = static_cast<uint32_t>(info.coreId);
-    regInfo.coreType = static_cast<rtCoreType_t>(type);
-    regInfo.startPC = info.pcStart;
-    regInfo.currentPC = info.currentPC;
     const uint8_t REG_OFFSET = 32;
     regInfo.errReg[RT_V200_SU_ERR_INFO_T0_0] = static_cast<uint32_t>(info.suErrInfo[0]);
     regInfo.errReg[RT_V200_SU_ERR_INFO_T0_1] = static_cast<uint32_t>(info.suErrInfo[0] >> REG_OFFSET);
@@ -527,6 +516,24 @@ static void AddExceptionRegInfo(const StarsDeviceErrorInfo * const starsInfo, co
     regInfo.errReg[RT_V200_CUBE_ERROR_T0_1] = static_cast<uint32_t>(info.cubeError >> REG_OFFSET);
     regInfo.errReg[RT_V200_L1_ERROR_T0_0] = static_cast<uint32_t>(info.l1Error);
     regInfo.errReg[RT_V200_L1_ERROR_T0_1] = static_cast<uint32_t>(info.l1Error >> REG_OFFSET);
+    regInfo.errReg[RT_V200_SC_ERR_INFO_T0_0] = static_cast<uint32_t>(info.scErrInfo);
+    regInfo.errReg[RT_V200_SC_ERR_INFO_T0_1] = static_cast<uint32_t>(info.scErrInfo >> REG_OFFSET);
+}
+
+static void AddExceptionRegInfo(const StarsDeviceErrorInfo * const starsInfo, const uint32_t coreIdx,
+    const uint16_t type, const TaskInfo *errTaskPtr)
+{
+    COND_RETURN_NORMAL(type != AICORE_ERROR && type != AIVECTOR_ERROR, "the type[%hu] not match", type);
+    COND_RETURN_VOID(errTaskPtr == nullptr || errTaskPtr->stream == nullptr ||
+        errTaskPtr->stream->Device_() == nullptr, "cannot get the device by errTaskPtr");
+
+    const DavidOneCoreErrorInfo& info = starsInfo->u.davidCoreErrorInfo.info[coreIdx];
+    rtExceptionErrRegInfo_t regInfo = {};
+    regInfo.coreId = static_cast<uint32_t>(info.coreId);
+    regInfo.coreType = static_cast<rtCoreType_t>(type);
+    regInfo.startPC = info.pcStart;
+    regInfo.currentPC = info.currentPC;
+    GetRegInfoErrReg(info, regInfo);
 
     Device *dev = errTaskPtr->stream->Device_();
     uint32_t taskSn = errTaskPtr->taskSn;

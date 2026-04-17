@@ -23,10 +23,12 @@
 #include "mmpa_api.h"
 
 using namespace Adx;
+INT32 mmSleep_stub(UINT32 millseconds);
 
 class KernelDfxDumperUtest: public testing::Test {
 protected:
     virtual void SetUp() {
+        MOCKER(mmSleep).stubs().will(invoke(mmSleep_stub));
         KernelDfxDumper::Instance().UnInit();
     }
     virtual void TearDown()
@@ -35,6 +37,12 @@ protected:
         GlobalMockObject::verify();
     }
 };
+
+INT32 mmSleep_stub(UINT32 millseconds)
+{
+    usleep(millseconds * 1000);
+    return 0;
+}
 
 TEST_F(KernelDfxDumperUtest, Test_DfxDumper_EnableWithEnv)
 {

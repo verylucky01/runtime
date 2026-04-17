@@ -30,9 +30,9 @@ const std::string DEFAULT_KERNEL_NAME("unknow_kernel");
 
 class DumpCore {
 public:
-    explicit DumpCore(const std::string &path, uint32_t devId) : path_(path), devId_(devId) {};
+    explicit DumpCore(const std::string& path, uint32_t devId) : path_(path), devId_(devId) {};
     ~DumpCore() = default;
-    int32_t DumpCoreFile(const rtExceptionInfo &exception);
+    int32_t DumpCoreFile(const rtExceptionInfo& exception);
 
 private:
     struct CacheParam {
@@ -43,54 +43,67 @@ private:
         uint32_t sectionIndex;
         rtDebugMemoryType_t cacheType;
         CacheParam() : coreType(0), coreId(0), memSize(0), memAddr(0), sectionIndex(0), cacheType(RT_MEM_TYPE_MAX) {}
-        CacheParam(uint8_t type, uint16_t id, uint64_t size, uint64_t addr, uint32_t index,
-            rtDebugMemoryType_t memType) : coreType(type), coreId(id), memSize(size), memAddr(addr),
-            sectionIndex(index), cacheType(memType) {}
+        CacheParam(uint8_t type, uint16_t id, uint64_t size, uint64_t addr, uint32_t index, rtDebugMemoryType_t memType)
+            : coreType(type), coreId(id), memSize(size), memAddr(addr), sectionIndex(index), cacheType(memType)
+        {}
     };
 
     void DumpCoreInfo(uint32_t devId);
 
-    void DumpGlobalMemory(const rtExceptionInfo &exception);
-    int32_t ProcessGlobalMemory(GlobalMemInfo &memInfo, std::vector<GlobalMemInfo> &memInfoList, bool checkAddr = true);
-    void DumpArgsInfo(const rtExceptionArgsInfo_t &exceptionArgsInfo, std::vector<GlobalMemInfo> &memInfoList);
-    void DumpInput(const DumpArgs &args, std::vector<GlobalMemInfo> &memInfoList);
-    void DumpTensorBuffer(const DumpArgs &args, std::vector<GlobalMemInfo> &memInfoList);
-    void DumpWorkSpace(const DumpArgs &args, std::vector<GlobalMemInfo> &memInfoList);
-    void DumpStack(const rtBinHandle &binHandle, std::vector<GlobalMemInfo> &memInfoList);
-    void DumpCoreStack(const rtBinHandle &binHandle, uint8_t coreType, uint16_t coreId,
-        std::vector<GlobalMemInfo> &memInfoList);
-    void DumpHostKernelBin(const rtExceptionKernelInfo_t &kernelInfo);
-    void DumpDeviceKernelBin(const rtExceptionKernelInfo_t &kernelInfo, std::vector<GlobalMemInfo> &memInfoList);
-    void DumpHostFile(const rtExceptionArgsInfo_t &argsInfo);
-    void DumpHostFile(const std::string &filePath, uint32_t sectionType, const std::string &sectionName);
-    void DumpKernelInfo(const std::string &kernelName);
-    void DumpGlobalAuxInfo(const std::vector<GlobalMemInfo> &memInfoList);
-    int32_t D2HMemcpyWithCheck(const GlobalMemInfo &memInfo, std::string &data) const;
-    int32_t D2HMemcpyWithNoCheck(const GlobalMemInfo &memInfo, std::string &data) const;
+    void DumpGlobalMemory(const rtExceptionInfo& exception);
+    int32_t ProcessGlobalMemory(GlobalMemInfo& memInfo, std::vector<GlobalMemInfo>& memInfoList, bool checkAddr = true);
+    void DumpArgsInfo(const rtExceptionArgsInfo_t& exceptionArgsInfo, std::vector<GlobalMemInfo>& memInfoList);
+    void DumpInput(const DumpArgs& args, std::vector<GlobalMemInfo>& memInfoList);
+    void DumpTensorBuffer(const DumpArgs& args, std::vector<GlobalMemInfo>& memInfoList);
+    void DumpWorkSpace(const DumpArgs& args, std::vector<GlobalMemInfo>& memInfoList);
+    void DumpStack(const rtBinHandle& binHandle, std::vector<GlobalMemInfo>& memInfoList);
+    void DumpCoreStack(const rtBinHandle& binHandle, const uint8_t coreType, const uint16_t coreId, bool checkAddr,
+        const rtStackType_t rtStackType, DfxTensorType dumpStackType, std::vector<GlobalMemInfo> &memInfoList);
+    void DumpHostKernelBin(const rtExceptionKernelInfo_t& kernelInfo);
+    void DumpDeviceKernelBin(const rtExceptionKernelInfo_t& kernelInfo, std::vector<GlobalMemInfo>& memInfoList);
+    void DumpHostFile(const rtExceptionArgsInfo_t& argsInfo);
+    void DumpHostFile(const std::string& filePath, uint32_t sectionType, const std::string& sectionName);
+    void DumpKernelInfo(const std::string& kernelName);
+    void DumpGlobalAuxInfo(const std::vector<GlobalMemInfo>& memInfoList);
+    int32_t D2HMemcpyWithCheck(const GlobalMemInfo& memInfo, std::string& data) const;
+    int32_t D2HMemcpyWithNoCheck(const GlobalMemInfo& memInfo, std::string& data) const;
     void DumpResourceInit();
     void DumpLocalMemory(uint8_t coreType, uint16_t coreId);
-    void DumpCache(uint8_t coreType, uint16_t coreId, const std::string &sectionName,
-        std::vector<LocalMemInfo> &localMemInfoList);
-    void DumpCache(uint8_t coreType, uint16_t coreId, const CacheParam &cacheParam, const std::string &sectionName,
-        std::vector<LocalMemInfo> &localMemInfoList);
-    void DumpBuffer(uint8_t coreType, uint16_t coreId, const std::string &sectionName,
-        std::vector<LocalMemInfo> &localMemInfoList);
-    void DumpLocalAuxInfo(const std::string &coreIdStr, std::vector<LocalMemInfo> &localMemInfoList);
+    void DumpCache(
+        uint8_t coreType, uint16_t coreId, const std::string& sectionName, std::vector<LocalMemInfo>& localMemInfoList);
+    void DumpCache(
+        uint8_t coreType, uint16_t coreId, const CacheParam& cacheParam, const std::string& sectionName,
+        std::vector<LocalMemInfo>& localMemInfoList);
+    void DumpBuffer(
+        uint8_t coreType, uint16_t coreId, const std::string& sectionName, std::vector<LocalMemInfo>& localMemInfoList);
+    void DumpLocalAuxInfo(const std::string& coreIdStr, std::vector<LocalMemInfo>& localMemInfoList);
     void DumpRegister(uint8_t coreType, uint16_t coreId);
     void DumpV2Register(uint8_t coreType, uint16_t coreId);
-    void DumpV2DebugRegister(uint8_t coreType, uint16_t coreId, const std::vector<RegisterTable> &tables,
-        std::vector<RegInfo> &regData) const;
-    void DumpV2ErrorRegister(uint8_t coreType, uint16_t coreId, const std::vector<ErrorRegisterTable> &tables,
-        std::vector<RegInfo> &regData) const;
+    void DumpV2DebugRegister(
+        uint8_t coreType, uint16_t coreId, const std::vector<RegisterTable>& tables,
+        std::vector<RegInfo>& regData) const;
+    void DumpV2ErrorRegister(
+        uint8_t coreType, uint16_t coreId, const std::vector<ErrorRegisterTable>& tables,
+        std::vector<RegInfo>& regData) const;
     void DumpV4Register(uint8_t coreType, uint16_t coreId);
-    void DumpV4DebugRegister(uint8_t coreType, uint16_t coreId, const std::vector<RegisterTable> &tables,
-        std::vector<RegInfoWide> &regData) const;
-    bool DumpReadDebugAICoreRegister(uint8_t coreType, uint16_t coreId, const RegisterTable &table,
-        std::string &data) const;
-    std::string FormatRegisterData(const uint8_t *valAddr, uint8_t valSize) const;
+    void DumpV4DebugRegister(
+        uint8_t coreType, uint16_t coreId, const std::vector<RegisterTable>& tables,
+        std::vector<RegInfoWide>& regData) const;
+    void DumpV4ErrorRegister(
+        uint8_t coreType, uint16_t coreId, const std::vector<ErrorRegisterTable>& tables,
+        std::vector<RegInfoWide>& regData) const;
+    bool DumpReadDebugAICoreRegister(
+        uint8_t coreType, uint16_t coreId, const RegisterTable& table, std::vector<uint8_t>& data) const;
+    std::string FormatRegisterData(const uint8_t* valAddr, uint8_t valSize) const;
+    template <typename T>
+    void DumpDebugRegisterImpl(
+        uint8_t coreType, uint16_t coreId, const std::vector<RegisterTable>& tables, std::vector<T>& regData) const;
+    template <typename T>
+    void DumpErrorRegisterImpl(
+        uint8_t coreType, uint16_t coreId, const std::vector<ErrorRegisterTable>& tables,
+        std::vector<T>& regData) const;
     uint16_t ConvertCoreId(uint8_t coreType, uint16_t coreId) const;
-    void SaveCoreFile(const rtExceptionInfo &exception);
-
+    void SaveCoreFile(const rtExceptionInfo& exception);
     std::string path_;
     uint32_t devId_;
     ELF::DumpELF coreFile_;
@@ -104,5 +117,5 @@ private:
     std::vector<CacheParam> stackParamList_;
     ExceptionRegInfo exceptionRegInfo_{0, nullptr};
 };
-}  // namespace Adx
+} // namespace Adx
 #endif

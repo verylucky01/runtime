@@ -42,13 +42,3 @@ TEST_F(RegisterManagerPlatformUtest, Test_CreateRegisterNotSupport)
     registerManager.CreateRegister();
     EXPECT_EQ(registerManager.GetRegister(), nullptr);
 }
-
-TEST_F(RegisterManagerPlatformUtest, Test_CreateRegisterNotCloudV2)
-{
-    uint32_t vtype = 15;
-    std::shared_ptr<RegisterInterface> register_;
-    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(vtype)).will(returnValue(true));
-    RegisterManager registerManager = RegisterManager();
-    registerManager.CreateRegister();
-    EXPECT_EQ(registerManager.GetRegister(), nullptr);
-}

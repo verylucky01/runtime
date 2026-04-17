@@ -86,9 +86,7 @@ set(adumpBaseSrcList
     ${SRC_CODE_ROOT_PATH}/adump/exception/dump_ELF.cpp
     ${SRC_CODE_ROOT_PATH}/adump/exception/dump_core/dump_core.cpp
     ${SRC_CODE_ROOT_PATH}/adump/exception/dump_core/dump_core_register.cpp
-    ${SRC_CODE_ROOT_PATH}/adump/exception/dump_core/dump_core_platform.cpp
     ${SRC_CODE_ROOT_PATH}/adump/exception/register_config/register_config.cpp
-    ${SRC_CODE_ROOT_PATH}/adump/exception/register_config/register_config_platform.cpp
     ${SRC_CODE_ROOT_PATH}/adump/exception/exception_info_common.cpp
     ${SRC_CODE_ROOT_PATH}/adump/exception/dump_tensor_plugin.cpp
     ${SRC_CODE_ROOT_PATH}/adump/exception/adx_exception_callback.cpp

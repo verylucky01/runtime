@@ -1103,10 +1103,10 @@ rtError_t rtMemPoolGetAttr(rtMemPool_t memPool, rtMemPoolAttr attr, void *value)
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtMemPoolMallocAsync(void **devPtr, const uint64_t size, const rtMemPool_t memPoolId,
+rtError_t rtMemPoolMallocAsync(void **ptr, const uint64_t size, const rtMemPool_t memPoolId,
                                 const rtStream_t stm)
 {
-    UNUSED(devPtr);
+    UNUSED(ptr);
     UNUSED(size);
     UNUSED(memPoolId);
     UNUSED(stm);

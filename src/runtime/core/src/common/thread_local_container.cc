@@ -113,20 +113,24 @@ void GlobalContainer::SetRtChipType(const rtChipType_t inChipType)
 
 std::string GlobalContainer::GetSocVersion(void)
 {
+    const std::lock_guard<std::mutex> lock(socVersionMutex_);
     return socVersion_;
 }
 void GlobalContainer::SetSocVersion(const std::string &socVersion)
 {
+    const std::lock_guard<std::mutex> lock(socVersionMutex_);
     socVersion_ = socVersion;
 }
 
 std::string GlobalContainer::GetHardwareSocVersion(void)
 {
+    const std::lock_guard<std::mutex> lock(socVersionMutex_);
     return hardwareSocVersion_;
 }
 
 void GlobalContainer::SetHardwareSocVersion(const std::string &socVersion)
 {
+    const std::lock_guard<std::mutex> lock(socVersionMutex_);
     hardwareSocVersion_ = socVersion;
 }
 

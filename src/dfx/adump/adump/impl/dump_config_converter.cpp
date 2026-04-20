@@ -707,7 +707,7 @@ DumpConfig DumpConfigConverter::ConvertDumpConfig(const RawDumpConfig &rawDumpCo
     dumpConfig.dumpMode = rawDumpConfig.dumpMode;
     dumpConfig.dumpPath = rawDumpConfig.dumpPath;
     dumpConfig.dumpData = rawDumpConfig.dumpData;
-    if (!rawDumpConfig.dumpScene.empty()) {
+    if (!rawDumpConfig.dumpScene.empty() && rawDumpConfig.dumpScene != ADUMP_DUMP_WATCHER) {
         // 优先级：ASCEND_DUMP_PATH > ASCEND_WORK_PATH > 配置文件 > "./"
         std::string envDumpPath;
         if (GetEnvDumpPath(ADUMP_ENV_ASCEND_WORK_PATH, envDumpPath)) {

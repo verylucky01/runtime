@@ -170,7 +170,7 @@ IdeErrorT AdxDumpHdcHelper::Finish(IDE_SESSION &session)
     CommHandle handle;
     handle.type = client_.type;
     handle.session = reinterpret_cast<OptHandle>(session);
-    (void)AdxMsgProto::SendResponse(handle, IDE_DUMP_REQ, 0, MsgStatus::MSG_STATUS_DATA_END);
+    // 直接关闭会话，不再发送MSG_STATUS_DATA_END消息
     AdxCommOptManager::Instance().Close(handle);
     session = nullptr;
     return IDE_DAEMON_NONE_ERROR;

@@ -58,6 +58,7 @@
 #include "task_manager_david.h"
 #include "stars_model_execute_cond_isa_define.hpp"
 #include "stars_cond_isa_helper.hpp"
+#include "rt_unwrap.h"
 #include "davinci_kernel_task.h"
 #include "task_scheduler_error.h"
 #include "capture_adapt.hpp"
@@ -438,7 +439,7 @@ TEST_F(TaskTestDavid, TestMdlEndGraphForAicpuStream)
     ret = rtModelCreate(&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     Stream *stm = (Stream *)stream;
-    Model *mdl = (Model *)model;
+    Model *mdl = rt_ut::UnwrapOrNull<Model>(model);
     mdl->executorFlag_ = EXECUTOR_AICPU;
     stm->flags_ = RT_STREAM_AICPU;
     MOCKER(ProcAicpuTask).stubs().will(returnValue(RT_ERROR_NONE));
@@ -460,7 +461,7 @@ TEST_F(TaskTestDavid, TestModelSubmitExecuteTask)
     ret = rtModelCreate(&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     Stream *stm = (Stream *)stream;
-    Model *mdl = (Model *)model;
+    Model *mdl = rt_ut::UnwrapOrNull<Model>(model);
     mdl->executorFlag_ = EXECUTOR_AICPU;
 
     MOCKER(ModelToAicpuTaskInit).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
@@ -482,7 +483,7 @@ TEST_F(TaskTestDavid, TestModelUbSubmitExecuteTask)
     ret = rtModelCreate(&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     Stream *stm = (Stream *)stream;
-    Model *mdl = (Model *)model;
+    Model *mdl = rt_ut::UnwrapOrNull<Model>(model);
     mdl->executorFlag_ = EXECUTOR_AICPU;
     mdl->SetFirstExecute(false);
     MOCKER(StreamUbDbSend).stubs().will(returnValue(RT_ERROR_NONE));
@@ -1633,7 +1634,7 @@ TEST_F(TaskTestDavid, CaptureModeExecute)
     MOCKER_CPP(&Model::UnBindSqPerStream).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP(&CaptureModel::ConfigSqTail).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
 
-    CaptureModel *captureMdl1 = RtPtrToPtr<CaptureModel *>(model1);
+    CaptureModel *captureMdl1 = static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1));
     captureMdl1->CaptureModelExecuteFinish();
     uint32_t releaseNum;
     captureMdl1->ReleaseSqCq(releaseNum);
@@ -1802,7 +1803,7 @@ TEST_F(TaskTestDavid, rtCacheLastTaskExtendInfo_debug_json_success_950)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     Stream* const stm = static_cast<Stream*>(stream);
-    Model* const mdl = static_cast<Model*>(model);
+    Model * const mdl = rt_ut::UnwrapOrNull<Model>(model);
     stm->SetModel(mdl);
     stm->SetLatestModlId(mdl->Id_());
 

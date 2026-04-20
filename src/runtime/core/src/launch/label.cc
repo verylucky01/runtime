@@ -140,7 +140,12 @@ rtError_t Label::LabelIdFree(const uint16_t idFree)
 rtError_t Label::Setup(Context * const curCtx)
 {
     context_ = curCtx;
-    return LabelIdAlloc(labelId_);
+    const rtError_t error = LabelIdAlloc(labelId_);
+    if (error != RT_ERROR_NONE) {
+        return error;
+    }
+    InitEmbeddedInnerHandle<Label>(this);
+    return RT_ERROR_NONE;
 }
 
 rtError_t Label::Set(Stream * const stm)

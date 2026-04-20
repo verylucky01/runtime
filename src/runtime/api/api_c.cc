@@ -26,6 +26,7 @@
 #include "heterogenous.h"
 #include "runtime_keeper.h"
 #include "global_state_manager.hpp"
+#include "api_handle_guard.h"
 
 using namespace cce::runtime;
 
@@ -1620,7 +1621,8 @@ rtError_t rtModelSetExtId(rtModel_t mdl, uint32_t extId)
     }
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelSetExtId(RtPtrToPtr<Model *>(mdl), extId);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelSetExtId(realModel, extId);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1631,7 +1633,8 @@ rtError_t rtModelDestroy(rtModel_t mdl)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelDestroy(static_cast<Model *>(mdl));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelDestroy(realModel);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1642,7 +1645,8 @@ rtError_t rtModelBindStream(rtModel_t mdl, rtStream_t stm, uint32_t flag)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelBindStream(static_cast<Model *>(mdl), static_cast<Stream *>(stm), flag);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelBindStream(realModel, static_cast<Stream *>(stm), flag);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1653,7 +1657,8 @@ rtError_t rtModelUnbindStream(rtModel_t mdl, rtStream_t stm)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelUnbindStream(static_cast<Model *>(mdl), static_cast<Stream *>(stm));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelUnbindStream(realModel, static_cast<Stream *>(stm));
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1664,7 +1669,8 @@ rtError_t rtModelLoadComplete(rtModel_t mdl)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelLoadComplete(static_cast<Model *>(mdl));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelLoadComplete(realModel);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1675,7 +1681,8 @@ rtError_t rtModelExecute(rtModel_t mdl, rtStream_t stm, uint32_t flag)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelExecute(static_cast<Model *>(mdl), static_cast<Stream *>(stm), flag);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelExecute(realModel, static_cast<Stream *>(stm), flag);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1685,7 +1692,8 @@ rtError_t rtModelGetTaskId(rtModel_t mdl, uint32_t *taskId, uint32_t *streamId)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelGetTaskId(static_cast<Model *>(mdl), taskId, streamId);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelGetTaskId(realModel, taskId, streamId);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1696,7 +1704,8 @@ rtError_t rtEndGraph(rtModel_t mdl, rtStream_t stm)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelEndGraph(static_cast<Model *>(mdl), static_cast<Stream *>(stm), 0U);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelEndGraph(realModel, static_cast<Stream *>(stm), 0U);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1707,7 +1716,8 @@ rtError_t rtEndGraphEx(rtModel_t mdl, rtStream_t stm, uint32_t flags)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelEndGraph(static_cast<Model *>(mdl), static_cast<Stream *>(stm), flags);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelEndGraph(realModel, static_cast<Stream *>(stm), flags);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1717,7 +1727,8 @@ rtError_t rtModelExecutorSet(rtModel_t mdl, uint8_t flags)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelExecutorSet(static_cast<Model *>(mdl), flags);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelExecutorSet(realModel, flags);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1728,7 +1739,8 @@ rtError_t rtModelAbort(rtModel_t mdl)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelAbort(static_cast<Model *>(mdl));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelAbort(realModel);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1739,7 +1751,8 @@ rtError_t rtModelExit(rtModel_t mdl, rtStream_t stm)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelExit(static_cast<Model *>(mdl), static_cast<Stream *>(stm));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelExit(realModel, static_cast<Stream *>(stm));
     COND_RETURN_WITH_NOLOG(error == RT_ERROR_MODEL_ABORT_NORMAL, ACL_ERROR_RT_MODEL_ABORT_NORMAL); // special state
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
@@ -1751,7 +1764,8 @@ rtError_t rtModelBindQueue(rtModel_t mdl, uint32_t queueId, rtModelQueueFlag_t f
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelBindQueue(static_cast<Model *>(mdl), queueId, flag);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelBindQueue(realModel, queueId, flag);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1761,8 +1775,8 @@ rtError_t rtModelGetId(rtModel_t mdl, uint32_t *modelId)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    Model * const modelPtr = static_cast<Model *>(mdl);
-    const rtError_t error = apiInstance->ModelGetId(modelPtr, modelId);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelGetId(realModel, modelId);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1772,7 +1786,8 @@ rtError_t rtModelSetSchGroupId(rtModel_t mdl, const int16_t schGrpId)
 {
     Api *apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelSetSchGroupId(static_cast<Model *>(mdl), schGrpId);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelSetSchGroupId(realModel, schGrpId);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -2065,8 +2080,11 @@ rtError_t rtLabelCreateV2(rtLabel_t *lbl, rtModel_t mdl)
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     PARAM_NULL_RETURN_ERROR_WITH_EXT_ERRCODE(mdl, RT_ERROR_INVALID_VALUE);
-    const rtError_t error = apiInstance->LabelCreate(RtPtrToPtr<Label **>(lbl), static_cast<Model *>(mdl));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->LabelCreate(RtPtrToPtr<Label **>(lbl), realModel);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    Label *realLabel = RtPtrToPtr<Label *>(*lbl);
+    *lbl = ExportEmbeddedHandle<rtLabel_t>(realLabel);
     return ACL_RT_SUCCESS;
 }
 
@@ -2075,7 +2093,8 @@ rtError_t rtLabelDestroy(rtLabel_t lbl)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->LabelDestroy(static_cast<Label *>(lbl));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(lbl, Label, realLabel);
+    const rtError_t error = apiInstance->LabelDestroy(realLabel);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -2085,7 +2104,8 @@ rtError_t rtLabelSet(rtLabel_t lbl, rtStream_t stm)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->LabelSet(static_cast<Label *>(lbl), static_cast<Stream *>(stm));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(lbl, Label, realLabel);
+    const rtError_t error = apiInstance->LabelSet(realLabel, static_cast<Stream *>(stm));
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -2098,7 +2118,8 @@ rtError_t rtLabelGoto(rtLabel_t lbl, rtStream_t stm)
     if (IS_SUPPORT_CHIP_FEATURE(rtInstance->GetChipType(), RtOptionalFeatureType::RT_FEATURE_TASK_LABEL_GOTO)) {
         Api * const apiInstance = Api::Instance();
         NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-        const rtError_t error = apiInstance->LabelGoto(static_cast<Label *>(lbl), static_cast<Stream *>(stm));
+        RT_VALIDATE_AND_UNWRAP_OBJECT(lbl, Label, realLabel);
+        const rtError_t error = apiInstance->LabelGoto(realLabel, static_cast<Stream *>(stm));
         ERROR_RETURN_WITH_EXT_ERRCODE(error);
         return ACL_RT_SUCCESS;
     }
@@ -2216,7 +2237,8 @@ rtError_t rtLabelGotoEx(rtLabel_t lbl, rtStream_t stm)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->LabelGotoEx(static_cast<Label *>(lbl), static_cast<Stream *>(stm));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(lbl, Label, realLabel);
+    const rtError_t error = apiInstance->LabelGotoEx(realLabel, static_cast<Stream *>(stm));
     COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
@@ -2228,7 +2250,8 @@ rtError_t rtLabelListCpy(rtLabel_t *lbl, uint32_t labelNumber, void *dst, uint32
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->LabelListCpy(RtPtrToPtr<Label **>(lbl), labelNumber, dst, dstMax);
+    RT_VALIDATE_AND_UNWRAP_OBJECT_ARRAY(lbl, labelNumber, Label, realLabels);
+    const rtError_t error = apiInstance->LabelListCpy(realLabels.data(), labelNumber, dst, dstMax);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -2249,9 +2272,12 @@ rtError_t rtLabelCreateExV2(rtLabel_t *lbl, rtModel_t mdl, rtStream_t stm)
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     PARAM_NULL_RETURN_ERROR_WITH_EXT_ERRCODE(mdl, RT_ERROR_INVALID_VALUE);
-    const rtError_t error = apiInstance->LabelCreateEx(RtPtrToPtr<Label **>(lbl), static_cast<Model *>(mdl),
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->LabelCreateEx(RtPtrToPtr<Label **>(lbl), realModel,
         static_cast<Stream *>(stm));
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    Label *realLabel = RtPtrToPtr<Label *>(*lbl);
+    *lbl = ExportEmbeddedHandle<rtLabel_t>(realLabel);
     return ACL_RT_SUCCESS;
 }
 
@@ -2267,7 +2293,8 @@ rtError_t rtDebugRegister(rtModel_t mdl, uint32_t flag, const void *addr, uint32
     }
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->DebugRegister(static_cast<Model *>(mdl), flag, addr, streamId, taskId);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->DebugRegister(realModel, flag, addr, streamId, taskId);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -2284,7 +2311,8 @@ rtError_t rtDebugUnRegister(rtModel_t mdl)
     }
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->DebugUnRegister(static_cast<Model *>(mdl));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->DebugUnRegister(realModel);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }

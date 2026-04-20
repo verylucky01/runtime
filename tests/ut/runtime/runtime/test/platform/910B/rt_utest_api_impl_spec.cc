@@ -16,6 +16,7 @@
 #include "raw_device.hpp"
 #include "driver.hpp"
 #include "npu_driver.hpp"
+#include "rt_unwrap.h"
 #include "async_hwts_engine.hpp"
 #undef protected
 #undef private
@@ -486,7 +487,7 @@ TEST_F(CloudV2ApiImplSpecTest, MODEL_RESTORE)
     error = rtModelLoadComplete(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = ((Model *)model)->SinkSqTasksBackup();
+    error = rt_ut::UnwrapOrNull<Model>(model)->SinkSqTasksBackup();
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     bool enable = false;
@@ -577,14 +578,14 @@ TEST_F(CloudV2ApiImplSpecTest, MODEL_RESTORE2)
 
     TaskInfo task = {};
     InitByStream(&task, (Stream *)desStm);
-    ModelExecuteTaskInit(&task, (Model *)model, 0, 1);
+    ModelExecuteTaskInit(&task, rt_ut::UnwrapOrNull<Model>(model), 0, 1);
 
     uint32_t errorcode[3] = {10, 1, 0};
     WaitExecFinishForModelExecuteTask(&task);
     SetResult(&task, (const uint32_t *)errorcode,1);
     Complete(&task, 0);
 
-    error = ((Model *)model)->SinkSqTasksBackup();
+    error = rt_ut::UnwrapOrNull<Model>(model)->SinkSqTasksBackup();
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     bool enable = false;
@@ -784,7 +785,7 @@ TEST_F(CloudV2ApiImplSpecTest, MODEL_SNAPSHOT_001)
     rtModel_t model;
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    Model *temp_model = (Model*) model;
+    Model *temp_model = rt_ut::UnwrapOrNull<Model>(model);
     temp_model->UpdateSnapShotSqe();
     temp_model->ReBuild();
     rtStream_t sinkStm;

@@ -39,8 +39,8 @@ rtError_t ApiErrorDecorator::StreamGetCaptureInfo(const Stream * const stm, rtSt
                                                   Model ** const captureMdl)
 {
     NULL_PTR_RETURN_MSG_OUTER(stm, RT_ERROR_INVALID_VALUE);
-    COND_RETURN_OUT_ERROR_MSG_CALL(((status == nullptr) && (captureMdl == nullptr)),
-                                   RT_ERROR_INVALID_VALUE, "status and captureMdl cannot both be nullptr.");
+    COND_RETURN_OUT_ERROR_MSG_CALL((status == nullptr) && (captureMdl == nullptr), RT_ERROR_INVALID_VALUE,
+        "status and captureMdl cannot both be nullptr.");
 
     return impl_->StreamGetCaptureInfo(stm, status, captureMdl);
 }

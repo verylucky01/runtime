@@ -16,6 +16,7 @@
 #include "task.hpp"
 #include "stars.hpp"
 #include "hwts.hpp"
+#include "rt_unwrap.h"
 #include "notify.hpp"
 #include "count_notify.hpp"
 #undef protected
@@ -90,14 +91,16 @@ TEST_F(StarsTaskTest, DoCompleteStarsError_david)
 
     rtError_t ret;
     Model* model;
+    rtModel_t modelHandle = nullptr;
     Stream* stream;
     Notify* notify;
 
     ret = rtStreamCreate((rtStream_t*)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t*)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtNotifyCreate(0, (rtNotify_t*)&notify);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
+    ret = rtNotifyCreate(0, (rtNotify_t *)&notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     notify->SetEndGraphModel(model);
 
@@ -140,7 +143,7 @@ TEST_F(StarsTaskTest, DoCompleteStarsError_david)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     rtInstance->SetChipType(oriChipType);
     GlobalContainer::SetRtChipType(oriChipType);

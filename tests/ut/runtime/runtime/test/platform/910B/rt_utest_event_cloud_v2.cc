@@ -537,4 +537,7 @@ TEST_F(EventTest910B, TestEventSynchronizeWithEventInModel)
 
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, ACL_RT_SUCCESS);
 }

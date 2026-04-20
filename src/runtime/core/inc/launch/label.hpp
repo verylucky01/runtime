@@ -62,6 +62,11 @@ public:
 
     rtError_t Setup(Context * const curCtx);
 
+    rtInnerObject *GetInnerHandle()
+    {
+        return &handle_;
+    }
+
     uint16_t Id_() const
     {
         return labelId_;
@@ -129,6 +134,7 @@ private:
     bool setFlag_;
     rtLabelMgrType_t mgrType_;
     void *devDstAddr_;   // save label info device addr
+    rtInnerObject handle_ {};
 };
 }
 }

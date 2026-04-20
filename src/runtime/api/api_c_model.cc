@@ -14,6 +14,7 @@
 #include "thread_local_container.hpp"
 #include "rts/rts.h"
 #include "global_state_manager.hpp"
+#include "api_handle_guard.h"
 
 using namespace cce::runtime;
 
@@ -29,6 +30,8 @@ rtError_t rtModelCreate(rtModel_t *mdl, uint32_t flag)
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     const rtError_t error = apiInstance->ModelCreate(RtPtrToPtr<Model **>(mdl), flag);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    Model *realModel = RtPtrToPtr<Model *>(*mdl);
+    *mdl = ExportEmbeddedHandle<rtModel_t>(realModel);
     return ACL_RT_SUCCESS;
 }
 
@@ -37,7 +40,8 @@ rtError_t rtSetModelName(rtModel_t mdl, const char_t *mdlName)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelNameSet(RtPtrToPtr<Model *>(mdl), mdlName);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelNameSet(realModel, mdlName);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -48,7 +52,8 @@ rtError_t rtModelExecuteSync(rtModel_t mdl, rtStream_t stm, uint32_t flag, int32
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelExecute(RtPtrToPtr<Model *>(mdl),
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelExecute(realModel,
         RtPtrToPtr<Stream *>(stm), flag, timeout);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
@@ -69,6 +74,7 @@ rtError_t rtsModelBindStream(rtModel_t mdl, rtStream_t stm, uint32_t flag)
         ACL_ERROR_RT_PARAM_INVALID, flag, std::to_string(RT_MODEL_STREAM_FLAG_HEAD) + " or " + std::to_string(RT_MODEL_STREAM_FLAG_DEFAULT));
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
     Stream *bindStream = RtPtrToPtr<Stream *>(stm);
     COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((bindStream != nullptr) &&
         ((bindStream->Flags() & RT_STREAM_PERSISTENT) == 0), RT_ERROR_INVALID_VALUE,
@@ -79,7 +85,7 @@ rtError_t rtsModelBindStream(rtModel_t mdl, rtStream_t stm, uint32_t flag)
         return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_STREAM_MODEL);
     }
 
-    rtError_t error = apiInstance->ModelBindStream(RtPtrToPtr<Model *>(mdl), bindStream, flag);
+    rtError_t error = apiInstance->ModelBindStream(realModel, bindStream, flag);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     error = apiInstance->SetStreamSqLockUnlock(bindStream, true);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
@@ -92,9 +98,10 @@ rtError_t rtsEndGraph(rtModel_t mdl, rtStream_t stm)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
     rtError_t error = apiInstance->SetStreamSqLockUnlock(RtPtrToPtr<Stream *>(stm), false);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
-    error = apiInstance->ModelEndGraph(RtPtrToPtr<Model *>(mdl), RtPtrToPtr<Stream *>(stm), 0U);
+    error = apiInstance->ModelEndGraph(realModel, RtPtrToPtr<Stream *>(stm), 0U);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -124,7 +131,8 @@ rtError_t rtsModelExecute(rtModel_t mdl, int32_t timeout)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelExecuteSync(RtPtrToPtr<Model *>(mdl), timeout);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelExecuteSync(realModel, timeout);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -135,7 +143,8 @@ rtError_t rtsModelExecuteAsync(rtModel_t mdl, rtStream_t stm)
     GLOBAL_STATE_WAIT_IF_LOCKED();
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelExecuteAsync(RtPtrToPtr<Model *>(mdl), RtPtrToPtr<Stream *>(stm));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelExecuteAsync(realModel, RtPtrToPtr<Stream *>(stm));
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -147,6 +156,8 @@ rtError_t rtsLabelCreate(rtLabel_t *lbl)
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     const rtError_t error = apiInstance->LabelCreate(RtPtrToPtr<Label **>(lbl), nullptr);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    Label *realLabel = RtPtrToPtr<Label *>(*lbl);
+    *lbl = ExportEmbeddedHandle<rtLabel_t>(realLabel);
     return ACL_RT_SUCCESS;
 }
 
@@ -161,7 +172,11 @@ rtError_t rtsLabelSwitchListCreate(rtLabel_t *labels, size_t num, void **labelLi
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->LabelSwitchListCreate(RtPtrToPtr<Label **>(labels), num, labelList);
+    COND_RETURN_WITH_EXT_ERRCODE(((num == 0U) || (num > static_cast<size_t>(MAX_UINT16_NUM))), RT_ERROR_INVALID_VALUE,
+        "Invalid label num, current num=%zu, valid range is (0, %u].",
+        num, MAX_UINT16_NUM);
+    RT_VALIDATE_AND_UNWRAP_OBJECT_ARRAY(labels, num, Label, realLabels);
+    const rtError_t error = apiInstance->LabelSwitchListCreate(realLabels.data(), num, labelList);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -195,7 +210,8 @@ rtError_t rtsModelGetName(rtModel_t mdl, const uint32_t maxLen, char_t * const m
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelGetName(RtPtrToPtr<Model *>(mdl), maxLen, mdlName);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelGetName(realModel, maxLen, mdlName);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }

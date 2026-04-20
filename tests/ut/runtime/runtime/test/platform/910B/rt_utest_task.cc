@@ -18,6 +18,7 @@
 #include "notify.hpp"
 #include "subscribe.hpp"
 #include "task_res.hpp"
+#include "rt_unwrap.h"
 #include "stars_engine.hpp"
 #include "raw_device.hpp"
 #include "barrier_task.h"
@@ -563,8 +564,8 @@ TEST_F(CloudV2TaskTest, CmoTask_for_prefetch_test)
     rtModel_t model;
     rtError_t ret = rtModelCreate(&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    stream_->SetModel(static_cast<Model *>(model));
-    stream_->SetLatestModlId(static_cast<Model *>(model)->Id_());
+    stream_->SetModel(rt_ut::UnwrapOrNull<Model>(model));
+    stream_->SetLatestModlId(rt_ut::UnwrapOrNull<Model>(model)->Id_());
     TaskInfo task = {};
     InitByStream(&task, stream_);
     EXPECT_NE(task.stream, nullptr);
@@ -582,6 +583,9 @@ TEST_F(CloudV2TaskTest, CmoTask_for_prefetch_test)
     rtStarsSqe_t sqe = {};
     ToConstructSqe(&task, &sqe);
     TaskUnInitProc(&task);
+    stream_->SetModel(nullptr);
+    ret = rtModelDestroy(model);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
 TEST_F(CloudV2TaskTest, CmoAddrTask_for_prefetch_test)
@@ -1529,7 +1533,7 @@ TEST_F(CloudV2TaskTest, rtCacheLastTaskExtendInfo_debug_json_success)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     Stream* const stm = static_cast<Stream*>(stream);
-    Model* const mdl = static_cast<Model*>(model);
+    Model * const mdl = rt_ut::UnwrapOrNull<Model>(model);
     stm->SetModel(mdl);
     stm->SetLatestModlId(mdl->Id_());
 
@@ -1609,7 +1613,7 @@ TEST_F(CloudV2TaskTest, rtCacheLastTaskExtendInfo_api_impl_abnormal)
 
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    Model* const mdl = static_cast<Model*>(model);
+    Model * const mdl = rt_ut::UnwrapOrNull<Model>(model);
     stm->SetModel(mdl);
     stm->SetLatestModlId(mdl->Id_());
     EXPECT_EQ(impl.CacheLastTaskExtendInfo(extendInfo, sizeof(extendInfo) - 1U), RT_ERROR_NONE);

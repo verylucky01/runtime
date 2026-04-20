@@ -545,6 +545,9 @@ TEST_F(CloudV2ApiTest910b, TEST_MODEL_LOAD_COMPLETE_SINK)
     error = rtModelUnbindStream(model, stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
@@ -570,6 +573,18 @@ TEST_F(CloudV2ApiTest910b, TEST_MODEL_LOAD_COMPLETE_MODEL_MORE_THEN_1)
 
     error = rtModelLoadComplete(model);
     EXPECT_NE(error, RT_ERROR_NONE);
+
+    error = rtModelUnbindStream(model, stream);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model2);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtStreamDestroy(stream);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
 TEST_F(CloudV2ApiTest910b, TEST_MODEL_LOAD_COMPLETE_FAIL)
@@ -595,6 +610,9 @@ TEST_F(CloudV2ApiTest910b, TEST_MODEL_LOAD_COMPLETE_FAIL)
     EXPECT_NE(error, RT_ERROR_NONE);
 
     error = rtModelUnbindStream(model, stream);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtStreamDestroy(stream);
@@ -623,6 +641,9 @@ TEST_F(CloudV2ApiTest910b, TEST_MODEL_LOAD_COMPLETE)
     EXPECT_NE(error, RT_ERROR_NONE);
 
     error = rtModelUnbindStream(model, stream);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtStreamDestroy(stream);
@@ -2136,7 +2157,7 @@ TEST_F(CloudV2ApiTest910b, label_api)
     error = rtLabelCreateV2(&label, model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Label *)label)->SetLabelDevAddr(NULL);
+    rt_ut::UnwrapOrNull<Label>(label)->SetLabelDevAddr(NULL);
 
     error = rtLabelSet(label, stream);
     EXPECT_NE(error, RT_ERROR_NONE);
@@ -2145,6 +2166,9 @@ TEST_F(CloudV2ApiTest910b, label_api)
     EXPECT_NE(error, RT_ERROR_NONE);
 
     error = rtLabelDestroy(label);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtStreamDestroy(stream);

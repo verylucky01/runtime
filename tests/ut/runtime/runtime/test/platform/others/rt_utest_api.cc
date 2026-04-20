@@ -480,6 +480,9 @@ TEST_F(ApiTest, TEST_MODEL_LOAD_COMPLETE_SINK)
     error = rtModelUnbindStream(model, stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
@@ -504,6 +507,12 @@ TEST_F(ApiTest, TEST_MODEL_LOAD_COMPLETE_MODEL_MORE_THEN_1)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtModelLoadComplete(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model2);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
@@ -532,6 +541,9 @@ TEST_F(ApiTest, TEST_MODEL_LOAD_COMPLETE_FAIL)
     error = rtModelUnbindStream(model, stream);
     EXPECT_NE(error, RT_ERROR_NONE); // synchonize fail
 
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
     error = rtStreamDestroy(stream);
     EXPECT_NE(error, RT_ERROR_NONE); // stream bind err
 
@@ -558,6 +570,9 @@ TEST_F(ApiTest, TEST_MODEL_LOAD_COMPLETE)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtModelUnbindStream(model, stream);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtStreamDestroy(stream);
@@ -2320,7 +2335,7 @@ TEST_F(ApiTest, label_api)
     error = rtLabelCreateV2(&label, model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Label *)label)->SetLabelDevAddr(NULL);
+    rt_ut::UnwrapOrNull<Label>(label)->SetLabelDevAddr(NULL);
 
     error = rtLabelSet(label, stream);
     EXPECT_NE(error, RT_ERROR_NONE);
@@ -2329,6 +2344,9 @@ TEST_F(ApiTest, label_api)
     EXPECT_NE(error, RT_ERROR_NONE);
 
     error = rtLabelDestroy(label);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtStreamDestroy(stream);
@@ -3794,6 +3812,9 @@ TEST_F(ApiTest, label_create_error)
     error = rtLabelCreateV2(&label, NULL);
     EXPECT_NE(error, RT_ERROR_NONE);
 
+    error = rtLabelDestroy(label);
+    EXPECT_NE(error, RT_ERROR_NONE);
+
     GlobalMockObject::verify();
     delete apiImpl;
 }
@@ -3817,17 +3838,18 @@ TEST_F(ApiTest, label_destroy_error)
         .stubs()
         .will(returnValue(RT_ERROR_INVALID_VALUE));
 
-    error = api.LabelDestroy((Label*)label);
-    EXPECT_NE(error, RT_ERROR_NONE);
-
-    error = rtLabelDestroy(label);
+    error = api.LabelDestroy(rt_ut::UnwrapOrNull<Label>(label));
     EXPECT_NE(error, RT_ERROR_NONE);
 
     GlobalMockObject::verify();
-    delete apiImpl;
 
     error = rtLabelDestroy(label);
     EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    delete apiImpl;
 }
 
 
@@ -4832,7 +4854,7 @@ TEST_F(ApiTest, rtsLabelSwitchByIndex)
  
     error = rtLabelGotoEx(label[2], stream[0]);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = profiler->apiProfileDecorator_->LabelGotoEx((Label *)label[2], (Stream *)stream[0]);
+    error = profiler->apiProfileDecorator_->LabelGotoEx(rt_ut::UnwrapOrNull<Label>(label[2]), (Stream *)stream[0]);
     EXPECT_EQ(error, RT_ERROR_NONE);
  
     error = rtKernelLaunch(&function_, 1, (void *)args, sizeof(args), NULL, stream[0]);
@@ -5014,11 +5036,12 @@ TEST_F(ApiTest, rtLabelSwitchByIndex)
     const uint32_t labelMax = 2;
     const uint32_t labelMemSize = sizeof(rtLabelDevInfo) * labelMax;
     memUnit labelPtr;
-    error = rtMalloc((void **)&labelPtr.devAddr, ptrMemSize, RT_MEMORY_DEFAULT, DEFAULT_MODULEID);
+    error = rtMalloc((void **)&labelPtr.devAddr, labelMemSize, RT_MEMORY_DEFAULT, DEFAULT_MODULEID);
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtLabelListCpy(&labelInfo[0], labelMax, (void *)labelPtr.devAddr, labelMemSize);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = profiler->apiProfileDecorator_->LabelListCpy((Label **)&labelInfo[0], labelMax, (void *)labelPtr.devAddr,
+    Label *realLabelInfo[2] = {rt_ut::UnwrapOrNull<Label>(labelInfo[0]), rt_ut::UnwrapOrNull<Label>(labelInfo[1])};
+    error = profiler->apiProfileDecorator_->LabelListCpy(realLabelInfo, labelMax, (void *)labelPtr.devAddr,
                                                          labelMemSize);
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtLabelSwitchByIndex((void *)memPtr.devAddr, labelMax, (void *)labelPtr.devAddr, stream[0]);
@@ -5028,7 +5051,7 @@ TEST_F(ApiTest, rtLabelSwitchByIndex)
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtLabelGotoEx(label[2], stream[0]);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = profiler->apiProfileDecorator_->LabelGotoEx((Label *)label[2], (Stream *)stream[0]);
+    error = profiler->apiProfileDecorator_->LabelGotoEx(rt_ut::UnwrapOrNull<Label>(label[2]), (Stream *)stream[0]);
     EXPECT_EQ(error, RT_ERROR_NONE);
  
     error = rtKernelLaunch(&function_, 1, (void *)args, sizeof(args), NULL, stream[0]);
@@ -6154,6 +6177,10 @@ TEST_F(ApiTest, rtLabelCreateEx)
     EXPECT_EQ(error, RT_ERROR_NONE);
     Stream *stream_var = static_cast<Stream *>(stream);
     stream_var->pendingNum_.Set(0);
+
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }

@@ -55,6 +55,7 @@
 #include "../../rt_utest_config_define.hpp"
 #include "task_recycle.hpp"
 #include "elf.hpp"
+#include "rt_unwrap.h"
 
 using namespace testing;
 using namespace cce::runtime;
@@ -4157,8 +4158,9 @@ TEST_F(UbStreamTest, LaunchKernelEx)
     stream_->flags_ = RT_STREAM_AICPU;
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    stream_->SetModel((Model *)model);
-    stream_->SetLatestModlId(((Model *)model)->Id_());
+    Model *realModel = rt_ut::UnwrapOrNull<Model>(model);
+    stream_->SetModel(realModel);
+    stream_->SetLatestModlId(realModel->Id_());
     error = rtKernelLaunchEx(&argsInfo, sizeof(argsInfo), 2, stream_);
     EXPECT_EQ(error, RT_ERROR_NONE);
     stream_->flags_ = RT_STREAM_PERSISTENT;
@@ -14028,9 +14030,10 @@ TEST_F(UbStreamTest3, fusion_launch_api_test_ub_stream_error)
     error = rtFusionLaunch((void *)(&fusionInfo), stream_, &argsInfo);
     EXPECT_EQ(error, ACL_ERROR_RT_INTERNAL_ERROR);
     pTask->isUpdateSinkSqe = 1U;
-    stream_->SetModel(static_cast<Model *>(model));
-    ((Stream *)stream)->SetModel(static_cast<Model *>(model));
-    ((Stream *)stream)->SetLatestModlId(((Model *)model)->Id_());
+    Model *realModel = rt_ut::UnwrapOrNull<Model>(model);
+    stream_->SetModel(realModel);
+    ((Stream *)stream)->SetModel(realModel);
+    ((Stream *)stream)->SetLatestModlId(realModel->Id_());
     error = rtFusionLaunch((void *)(&fusionInfo), stream_, &argsInfo);
     EXPECT_EQ(error, ACL_ERROR_RT_STREAM_MODEL);
     stream_->models_.clear();

@@ -2611,6 +2611,7 @@ rtError_t Context::ModelDestroy(Model *mdl)
     }
 
     modelLock_.Lock();
+    ResetEmbeddedInnerHandle<Model>(mdl);
     (void)mdl->TearDown();
     models_.remove(mdl);
     modelLock_.Unlock();

@@ -2109,7 +2109,7 @@ TEST_F(CloudV2ContextTest, context_labelCreate)
 {
     MOCKER_CPP(&Label::LabelIdAlloc).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
     rtError_t error;
-    rtLabel_t label;
+    Label *label = nullptr;
 
     int32_t devId;
     Context *ctx = NULL;
@@ -2119,10 +2119,10 @@ TEST_F(CloudV2ContextTest, context_labelCreate)
 
     ctx = (Context *)((Runtime *)Runtime::Instance())->PrimaryContextRetain(devId);
 
-    error = CondLabelCreate((Label**)&label, NULL, ctx);
+    error = CondLabelCreate(&label, NULL, ctx);
     EXPECT_NE(error, RT_ERROR_NONE);
 
-    error = CondLabelDestroy((Label*)label);
+    error = CondLabelDestroy(label);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     ((Runtime *)Runtime::Instance())->PrimaryContextRelease(devId);

@@ -58,6 +58,7 @@
 #include "event_c.hpp"
 #include "cond_c.hpp"
 #include "capture_adapt.hpp"
+#include "rt_unwrap.h"
 #include "stars_common_task.h"
 #include "aicpu_c.hpp"
 #include "aix_c.hpp"
@@ -4903,25 +4904,25 @@ TEST_F(ApiDavidTest, test_model_ub_get_jetty_info)
     error = rtEndGraphEx(model, stream_, 2);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Model *)model)->SetProcJettyInfoFlag(false);
-    ((Model *)model)->SetUbModelD2dFlag(true);
-    ((Model *)model)->SetUbModelH2dFlag(true);
-    ((Model *)model)->ModelPushFrontStream(stream_);
+    rt_ut::UnwrapOrNull<Model>(model)->SetProcJettyInfoFlag(false);
+    rt_ut::UnwrapOrNull<Model>(model)->SetUbModelD2dFlag(true);
+    rt_ut::UnwrapOrNull<Model>(model)->SetUbModelH2dFlag(true);
+    rt_ut::UnwrapOrNull<Model>(model)->ModelPushFrontStream(stream_);
     halSqCqRes = 0;
     error = rtModelLoadComplete(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     halSqCqRes = 1;
-    ((Model *)model)->SetProcJettyInfoFlag(false);
+    rt_ut::UnwrapOrNull<Model>(model)->SetProcJettyInfoFlag(false);
     error = rtModelLoadComplete(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     halSqCqRes = 2;
-    ((Model *)model)->SetProcJettyInfoFlag(false);
+    rt_ut::UnwrapOrNull<Model>(model)->SetProcJettyInfoFlag(false);
     error = rtModelLoadComplete(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Model *)model)->SetProcJettyInfoFlag(true);
+    rt_ut::UnwrapOrNull<Model>(model)->SetProcJettyInfoFlag(true);
     error = rtModelLoadComplete(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -4976,7 +4977,7 @@ TEST_F(ApiDavidTest, test_model_kinds_task_on_david1)
     error = rtModelBindStream(model, stream_, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Model *)model)->SetModelExecutorType(EXECUTOR_AICPU);
+    rt_ut::UnwrapOrNull<Model>(model)->SetModelExecutorType(EXECUTOR_AICPU);
     error = rtEndGraphEx(model, stream_, 2);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -4986,7 +4987,7 @@ TEST_F(ApiDavidTest, test_model_kinds_task_on_david1)
     error = rtModelExecute(model, stream_->Context_()->DefaultStream_(), 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Model *)model)->SetModelExecutorType(EXECUTOR_AICPU);
+    rt_ut::UnwrapOrNull<Model>(model)->SetModelExecutorType(EXECUTOR_AICPU);
     MOCKER_CPP_VIRTUAL(curCtx, &Context::StreamCreate).stubs()
         .with(mockcpp::any(), mockcpp::any(), outBoundP(&stream_), mockcpp::any())
         .will(returnValue(RT_ERROR_NONE));
@@ -5173,8 +5174,8 @@ TEST_F(ApiDavidTest, test_stream_switch_ex_and_active_task_on_david)
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Stream *)streamA)->SetModel((Model *)model);
-    ((Stream *)streamB)->SetModel((Model *)model);
+    ((Stream *)streamA)->SetModel(rt_ut::UnwrapOrNull<Model>(model));
+    ((Stream *)streamB)->SetModel(rt_ut::UnwrapOrNull<Model>(model));
 
     rtDavidSqe_t *sqe = (rtDavidSqe_t *)malloc(3 * sizeof(rtDavidSqe_t));
     uint64_t oldSqAddr = ((Stream *)streamA)->GetSqBaseAddr();
@@ -5185,7 +5186,7 @@ TEST_F(ApiDavidTest, test_stream_switch_ex_and_active_task_on_david)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     ((Stream *)streamA)->flags_ = RT_STREAM_AICPU | RT_STREAM_PERSISTENT;
-    ((Stream *)streamA)->SetLatestModlId(((Model *)model)->Id_());
+    ((Stream *)streamA)->SetLatestModlId(rt_ut::UnwrapOrNull<Model>(model)->Id_());
     error = rtStreamActive(streamB, streamA);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -5208,8 +5209,8 @@ TEST_F(ApiDavidTest, test_stream_switch_ex_and_active_task_on_david)
     EXPECT_EQ(error, ACL_ERROR_RT_DRV_INTERNAL_ERROR);
     ((Stream *)streamA)->SetSqBaseAddr(oldSqAddr);
 
-    ((Stream *)streamA)->DelModel((Model *)model);
-    ((Stream *)streamB)->DelModel((Model *)model);
+    ((Stream *)streamA)->DelModel(rt_ut::UnwrapOrNull<Model>(model));
+    ((Stream *)streamB)->DelModel(rt_ut::UnwrapOrNull<Model>(model));
 
     error = rtStreamDestroy(streamA);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -5249,17 +5250,17 @@ TEST_F(ApiDavidTest, test_stream_active_task_fail)
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Stream *)streamA)->SetModel((Model *)model);
-    ((Stream *)streamB)->SetModel((Model *)model);
-    ((Stream *)streamA)->SetLatestModlId(((Model *)model)->Id_());
+    ((Stream *)streamA)->SetModel(rt_ut::UnwrapOrNull<Model>(model));
+    ((Stream *)streamB)->SetModel(rt_ut::UnwrapOrNull<Model>(model));
+    ((Stream *)streamA)->SetLatestModlId(rt_ut::UnwrapOrNull<Model>(model)->Id_());
     MOCKER(DavidSendTask).stubs().will(returnValue(RT_ERROR_DRV_ERR));
     ((Stream *)streamA)->flags_ = RT_STREAM_PERSISTENT;
     error = rtStreamActive(streamB, streamA);
     EXPECT_EQ(error, ACL_ERROR_RT_DRV_INTERNAL_ERROR);
     ((Stream *)streamA)->SetLatestModlId(MAX_INT32_NUM);
 
-    ((Stream *)streamA)->DelModel((Model *)model);
-    ((Stream *)streamB)->DelModel((Model *)model);
+    ((Stream *)streamA)->DelModel(rt_ut::UnwrapOrNull<Model>(model));
+    ((Stream *)streamB)->DelModel(rt_ut::UnwrapOrNull<Model>(model));
     error = rtStreamDestroy(streamA);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -5292,9 +5293,11 @@ TEST_F(ApiDavidTest, test_label_set_task_on_david)
     error = rtLabelCreateV2(&label, model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Label *)label)->SetLabelDevAddr(&val);
-    ((Stream *)streamA)->models_.insert((Model *)model);
-    ((Stream *)streamA)->SetLatestModlId(((Model *)model)->Id_());
+    Model *realModel = rt_ut::UnwrapOrNull<Model>(model);
+    Label *realLabel = rt_ut::UnwrapOrNull<Label>(label);
+    realLabel->SetLabelDevAddr(&val);
+    ((Stream *)streamA)->models_.insert(realModel);
+    ((Stream *)streamA)->SetLatestModlId(realModel->Id_());
 
     error = rtLabelSet(label, streamA);
     EXPECT_EQ(error, RT_ERROR_NONE);
@@ -5302,7 +5305,7 @@ TEST_F(ApiDavidTest, test_label_set_task_on_david)
     error = rtLabelDestroy(label);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Stream *)streamA)->models_.erase((Model *)model);
+    ((Stream *)streamA)->models_.erase(realModel);
     error = rtStreamDestroy(streamA);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -5330,9 +5333,11 @@ TEST_F(ApiDavidTest, test_label_goto_ex_task_on_david)
     error = rtLabelCreateV2(&label, model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Label *)label)->SetLabelDevAddr(&val);
-    ((Stream *)streamA)->models_.insert((Model *)model);
-    ((Stream *)streamA)->SetLatestModlId(((Model *)model)->Id_());
+    Model *realModel = rt_ut::UnwrapOrNull<Model>(model);
+    Label *realLabel = rt_ut::UnwrapOrNull<Label>(label);
+    realLabel->SetLabelDevAddr(&val);
+    ((Stream *)streamA)->models_.insert(realModel);
+    ((Stream *)streamA)->SetLatestModlId(realModel->Id_());
 
     error = rtLabelGotoEx(label, streamA);
     EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
@@ -5340,7 +5345,7 @@ TEST_F(ApiDavidTest, test_label_goto_ex_task_on_david)
     error = rtLabelDestroy(label);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Stream *)streamA)->models_.erase((Model *)model);
+    ((Stream *)streamA)->models_.erase(realModel);
     error = rtStreamDestroy(streamA);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -5491,8 +5496,8 @@ TEST_F(ApiDavidTest, test_cmo_task_on_david)
     error = rtCmoAddrTaskLaunch(reinterpret_cast<void *>(&cmoAddrInfo), destMax, cmoOpCode, stream_, 0);
     EXPECT_EQ(error, ACL_ERROR_RT_INTERNAL_ERROR);
 
-    stream_->SetModel((Model *)model);
-    stream_->SetLatestModlId(((Model *)model)->Id_());
+    stream_->SetModel(rt_ut::UnwrapOrNull<Model>(model));
+    stream_->SetLatestModlId(rt_ut::UnwrapOrNull<Model>(model)->Id_());
     error = rtCmoAddrTaskLaunch(reinterpret_cast<void *>(&cmoAddrInfo), destMax, cmoOpCode, stream_, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtModelDestroy(model);
@@ -5992,7 +5997,7 @@ TEST_F(ApiDavidTest, test_aicpu_model_destroy_task_on_david)
     Context *curCtx = Runtime::Instance()->CurrentContext();
     Stream *dftStm = curCtx->DefaultStream_();
     MOCKER_CPP_VIRTUAL(dftStm, &Stream::Synchronize).stubs().will(returnValue(RT_ERROR_NONE));
-    Model *model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     model->SetModelExecutorType(EXECUTOR_AICPU);
     model->aicpuTaskInfoPtr_ = &taskInfo;
     rtDavidSqe_t *sqe = (rtDavidSqe_t *)malloc(2 * sizeof(rtDavidSqe_t));
@@ -6374,7 +6379,7 @@ TEST_F(ApiDavidTest, memset_async)
     rtModel_t rtModel;
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    Model *model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     stream_->SetBindFlag(true);
     stream_->SetModel(model);
 
@@ -6382,6 +6387,9 @@ TEST_F(ApiDavidTest, memset_async)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     stream_->SetBindFlag(false);
+    stream_->SetModel(nullptr);
+    error = rtModelDestroy(rtModel);
+    EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtFree(devPtr);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -6475,6 +6483,8 @@ TEST_F(ApiDavidTest, rtModelAbort_05)
     EXPECT_EQ(error, RT_ERROR_NONE);
     gabort_times = 0U;
     gquery_times = 0U;
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
 TEST_F(ApiDavidTest, rtStreamTaskClean_03)
@@ -6485,7 +6495,7 @@ TEST_F(ApiDavidTest, rtStreamTaskClean_03)
     Stream *stm = (Stream *)stream;
     rtModel_t model;
     error = rtModelCreate(&model, 0);
-    Model *md = (Model *)model;
+    Model *md = rt_ut::UnwrapOrNull<Model>(model);
     md->isModelComplete_ = true;
     stm->SetBindFlag(true);
     stm->SetModel(md);
@@ -7235,7 +7245,7 @@ TEST_F(ApiDavidTest, test_StreamSwitchN)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     Stream *stm = (Stream *)stream;
     Stream *trueStream = (Stream *)trueStreamPtr;
-    stm->SetModel((Model *)model);
+    stm->SetModel(rt_ut::UnwrapOrNull<Model>(model));
 
     apiImpl.StreamSwitchN(nullptr, 0U, nullptr, &trueStream, 0U, stm, RT_SWITCH_INT32);
     EXPECT_NE(error, RT_ERROR_NONE);
@@ -7928,7 +7938,7 @@ TEST_F(ApiDavidTest, modelDebugDotPrintApi)
     task1->sqeNum = 1;
     uint32_t num = 0;
     task1->u.davidEventWaitTaskInfo.isCountNotify = 1;
-    error = rtModelGetNodes(model, &num);
+    error = rtModelGetNodes(reinterpret_cast<rtModel_t>(model->GetInnerHandle()), &num);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(num, 2);
     error = GetCaptureEventFromTask(static_cast<Context *>(current)->device_, ((Stream *)stream)->Id_(), pos, getEvent, cntInfo);
@@ -8415,7 +8425,7 @@ TEST_F(ApiDavidTest, rtsPersistentTaskClean_02)
     Stream *stm = (Stream *)stream;
     rtModel_t model;
     error = rtModelCreate(&model, 0);
-    Model *md = (Model *)model;
+    Model *md = rt_ut::UnwrapOrNull<Model>(model);
     md->isModelComplete_ = true;
     stm->SetBindFlag(true);
     stm->SetModel(md);
@@ -9743,7 +9753,7 @@ TEST_F(ApiDavidTest, modelDebugJsonPrintApi)
     TaskInfo *task1 = CreateTask(taskResMng, pos, TS_TASK_TYPE_DAVID_EVENT_WAIT, "EVENT_WAIT");
     task1->u.davidEventWaitTaskInfo.isCountNotify = 1;
     uint32_t num = 0;
-    EXPECT_EQ(rtModelGetNodes(model, &num), RT_ERROR_NONE);
+    EXPECT_EQ(rtModelGetNodes(reinterpret_cast<rtModel_t>(model->GetInnerHandle()), &num), RT_ERROR_NONE);
     EXPECT_EQ(num, 2);
     EXPECT_EQ(GetCaptureEventFromTask(ctx->device_, ((Stream *)stream)->Id_(), pos, getEvent, cntInfo), RT_ERROR_STREAM_UNJOINED);
 

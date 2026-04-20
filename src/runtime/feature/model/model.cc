@@ -181,6 +181,7 @@ rtError_t Model::Setup(Context * const contextIn)
             return error;
         }
     }
+    InitEmbeddedInnerHandle<Model>(this);
     return error;
 }
 

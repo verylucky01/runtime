@@ -50,6 +50,7 @@
 #include "kernel.hpp"
 #include "cmo_task.h"
 #include "stream_task.h"
+#include "rt_unwrap.h"
 #undef protected
 #undef private
 
@@ -580,12 +581,14 @@ TEST_F(DavidTaskTest, construct_davidsqe_for_model_maintaince)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
 
     TaskInfo maintainceTask = {};
     TaskInfo *task = &maintainceTask;
@@ -623,7 +626,7 @@ TEST_F(DavidTaskTest, construct_davidsqe_for_model_maintaince)
     stream->DelModel(model);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
@@ -710,13 +713,14 @@ TEST_F(DavidTaskTest, construct_davidsqe_for_model_execute)
     rtError_t ret;
     rtModel_t model;
     TaskInfo mdlExecTask = {};
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 
     MOCKER(PrepareSqeInfoForModelExecuteTask).stubs().will(returnValue(0));
 
     InitByStream(&mdlExecTask, stream_);
-    ret = ModelExecuteTaskInit(&mdlExecTask, (Model *)model, ((Model *)model)->Id_(), 0);
+    Model *realModel = rt_ut::UnwrapOrNull<Model>(model);
+    ret = ModelExecuteTaskInit(&mdlExecTask, realModel, realModel->Id_(), 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     uint32_t sqeNum = GetSendDavidSqeNum(&mdlExecTask);
     EXPECT_EQ(sqeNum, 1U);
@@ -1048,8 +1052,9 @@ TEST_F(DavidTaskTest, construct_davidsqe_for_label_set)
     rtModel_t model;
     rtError_t ret = rtModelCreate(&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    stream_->SetModel(static_cast<Model *>(model));
-    stream_->SetLatestModlId(static_cast<Model *>(model)->Id_());
+    Model *realModel = rt_ut::UnwrapOrNull<Model>(model);
+    stream_->SetModel(realModel);
+    stream_->SetLatestModlId(realModel->Id_());
     rtDavidSqe_t sqe = {};
     uint64_t sqBaseAddr = 0U;
     ToConstructDavidSqe(&task, &sqe, sqBaseAddr);
@@ -1094,8 +1099,9 @@ TEST_F(DavidTaskTest, construct_davidsqe_for_cmotask)
     rtModel_t model;
     rtError_t ret = rtModelCreate(&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    stream_->SetModel(static_cast<Model *>(model));
-    stream_->SetLatestModlId(static_cast<Model *>(model)->Id_());
+    Model *realModel = rt_ut::UnwrapOrNull<Model>(model);
+    stream_->SetModel(realModel);
+    stream_->SetLatestModlId(realModel->Id_());
     MOCKER(memcpy_s).stubs().will(returnValue(1));
     CmoTaskInit(&task, &cmoTask, stream_, 0);
     ToConstructDavidSqe(&task, &sqe3, sqBaseAddr);
@@ -3360,16 +3366,20 @@ TEST_F(DavidTaskTest1, model_maintaince_init_david)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     RawDevice *stub = new RawDevice(0);
     NpuDriver drv;
     drv.chipType_ = CHIP_DAVID;
     stub->driver_ = &drv;
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
     TaskInfo maintainceTask = {};
     TaskInfo *task = &maintainceTask;
     InitByStream(&maintainceTask, stream_);
     (void)ModelMaintainceTaskInit(&maintainceTask, MMT_STREAM_ADD, model, stream_, RT_MODEL_HEAD_STREAM, 0U);
+    ret = rtModelDestroy(modelHandle);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
     delete stub;
 }
 
@@ -3683,12 +3693,14 @@ TEST_F(DavidTaskTest1, construct_davidsqe_for_cmo_addr)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
 
     TaskInfo cmoAddrTask = {};
     TaskInfo *task = &cmoAddrTask;
@@ -3704,7 +3716,7 @@ TEST_F(DavidTaskTest1, construct_davidsqe_for_cmo_addr)
     stream->DelModel(model);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
@@ -3712,12 +3724,14 @@ TEST_F(DavidTaskTest1, construct_davidsqe_for_cmo_addr_error)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
 
     TaskInfo cmoAddrTask = {};
     TaskInfo *task = &cmoAddrTask;
@@ -3729,7 +3743,7 @@ TEST_F(DavidTaskTest1, construct_davidsqe_for_cmo_addr_error)
     PrintErrorInfo(&cmoAddrTask, 0);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
@@ -3737,12 +3751,14 @@ TEST_F(DavidTaskTest1, construct_davidsqe_for_cmo_addr_error2)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
 
     TaskInfo cmoAddrTask = {};
     TaskInfo *task = &cmoAddrTask;
@@ -3758,7 +3774,7 @@ TEST_F(DavidTaskTest1, construct_davidsqe_for_cmo_addr_error2)
     stream->DelModel(model);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 

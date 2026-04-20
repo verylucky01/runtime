@@ -38,8 +38,12 @@ ERROR_RETURN:
     return error;
 }
 
-rtError_t CondLabelDestroy(const Label* delLabel)
+rtError_t CondLabelDestroy(Label *delLabel)
 {
+    if (delLabel == nullptr) {
+        return RT_ERROR_NONE;
+    }
+    ResetEmbeddedInnerHandle<Label>(delLabel);
     DELETE_O(delLabel);
     return RT_ERROR_NONE;
 }

@@ -18,6 +18,7 @@
 #include "event.hpp"
 #include "runtime.hpp"
 #include "runtime_keeper.h"
+#include "rt_unwrap.h"
 #include "module.hpp"
 #include "program.hpp"
 #include "api_impl.hpp"
@@ -993,7 +994,7 @@ TEST_F(ApiImplTest, ModelExecutorSet_test)
     ApiImpl apiImpl;
     rtModel_t model;
     rtModelCreate(&model, 0);
-    rtError_t ret = apiImpl.ModelExecutorSet(static_cast<Model *>(model), 0);
+    rtError_t ret = apiImpl.ModelExecutorSet(rt_ut::UnwrapOrNull<Model>(model), 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtModelDestroy(model);
     EXPECT_EQ(ret, RT_ERROR_NONE);
@@ -1628,7 +1629,7 @@ TEST_F(ApiImplTest, modelGetName_decorator_test)
 
     error = rtsModelSetName(model, "modelA");
     char name[128];
-    error = apiDecorator_->ModelGetName(static_cast<Model *>(model), 128, name);
+    error = apiDecorator_->ModelGetName(rt_ut::UnwrapOrNull<Model>(model), 128, name);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     delete apiDecorator_;

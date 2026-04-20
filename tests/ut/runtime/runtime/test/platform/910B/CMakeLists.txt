@@ -80,6 +80,7 @@ set(runtimeut_src_api_list
     ${TOP_DIR}/src/runtime/api/api_c_event.cc
     ${TOP_DIR}/src/runtime/api/api_c_mbuf.cc
     ${TOP_DIR}/src/runtime/api/inner.cc
+    ${TOP_DIR}/src/runtime/api/api_handle_guard.cc
     ${TOP_DIR}/src/runtime/api/api_global_err.cc
     ${TOP_DIR}/src/runtime/api/api_c_soc.cc
     ${TOP_DIR}/src/runtime/api/api_c_dqs.cc
@@ -184,6 +185,7 @@ set(runtimeut_src_common_list
     ${TOP_DIR}/src/runtime/core/src/common/rt_log.cc
     ${TOP_DIR}/src/runtime/core/src/common/dev_info_manage.cc
     ${TOP_DIR}/src/runtime/core/src/common/global_state_manager.cc
+    ${TOP_DIR}/src/runtime/core/src/common/runtime_handle_guard.cc
     ${TOP_DIR}/src/runtime/core/src/common/register_memory.cc
 )
 
@@ -460,6 +462,7 @@ set(RUNTIME_TEST_INC_DIR_COMMON
     ${TOP_DIR}/metadef/inc/external
     ${TOP_DIR}/pkg_inc/aicpu_sched/common
     ${TOP_DIR}/tests/ut/runtime/runtime/stub/
+    ${TOP_DIR}/tests/ut/runtime/runtime/test/common
     ${TOP_DIR}/include
     ${TOP_DIR}/pkg_inc/tsd
     ${TOP_DIR}/pkg_inc/trace

@@ -624,7 +624,7 @@ TEST_F(CloudV2ApiTest, label_api)
     error = rtLabelCreateV2(&label, model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Label *)label)->SetLabelDevAddr(NULL);
+    rt_ut::UnwrapOrNull<Label>(label)->SetLabelDevAddr(NULL);
 
     error = rtLabelSet(label, stream);
     EXPECT_NE(error, RT_ERROR_NONE);
@@ -639,6 +639,9 @@ TEST_F(CloudV2ApiTest, label_api)
     EXPECT_NE(error, RT_ERROR_NONE);
 
     error = rtLabelDestroy(label);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtStreamDestroy(stream);

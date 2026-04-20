@@ -18,6 +18,7 @@
 #include "notify.hpp"
 #include "subscribe.hpp"
 #include "task_res.hpp"
+#include "rt_unwrap.h"
 #include "stars_engine.hpp"
 #include "raw_device.hpp"
 #include "barrier_task.h"
@@ -1731,11 +1732,14 @@ TEST_F(TaskTest, LabelSetTask_ConstructSqe)
     rtModel_t model;
     rtError_t ret = rtModelCreate(&model, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    stream_->SetModel(static_cast<Model *>(model));
-    stream_->SetLatestModlId(static_cast<Model *>(model)->Id_());
+    stream_->SetModel(rt_ut::UnwrapOrNull<Model>(model));
+    stream_->SetLatestModlId(rt_ut::UnwrapOrNull<Model>(model)->Id_());
     rtStarsSqe_t sqe = {};
     ToConstructSqe(&task, &sqe);
     EXPECT_EQ(sqe.phSqe.type, RT_STARS_SQE_TYPE_PLACE_HOLDER);
+    stream_->SetModel(nullptr);
+    ret = rtModelDestroy(model);
+    EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
 TEST_F(TaskTest, StarsCommonTask_ConstructSqe)
@@ -2968,7 +2972,6 @@ TEST_F(TaskTest, ConstructUpdateTaskTest)
     TaskUnInitProc(&task);
     TaskUnInitProc(&updateTask);
 }
-
 TEST_F(TaskTest, WaitAsyncCopyCompleteForUpdateTask)
 {
     TaskInfo task = {};

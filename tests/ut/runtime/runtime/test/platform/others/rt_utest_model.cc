@@ -27,6 +27,7 @@
 #undef protected
 #undef private
 #include "model_c.hpp"
+#include "rt_unwrap.h"
 
 using namespace testing;
 using namespace cce::runtime;
@@ -67,7 +68,7 @@ TEST_F(ChipModelTest, TestCmoIdFree)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     rtChipType_t chipType = ((RawDevice*)device)->chipType_;
     ((RawDevice*)device)->chipType_ = CHIP_AS31XM1;
     rtChipType_t preChipType = rtInstance->GetChipType();
@@ -95,7 +96,7 @@ TEST_F(ChipModelTest, TestAicpuModelDestroyWithFailed)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     rtChipType_t preChipType = ((Runtime *)Runtime::Instance())->GetChipType();
 
     rtInstance->SetChipType(preChipType);
@@ -119,7 +120,7 @@ TEST_F(ChipModelTest, TestSynchronizeExecuteTimeout)
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
 
     const bool flag = Runtime::Instance()->GetDisableThread();
     Runtime::Instance()->SetDisableThread(true);

@@ -23,7 +23,7 @@ namespace runtime {
 
 rtError_t CondLabelCreate(Label** const result, Model* const mdl, Context* const ctx);
 
-rtError_t CondLabelDestroy(const Label* delLabel);
+rtError_t CondLabelDestroy(Label *delLabel);
 
 rtError_t CondLabelSet(Label* const lbl, Stream* const stm);
 

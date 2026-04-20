@@ -28,6 +28,7 @@
 #include "logger.hpp"
 #include "rdma_task.h"
 #include "ffts_task.h"
+#include "rt_unwrap.h"
 #include "dqs/task_dqs.hpp"
 #include "printf.hpp"
 #include "engine_factory.hpp"
@@ -651,11 +652,12 @@ TEST_F(TinyStubTest, easy_model_stub)
     EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
 
     rtModelCreate(&model, 0);
+
     rtCallback_t stub_func = (rtCallback_t)0x12345;
-    ret = rtModelDestroyRegisterCallback(static_cast<Model*>(model), stub_func, nullptr);
+    ret = rtModelDestroyRegisterCallback(model, stub_func, nullptr);
     EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
 
-    ret = rtModelDestroyUnregisterCallback(static_cast<Model*>(model), stub_func);
+    ret = rtModelDestroyUnregisterCallback(model, stub_func);
     EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
 }
 

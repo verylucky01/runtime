@@ -16,6 +16,7 @@
 #define protected public
 #include "runtime.hpp"
 #include "model.hpp"
+#include "rt_unwrap.h"
 #include "raw_device.hpp"
 #include "module.hpp"
 #include "notify.hpp"
@@ -1061,7 +1062,7 @@ TEST_F(CloudV2CaptureModelTest, capture_mode_api_normal)
     error = rtsModelExecuteAsync(model1, streamExe);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    CaptureModel *captureMdl1 = RtPtrToPtr<CaptureModel *>(model1);
+    CaptureModel *captureMdl1 = static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1));
     captureMdl1->CaptureModelExecuteFinish();
     uint32_t releaseNum;
     captureMdl1->ReleaseSqCq(releaseNum);
@@ -1185,13 +1186,14 @@ TEST_F(CloudV2CaptureModelTest, capture_mode_try_recycle)
     error = rtCtxGetCurrent(&ctx);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = (RtPtrToPtr<Context *>(ctx))->TryRecycleCaptureModelResource(1, 1, RtPtrToPtr<CaptureModel *>(model3));
+    error = (RtPtrToPtr<Context *>(ctx))->TryRecycleCaptureModelResource(1, 1,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model3)));
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    CaptureModel *captureMdl1 = RtPtrToPtr<CaptureModel *>(model1);
+    CaptureModel *captureMdl1 = static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1));
     captureMdl1->CaptureModelExecuteFinish();
 
-    CaptureModel *captureMdl2 = RtPtrToPtr<CaptureModel *>(model2);
+    CaptureModel *captureMdl2 = static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model2));
     captureMdl2->CaptureModelExecuteFinish();
 
     error = rtModelDestroy(model1);
@@ -1246,25 +1248,33 @@ TEST_F(CloudV2CaptureModelTest, poll_end_graph_notify)
 
     RtPtrToPtr<Stream *>(streamExe)->taskPosTail_.Set(5000);
     uint32_t streamId = (RtPtrToPtr<Stream *>(streamExe))->Id_();
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 10);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1)), 10);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 100);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1)), 100);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model2), 2);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model2)), 2);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model2), 20);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model2)), 20);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model3), 3);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model3)), 3);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model3), 30);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model3)), 30);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = rawDevice->DeleteEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model3), 3);
+    error = rawDevice->DeleteEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model3)), 3);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->DeleteEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model3), 30);
+    error = rawDevice->DeleteEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model3)), 30);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = rawDevice->ClearEndGraphNotifyInfoByModel(RtPtrToPtr<Model *>(model2));
+    error = rawDevice->ClearEndGraphNotifyInfoByModel(rt_ut::UnwrapOrNull<Model>(model2));
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     uint16_t head_stub = 15;
@@ -1276,9 +1286,11 @@ TEST_F(CloudV2CaptureModelTest, poll_end_graph_notify)
     rawDevice->PollEndGraphNotifyInfo();
 
     RtPtrToPtr<Stream *>(streamExe)->taskPosTail_.Set(5);
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 10);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1)), 10);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 100);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1)), 100);
     EXPECT_EQ(error, RT_ERROR_NONE);
     uint32_t modelId;
     error = rtModelGetId(model1, &modelId);
@@ -1287,17 +1299,21 @@ TEST_F(CloudV2CaptureModelTest, poll_end_graph_notify)
     rawDevice->PollEndGraphNotifyInfoByModelId(modelId);
     rawDevice->PollEndGraphNotifyInfo();
 
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 120);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1)), 120);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    error = rawDevice->StoreEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 49);
+    error = rawDevice->StoreEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1)), 49);
     EXPECT_EQ(error, RT_ERROR_NONE);
     RtPtrToPtr<Stream *>(streamExe)->taskPosTail_.Set(50);
     rawDevice->PollEndGraphNotifyInfo();
 
-    error = rawDevice->DeleteEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 49);
+    error = rawDevice->DeleteEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1)), 49);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = rawDevice->DeleteEndGraphNotifyInfo(streamId, RtPtrToPtr<CaptureModel *>(model1), 49);
+    error = rawDevice->DeleteEndGraphNotifyInfo(streamId,
+        static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model1)), 49);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtModelDestroy(model1);
@@ -1372,10 +1388,10 @@ TEST_F(CloudV2CaptureModelTest, cascade_stream)
     EXPECT_EQ(ret, RT_ERROR_NONE);
 
     MOCKER_CPP(&Model::DelStream).stubs().will(returnValue(RT_ERROR_NONE));
-    ret = curCtx->ModelDelStream((Model *)model, (Stream *)streamExe);
+    ret = curCtx->ModelDelStream(rt_ut::UnwrapOrNull<Model>(model), (Stream *)streamExe);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 
-    CaptureModel *captureMdl = RtPtrToPtr<CaptureModel *>(model);
+    CaptureModel *captureMdl = static_cast<CaptureModel *>(rt_ut::UnwrapOrNull<Model>(model));
     captureMdl->CaptureModelExecuteFinish();
 
     ret = rtModelDestroy(model);

@@ -25,6 +25,7 @@
 #include "cond_op_task.h"
 #include "task_res_da.hpp"
 #include "stream_sqcq_manage.hpp"
+#include "rt_unwrap.h"
 #include <thread>
 #include <chrono>
 #include "stream.hpp"
@@ -878,13 +879,15 @@ TEST_F(DavidTaskRecycleTest, DoCompleteSuccessForNotifyWaitTask)
     rtError_t ret;
     Device *device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
     Notify *notify;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
     ret = rtNotifyCreate(0, (rtNotify_t *)&notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     notify->SetEndGraphModel(model);
@@ -901,7 +904,7 @@ TEST_F(DavidTaskRecycleTest, DoCompleteSuccessForNotifyWaitTask)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
 }
@@ -912,13 +915,15 @@ TEST_F(DavidTaskRecycleTest, DoCompleteSuccessForNotifyWaitTaskForAiCpu)
     rtError_t ret;
     Device *device = ((Runtime *)Runtime::Instance())->DeviceRetain(0, 0);
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
     Notify *notify;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
     ret = rtNotifyCreate(0, (rtNotify_t *)&notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     notify->SetEndGraphModel(model);
@@ -946,7 +951,7 @@ TEST_F(DavidTaskRecycleTest, DoCompleteSuccessForNotifyWaitTaskForAiCpu)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ((Runtime *)Runtime::Instance())->DeviceRelease(device);
 }
@@ -1161,10 +1166,12 @@ TEST_F(DavidTaskRecycleTest, RecycleModeLabel)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     uint32_t val = 0x123;
-    ((Label *)label)->SetLabelDevAddr((void *)(&val));
-    ((Stream *)stream)->models_.insert((Model *)model);
-    ((Stream *)stream)->SetLatestModlId(((Model *)model)->Id_());
-    static_cast<Stream *>(stream)->InsertLabelList(static_cast<Label *>(label));
+    Model *realModel = rt_ut::UnwrapOrNull<Model>(model);
+    Label *realLabel = rt_ut::UnwrapOrNull<Label>(label);
+    realLabel->SetLabelDevAddr((void *)(&val));
+    ((Stream *)stream)->models_.insert(realModel);
+    ((Stream *)stream)->SetLatestModlId(realModel->Id_());
+    static_cast<Stream *>(stream)->InsertLabelList(realLabel);
 
     uint32_t pos = UINT32_MAX;
     TaskInfo *task = nullptr;
@@ -1173,12 +1180,12 @@ TEST_F(DavidTaskRecycleTest, RecycleModeLabel)
     task->stream = static_cast<Stream *>(stream);
     task->sqeNum = 1U;
     task->type = TS_TASK_TYPE_LABEL_SET;
-    task->u.labelSetTask.labelId = ((Label *)label)->Id_();
+    task->u.labelSetTask.labelId = realLabel->Id_();
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(pos, 0);
 
     RecycleModelBindStreamAllTask(static_cast<Stream *>(stream), true);
-    ((Stream *)stream)->models_.erase((Model *)model);
+    ((Stream *)stream)->models_.erase(realModel);
 
     error = rtLabelDestroy(label);
     EXPECT_EQ(error, RT_ERROR_NONE);

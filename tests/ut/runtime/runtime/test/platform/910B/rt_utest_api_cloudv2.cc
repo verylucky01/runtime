@@ -18,6 +18,7 @@
 #define protected public
 #include "runtime.hpp"
 #include "api.hpp"
+#include "rt_unwrap.h"
 #include "api_impl.hpp"
 #include "api_error.hpp"
 #include "program.hpp"
@@ -383,7 +384,7 @@ TEST_F(RtApiTest, capture_api_20)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     Stream * streamEx = static_cast<Stream *>(stream);
-    Model * modelEx = static_cast<Model *>(model);
+    Model * modelEx = rt_ut::UnwrapOrNull<Model>(model);
     Context * ctx = static_cast<Context *>(current);
     error = ctx->StreamAddToCaptureModelProc(streamEx, modelEx);
     EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
@@ -418,7 +419,7 @@ TEST_F(RtApiTest, capture_api_21)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     Stream * streamEx = static_cast<Stream *>(stream);
-    Model * modelEx = static_cast<Model *>(model);
+    Model * modelEx = rt_ut::UnwrapOrNull<Model>(model);
     Context * ctx = static_cast<Context *>(current);
     error = ctx->StreamAddToCaptureModelProc(streamEx, modelEx);
     EXPECT_EQ(error, RT_ERROR_MODEL_CAPTURE_STATUS);
@@ -453,7 +454,7 @@ TEST_F(RtApiTest, capture_api_22)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     Stream * streamEx = static_cast<Stream *>(stream);
-    Model * modelEx = static_cast<Model *>(captureMdl);
+    Model * modelEx = rt_ut::UnwrapOrNull<Model>(captureMdl);
     Context * ctx = static_cast<Context *>(current);
     error = ctx->StreamAddToCaptureModelProc(streamEx, modelEx);
     EXPECT_EQ(error, RT_ERROR_STREAM_CAPTURED);
@@ -961,6 +962,9 @@ TEST_F(RtApiTest, capture_api_mutil_thread)
     error = rtStreamEndCapture(stream, &model);
     EXPECT_EQ(error, ACL_ERROR_RT_STREAM_CAPTURE_WRONG_THREAD);
 
+    error = rtModelDestroy(captureMdl);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
@@ -1222,16 +1226,17 @@ TEST_F(RtApiTest, ModelDestroyRegisterCallback_test)
     rtModel_t model;
     rtModelCreate(&model, 0);
     char args[] = "0x100";
-    rtError_t ret = rtModelDestroyRegisterCallback(static_cast<Model*>(model), rtModelDestroyCallBackUt, args);
+    rtError_t ret = rtModelDestroyRegisterCallback(model, rtModelDestroyCallBackUt,
+        args);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroyUnregisterCallback(static_cast<Model*>(model), rtModelDestroyCallBackUt);
+    ret = rtModelDestroyUnregisterCallback(model, rtModelDestroyCallBackUt);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroyRegisterCallback(static_cast<Model*>(model), nullptr, nullptr);
+    ret = rtModelDestroyRegisterCallback(model, nullptr, nullptr);
     EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
 
-    ret = rtModelDestroyRegisterCallback(static_cast<Model*>(model), rtModelDestroyCallBackUt, args);
+    ret = rtModelDestroyRegisterCallback(model, rtModelDestroyCallBackUt, args);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroyRegisterCallback(static_cast<Model*>(model), rtModelDestroyCallBackUt, args);
+    ret = rtModelDestroyRegisterCallback(model, rtModelDestroyCallBackUt, args);
     EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
 
     ret = rtModelDestroy(model);
@@ -1240,10 +1245,10 @@ TEST_F(RtApiTest, ModelDestroyRegisterCallback_test)
     g_modelDestroyCallBack =false;
 
     rtModelCreate(&model, 0);
-    ret = rtModelDestroyUnregisterCallback(static_cast<Model*>(model), rtModelDestroyCallBackUt);
+    ret = rtModelDestroyUnregisterCallback(model, rtModelDestroyCallBackUt);
     EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
 
-    ret = rtModelDestroyUnregisterCallback(static_cast<Model*>(model), nullptr);
+    ret = rtModelDestroyUnregisterCallback(model, nullptr);
     EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
 
     ret = rtModelDestroy(model);
@@ -1294,7 +1299,7 @@ TEST_F(RtApiTest, model_json_print_record_wait)
     error = rtModelExecute(model, syncStream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    ((Model *)model)->UnbindStream(stream_var , false);
+    rt_ut::UnwrapOrNull<Model>(model)->UnbindStream(stream_var , false);
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 

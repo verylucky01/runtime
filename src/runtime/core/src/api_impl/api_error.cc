@@ -3776,9 +3776,9 @@ rtError_t ApiErrorDecorator::LabelGotoEx(Label * const lbl, Stream * const stm)
 rtError_t ApiErrorDecorator::LabelListCpy(Label ** const lbl, const uint32_t labelNumber, void * const dst,
     const uint32_t dstMax)
 {
+    ZERO_RETURN_AND_MSG_OUTER(labelNumber);
     NULL_PTR_RETURN_MSG_OUTER(lbl, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(dst, RT_ERROR_INVALID_VALUE);
-    ZERO_RETURN_AND_MSG_OUTER(labelNumber);
 
     const uint64_t labelSize = sizeof(rtLabelDevInfo) * labelNumber;
     COND_RETURN_OUT_ERROR_MSG_CALL(labelSize != static_cast<uint64_t>(dstMax), RT_ERROR_INVALID_VALUE,
@@ -3805,8 +3805,6 @@ rtError_t ApiErrorDecorator::LabelSwitchListCreate(Label ** const labels, const 
 {
     NULL_PTR_RETURN_MSG_OUTER(labels, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(labelList, RT_ERROR_INVALID_VALUE);
-	COND_RETURN_AND_MSG_OUTER_WITH_PARAM(((num == 0U) || (num > static_cast<size_t>(MAX_UINT16_NUM))), RT_ERROR_INVALID_VALUE, 
-        num, "(0, " + std::to_string(MAX_UINT16_NUM) + "]");
     return impl_->LabelSwitchListCreate(labels, num, labelList);
 }
 

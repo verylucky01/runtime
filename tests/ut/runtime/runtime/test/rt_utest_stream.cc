@@ -18,6 +18,7 @@
 #define protected public
 #include "engine.hpp"
 #include "event.hpp"
+#include "rt_unwrap.h"
 #include "task_res.hpp"
 #include "ctrl_stream.hpp"
 #include "coprocessor_stream.hpp"
@@ -530,12 +531,12 @@ TEST_F(StreamTest, stream_sync_fail)
     stream_var->SetNeedSyncFlag(false);
     EXPECT_EQ(stream_var->GetNeedSyncFlag(), false);
 
-    stream_var->SetModel((Model*)model);
+    stream_var->SetModel(rt_ut::UnwrapOrNull<Model>(model));
 
     stream_var->Synchronize();
 
     //Model model;
-    ((Model *)model)->UnbindStream(NULL , false);
+    rt_ut::UnwrapOrNull<Model>(model)->UnbindStream(NULL , false);
 
     error = rtModelDestroy(model);
     error = rtEventDestroy(event);

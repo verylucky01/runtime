@@ -18,6 +18,7 @@
 #include <mutex>
 #include <utility>
 #include "base.hpp"
+#include "runtime_handle_guard.h"
 #include "driver.hpp"
 #include "device.hpp"
 
@@ -76,6 +77,11 @@ public:
     rtError_t Setup(Context * const contextIn);
     rtError_t ReBuild(void);
     rtError_t SinkSqTasksBackup(void);
+
+    rtInnerObject *GetInnerHandle()
+    {
+        return &handle_;
+    }
 
     virtual rtError_t TearDown();
     rtError_t ClearMemory();
@@ -534,6 +540,7 @@ private:
 
     std::map<uint32_t, void *> argLoaderRecord_;
     std::vector<struct DMA_ADDR> dmaAddrRecord_;
+    rtInnerObject handle_ {};
     Context *context_;
     uint32_t executorFlag_;
     std::map<uint32_t, std::vector<rtAicpuTaskInfo_t> > mapAicpuTask_;

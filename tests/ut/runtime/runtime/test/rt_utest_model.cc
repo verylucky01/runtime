@@ -27,6 +27,7 @@
 #undef protected
 #undef private
 #include "model_c.hpp"
+#include "rt_unwrap.h"
 
 using namespace testing;
 using namespace cce::runtime;
@@ -143,7 +144,7 @@ TEST_F(ModelTest, TestMallocDevStringFailed)
 
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     char *str = "demo";
     void *ptr = (void*) str;
     error = model->MallocDevString(str, &ptr);
@@ -166,7 +167,7 @@ TEST_F(ModelTest, TestMallocDevStringWithMemSetFailed)
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemSetSync).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     char *str = "demo";
     void *ptr = (void*) str;
     error = model->MallocDevString(str, &ptr);
@@ -190,7 +191,7 @@ TEST_F(ModelTest, TestMallocDevStringWithMemSyncFailed)
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemSetSync).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemCopySync).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     char *str = "demo";
     void *ptr = (void*) str;
     error = model->MallocDevString(str, &ptr);
@@ -212,7 +213,7 @@ TEST_F(ModelTest, TestMallocDevValueStringFailed)
 
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     char *str = "demo";
     void *ptr = (void*) str;
     error = model->MallocDevValue(ptr, 1, &ptr);
@@ -235,7 +236,7 @@ TEST_F(ModelTest, TestMallocDevValueWithMemSetFailed)
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemSetSync).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     char *str = "demo";
     void *ptr = (void*) str;
     error = model->MallocDevValue(ptr, 1, &ptr);
@@ -259,7 +260,7 @@ TEST_F(ModelTest, TestMallocDevValueWithMemSyncFailed)
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemSetSync).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemCopySync).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     char *str = "demo";
     void *ptr = (void*) str;
     error = model->MallocDevValue(ptr, 1, &ptr);
@@ -279,7 +280,7 @@ TEST_F(ModelTest, TestAicpuModelDestroyWithSubmitTaskFailed)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     MOCKER_CPP_VIRTUAL(device, &Device::SubmitTask).stubs().will(returnValue(RT_ERROR_DRV_ERR));
     error = model->AicpuModelDestroy();
     EXPECT_EQ(error, RT_ERROR_DRV_ERR);
@@ -301,7 +302,7 @@ TEST_F(ModelTest, TestGetStreamToSyncExecute)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     MOCKER_CPP(&Model::SynchronizeExecute).stubs().will(returnValue(RT_ERROR_DRV_ERR));
     Stream *onlineStream = model->context_->onlineStream_;
     model->context_->onlineStream_ = nullptr;
@@ -326,7 +327,7 @@ TEST_F(ModelTest, TestMallocExecuteTask)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     MOCKER(ModelExecuteTaskInit).stubs().will(returnValue(RT_ERROR_DRV_ERR));
     error = model->SubmitExecuteTask((Stream *)rtStream);
     EXPECT_EQ(error, RT_ERROR_MODEL_EXECUTOR);
@@ -347,7 +348,7 @@ TEST_F(ModelTest, TestPacketAllStreamInfoWithAllocFailed)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
 
     rtAicpuModelInfo_t infoAicpuModel;
@@ -368,7 +369,7 @@ TEST_F(ModelTest, TestPacketAllStreamInfoWithCopyFailed)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemCopySync).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::GetRunMode)
@@ -392,7 +393,7 @@ TEST_F(ModelTest, TestPacketAllStreamInfoWithFlushFailed)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemCopySync).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemFlushCache).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
@@ -417,7 +418,7 @@ TEST_F(ModelTest, TestPacketAicpuModelInfoWithCopyFailed)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemCopySync).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemFlushCache).stubs().will(returnValue(RT_ERROR_NONE));
@@ -441,7 +442,7 @@ TEST_F(ModelTest, TestPacketAicpuModelInfoWithFlushFailed)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::MemCopySync).stubs().will(returnValue(RT_ERROR_NONE));
     MOCKER_CPP_VIRTUAL(device->Driver_(), &Driver::DevMemFlushCache).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
@@ -468,7 +469,7 @@ TEST_F(ModelTest, TestPacketAicpuModelInfoWithStreamNotNull)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
 
     model->BindStream((Stream*) rtStream, 0);
     MOCKER_CPP(&Model::PacketAllStreamInfo).stubs().will(returnValue(RT_ERROR_MEMORY_ALLOCATION));
@@ -494,7 +495,7 @@ TEST_F(ModelTest, TestPacketAicpuModelInfoWithPackAicpuTaskError)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     rtCommand_t command = {};
     command.type = static_cast<uint16_t>(TS_TASK_TYPE_ACTIVE_AICPU_STREAM);
     model->SaveAicpuStreamTask((Stream *)rtStream, &command);
@@ -519,7 +520,7 @@ TEST_F(ModelTest, TestPacketAicpuModelInfoWithQueueNotEmpty)
     error = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model* model = static_cast<Model *>(rtModel);
+    Model *model = rt_ut::UnwrapOrNull<Model>(rtModel);
     model->BindQueue(0, RT_MODEL_INPUT_QUEUE);
 
     error = model->PacketAicpuModelInfo();
@@ -601,7 +602,7 @@ TEST_F(ModelTest, CacheTaskTrackReport)
 
     profilerPtr->SetTrackProfEnable(true);
 
-    ((Model *)model)->UnbindStream(stream_var , false);
+    rt_ut::UnwrapOrNull<Model>(model)->UnbindStream(stream_var, false);
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -645,6 +646,13 @@ TEST_F(ModelTest, model_stream_aicpu_bind)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtModelExecute(model, exe_stream, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtStreamDestroy(stream);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtStreamDestroy(exe_stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
@@ -711,11 +719,11 @@ TEST_F(ModelTest, model_stream_unbind_task_pool)
 
     error = rtModelBindStream(model, stream, 0);
 
-    ((Model *)model)->SetNeedSubmitTask(true);
+    rt_ut::UnwrapOrNull<Model>(model)->SetNeedSubmitTask(true);
 
     //MOCKER_CPP_VIRTUAL( (*(((Context **)&ctx)))->Device_(), &Device::SubmitTask).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
     Stream *stream_var = static_cast<Stream *>(stream);
-    ((Model *)model)->UnbindStream(stream_var , false);
+    rt_ut::UnwrapOrNull<Model>(model)->UnbindStream(stream_var, false);
 
     error = rtStreamDestroy(stream);
 
@@ -916,10 +924,9 @@ TEST_F(ModelTest, model_stream_unbind_stream_fail_01)
 
     error = rtModelBindStream(model, stream, 0);
 
-    ((Model *)model)->SetNeedSubmitTask(true);
+    rt_ut::UnwrapOrNull<Model>(model)->SetNeedSubmitTask(true);
 
     Stream *stream_var = static_cast<Stream *>(stream);
-    //((Model *)model)->UnbindStream(NULL , true);
 
     error = rtModelDestroy(model);
 
@@ -949,12 +956,12 @@ TEST_F(ModelTest, model_stream_unbind_stream_fail_02)
 
     error = rtModelBindStream(model, stream, 0);
 
-    ((Model *)model)->SetNeedSubmitTask(true);
+    rt_ut::UnwrapOrNull<Model>(model)->SetNeedSubmitTask(true);
 
     Stream *stream_var = static_cast<Stream *>(stream);
 
     //Model model;
-    ((Model *)model)->UnbindStream(NULL , false);
+    rt_ut::UnwrapOrNull<Model>(model)->UnbindStream(nullptr, false);
 
     error = rtModelDestroy(model);
     error = rtStreamDestroy(stream);
@@ -984,7 +991,7 @@ TEST_F(ModelTest, model_stream_unbind_stream_fail_03)
 
     Stream *stream_var = static_cast<Stream *>(stream);
     MOCKER_CPP_VIRTUAL(stream_var, &Stream::Synchronize).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
-    error = ((Model *)model)->UnbindStream(stream_var , false);
+    error = rt_ut::UnwrapOrNull<Model>(model)->UnbindStream(stream_var, false);
     EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
 
     GlobalMockObject::verify();
@@ -1069,7 +1076,7 @@ TEST_F(ModelTest, model_abort)
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model *model_var = static_cast<Model *>(model);
+    Model *model_var = rt_ut::UnwrapOrNull<Model>(model);
     error = model_var->ModelAbort();
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -1088,7 +1095,7 @@ TEST_F(ModelTest, bind_queue)
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model *model_var = static_cast<Model *>(model);
+    Model *model_var = rt_ut::UnwrapOrNull<Model>(model);
     error = model_var->BindQueue(1, RT_MODEL_INPUT_QUEUE);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -1102,8 +1109,10 @@ TEST_F(ModelTest, AicpuModelSetExtId)
 
     rtError_t error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    Model *model_var = static_cast<Model *>(model);
+    Model *model_var = rt_ut::UnwrapOrNull<Model>(model);
     error = model_var->AicpuModelSetExtId(0U, 1U);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
@@ -1121,7 +1130,7 @@ TEST_F(ModelTest, model_head_stream)
 
     error = rtModelBindStream(model, stream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    Model* tmpMdl = static_cast<Model*>(model);
+    Model *tmpMdl = rt_ut::UnwrapOrNull<Model>(model);
     uint16_t num = tmpMdl->IsModelHeadStream(static_cast<Stream*>(stream));
     EXPECT_EQ(num, 1);
 
@@ -1176,7 +1185,7 @@ TEST_F(ModelTest, model_stream_get_head_stream)
 
     error = rtModelBindStream(model, stream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    Model* tmpMdl = static_cast<Model*>(model);
+    Model *tmpMdl = rt_ut::UnwrapOrNull<Model>(model);
 
     EXPECT_EQ(tmpMdl->IsModelHeadStream(static_cast<Stream*>(stream)), 1);
 
@@ -1312,8 +1321,10 @@ TEST_F(ModelTest, model_disable_sq)
 
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    Model *model_var = static_cast<Model *>(model);
+    Model *model_var = rt_ut::UnwrapOrNull<Model>(model);
     error = model_var->DisableSq(stream_var);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
@@ -1639,6 +1650,8 @@ TEST_F(ModelTest, model_bind_queue)
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtModelBindQueue(NULL, 2, RT_MODEL_OUTPUT_QUEUE);
     EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
 TEST_F(ModelTest, get_model_id)

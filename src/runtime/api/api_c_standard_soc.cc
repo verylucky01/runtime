@@ -28,6 +28,7 @@
 #include "global_state_manager.hpp"
 #include "platform_manager_v2.h"
 #include "kernel_dfx_info.hpp"
+#include "api_handle_guard.h"
 
 using namespace cce::runtime;
 namespace cce {
@@ -612,7 +613,8 @@ rtError_t rtModelGetNodes(rtModel_t mdl, uint32_t * const num)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelGetNodes(static_cast<Model *>(mdl), num);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelGetNodes(realModel, num);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -630,7 +632,8 @@ rtError_t rtModelDebugDotPrint(rtModel_t mdl)
 
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelDebugDotPrint(static_cast<Model *>(mdl));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelDebugDotPrint(realModel);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -648,7 +651,8 @@ rtError_t rtModelDebugJsonPrint(rtModel_t mdl, const char* path, uint32_t flags)
 
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelDebugJsonPrint(static_cast<Model *>(mdl), path, flags);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelDebugJsonPrint(realModel, path, flags);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -668,7 +672,8 @@ rtError_t rtStreamAddToModel(rtStream_t stm, rtModel_t captureMdl)
 
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->StreamAddToModel(static_cast<Stream *>(stm), static_cast<Model *>(captureMdl));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(captureMdl, Model, realModel);
+    const rtError_t error = apiInstance->StreamAddToModel(static_cast<Stream *>(stm), realModel);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -678,7 +683,8 @@ rtError_t rtModelUpdate(rtModel_t mdl)
 {
     Api* const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelUpdate(RtPtrToPtr<Model*>(mdl));
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelUpdate(realModel);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -721,6 +727,7 @@ rtError_t rtStreamEndCapture(rtStream_t stm, rtModel_t *captureMdl)
     const rtError_t error = apiInstance->StreamEndCapture(static_cast<Stream *>(stm),
                                                           RtPtrToPtr<Model **>(captureMdl));
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    *captureMdl = ExportEmbeddedHandle<rtModel_t>(RtPtrToPtr<Model *>(*captureMdl));
     return ACL_RT_SUCCESS;
 }
 
@@ -743,6 +750,8 @@ rtError_t rtStreamGetCaptureInfo(rtStream_t stm, rtStreamCaptureStatus * const s
     const rtError_t error = apiInstance->StreamGetCaptureInfo(static_cast<Stream *>(stm), status,
                                                               RtPtrToPtr<Model **>(captureMdl));
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    StoreOptionalEmbeddedHandle<rtModel_t>(
+        ((captureMdl == nullptr) || (*captureMdl == nullptr)) ? nullptr : RtPtrToPtr<Model *>(*captureMdl), captureMdl);
     return ACL_RT_SUCCESS;
 }
 
@@ -1455,7 +1464,8 @@ VISIBILITY_DEFAULT
 rtError_t rtModelDestroyRegisterCallback(rtModel_t const mdl, rtCallback_t fn, void *ptr) {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelDestroyRegisterCallback(RtPtrToPtr<Model *>(mdl), fn, ptr);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelDestroyRegisterCallback(realModel, fn, ptr);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1464,7 +1474,8 @@ VISIBILITY_DEFAULT
 rtError_t rtModelDestroyUnregisterCallback(rtModel_t const mdl, rtCallback_t fn) {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelDestroyUnregisterCallback(RtPtrToPtr<Model *>(mdl), fn);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelDestroyUnregisterCallback(realModel, fn);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }
@@ -1506,7 +1517,8 @@ rtError_t rtModelGetStreams(rtModel_t const mdl, rtStream_t *streams, uint32_t *
     
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->ModelGetStreams(static_cast<Model *>(mdl), RtPtrToPtr<Stream **>(streams), numStreams);
+    RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
+    const rtError_t error = apiInstance->ModelGetStreams(realModel, RtPtrToPtr<Stream **>(streams), numStreams);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);
     return ACL_RT_SUCCESS;
 }

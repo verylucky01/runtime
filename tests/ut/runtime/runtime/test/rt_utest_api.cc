@@ -3469,6 +3469,10 @@ TEST_F(ApiTest, rtLabelCreateEx)
     EXPECT_EQ(error, RT_ERROR_NONE);
     Stream *stream_var = static_cast<Stream *>(stream);
     stream_var->pendingNum_.Set(0);
+
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
@@ -3505,6 +3509,8 @@ TEST_F(ApiTest, rtDebugRegister)
     GlobalContainer::SetRtChipType(CHIP_610LITE);
     error = rtDebugRegister(model, flag, &addr, &streamId, &taskId);
     EXPECT_NE(error, RT_ERROR_NONE);
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
     GlobalMockObject::verify();
     delete apiImpl;
 }
@@ -3540,6 +3546,8 @@ TEST_F(ApiTest, rtDebugUnRegister)
     GlobalContainer::SetRtChipType(CHIP_610LITE);
     error = rtDebugUnRegister(model);
     EXPECT_NE(error, RT_ERROR_NONE);
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
     GlobalMockObject::verify();
     delete apiImpl;
 }
@@ -3561,7 +3569,9 @@ TEST_F(ApiTest, DebugRegister)
     MOCKER_CPP_VIRTUAL(apiImpl, &ApiImpl::DebugRegister)
         .stubs()
         .will(returnValue(RT_ERROR_NONE));
-    error = api.DebugRegister((Model*)model, flag, &addr, &streamId, &taskId);
+    error = api.DebugRegister(rt_ut::UnwrapOrNull<Model>(model), flag, &addr, &streamId, &taskId);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
     GlobalMockObject::verify();
     delete apiImpl;
@@ -3584,7 +3594,9 @@ TEST_F(ApiTest, DebugUnRegister)
     MOCKER_CPP_VIRTUAL(apiImpl, &ApiImpl::DebugUnRegister)
         .stubs()
         .will(returnValue(RT_ERROR_NONE));
-    error = api.DebugUnRegister((Model*)model);
+    error = api.DebugUnRegister(rt_ut::UnwrapOrNull<Model>(model));
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
     GlobalMockObject::verify();
     delete apiImpl;
@@ -4267,6 +4279,8 @@ TEST_F(ApiTest, model_exit_stream_NULL)
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error =rtModelExit(model, NULL);
+    error = rtModelDestroy(model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
 TEST_F(ApiTest, model_exit)

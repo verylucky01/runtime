@@ -14,6 +14,7 @@
 #define private public
 #define protected public
 #include "runtime.hpp"
+#include "rt_unwrap.h"
 #include "profiler.hpp"
 #include "api_profile_decorator.hpp"
 #include "api_profile_log_decorator.hpp"
@@ -364,14 +365,14 @@ TEST_F(ProfilerTest, LaunchKernel)
 TEST_F(ProfilerTest, LabelDestroy)
 {
     rtError_t error;
-    rtLabel_t label;
+    Label *label = nullptr;
 
     Profiler *profiler = ((Runtime *)Runtime::Instance())->profiler_;
 
     ApiImpl* apiImpl_ = new ApiImpl();
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::LabelDestroy).stubs().will(returnValue(RT_ERROR_NONE));
 
-    error = profiler->apiProfileDecorator_->LabelDestroy((Label*)label);
+    error = profiler->apiProfileDecorator_->LabelDestroy(label);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     delete apiImpl_;
@@ -1767,7 +1768,7 @@ TEST_F(ProfilerTest, ModelBindStream_ProfilerLog)
 
     ApiImpl *apiImpl_ = new ApiImpl();
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::ModelBindStream).stubs().will(returnValue(RT_ERROR_NONE));
-    error = profiler->apiProfileLogDecorator_->ModelBindStream((Model *)model, (Stream *)stream, 0);
+    error = profiler->apiProfileLogDecorator_->ModelBindStream(rt_ut::UnwrapOrNull<Model>(model), (Stream *)stream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtModelDestroy(model);
@@ -1791,7 +1792,7 @@ TEST_F(ProfilerTest, ModelUnbindStream_ProfilerLog)
 
     ApiImpl *apiImpl_ = new ApiImpl();
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::ModelUnbindStream).stubs().will(returnValue(RT_ERROR_NONE));
-    error = profiler->apiProfileLogDecorator_->ModelUnbindStream((Model *)model, (Stream *)stream);
+    error = profiler->apiProfileLogDecorator_->ModelUnbindStream(rt_ut::UnwrapOrNull<Model>(model), (Stream *)stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtModelDestroy(model);
@@ -1815,7 +1816,7 @@ TEST_F(ProfilerTest, ModelExecute_ProfilerLog)
 
     ApiImpl *apiImpl_ = new ApiImpl();
     MOCKER_CPP_VIRTUAL(apiImpl_, &ApiImpl::ModelExecute).stubs().will(returnValue(RT_ERROR_NONE));
-    error = profiler->apiProfileLogDecorator_->ModelExecute((Model *)model, (Stream *)stream, 0);
+    error = profiler->apiProfileLogDecorator_->ModelExecute(rt_ut::UnwrapOrNull<Model>(model), (Stream *)stream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtModelDestroy(model);

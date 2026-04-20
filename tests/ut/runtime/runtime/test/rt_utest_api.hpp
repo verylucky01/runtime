@@ -33,6 +33,7 @@
 #include "api_soma.hpp"
 #include "api_impl_soma.hpp"
 #include "program.hpp"
+#include "rt_unwrap.h"
 #include "context.hpp"
 #include "raw_device.hpp"
 #include "logger.hpp"

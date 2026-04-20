@@ -36,6 +36,7 @@
 #include "profiler_c.hpp"
 #include "thread_local_container.hpp"
 #include "dvpp_c.hpp"
+#include "rt_unwrap.h"
 using namespace testing;
 using namespace cce::runtime;
 
@@ -197,11 +198,12 @@ TEST_F(DavidTaskSendTest, AllocTaskAndSendDavid_aicpu)
     MOCKER_CPP_VIRTUAL(device_->Driver_(), &Driver::CmoIdFree).stubs().will(returnValue(RT_ERROR_NONE));
     res = rtModelCreate(&rtModel, 0);
     EXPECT_EQ(res, RT_ERROR_NONE);
-    ((Stream *)stream)->SetModel((Model *)rtModel);
-    ((Stream *)stream)->SetLatestModlId(((Model *)rtModel)->Id_());
+    Model *realModel = rt_ut::UnwrapOrNull<Model>(rtModel);
+    ((Stream *)stream)->SetModel(realModel);
+    ((Stream *)stream)->SetLatestModlId(realModel->Id_());
     res = SubmitTaskDavid(task, (Stream *)stream, -1);
     EXPECT_EQ(res, RT_ERROR_NONE);
-    ((Stream *)stream)->DelModel((Model *)rtModel);
+    ((Stream *)stream)->DelModel(realModel);
     res = rtModelDestroy(rtModel);
     EXPECT_EQ(res, RT_ERROR_NONE);
     rtStreamDestroy(stream);

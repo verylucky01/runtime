@@ -18,6 +18,7 @@
 #include "raw_device.hpp"
 #include "event.hpp"
 #include "runtime.hpp"
+#include "rt_unwrap.h"
 #include "runtime_keeper.h"
 #include "module.hpp"
 #include "program.hpp"
@@ -92,7 +93,7 @@ private:
 TEST_F(CloudV2ApiImplTest, capture_api_01)
 {
     rtError_t error;
-    rtModel_t  model;
+    Model  *model;
     Api *oldApi_= const_cast<Api *>(Runtime::runtime_->api_);
     ApiDecorator *apiDecorator_ = new ApiDecorator(oldApi_);
     MOCKER_CPP(&Model::LoadCompleteByStreamPostp).stubs().will(returnValue(RT_ERROR_NONE));
@@ -110,21 +111,21 @@ TEST_F(CloudV2ApiImplTest, capture_api_01)
     error = apiDecorator_->StreamBeginCapture(stream, RT_STREAM_CAPTURE_MODE_GLOBAL);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = apiDecorator_->StreamEndCapture(stream, reinterpret_cast<Model **>(&model));
+    error = apiDecorator_->StreamEndCapture(stream, &model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = apiDecorator_->ModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     delete stream;
     delete apiDecorator_;
-    error = rtModelDestroy(model);
-    EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
 TEST_F(CloudV2ApiImplTest, capture_api_02)
 {
     rtError_t error;
-    rtModel_t  model;
+    Model *model;
     rtStreamCaptureStatus status;
-    rtModel_t captureMdl;
 
     Api *oldApi_= const_cast<Api *>(Runtime::runtime_->api_);
     ApiDecorator *apiDecorator_ = new ApiDecorator(oldApi_);
@@ -143,17 +144,18 @@ TEST_F(CloudV2ApiImplTest, capture_api_02)
     error = apiDecorator_->StreamBeginCapture(stream, RT_STREAM_CAPTURE_MODE_GLOBAL);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = apiDecorator_->StreamGetCaptureInfo(stream, &status, reinterpret_cast<Model **>(&model));
+    error = apiDecorator_->StreamGetCaptureInfo(stream, &status, &model);
     EXPECT_EQ(error, RT_ERROR_NONE);
     EXPECT_EQ(status, RT_STREAM_CAPTURE_STATUS_ACTIVE);
 
-    error = apiDecorator_->StreamEndCapture(stream, reinterpret_cast<Model **>(&model));
+    error = apiDecorator_->StreamEndCapture(stream, &model);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = apiDecorator_->ModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     delete stream;
     delete apiDecorator_;
-    error = rtModelDestroy(model);
-    EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
 TEST_F(CloudV2ApiImplTest, capture_api_03)
@@ -168,10 +170,10 @@ TEST_F(CloudV2ApiImplTest, capture_api_03)
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = apiDecorator_->ModelGetNodes(static_cast<Model *>(model), &num);
+    error = apiDecorator_->ModelGetNodes(rt_ut::UnwrapOrNull<Model>(model), &num);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = apiDecorator_->ModelDebugDotPrint(static_cast<Model *>(model));
+    error = apiDecorator_->ModelDebugDotPrint(rt_ut::UnwrapOrNull<Model>(model));
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     delete apiDecorator_;
@@ -201,7 +203,7 @@ TEST_F(CloudV2ApiImplTest, capture_api_04)
     error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = apiDecorator_->StreamAddToModel(addStream, static_cast<Model *>(model));
+    error = apiDecorator_->StreamAddToModel(addStream, rt_ut::UnwrapOrNull<Model>(model));
     EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
 
     delete addStream;
@@ -352,7 +354,7 @@ TEST_F(CloudV2ApiImplTest, ModelExecuteAsync_decorator_test)
     error = rtsModelLoadComplete(model, nullptr);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    Model *model_ = (Model *)model;
+    Model *model_ = rt_ut::UnwrapOrNull<Model>(model);
     error = apiDecorator_->ModelExecuteAsync(model_, nullptr);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
@@ -1167,7 +1169,7 @@ TEST_F(CloudV2ApiImplTest, ModelExecutorSet_test)
     ApiImpl apiImpl;
     rtModel_t model;
     rtModelCreate(&model, 0);
-    rtError_t ret = apiImpl.ModelExecutorSet(static_cast<Model *>(model), 0);
+    rtError_t ret = apiImpl.ModelExecutorSet(rt_ut::UnwrapOrNull<Model>(model), 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtModelDestroy(model);
     EXPECT_EQ(ret, RT_ERROR_NONE);
@@ -1772,7 +1774,7 @@ TEST_F(CloudV2ApiImplTest, modelGetName_decorator_test)
 
     error = rtsModelSetName(model, "modelA");
     char name[128];
-    error = apiDecorator_->ModelGetName(static_cast<Model *>(model), 128, name);
+    error = apiDecorator_->ModelGetName(rt_ut::UnwrapOrNull<Model>(model), 128, name);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
     error = rtsModelGetName(model, maxLen, mdlName);
@@ -1950,11 +1952,16 @@ TEST_F(CloudV2ApiImplTest, ModelDestroyRegisterCallbackApiDecorator)
     Api *oldApi_= const_cast<Api *>(Runtime::runtime_->api_);
     ApiDecorator apiDecorator(oldApi_);
     rtModel_t model;
-    rtModelCreate(&model, 0);
-
-    rtError_t error = apiDecorator.ModelDestroyRegisterCallback(static_cast<Model*>(model), rtModelDestroyCallBackUt, nullptr);
+    rtError_t error = rtModelCreate(&model, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
-    error = apiDecorator.ModelDestroyUnregisterCallback(static_cast<Model*>(model), rtModelDestroyCallBackUt);
+    error = apiDecorator.ModelDestroyRegisterCallback(rt_ut::UnwrapOrNull<Model>(model), rtModelDestroyCallBackUt,
+        nullptr);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = apiDecorator.ModelDestroyUnregisterCallback(rt_ut::UnwrapOrNull<Model>(model), rtModelDestroyCallBackUt);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }

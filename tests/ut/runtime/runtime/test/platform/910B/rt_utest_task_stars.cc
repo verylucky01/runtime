@@ -16,6 +16,7 @@
 #include "task.hpp"
 #include "stars.hpp"
 #include "hwts.hpp"
+#include "rt_unwrap.h"
 #include "notify.hpp"
 #include "count_notify.hpp"
 #undef protected
@@ -287,10 +288,10 @@ TEST_F(StarsTaskTest, RdmaSink)
   
     ret = rtModelUnbindStream(model, stream);
     EXPECT_NE(ret, ACL_RT_SUCCESS);
-    stream->DelModel((Model*)model);
+    stream->DelModel(rt_ut::UnwrapOrNull<Model>(model));
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ((Model*)model)->ModelRemoveStream(stream);
+    rt_ut::UnwrapOrNull<Model>(model)->ModelRemoveStream(stream);
     ret = rtModelDestroy(model);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
@@ -313,7 +314,8 @@ TEST_F(StarsTaskTest, ModelExecute)
 
     InitByStream(&mdlExecTask, headSream);
 
-    ret = ModelExecuteTaskInit(&mdlExecTask, (Model *)model, ((Model *)model)->Id_(), 0);
+    ret = ModelExecuteTaskInit(&mdlExecTask, rt_ut::UnwrapOrNull<Model>(model),
+        rt_ut::UnwrapOrNull<Model>(model)->Id_(), 0);
     EXPECT_NE(ret, RT_ERROR_NONE);
     uint32_t sqeNum = GetSendSqeNum(&mdlExecTask);
     EXPECT_EQ(sqeNum, 1U);
@@ -325,10 +327,10 @@ TEST_F(StarsTaskTest, ModelExecute)
     TaskUnInitProc(task);
     ret = rtModelUnbindStream(model, headSream);
     EXPECT_NE(ret, ACL_RT_SUCCESS);
-    headSream->DelModel((Model*)model);
+    headSream->DelModel(rt_ut::UnwrapOrNull<Model>(model));
     ret = rtStreamDestroy(headSream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ((Model*)model)->ModelRemoveStream(headSream);
+    rt_ut::UnwrapOrNull<Model>(model)->ModelRemoveStream(headSream);
     ret = rtModelDestroy(model);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
@@ -350,15 +352,16 @@ TEST_F(StarsTaskTest, ModelExecute_failed)
 
     InitByStream(&mdlExecTask, headSream);
     MOCKER(memcpy_s).stubs().will(returnValue(EINVAL));
-    ret = ModelExecuteTaskInit(&mdlExecTask, (Model *)model, ((Model *)model)->Id_(), 0);
+    ret = ModelExecuteTaskInit(&mdlExecTask, rt_ut::UnwrapOrNull<Model>(model),
+        rt_ut::UnwrapOrNull<Model>(model)->Id_(), 0);
     EXPECT_NE(ret, RT_ERROR_SEC_HANDLE);
 
     ret = rtModelUnbindStream(model, headSream);
     EXPECT_NE(ret, RT_ERROR_NONE);
-    headSream->DelModel((Model*)model);
+    headSream->DelModel(rt_ut::UnwrapOrNull<Model>(model));
     ret = rtStreamDestroy(headSream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ((Model*)model)->ModelRemoveStream(headSream);
+    rt_ut::UnwrapOrNull<Model>(model)->ModelRemoveStream(headSream);
     ret = rtModelDestroy(model);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
@@ -380,15 +383,16 @@ TEST_F(StarsTaskTest, FuncCallAllocDevMem_devMem_failed)
 
     InitByStream(&mdlExecTask, headSream);
     MOCKER_CPP_VIRTUAL(dev_->Driver_(), &Driver::DevMemAlloc).stubs().will(returnValue(RT_ERROR_DRV_INPUT));
-    ret = ModelExecuteTaskInit(&mdlExecTask, (Model *)model, ((Model *)model)->Id_(), 0);
+    ret = ModelExecuteTaskInit(&mdlExecTask, rt_ut::UnwrapOrNull<Model>(model),
+        rt_ut::UnwrapOrNull<Model>(model)->Id_(), 0);
     EXPECT_NE(ret, RT_ERROR_DRV_INPUT);
 
     ret = rtModelUnbindStream(model, headSream);
     EXPECT_NE(ret, RT_ERROR_NONE);
-    headSream->DelModel((Model*)model);
+    headSream->DelModel(rt_ut::UnwrapOrNull<Model>(model));
     ret = rtStreamDestroy(headSream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ((Model*)model)->ModelRemoveStream(headSream);
+    rt_ut::UnwrapOrNull<Model>(model)->ModelRemoveStream(headSream);
     ret = rtModelDestroy(model);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
@@ -397,12 +401,14 @@ TEST_F(StarsTaskTest, ModelMaintaince)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
 
     TaskInfo maintainceTask = {};
     TaskInfo *task = &maintainceTask;
@@ -428,7 +434,7 @@ TEST_F(StarsTaskTest, ModelMaintaince)
 
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
@@ -449,13 +455,15 @@ TEST_F(StarsTaskTest, WaitEndgraphError)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
     Notify *notify;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
     ret = rtNotifyCreate(0, (rtNotify_t *)&notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     notify->SetEndGraphModel(model);
@@ -486,7 +494,7 @@ TEST_F(StarsTaskTest, WaitEndgraphError)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
@@ -494,13 +502,15 @@ TEST_F(StarsTaskTest, DoCompleteStarsError)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
     Notify *notify;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
     ret = rtNotifyCreate(0, (rtNotify_t *)&notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     notify->SetEndGraphModel(model);
@@ -540,7 +550,7 @@ TEST_F(StarsTaskTest, DoCompleteStarsError)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
@@ -548,13 +558,15 @@ TEST_F(StarsTaskTest, DoCompleteStarsError2)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
     Notify *notify;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
     ret = rtNotifyCreate(0, (rtNotify_t *)&notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     notify->SetEndGraphModel(model);
@@ -584,7 +596,7 @@ TEST_F(StarsTaskTest, DoCompleteStarsError2)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
@@ -592,13 +604,15 @@ TEST_F(StarsTaskTest, DoCompleteStarsError3)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
     Notify *notify;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
     ret = rtNotifyCreate(0, (rtNotify_t *)&notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     notify->SetEndGraphModel(model);
@@ -628,19 +642,21 @@ TEST_F(StarsTaskTest, DoCompleteStarsError3)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
 TEST_F(StarsTaskTest, DoCompleteStarsSdmaError)
 {
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
 
     rtError_t ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
 
     TaskInfo task = {};
     InitByStream(&task, stream);
@@ -667,7 +683,7 @@ TEST_F(StarsTaskTest, DoCompleteStarsSdmaError)
 
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
@@ -781,6 +797,7 @@ TEST_F(StarsTaskTest, DataDumpLoadInfoTask)
 {
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
@@ -1083,10 +1100,10 @@ TEST_F(StarsTaskTest, stars_label_switch_by_index)
     TaskUnInitProc(&task);
     error = rtModelUnbindStream(model, stream);
     EXPECT_NE(error, RT_ERROR_NONE);
-    ((Stream*)stream)->DelModel((Model*)model);
+    ((Stream*)stream)->DelModel(rt_ut::UnwrapOrNull<Model>(model));
     error = rtStreamDestroy(stream);
     EXPECT_EQ(error, RT_ERROR_NONE);
-    ((Model*)model)->ModelRemoveStream((Stream*)stream);
+    rt_ut::UnwrapOrNull<Model>(model)->ModelRemoveStream((Stream*)stream);
     error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
@@ -1457,11 +1474,13 @@ TEST_F(StarsTaskTest, DoCompleteStarsModelExcuteError)
 {
     Model *model;
     Stream *stream;
+    rtModel_t modelHandle = nullptr;
 
     rtError_t ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
 
     TaskInfo task = {};
     InitByStream(&task, stream);
@@ -1488,7 +1507,7 @@ TEST_F(StarsTaskTest, DoCompleteStarsModelExcuteError)
 
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
@@ -1498,13 +1517,15 @@ TEST_F(StarsTaskTest, DoCompleteStarsError_1)
 
     rtError_t ret;
     Model *model;
+    rtModel_t modelHandle = nullptr;
     Stream *stream;
     Notify *notify;
 
     ret = rtStreamCreate((rtStream_t *)&stream, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelCreate((rtModel_t *)&model, 0);
+    ret = rtModelCreate(&modelHandle, 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+    model = rt_ut::UnwrapOrNull<Model>(modelHandle);
     ret = rtNotifyCreate(0, (rtNotify_t *)&notify);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     notify->SetEndGraphModel(model);
@@ -1548,7 +1569,7 @@ TEST_F(StarsTaskTest, DoCompleteStarsError_1)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtStreamDestroy(stream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ret = rtModelDestroy(model);
+    ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 

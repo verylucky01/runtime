@@ -7,6 +7,8 @@
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
+#include "../../rt_utest_api.hpp"
+
 TEST_F(ApiDavidTest, AllocTaskInfoForCapture_UpdateTask)
 {
     TaskInfo *task = nullptr;
@@ -57,7 +59,8 @@ TEST_F(StarsTaskTest, ModelExecute_memFree)
 
     InitByStream(&mdlExecTask, headSream);
     MOCKER(CheckLogLevel).stubs().will(returnValue(1));
-    ret = ModelExecuteTaskInit(&mdlExecTask, (Model *)model, ((Model *)model)->Id_(), 0);
+    ret = ModelExecuteTaskInit(&mdlExecTask, rt_ut::UnwrapOrNull<Model>(model),
+        rt_ut::UnwrapOrNull<Model>(model)->Id_(), 0);
     EXPECT_EQ(ret, RT_ERROR_NONE);
     uint32_t sqeNum = GetSendSqeNum(&mdlExecTask);
     EXPECT_EQ(sqeNum, 1U);
@@ -71,10 +74,10 @@ TEST_F(StarsTaskTest, ModelExecute_memFree)
 
     ret = rtModelUnbindStream(model, headSream);
     EXPECT_EQ(ret, ACL_ERROR_RT_INTERNAL_ERROR);
-    headSream->DelModel((Model*)model);
+    headSream->DelModel(rt_ut::UnwrapOrNull<Model>(model));
     ret = rtStreamDestroy(headSream);
     EXPECT_EQ(ret, RT_ERROR_NONE);
-    ((Model*)model)->ModelRemoveStream(headSream);
+    rt_ut::UnwrapOrNull<Model>(model)->ModelRemoveStream(headSream);
     ret = rtModelDestroy(model);
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }

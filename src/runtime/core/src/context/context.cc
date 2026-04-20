@@ -473,15 +473,10 @@ rtError_t Context::OnlineStreamInit(const rtChipType_t chipType)
     return RT_ERROR_NONE;
 }
 
-rtError_t Context::Setup()
+rtError_t Context::SetOverflowAddr()
 {
-    rtError_t error;
-    const rtChipType_t chipType = device_->GetChipType();
-
-    error = Init();
-    ERROR_RETURN_MSG_INNER(error, "Init context failed, retCode=%#x", error);
-
     // set overflow addr
+    rtError_t error = RT_ERROR_NONE;
     if (overflowAddr_ == nullptr) {
         const rtMemType_t memType =
             (device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_TS_MEM_4G_SPACE_FOR_OVERFLOW)) ?
@@ -503,9 +498,27 @@ rtError_t Context::Setup()
             }
         }
     }
+    return error;
+}
+
+rtError_t Context::Setup()
+{
+    rtError_t error;
+    const rtChipType_t chipType = device_->GetChipType();
+
+    error = Init();
+    ERROR_RETURN_MSG_INNER(error, "Init context failed, retCode=%#x", error);
+
+    error = SetOverflowAddr();
+    ERROR_RETURN(error, "set overflowAddr failed, retCode=%#x.", error);
+
     if (isPrimary_) {
         defaultStream_ = device_->PrimaryStream_();
         COND_RETURN_ERROR_MSG_INNER(defaultStream_ == nullptr, RT_ERROR_CONTEXT_DEFAULT_STREAM_NULL, "Set up failed, default stream is null.");
+        Stream * ctrlSQStream = device_->GetCtrlSQStream(nullptr);
+        if (ctrlSQStream != nullptr) {
+            ctrlSQStream->SetContext(this);
+        }
     } else {
         uint32_t stmFlag = RT_STREAM_PRIMARY_DEFAULT;
         if (device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ)) {

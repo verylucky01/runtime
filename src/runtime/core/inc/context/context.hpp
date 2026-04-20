@@ -569,7 +569,7 @@ private:
     void TryAllocFastCq();
 
     rtError_t CheckCaptureModelValidity(Model * const captureMdl) const;
-
+    rtError_t SetOverflowAddr();
 protected:
     Device *device_;
 

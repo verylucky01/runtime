@@ -14,6 +14,7 @@
 
 namespace cce {
 namespace runtime {
+
 void ConstructSqeForBarrierTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
 void ConstructSqeForCmoTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
 void PrintErrorInfoForCmoTask(TaskInfo* taskInfo, const uint32_t devId);
@@ -30,6 +31,11 @@ void ConstructSqeForDebugRegisterTask(TaskInfo* taskInfo, rtStarsSqe_t *const co
 void ConstructSqeForDebugUnRegisterTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
 void ConstructSqeForDebugRegisterForStreamTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
 void ConstructSqeForDebugUnRegisterForStreamTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
+
+void ConstructSqeForProfilingEnableTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command);
+void ConstructSqeForProfilingDisableTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command);
+void ConstructSqeForProfilerTraceExTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
+
 }  // namespace runtime
 }  // namespace cce
 #endif  // TASK_INFO_V100_H

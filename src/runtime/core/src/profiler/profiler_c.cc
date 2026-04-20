@@ -9,6 +9,7 @@
  */
 #include "profiler_c.hpp"
 #include "task_david.hpp"
+#include "profiling_task.h"
 #include "thread_local_container.hpp"
 #include "inner_thread_local.hpp"
 #include "toolchain/prof_acl_api.h"

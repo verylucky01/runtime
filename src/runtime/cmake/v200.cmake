@@ -52,7 +52,8 @@ set(david_series_common_task_src_file
     ${RUNTIME_CORE_DIR}/src/task/task_info/reduce_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_stream_task.cc
-    ${RUNTIME_CORE_DIR}/src/task/task_info/profiling_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/profiling/profiling_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/profiling/profiling_task_v200_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task_v200_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/stream/stream_task.cc
@@ -96,6 +97,7 @@ set(david_series_common_task_src_file
     # mechanism dependance
     ${RUNTIME_CORE_DIR}/src/task/task_info/barrier/barrier_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cmo/cmo_task_v100.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/profiling/profiling_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/stream/stream_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task_v100.cc
 )

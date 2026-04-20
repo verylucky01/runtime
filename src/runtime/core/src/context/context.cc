@@ -33,6 +33,7 @@
 #include "inner_thread_local.hpp"
 #include "dvpp_grp.hpp"
 #include "task_info.hpp"
+#include "profiling_task.h"
 #include "stream_task.h"
 #include "task_submit.hpp"
 #include "task_to_sqe.hpp"

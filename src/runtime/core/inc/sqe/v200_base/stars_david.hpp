@@ -538,6 +538,9 @@ void ConstructAicpuSubSqeBase(TaskInfo * const taskInfo, rtDavidSqe_t * const da
 void ConstructAicpuSubSqe(TaskInfo * const taskInfo, rtDavidSqe_t * const davidSqe, uint32_t &sqeIndex,
     uint32_t aicpuIndex, uint32_t taskIdx, uint64_t sqBaseAddr);
 void ConstructDavidSqeForCmoTask(TaskInfo * const taskInfo, rtDavidSqe_t *const davidSqe, uint64_t sqBaseAddr);
+void ConstructDavidSqeForProfilingEnableTask(TaskInfo * const taskInfo, rtDavidSqe_t * const davidSqe, uint64_t sqBaseAddr);
+void ConstructDavidSqeForProfilingDisableTask(TaskInfo * const taskInfo, rtDavidSqe_t * const davidSqe, uint64_t sqBaseAddr);
+void ConstructDavidSqeForProfilerTraceExTask(TaskInfo *taskInfo, rtDavidSqe_t *const davidSqe, uint64_t sqBaseAddr);
 void ConstructDavidSqeForMemcpyAsyncTask(TaskInfo * const taskInfo, rtDavidSqe_t *const davidSqe,
     uint64_t sqBaseAddr);
 void ConstructDavidSqeForUbDirectSendTask(TaskInfo *taskInfo, rtDavidSqe_t * const command, uint64_t sqBaseAddr);

@@ -275,17 +275,6 @@ rtError_t MaintenanceTaskInit(TaskInfo * const taskInfo, const MtType type, cons
                               bool flag, const uint32_t idType = UINT32_MAX);
 rtError_t CreateL2AddrTaskInit(TaskInfo * const taskInfo, const uint64_t ptePtrAddr);
 rtError_t KernelFusionTaskInit(TaskInfo * const taskInfo, const FusionFlag fusFlag);
-rtError_t DynamicProfilingEnableTaskInit(TaskInfo * const taskInfo, const uint64_t processId,
-    const rtProfCfg_t *const profCfg);
-rtError_t DynamicProfilingDisableTaskInit(TaskInfo * const taskInfo, const uint64_t processId,
-    const rtProfCfg_t *const profCfg);
-rtError_t ProfilingEnableTaskInit(TaskInfo * const taskInfo, const uint64_t processId,
-    const rtProfCfg_t *const profCfg);
-rtError_t ProfilingDisableTaskInit(TaskInfo * const taskInfo, const uint64_t processId,
-    const rtProfCfg_t *const profCfg);
-rtError_t OnlineProfEnableTaskInit(TaskInfo * const taskInfo, const uint64_t onlineProfilingAddr);
-rtError_t OnlineProfDisableTaskInit(TaskInfo * const taskInfo, const uint64_t onlineProfilingAddr);
-rtError_t AdcProfTaskInit(TaskInfo * const taskInfo, const uint64_t address, const uint32_t len);
 rtError_t PCTraceTaskInit(TaskInfo * const taskInfo, const uint16_t enableTaskIndex,
                           const uint16_t coreDims, std::shared_ptr<PCTrace> pcTracePtr);
 rtError_t ModelMaintainceTaskInit(TaskInfo * const taskInfo, const MmtType mType,
@@ -341,8 +330,6 @@ rtError_t LabelSetTaskInit(TaskInfo* taskInfo, const uint16_t labelIndex, void *
 rtError_t LabelSwitchTaskInit(TaskInfo* taskInfo, const void *const ptr, const rtCondition_t cond,
     const uint32_t val, const uint16_t labelId);
 rtError_t LabelGotoTaskInit(TaskInfo* taskInfo, const uint16_t lblId);
-rtError_t ProfilerTraceTaskInit(TaskInfo* taskInfo, const uint64_t id, const bool notifyFlag, const uint32_t flags);
-rtError_t ProfilerTraceExTaskInit(TaskInfo* taskInfo, const uint64_t id, const uint64_t mdlId, const uint16_t tag);
 rtError_t AicpuInfoLoadTaskInit(TaskInfo* taskInfo, const void *const aicpuInfo, const uint32_t len);
 rtError_t TimeoutSetTaskInit(TaskInfo* taskInfo, const rtTaskTimeoutType_t type, const uint32_t timeout);
 rtError_t GetDevMsgTaskInit(TaskInfo* taskInfo, const void *const devMemAddr,

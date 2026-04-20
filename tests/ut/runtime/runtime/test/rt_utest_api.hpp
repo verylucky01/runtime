@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "runtime.hpp"
+#include "profiling_task.h"
 #include "api.hpp"
 #include "api_mbuf.hpp"
 #include "api_impl.hpp"

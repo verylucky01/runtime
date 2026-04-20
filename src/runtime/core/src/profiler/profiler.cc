@@ -15,6 +15,7 @@
 #include "runtime.hpp"
 #include "profiling_agent.hpp"
 #include "task_info.hpp"
+#include "profiling_task.h"
 #include "api_profile_decorator.hpp"
 #include "api_profile_log_decorator.hpp"
 #include "capture_model.hpp"

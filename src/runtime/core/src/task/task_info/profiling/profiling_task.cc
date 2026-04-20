@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 #include "stream.hpp"
 #include "runtime.hpp"
 #include "context.hpp"
+#include "profiling_task.h"
 #include "debug_task.h"
 
 namespace cce {
@@ -143,30 +144,6 @@ void ToCommandBodyForProfilingEnableTask(TaskInfo * const taskInfo, rtCommand_t 
     command->u.profilingEnable.isProfLogEn = profilingEnableTaskInfo->isProfLogEn;
     command->u.profilingEnable.isHwtsLogEn = profilingEnableTaskInfo->isHwtsLogEn;
 }
-
-void ConstructSqeForProfilingEnableTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command)
-{
-    ProfilingEnableTaskInfo *profilingEnableTaskInfo = &(taskInfo->u.profilingEnableTaskInfo);
-    Stream * const stream = taskInfo->stream;
-
-    RtStarsPhSqe *const sqe = &(command->phSqe);
-    sqe->type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
-    sqe->ie = 0U;
-    sqe->pre_p = 1U;
-    sqe->post_p = 0U;
-    sqe->wr_cqe = stream->GetStarsWrCqeFlag();
-    sqe->res0 = 0U;
-    sqe->task_type = 0U;
-    sqe->rt_streamID = static_cast<uint16_t>(stream->Id_());
-    sqe->task_id = taskInfo->id;
-    sqe->task_type = TS_TASK_TYPE_PROFILER_DYNAMIC_ENABLE;
-    sqe->kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-    sqe->u.dynamic_profiling_info.pid = profilingEnableTaskInfo->pid;
-    PrintSqe(command, "ProfilingEnableTask");
-    RT_LOG(RT_LOG_INFO, "Launch ProfilingEnableTask succ, "
-        "sqe_type=%u, pre_p=%u, stream_id=%u, task_id=%u, task_type=%u, pid=%u.",
-        sqe->type, sqe->pre_p, sqe->rt_streamID, sqe->task_id, sqe->task_type, profilingEnableTaskInfo->pid);
-}
 #endif
 
 #if F_DESC("ProfilingDisableTask")
@@ -196,30 +173,6 @@ void ToCommandBodyForProfilingDisableTask(TaskInfo * const taskInfo, rtCommand_t
     command->u.profilingDisable.isTaskBasedProfDis = profilingDisableTaskInfo->isTaskBasedProfEn;
     command->u.profilingDisable.isProfLogDis = profilingDisableTaskInfo->isProfLogEn;
     command->u.profilingDisable.isHwtsLogDis = profilingDisableTaskInfo->isHwtsLogEn;
-}
-
-void ConstructSqeForProfilingDisableTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command)
-{
-    ProfilingDisableTaskInfo *profilingDisableTaskInfo = &(taskInfo->u.profilingDisableTaskInfo);
-    Stream * const stream = taskInfo->stream;
-
-    RtStarsPhSqe *const sqe = &(command->phSqe);
-    sqe->type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
-    sqe->ie = 0U;
-    sqe->pre_p = 1U;
-    sqe->post_p = 0U;
-    sqe->wr_cqe = stream->GetStarsWrCqeFlag();
-    sqe->res0 = 0U;
-    sqe->task_type = 0U;
-    sqe->rt_streamID = static_cast<uint16_t>(stream->Id_());
-    sqe->task_id = taskInfo->id;
-    sqe->task_type = TS_TASK_TYPE_PROFILER_DYNAMIC_DISABLE;
-    sqe->kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-    sqe->u.dynamic_profiling_info.pid = profilingDisableTaskInfo->pid;
-    PrintSqe(command, "ProfilingDisableTask");
-    RT_LOG(RT_LOG_INFO, "Launch ProfilingDisableTask succ, "
-        "sqe_type=%u, pre_p=%u, stream_id=%u, task_id=%u, task_type=%u, pid=%u.",
-        sqe->type, sqe->pre_p, sqe->rt_streamID, sqe->task_id, sqe->task_type, profilingDisableTaskInfo->pid);
 }
 #endif
 
@@ -252,7 +205,6 @@ void ToCommandBodyForOnlineProfEnableTask(TaskInfo * const taskInfo, rtCommand_t
     command->u.onlineProfStartTask.onlineProfAddr = onlineProfPhyAddr;
     command->u.onlineProfStartTask.virAddr = MAX_UINT32_NUM;
 }
-
 #endif
 
 #if F_DESC("OnlineProfDisableTask")
@@ -274,7 +226,6 @@ void ToCommandBodyForOnlineProfDisableTask(TaskInfo * const taskInfo, rtCommand_
 
     command->u.onlineProfStopTask.onlineProfAddr = onlineProfDisableTaskInfo->onlineProfAddr;
 }
-
 #endif
 
 #if F_DESC("MdcProfTask")
@@ -308,7 +259,6 @@ void ToCommandBodyForAdcProfTask(TaskInfo * const taskInfo, rtCommand_t *const c
     command->u.mdcProfTask.profAddr = offset;
     command->u.mdcProfTask.length = adcProfTaskInfo->length;
 }
-
 #endif
 
 #if F_DESC("ProfilerTraceTask")
@@ -329,7 +279,6 @@ void ToCommandBodyForProfilerTraceTask(TaskInfo* taskInfo, rtCommand_t *const co
     command->u.profilertraceTask.profilerTraceId = static_cast<uint64_t>(taskInfo->u.profilertraceTask.profilerTraceId);
     command->u.profilertraceTask.notify = static_cast<uint8_t>(taskInfo->u.profilertraceTask.notify);
 }
-
 #endif
 
 #if F_DESC("ProfilerTraceExTask")
@@ -353,31 +302,6 @@ void ToCommandBodyForProfilerTraceExTask(TaskInfo* taskInfo, rtCommand_t *const 
     command->u.profilerTraceExTask.modelId = taskInfo->u.profilerTraceExTask.modelId;
     command->u.profilerTraceExTask.tagId = taskInfo->u.profilerTraceExTask.tagId;
 }
-
-void ConstructSqeForProfilerTraceExTask(TaskInfo* taskInfo, rtStarsSqe_t *const command)
-{
-    Stream * const stm = taskInfo->stream;
-    RtStarsPhSqe *const sqe = &(command->phSqe);
-    sqe->type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
-    sqe->ie = 0U;
-    sqe->pre_p = 1U;
-    sqe->post_p = 0U;
-    sqe->wr_cqe = stm->GetStarsWrCqeFlag();
-    sqe->res0 = 0U;
-    sqe->task_type = 0U;
-
-    sqe->rt_streamID = static_cast<uint16_t>(stm->Id_());
-    sqe->task_id = taskInfo->id;
-    sqe->task_type = TS_TASK_TYPE_PROFILER_TRACE_EX;
-    sqe->kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-    sqe->u.profile_trace_info.profilerTraceId = taskInfo->u.profilerTraceExTask.profilerTraceId;
-    sqe->u.profile_trace_info.modelId = taskInfo->u.profilerTraceExTask.modelId;
-    sqe->u.profile_trace_info.tagId = taskInfo->u.profilerTraceExTask.tagId;
-
-    PrintSqe(command, "ProfilerTraceExTask");
-    RT_LOG(RT_LOG_INFO, "ProfilerTraceExTask stream_id:%d task_id:%u", stm->Id_(), static_cast<uint32_t>(taskInfo->id));
-}
-
 #endif
 
 }  // namespace runtime

@@ -9,6 +9,7 @@
  */
 #include "rt_utest_api.hpp"
 #include "cmo_task.h"
+#include "profiling_task.h"
 #include "rt_utest_config_define.hpp"
 
 class ApiTest7 : public testing::Test

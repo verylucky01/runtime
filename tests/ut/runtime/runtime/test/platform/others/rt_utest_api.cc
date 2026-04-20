@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include "../../rt_utest_api.hpp"
+#include "profiling_task.h"
 #include "../../data/elf.h"
 #include "../../rt_utest_config_define.hpp"
 

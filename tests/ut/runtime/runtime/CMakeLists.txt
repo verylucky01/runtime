@@ -29,7 +29,7 @@ set(runtimeut_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/task_info/reduce_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_label_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_stream_task.cc
-    ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling/profiling_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/davinci_multiple_task.cc
@@ -56,6 +56,7 @@ set(runtimeut_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/v100/memory_corruption_checker.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/barrier/barrier_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cmo/cmo_task_v100.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling/profiling_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task_v100.cc
 )
@@ -90,12 +91,14 @@ set(runtimeut_david_series_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/v200_base/stars_david.cc
     ${TOP_DIR}/src/runtime/feature/ccu/ccu_sqe.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cmo/cmo_task_v200_base.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling/profiling_task_v200_base.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task_v200_base.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task_v200_base.cc
 
     # mechanism dependance
     ${TOP_DIR}/src/runtime/core/src/task/task_info/barrier/barrier_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cmo/cmo_task_v100.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling/profiling_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/stream/stream_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task_v100.cc
 )
@@ -644,8 +647,9 @@ set(runtimeut_david_src_list
     ${TOP_DIR}/src/runtime/core/src/engine/hwts/direct_hwts_engine.cc
     ${TOP_DIR}/src/runtime/core/src/engine/engine_factory.cc
     ${TOP_DIR}/src/runtime/core/src/engine/hwts/shm_cq.cc
-    ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling_task.cc
-    ${TOP_DIR}/src/runtime/driver/npu_driver_res.cc
+     ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling/profiling_task.cc
+     ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling/profiling_task_v200_base.cc
+     ${TOP_DIR}/src/runtime/driver/npu_driver_res.cc
     ${TOP_DIR}/src/runtime/driver/npu_driver_mem.cc
     ${TOP_DIR}/src/runtime/driver/npu_driver_queue.cc
     ${TOP_DIR}/src/runtime/core/src/runtime_v200/runtime_adapt.cc

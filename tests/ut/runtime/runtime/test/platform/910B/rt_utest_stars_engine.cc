@@ -22,6 +22,7 @@
 #include "event.hpp"
 #include "logger.hpp"
 #include "raw_device.hpp"
+#include "profiling_task.h"
 #undef private
 #undef protected
 #include "scheduler.hpp"

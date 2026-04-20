@@ -1,0 +1,1 @@
+{"dump": {"dump_mode": "output", "dump_scene": "watcher", "dump_path": "./TestWatcherValid/config_path", "dump_list": [{"layer": ["A", "B"], "watcher_nodes": ["C", "D"]}]}}

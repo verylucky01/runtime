@@ -8,6 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include <gtest/gtest.h>
+#include <unistd.h>
 #include "mockcpp/mockcpp.hpp"
 #include <vector>
 #include "dump_config_converter.h"
@@ -129,18 +130,14 @@ TEST_F(DumpConfigConverterUtest, TestConvertCommon)
     ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
     EXPECT_EQ(ret, ADUMP_FAILED);
 
-    MOCKER(&mmRealPath)
-        .stubs()
-        .will(returnValue(-1));
+    MOCKER(&mmRealPath).stubs().will(returnValue(-1));
     configData = ReadFileToString(JSON_BASE "datadump/dump_data_tensor.json");
     converter = DumpConfigConverter(configData.c_str(), configData.size());
     ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
     EXPECT_EQ(ret, ADUMP_FAILED);
 
     GlobalMockObject::reset();
-    MOCKER(&mmAccess2)
-        .stubs()
-        .will(returnValue(-1));
+    MOCKER(&mmAccess2).stubs().will(returnValue(-1));
     configData = ReadFileToString(JSON_BASE "datadump/dump_data_tensor.json");
     converter = DumpConfigConverter(configData.c_str(), configData.size());
     ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
@@ -385,14 +382,17 @@ TEST_F(DumpConfigConverterUtest, TestNpuCollectPathEnableExceptionDump)
     (void)system("chmod 400 ./TestNpuCollectPathEnableExceptionDump/NoPermission");
     (void)setenv("NPU_COLLECT_PATH", "./TestNpuCollectPathEnableExceptionDump/NoPermission/npuCollectPath", 1);
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
-    EXPECT_EQ(ret, false);
+    // root用户执行用例有权限
+    bool bRet = getuid() == 0 ? true : false;
+    EXPECT_EQ(ret, bRet);
 
     // 环境变量NPU_COLLECT_PATH，无效路径，无权限，不使能L1 exception dump
     (void)system("mkdir -p ./TestNpuCollectPathEnableExceptionDump/npuCollectPathNoPermission");
     (void)system("chmod 400 ./TestNpuCollectPathEnableExceptionDump/npuCollectPathNoPermission");
     (void)setenv("NPU_COLLECT_PATH", "./TestNpuCollectPathEnableExceptionDump/npuCollectPathNoPermission", 1);
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
-    EXPECT_EQ(ret, false);
+    // root用户执行用例有权限
+    EXPECT_EQ(ret, bRet);
 
     // 环境变量NPU_COLLECT_PATH，无效路径，非目录，不使能L1 exception dump
     (void)system("touch ./TestNpuCollectPathEnableExceptionDump/npuCollectPathIsFile");
@@ -406,19 +406,16 @@ TEST_F(DumpConfigConverterUtest, TestNpuCollectPathEnableExceptionDump)
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::EXCEPTION);
     EXPECT_EQ(config.dumpPath, "./TestNpuCollectPathEnableExceptionDump/npuCollectPath");
-
+    (void)system("rm -rf ./TestNpuCollectPathEnableExceptionDump");
     (void)unsetenv("ASCEND_WORK_PATH");
     (void)unsetenv("NPU_COLLECT_PATH");
     (void)unsetenv("ASCEND_DUMP_SCENE");
 }
 
-
 TEST_F(DumpConfigConverterUtest, TestAscendDumpSceneEnableExceptionDump)
 {
     DumpConfig config;
     DumpType dumpType;
-    bool ret = false;
-
     (void)system("rm -rf ./TestAscendDumpSceneEnableExceptionDump");
     (void)system("mkdir ./TestAscendDumpSceneEnableExceptionDump");
     (void)system("mkdir ./TestAscendDumpSceneEnableExceptionDump/NoPermission");
@@ -426,14 +423,9 @@ TEST_F(DumpConfigConverterUtest, TestAscendDumpSceneEnableExceptionDump)
 
     // 环境变量NPU_COLLECT_PATH，有效路径，使能L1 exception dump
     (void)setenv("NPU_COLLECT_PATH", "./TestAscendDumpSceneEnableExceptionDump/npuCollectPath", 1);
-    ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
-    EXPECT_EQ(ret, true);
-    EXPECT_EQ(dumpType, DumpType::EXCEPTION);
-    EXPECT_EQ(config.dumpPath, "./TestAscendDumpSceneEnableExceptionDump/npuCollectPath");
-
     // 环境变量ASCEND_DUMP_SCENE，无效值，使能L1 exception dump
     (void)setenv("ASCEND_DUMP_SCENE", "!aic_err_brief_dump", 1);
-    ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
+    bool ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::EXCEPTION);
     EXPECT_EQ(config.dumpPath, "./TestAscendDumpSceneEnableExceptionDump/npuCollectPath");
@@ -451,7 +443,10 @@ TEST_F(DumpConfigConverterUtest, TestAscendDumpSceneEnableExceptionDump)
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::ARGS_EXCEPTION);
-    EXPECT_EQ(config.dumpPath, "./");
+    // root用户执行用例有权限
+    std::string dumpPath =
+        getuid() == 0 ? "./TestAscendDumpSceneEnableExceptionDump/NoPermission/ascendWorkPath" : "./";
+    EXPECT_EQ(config.dumpPath, dumpPath);
 
     // 路径优先级2.2：生效ASCEND_WORK_PATH，有效路径
     (void)setenv("ASCEND_WORK_PATH", "./TestAscendDumpSceneEnableExceptionDump/ascendWorkPath", 1);
@@ -465,10 +460,12 @@ TEST_F(DumpConfigConverterUtest, TestAscendDumpSceneEnableExceptionDump)
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::ARGS_EXCEPTION);
-    EXPECT_EQ(config.dumpPath, "./TestAscendDumpSceneEnableExceptionDump/ascendWorkPath");
-
+    // root用户执行用例有权限
+    dumpPath = getuid() == 0 ? "./TestAscendDumpSceneEnableExceptionDump/NoPermission/ascendDumpPath" :
+                               "./TestAscendDumpSceneEnableExceptionDump/ascendWorkPath";
+    EXPECT_EQ(config.dumpPath, dumpPath);
     // 路径优先级1.2：生效ASCEND_DUMP_PATH，有效路径
-    (void)setenv("ASCEND_WORK_PATH", "./TestAscendDumpSceneEnableExceptionDump/ascendDumpPath", 1);
+    (void)setenv("ASCEND_DUMP_PATH", "./TestAscendDumpSceneEnableExceptionDump/ascendDumpPath", 1);
     ret = DumpConfigConverter::EnableExceptionDumpWithEnv(config, dumpType);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(dumpType, DumpType::ARGS_EXCEPTION);
@@ -478,4 +475,166 @@ TEST_F(DumpConfigConverterUtest, TestAscendDumpSceneEnableExceptionDump)
     (void)unsetenv("ASCEND_DUMP_PATH");
     (void)unsetenv("NPU_COLLECT_PATH");
     (void)unsetenv("ASCEND_DUMP_SCENE");
+}
+
+TEST_F(DumpConfigConverterUtest, TestWatcherDumpPathNotOverrideByEnv)
+{
+    // 测试 watcher 场景下 ConvertDumpConfig 的 dump_path 不会被环境变量覆盖
+    DumpConfig dumpConfig;
+    DumpDfxConfig dumpDfxConfig;
+    DumpType dumpType;
+    bool IsNeedDump = false;
+
+    // 创建测试目录
+    (void)system("rm -rf ./TestWatcherDumpPath");
+    (void)system("mkdir -p ./TestWatcherDumpPath/config_path");
+    (void)system("mkdir -p ./TestWatcherDumpPath/work_path");
+    (void)system("mkdir -p ./TestWatcherDumpPath/dump_path");
+
+    // 设置环境变量
+    (void)setenv("ASCEND_WORK_PATH", "./TestWatcherDumpPath/work_path", 1);
+    (void)setenv("ASCEND_DUMP_PATH", "./TestWatcherDumpPath/dump_path", 1);
+
+    // 测试 watcher 场景：环境变量不应该覆盖配置文件中的 dump_path
+    std::string configData = ReadFileToString(JSON_BASE "watcher/watcher_dump_path.json");
+    DumpConfigConverter converter{configData.c_str(), configData.size()};
+    int32_t ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
+    EXPECT_EQ(ret, ADUMP_SUCCESS);
+    EXPECT_TRUE(IsNeedDump);
+    // watcher 场景下，dumpPath 应该保持配置文件中的值，不被环境变量覆盖
+    EXPECT_EQ(dumpConfig.dumpPath, "./TestWatcherDumpPath/config_path");
+
+    // 清理环境变量
+    (void)unsetenv("ASCEND_WORK_PATH");
+    (void)unsetenv("ASCEND_DUMP_PATH");
+    (void)system("rm -rf ./TestWatcherDumpPath");
+}
+
+TEST_F(DumpConfigConverterUtest, TestNonWatcherDumpPathOverrideByEnv)
+{
+    // 测试非 watcher 场景下 ConvertDumpConfig 的 dump path 会被环境变量覆盖
+    DumpConfig dumpConfig;
+    DumpDfxConfig dumpDfxConfig;
+    DumpType dumpType;
+    bool IsNeedDump = false;
+
+    // 创建测试目录
+    (void)system("rm -rf ./TestNonWatcherDumpPath");
+    (void)system("mkdir -p ./TestNonWatcherDumpPath/config_path");
+    (void)system("mkdir -p ./TestNonWatcherDumpPath/work_path");
+    (void)system("mkdir -p ./TestNonWatcherDumpPath/dump_path");
+
+    // 设置环境变量 - ASCEND_DUMP_PATH 优先级最高
+    (void)setenv("ASCEND_DUMP_PATH", "./TestNonWatcherDumpPath/dump_path", 1);
+
+    // 测试非 watcher 场景（aic_err_brief_dump）：环境变量应该覆盖配置文件中的 dump_path
+    std::string configData = ReadFileToString(JSON_BASE "watcher/watcher_dump_path_env_override.json");
+    DumpConfigConverter converter{configData.c_str(), configData.size()};
+    int32_t ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
+    EXPECT_EQ(ret, ADUMP_SUCCESS);
+    EXPECT_TRUE(IsNeedDump);
+    // 非 watcher 场景下，dumpPath 应该被环境变量 ASCEND_DUMP_PATH 覆盖
+    EXPECT_EQ(dumpConfig.dumpPath, "./TestNonWatcherDumpPath/dump_path");
+
+    // 测试 ASCEND_WORK_PATH 也能覆盖（优先级低于 ASCEND_DUMP_PATH）
+    (void)unsetenv("ASCEND_DUMP_PATH");
+    (void)setenv("ASCEND_WORK_PATH", "./TestNonWatcherDumpPath/work_path", 1);
+    converter = DumpConfigConverter{configData.c_str(), configData.size()};
+    ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
+    EXPECT_EQ(ret, ADUMP_SUCCESS);
+    EXPECT_TRUE(IsNeedDump);
+    // 没有 ASCEND_DUMP_PATH 时，ASCEND_WORK_PATH 会覆盖
+    EXPECT_EQ(dumpConfig.dumpPath, "./TestNonWatcherDumpPath/work_path");
+
+    // 清理环境变量
+    (void)unsetenv("ASCEND_WORK_PATH");
+    (void)unsetenv("ASCEND_DUMP_PATH");
+    (void)system("rm -rf ./TestNonWatcherDumpPath");
+}
+
+TEST_F(DumpConfigConverterUtest, TestWatcherConflictWithDumpDebug)
+{
+    // 测试 watcher 场景与 dump_debug 的冲突检查
+    DumpConfig dumpConfig;
+    DumpDfxConfig dumpDfxConfig;
+    DumpType dumpType;
+    bool IsNeedDump = false;
+
+    std::string configData = ReadFileToString(JSON_BASE "watcher/watcher_conflict_dump_debug.json");
+    DumpConfigConverter converter{configData.c_str(), configData.size()};
+    int32_t ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
+    // watcher + dump_debug=on 应该返回失败
+    EXPECT_EQ(ret, ADUMP_FAILED);
+    EXPECT_FALSE(IsNeedDump);
+}
+
+TEST_F(DumpConfigConverterUtest, TestWatcherConflictWithDumpOpSwitch)
+{
+    // 测试 watcher 场景与 dump_op_switch 的冲突检查
+    DumpConfig dumpConfig;
+    DumpDfxConfig dumpDfxConfig;
+    DumpType dumpType;
+    bool IsNeedDump = false;
+
+    std::string configData = ReadFileToString(JSON_BASE "watcher/watcher_conflict_dump_op_switch.json");
+    DumpConfigConverter converter{configData.c_str(), configData.size()};
+    int32_t ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
+    // watcher + dump_op_switch=on 应该返回失败
+    EXPECT_EQ(ret, ADUMP_FAILED);
+    EXPECT_FALSE(IsNeedDump);
+}
+
+TEST_F(DumpConfigConverterUtest, TestWatcherDumpModeNotOutput)
+{
+    // 测试 watcher 场景 dump_mode 必须为 output
+    DumpConfig dumpConfig;
+    DumpDfxConfig dumpDfxConfig;
+    DumpType dumpType;
+    bool IsNeedDump = false;
+
+    std::string configData = ReadFileToString(JSON_BASE "watcher/watcher_mode_not_output.json");
+    DumpConfigConverter converter{configData.c_str(), configData.size()};
+    int32_t ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
+    // dump_mode=input 时应该返回失败
+    EXPECT_EQ(ret, ADUMP_FAILED);
+    EXPECT_FALSE(IsNeedDump);
+}
+
+TEST_F(DumpConfigConverterUtest, TestWatcherDumpPathMissing)
+{
+    // 测试 watcher 场景 dump_path 必须配置
+    DumpConfig dumpConfig;
+    DumpDfxConfig dumpDfxConfig;
+    DumpType dumpType;
+    bool IsNeedDump = false;
+
+    std::string configData = ReadFileToString(JSON_BASE "watcher/watcher_path_missing.json");
+    DumpConfigConverter converter{configData.c_str(), configData.size()};
+    int32_t ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
+    // 缺少 dump_path 时应该返回失败
+    EXPECT_EQ(ret, ADUMP_FAILED);
+    EXPECT_FALSE(IsNeedDump);
+}
+
+TEST_F(DumpConfigConverterUtest, TestWatcherValidConfig)
+{
+    // 测试 watcher 场景正常配置能够成功通过校验
+    DumpConfig dumpConfig;
+    DumpDfxConfig dumpDfxConfig;
+    DumpType dumpType;
+    bool IsNeedDump = false;
+
+    // 创建测试目录
+    (void)system("rm -rf ./TestWatcherValid");
+    (void)system("mkdir -p ./TestWatcherValid/config_path");
+
+    std::string configData = ReadFileToString(JSON_BASE "watcher/watcher_valid.json");
+    DumpConfigConverter converter{configData.c_str(), configData.size()};
+    int32_t ret = converter.Convert(dumpType, dumpConfig, IsNeedDump, dumpDfxConfig);
+    // watcher 正常配置应该成功
+    EXPECT_EQ(ret, ADUMP_SUCCESS);
+    EXPECT_TRUE(IsNeedDump);
+    EXPECT_EQ(dumpConfig.dumpPath, "./TestWatcherValid/config_path");
+
+    (void)system("rm -rf ./TestWatcherValid");
 }

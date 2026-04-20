@@ -108,7 +108,6 @@ struct LaunchParam {
 
 struct AicTaskInfo {
     DavinciTaskInfoCommon comm;
-    LaunchParam launchParam;
     void *descBuf;
     void *descAlignBuf;
     void *sqeDevBuf;     // used to update sqe for capture
@@ -138,6 +137,7 @@ struct AicTaskInfo {
     uint32_t dynamicShareMemSize;
     uint32_t simtDcuSmSize;
     uint64_t timeout; // uint in us
+    LaunchParam launchParam;
 };
 
 struct AicpuTaskInfo {

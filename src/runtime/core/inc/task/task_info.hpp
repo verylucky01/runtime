@@ -64,7 +64,7 @@ typedef struct tagTaskInfoStru {
     uint8_t isRingbufferGet : 1;
     uint8_t isUpdateSinkSqe : 1;
     uint8_t isNoRingbuffer : 1;
-    uint8_t taskOwner : 1; // 默认是user，使用此标记需排查实际owner
+    uint8_t taskOwner : 1; // 默认是user，使用此标记需关注其实际值
     uint8_t resv : 4;
     uint8_t sqeNum : 7;
     uint8_t needPostProc : 1;

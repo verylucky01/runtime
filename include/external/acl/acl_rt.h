@@ -77,6 +77,10 @@ extern "C" {
 #define ACL_HOST_REG_READONLY 0x8UL    // Register as read-only memory
 #define ACL_HOST_REG_PINNED   0x10000000UL  // Pin memory to prevent swapping
 
+// flags for aclmdlRIDebugJsonPrint
+#define ACL_MDLRI_DEBUG_JSON_PRINT_SUMMARY 0x0UL
+#define ACL_MDLRI_DEBUG_JSON_PRINT_VERBOSE 0x1UL
+
 #define ACL_RT_MAX_RECORD_PA_NUM_PER_DEV 20U
 
 #define ACL_IPC_EVENT_HANDLE_SIZE 64U
@@ -4365,7 +4369,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlRIDebugPrint(aclmdlRI modelRI);
  * @brief print model information
  * @param modelRI [IN] model runtime instance
  * @param path [IN] json file path
- * @param flags [IN] reserve
+ * @param flags [IN] flags for print mode
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */

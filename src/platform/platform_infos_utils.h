@@ -18,7 +18,8 @@
 #include "platform_log.h"
 
 namespace fe {
-extern std::mutex plt_mutex;
+extern std::mutex plt_info_mutex;
+extern std::mutex opt_info_mutex;
 const std::string PLATFORM_RELATIVE_PATH = "data/platform_config";
 
 class PlatformInfosUtils {

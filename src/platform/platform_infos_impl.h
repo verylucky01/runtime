@@ -15,7 +15,6 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <mutex>
 #include "platform/platform_infos_def.h"
 
 namespace fe {
@@ -56,8 +55,6 @@ class OptionalInfosImpl {
   void SetAICoreNum(uint32_t ai_core_num);
   void SetL1FusionFlag(std::string l1_fusion_flag);
  private:
-  std::mutex mtx_;
-
   std::string soc_version_;
   std::string core_type_;
   uint32_t ai_core_num_{0};

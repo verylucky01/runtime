@@ -2201,8 +2201,8 @@ rtError_t NpuDriver::MemCopySync(void * const dst, const uint64_t destMax, const
     if (drvRet != DRV_ERROR_NONE) {
         if (errShow == true) {
             DRV_ERROR_PROCESS(drvRet, "[drv api] drvMemcpy failed: destMax=%" PRIu64
-                ", size=%" PRIu64 "(bytes), kind=%d, devId=%u, drvRetCode=%d!", destMax, size,
-                static_cast<int32_t>(kind), devId, static_cast<int32_t>(drvRet));
+                ", size=%" PRIu64 "(bytes), kind=%d, drvRetCode=%d!", destMax, size,
+                static_cast<int32_t>(kind), static_cast<int32_t>(drvRet));
         }
         return RT_GET_DRV_ERRCODE(drvRet);
     }

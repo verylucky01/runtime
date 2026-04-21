@@ -1436,6 +1436,9 @@ TEST_F(NpuDriverTest, MEMCPY_TEST_1)
     error = rawDrv->MemCopySync(&error, 100, &mem, 100, RT_MEMCPY_DEVICE_TO_HOST);
     EXPECT_EQ(error, RT_ERROR_DRV_INPUT);
 
+    error = rawDrv->MemCopySync(&error, 100, &mem, 100, RT_MEMCPY_DEVICE_TO_HOST, true, 0);
+    EXPECT_EQ(error, RT_ERROR_DRV_INPUT);
+
     delete rawDrv;
 }
 

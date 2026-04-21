@@ -187,7 +187,7 @@ private:
     BqsStatus CreateAndGrantPipelineQueue();
 
     /**
-     * attach and intial group at first
+     * attach and initial group at first
      * @return BQS_STATUS_OK: success, other: failed.
      */
     BqsStatus AttachAndInitGroup();

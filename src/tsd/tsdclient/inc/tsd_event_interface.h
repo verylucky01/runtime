@@ -44,7 +44,7 @@ struct TsdCustStartEventInfo {
     uint32_t vfId;                        // vf id
     uint32_t procType;                    // process type
     uint32_t eventType;                   // event type
-    uint32_t groupNameNum;                 // intial group name number
+    uint32_t groupNameNum;                 // initial group name number
     char_t groupNameList[MAX_GROUP_NAME_LENGTH]; // initial group name list
 };
 

@@ -511,6 +511,17 @@
     },
     {
       "errClass": "RTS Errors",
+      "errTitle": "Package_Error_Incorrect_Driver_Version",
+      "ErrCode": "EE1015",
+      "ErrMessage": "%s failed. Reason: The driver version capacity is insufficient. %s",
+      "Arglist": "func, reason",
+      "suggestion": {
+        "Possible Cause": "N/A",
+        "Solution": "Upgrade the driver software version."
+      }
+    },
+    {
+      "errClass": "RTS Errors",
       "errTitle": "Invalid_Argument",
       "ErrCode": "EE1017",
       "ErrMessage": "%s failed. Parameter %s is invalid. Reason: %s.",

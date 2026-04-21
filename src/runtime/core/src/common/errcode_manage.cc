@@ -651,6 +651,7 @@ std::string ErrorcodeManage::GetErrorReason(const RtInnerErrcodeType errcode)
     return ss.str();
 }
 
+// 兼容halGetMemModuleName接口不存在的驱动版本，兼容期结束前仍需维护
 static const std::unordered_map<uint16_t, std::string> moduleNameMap = {
     {UNKNOWN_MODULE_ID, "UNKNOWN"},
     {IDEDD_MODULE_ID, "IDEDD"},

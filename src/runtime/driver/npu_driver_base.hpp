@@ -29,6 +29,7 @@ drvError_t __attribute__((weak)) halCheckProcessStatus(DVdevice device, processT
 drvError_t __attribute__((weak)) halCheckProcessStatusEx(DVdevice device, processType_t process_type,
     processStatus_t status, struct drv_process_status_output *out);    
 int32_t __attribute__((weak)) halMapErrorCode(drvError_t code);
+char * __attribute__((weak)) halGetMemModuleName(uint32_t module_id);
 drvError_t __attribute__((weak)) halCqReportRecv(uint32_t devId, struct halReportRecvInfo *info);
 drvError_t __attribute__((weak)) halSqCqQuery(uint32_t devId, struct halSqCqQueryInfo *info);
 drvError_t __attribute__((weak)) halResourceConfig(uint32_t devId, struct halResourceIdInputInfo *in,
@@ -293,9 +294,12 @@ enum class RtCtrlType {
                 errBuf.resize(ERROR_MSG_CODE_LEN - 1U);                                                              \
                 if (likely(errRet != -1)) {                                                                          \
                     if (errBuf.compare(RT_MEMORY_ALLOC_ERROR) == 0) {                                                \
+                        std::string moduleName = (&halGetMemModuleName != nullptr) ?                                 \
+                            std::string(halGetMemModuleName(static_cast<uint32_t>(moduleId))) :                      \
+                            RT_GET_MODULE_NAME(moduleId);                                                            \
                         REPORT_INPUT_ERROR(errBuf,                                                                   \
                             std::vector<std::string>({"module_name"}),                                               \
-                            std::vector<std::string>({RT_GET_MODULE_NAME(moduleId)}));                               \
+                            std::vector<std::string>({moduleName}));                                                 \
                     } else {                                                                                         \
                         REPORT_INPUT_ERROR(errBuf, std::vector<std::string>(), std::vector<std::string>());          \
                     }                                                                                                \

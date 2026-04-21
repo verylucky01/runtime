@@ -358,31 +358,6 @@ rtError_t rtUnRegKernelLaunchFillFunc(const char* symbol)
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtLaunchKernelExByFuncHandle(rtFuncHandle funcHandle, rtLaunchConfig_t* launchConfig,
-    rtLaunchArgsHandle argsHandle, rtStream_t stm)
-{
-    GLOBAL_STATE_WAIT_IF_LOCKED();
-    const Runtime * const rtInstance = Runtime::Instance();
-    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
-
-    COND_RETURN_WARN(!IS_SUPPORT_CHIP_FEATURE(rtInstance->GetChipType(),
-        RtOptionalFeatureType::RT_FEATURE_KERNEL_LAUNCH_EX_BY_FUNC_HANDLE),
-        ACL_ERROR_RT_FEATURE_NOT_SUPPORT, "chip type(%d) does not support, return.",
-        static_cast<int32_t>(rtInstance->GetChipType()));
-
-    Api * const apiInstance = Api::Instance();
-    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    PARAM_NULL_RETURN_ERROR_WITH_EXT_ERRCODE(argsHandle, RT_ERROR_INVALID_VALUE);
-    rtLaunchArgs_t* args = RtPtrToPtr<rtLaunchArgs_t*>(argsHandle);
-    rtArgsEx_t *argsInfo = &(args->argsInfo);
-    const rtError_t ret = apiInstance->LaunchKernelV3(RtPtrToPtr<Kernel *>(funcHandle), argsInfo,
-        static_cast<Stream *>(stm), launchConfig);
-    COND_RETURN_WITH_NOLOG(ret == RT_ERROR_KERNEL_INVALID, ACL_ERROR_RT_INVALID_HANDLE);
-    ERROR_RETURN_WITH_EXT_ERRCODE(ret);
-    return ACL_RT_SUCCESS;
-}
-
-VISIBILITY_DEFAULT
 rtError_t rtsLaunchReduceAsyncTask(const rtReduceInfo_t *reduceInfo, const rtStream_t stm, const void *reserve)
 {
     GLOBAL_STATE_WAIT_IF_LOCKED();

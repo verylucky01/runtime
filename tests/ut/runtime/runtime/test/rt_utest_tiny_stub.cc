@@ -121,8 +121,6 @@ TEST_F(TinyStubTest, api_c_stub)
     EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ret = rtUnRegKernelLaunchFillFunc(nullptr);
     EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
-    ret = rtLaunchKernelExByFuncHandle(nullptr, nullptr, nullptr, nullptr);
-    EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
 
     // ipc
     ret = rtIpcSetMemoryName(nullptr, 0, nullptr, 0);

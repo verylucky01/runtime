@@ -121,11 +121,6 @@ int rtProfSetProSwitch(void* data, uint32_t len)
     return 0;
 }
 
-int rtSetMsprofReporterCallback(MsprofReporterCallback callBack)
-{
-    return 0;
-}
-
 int rtRegDeviceStateCallback(const char *regName, rtDeviceStateCallback callback)
 {
     return 0;

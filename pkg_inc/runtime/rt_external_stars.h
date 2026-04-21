@@ -37,7 +37,6 @@ typedef enum tagGeneralCtrlType {
     RT_GNL_CTRL_TYPE_MULTIPLE_TSK = 13,
     RT_GNL_CTRL_TYPE_NPU_GET_FLOAT_DEBUG_STATUS = 14,
     RT_GNL_CTRL_TYPE_NPU_CLEAR_FLOAT_DEBUG_STATUS = 15,
-    RT_GNL_CTRL_TYPE_MULTIPLE_TSK_FLAG = 16, // invoke rtMultipleTaskInfoLaunchWithFlag
     RT_GNL_CTRL_TYPE_MAX
 } rtGeneralCtrlType_t;
 

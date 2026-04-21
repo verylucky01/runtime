@@ -537,13 +537,6 @@ TEST_F(CloudV2ApiAbnormalTest, rtsRepairError_abnormal)
     EXPECT_NE(error, RT_ERROR_NONE);
 }
 
-TEST_F(CloudV2ApiAbnormalTest, rtLaunchKernelExByFuncHandleAbnormal)
-{
-    rtError_t error;
-    error = rtLaunchKernelExByFuncHandle(nullptr, nullptr, nullptr, nullptr);
-    EXPECT_NE(error, RT_ERROR_NONE);
-}
-
 TEST_F(CloudV2ApiAbnormalTest, ModelDebugJsonPrint_Error)
 {
     rtError_t error;

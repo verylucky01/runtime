@@ -578,17 +578,6 @@ rtError_t rtUnRegKernelLaunchFillFunc(const char* symbol)
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtLaunchKernelExByFuncHandle(rtFuncHandle funcHandle, rtLaunchConfig_t* launchConfig,
-    rtLaunchArgsHandle argsHandle, rtStream_t stm)
-{
-    (void)funcHandle;
-    (void)launchConfig;
-    (void)argsHandle;
-    (void)stm;
-    return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
-}
-
-VISIBILITY_DEFAULT
 rtError_t rtsLaunchReduceAsyncTask(const rtReduceInfo_t *reduceInfo, const rtStream_t stm, const void *reserve)
 {
     (void)reduceInfo;

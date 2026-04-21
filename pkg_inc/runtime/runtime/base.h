@@ -531,12 +531,6 @@ RTS_API rtError_t rtProfilerTraceEx(uint64_t id, uint64_t modelId, uint16_t tagI
 
 /**
  * @ingroup profiling_base
- * @brief ts set profiling reporter callback.
- */
-RTS_API rtError_t rtSetMsprofReporterCallback(MsprofReporterCallback callback);
-
-/**
- * @ingroup profiling_base
  * @brief add the map of deviceId and GE model index, called by ge
  * @param [in] geModelIdx  The index of GE model
  * @param [in] deviceId    The id of device

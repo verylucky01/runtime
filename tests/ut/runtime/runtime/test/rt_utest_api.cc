@@ -6673,13 +6673,6 @@ TEST_F(ApiTest, drv_mem_dma_api)
     EXPECT_EQ(ret, RT_ERROR_NONE);
 }
 
-TEST_F(ApiTest, rtSetMsprofReporterCallback)
-{
-    rtError_t ret;
-    ret = rtSetMsprofReporterCallback(msprofreportcallback);
-    EXPECT_EQ(ret, ACL_RT_SUCCESS);
-}
-
 TEST_F(ApiTest, rtSetDeviceSatMode)
 {
     rtError_t ret;
@@ -6754,57 +6747,6 @@ TEST_F(ApiTest, rtMultipleTaskInfoLaunchCtrl_dvppTask)
     rtFree(devPtr);
 }
 
-TEST_F(ApiTest, rtMultipleTaskInfoLaunchWithFlagCtrl_dvppTask_RuntimeFreeCmdList)
-{
-    rtTaskDesc_t taskDesc;
-    rtMultipleTaskInfo_t multipleTaskInfo = {0};
-    multipleTaskInfo.taskNum = 1;
-    multipleTaskInfo.taskDesc = &taskDesc;
-    memset(multipleTaskInfo.taskDesc, 0, sizeof(rtTaskDesc_t));
-
-    void *devPtr;
-    auto ret = rtMalloc(&devPtr, 16, RT_MEMORY_HBM, DEFAULT_MODULEID);
-    EXPECT_EQ(ret, RT_ERROR_NONE);
-    multipleTaskInfo.taskDesc[0].type = RT_MULTIPLE_TASK_TYPE_DVPP;
-    multipleTaskInfo.taskDesc[0].u.dvppTaskDesc.sqe.sqeHeader.type = 14; // RT_STARS_SQE_TYPE_JPEGD;
-    multipleTaskInfo.taskDesc[0].u.dvppTaskDesc.aicpuTaskPos = 1 + 3;  // for dvpp rr, add 3 write value
-
-    std::vector<uintptr_t> input;
-    input.push_back(reinterpret_cast<uintptr_t>(&multipleTaskInfo));
-    input.push_back(reinterpret_cast<uintptr_t>(stream_));
-    uint32_t flag = 0x0U;
-    input.push_back(static_cast<uintptr_t>(flag));
-    ret = rtGeneralCtrl(input.data(), input.size(), RT_GNL_CTRL_TYPE_MULTIPLE_TSK_FLAG);
-    EXPECT_EQ(ret, RT_ERROR_NONE);
-
-    ret = rtFree(devPtr);
-    EXPECT_EQ(ret, RT_ERROR_NONE);
-}
-
-TEST_F(ApiTest, rtMultipleTaskInfoLaunchWithFlagCtrl_dvppTask_RuntimeNotFreeCmdList)
-{
-    rtTaskDesc_t taskDesc;
-    rtMultipleTaskInfo_t multipleTaskInfo = {0};
-    multipleTaskInfo.taskNum = 1;
-    multipleTaskInfo.taskDesc = &taskDesc;
-    memset(multipleTaskInfo.taskDesc, 0, sizeof(rtTaskDesc_t));
-
-    void *devPtr;
-    rtMalloc(&devPtr, 16, RT_MEMORY_HBM, DEFAULT_MODULEID);
-    multipleTaskInfo.taskDesc[0].type = RT_MULTIPLE_TASK_TYPE_DVPP;
-    multipleTaskInfo.taskDesc[0].u.dvppTaskDesc.sqe.sqeHeader.type = 14; // RT_STARS_SQE_TYPE_JPEGD;
-    multipleTaskInfo.taskDesc[0].u.dvppTaskDesc.aicpuTaskPos = 1 + 3;  // for dvpp rr, add 3 write value
-
-    std::vector<uintptr_t> input;
-    input.push_back(reinterpret_cast<uintptr_t>(&multipleTaskInfo));
-    input.push_back(reinterpret_cast<uintptr_t>(stream_));
-    uint32_t flag = 0x40U;
-    input.push_back(static_cast<uintptr_t>(flag));
-    int32_t ret = rtGeneralCtrl(input.data(), input.size(), RT_GNL_CTRL_TYPE_MULTIPLE_TSK_FLAG);
-    rtFree(devPtr);
-    EXPECT_EQ(ret, RT_ERROR_NONE);
-}
-
 TEST_F(ApiTest, rtMultipleTaskInfoLaunchCtrl_InvalidTask)
 {
     rtTaskDesc_t taskDesc;
@@ -6817,21 +6759,6 @@ TEST_F(ApiTest, rtMultipleTaskInfoLaunchCtrl_InvalidTask)
     input.push_back(reinterpret_cast<uintptr_t>(&multipleTaskInfo));
     input.push_back(reinterpret_cast<uintptr_t>(stream_));
     auto ret = rtGeneralCtrl(input.data(), input.size(), RT_GNL_CTRL_TYPE_MULTIPLE_TSK);
-    EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
-}
-
-TEST_F(ApiTest, rtMultipleTaskInfoLaunchWithFlagCtrl_InvalidTask)
-{
-    rtTaskDesc_t taskDesc;
-    rtMultipleTaskInfo_t multipleTaskInfo = {0};
-    multipleTaskInfo.taskNum = 1;
-    multipleTaskInfo.taskDesc = &taskDesc;
-    memset(multipleTaskInfo.taskDesc, 0, sizeof(rtTaskDesc_t));
-    multipleTaskInfo.taskDesc[0].type = RT_MULTIPLE_TASK_TYPE_MAX;
-    std::vector<uintptr_t> input;
-    input.push_back(reinterpret_cast<uintptr_t>(&multipleTaskInfo));
-    input.push_back(reinterpret_cast<uintptr_t>(stream_));
-    auto ret = rtGeneralCtrl(input.data(), input.size(), RT_GNL_CTRL_TYPE_MULTIPLE_TSK_FLAG);
     EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
 }
 

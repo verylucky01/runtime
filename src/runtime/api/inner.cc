@@ -167,14 +167,6 @@ rtError_t rtMultipleTaskInfoLaunchCtrl(uintptr_t * const ctl, const uint32_t num
                                     RtPtrToPtr<rtStream_t>(ctl[GNL_CTRL_PARAM_1]));
 }
 
-rtError_t rtMultipleTaskInfoLaunchWithFlagCtrl(uintptr_t * const ctl, const uint32_t num)
-{
-    UNUSED(num);
-    return rtMultipleTaskInfoLaunchWithFlag(RtPtrToPtr<const void *>(ctl[GNL_CTRL_PARAM_0]),
-                                            RtPtrToPtr<rtStream_t>(ctl[GNL_CTRL_PARAM_1]),
-                                            static_cast<uint32_t>(ctl[GNL_CTRL_PARAM_2]));
-}
-
 typedef rtError_t (*rtGeneralCtrlFuncPtr)(uintptr_t *ctl, uint32_t num);
 
 
@@ -200,7 +192,6 @@ static rtGeneralCtrlFunc g_genCtrPro[] = {
     {rtMultipleTaskInfoLaunchCtrl, RT_GNL_CTRL_NUM_MULTIPLE_TSK},
     {rtNpuGetFloatDebugStatusCtrl, RT_GNL_CTRL_NUM_NPU_GET_FLOAT_STATUS},
     {rtNpuClearFloatDebugStatusCtrl, RT_GNL_CTRL_NUM_NPU_CLEAR_FLOAT_STATUS},
-    {rtMultipleTaskInfoLaunchWithFlagCtrl, RT_GNL_CTRL_NUM_MULTIPLE_TSK_FLAG},
 };
 
 rtError_t rtGeneralCtrlInner(uintptr_t *ctl, uint32_t num, uint32_t type)

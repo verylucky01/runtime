@@ -4767,12 +4767,8 @@ TEST_F(UbStreamTest, LaunchKernel_HostApi)
     kernel->SetKernelType_(Program::MACH_AI_VECTOR);
     kernel->SetKernelVfType_(static_cast<uint32_t>(AivTypeFlag::AIV_TYPE_SIMT_VF_ONLY));
 
-    error = rtLaunchKernelExByFuncHandle(func_handle, &launchConfig, argsHandle, stream);
-    EXPECT_EQ(error, RT_ERROR_NONE);
     TaskResManageDavid *taskResMang = ((TaskResManageDavid *)(static_cast<Stream *>(stream)->taskResMang_));
     taskResMang->ResetTaskRes();
-    error = rtLaunchKernelExByFuncHandle(func_handle, &launchConfig, argsHandle, nullptr);
-    EXPECT_EQ(error, RT_ERROR_NONE);
     MOCKER_CPP(&Program::IsDeviceSoAndNameValid).stubs().will(returnValue(false));
     error = rtLaunchKernelByFuncHandleV2(func_handle, blockDim, argsHandle, stream, nullptr);
     EXPECT_EQ(error, ACL_ERROR_RT_INVALID_HANDLE);
@@ -9921,13 +9917,8 @@ TEST_F(UbStreamTestLite, LaunchKernel_HostApi_Lite)
     kernel->SetShareMemSize_(2048);
     kernel->SetKernelType_(Program::MACH_AI_VECTOR);
 
-    error = rtLaunchKernelExByFuncHandle(func_handle, &launchConfig, argsHandle, stream);
-    EXPECT_EQ(error, RT_ERROR_NONE);
-
     attrs[1].id = RT_LAUNCH_ATTRIBUTE_DYN_UBUF_SIZE;
     attrs[1].value.dynUBufSize = 256U * 1024U;
-    error = rtLaunchKernelExByFuncHandle(func_handle, &launchConfig, argsHandle, stream);
-    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
     ((Stream *)stream)->SetSqBaseAddr(oldSqAddr);
 
     error = rtBinaryUnLoad(bin_handle);

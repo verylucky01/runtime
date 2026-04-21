@@ -1501,19 +1501,6 @@ rtError_t rtUnsetDeviceIdByGeModelIdx(uint32_t geModelIdx, uint32_t deviceId)
 }
 
 VISIBILITY_DEFAULT
-rtError_t rtSetMsprofReporterCallback(MsprofReporterCallback callback)
-{
-    ProfCtrlCallbackManager::Instance().Notify(static_cast<uint32_t>(RT_PROF_CTRL_REPORTER),
-        RtPtrToPtr<void*, decltype(callback)>(callback),
-        sizeof(MsprofReporterCallback));
-    Api * const apiInstance = Api::Instance();
-    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const rtError_t error = apiInstance->SetMsprofReporterCallback(callback);
-    ERROR_RETURN_WITH_EXT_ERRCODE(error);
-    return ACL_RT_SUCCESS;
-}
-
-VISIBILITY_DEFAULT
 rtError_t rtProfSetProSwitch(void *data, uint32_t len)
 {
     PARAM_NULL_RETURN_ERROR_WITH_EXT_ERRCODE(data, RT_ERROR_INVALID_VALUE);
@@ -3229,23 +3216,6 @@ rtError_t rtMultipleTaskInfoLaunch(const void * taskInfo, rtStream_t stm)
     (void)AwdStartThreadWatchdog(watchDogHandle);
     const rtError_t ret = apiInstance->MultipleTaskInfoLaunch(
         RtPtrToPtr<const rtMultipleTaskInfo_t *>(taskInfo), exeStream, RT_DEFAULT_FLAG);
-    (void)AwdStopThreadWatchdog(watchDogHandle);
-    COND_RETURN_WITH_NOLOG(ret == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
-    ERROR_RETURN_WITH_EXT_ERRCODE(ret);
-    return ACL_RT_SUCCESS;
-}
-
-VISIBILITY_DEFAULT
-rtError_t rtMultipleTaskInfoLaunchWithFlag(const void * taskInfo, rtStream_t stm, const uint32_t flag)
-{
-    GLOBAL_STATE_WAIT_IF_LOCKED();
-    Stream * const exeStream = static_cast<Stream *>(stm);
-    Api * const apiInstance = Api::Instance();
-    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    const auto watchDogHandle = ThreadLocalContainer::GetOrCreateWatchDogHandle();
-    (void)AwdStartThreadWatchdog(watchDogHandle);
-    const rtError_t ret = apiInstance->MultipleTaskInfoLaunch(
-        RtPtrToPtr<const rtMultipleTaskInfo_t *>(taskInfo), exeStream, flag);
     (void)AwdStopThreadWatchdog(watchDogHandle);
     COND_RETURN_WITH_NOLOG(ret == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(ret);

@@ -488,19 +488,6 @@ RTS_API rtError_t rtsGetNonCacheAddrOffset(uint32_t deviceId, uint64_t *offset);
 RTS_API rtError_t rtsFuncGetName(const rtFuncHandle funcHandle, const uint32_t maxLen, char_t * const name);
 
 /**
- * @ingroup rt_kernel
- * @brief Kernel Launch to device
- * @param [in] funcHandle  function Handle
- * @param [in] config task config info
- * @param [in] argsHandle  args Handle
- * @param [in] stm  associated stream
- * @return RT_ERROR_NONE for ok
- * @return RT_ERROR_INVALID_VALUE for error input
- */
-RTS_API rtError_t rtLaunchKernelExByFuncHandle(rtFuncHandle funcHandle, rtLaunchConfig_t* launchConfig,
-    rtLaunchArgsHandle argsHandle, rtStream_t stm);
-
-/**
  * @ingroup rts_kernel
  * @brief get hardware sync Addr for Mix kernel.
  * @param [out] addr   hardware sync addr

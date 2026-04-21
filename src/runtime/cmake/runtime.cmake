@@ -416,7 +416,6 @@ macro(add_runtime_common_library target_name)
     )
 
     target_compile_definitions(${target_name} PRIVATE
-        LOG_CPP
         -DSTATIC_RT_LIB=0
         -DRUNTIME_API=0
     )
@@ -500,7 +499,6 @@ macro(add_runtime_api_library target_name)
     )
 
     target_compile_definitions(${target_name} PRIVATE
-        LOG_CPP
         -DSTATIC_RT_LIB=0  # set 1 when not split so
         -DRUNTIME_API=1  # set 1 when split so and in libruntime.so
     )
@@ -600,7 +598,6 @@ macro(add_runtime_v100_library target_name)
     )
 
     target_compile_definitions(${target_name} PRIVATE
-        LOG_CPP
         -DSTATIC_RT_LIB=0
         -DRUNTIME_API=0
     )

@@ -916,7 +916,6 @@ void PlogReinitFileHeadsForChild(void)
             (void)PlogInitDeviceLogFileHead(list->aucFileHead, MAX_NAME_HEAD_LEN + 1U, childPid);
         }
     }
-    SELF_LOG_INFO("plog file heads reinitialized for child process, child_pid=%u.", childPid);
 }
 
 /**

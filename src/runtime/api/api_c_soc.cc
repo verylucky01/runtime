@@ -101,7 +101,7 @@ rtError_t rtSetSocVersion(const char_t *ver)
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
     rtInstance->SetIsUserSetSocVersion(true);
     rtInstance->UpdateDevProperties(socInfo.chipType, inputSocVersion);
-    RT_LOG(RT_LOG_EVENT, "soc version is %s, type=%d", ver, socInfo.chipType);
+    RT_LOG(RT_LOG_INFO, "soc version is %s, type=%d", ver, socInfo.chipType);
     return ACL_RT_SUCCESS;
 }
 

@@ -438,7 +438,7 @@ namespace AicpuSchedule {
 
         const std::string::size_type pos = soFullPath.rfind('/');
         if (pos == std::string::npos) {
-            aicpusd_err("The path of current so file %s dose not contain /.", soFullPath.c_str());
+            aicpusd_err("The path of current so file %s does not contain /.", soFullPath.c_str());
             return AICPU_SCHEDULE_ERROR_INNER_ERROR;
         }
         // include last '/'

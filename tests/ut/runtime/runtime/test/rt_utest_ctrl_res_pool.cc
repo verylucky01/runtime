@@ -36,6 +36,24 @@
 using namespace testing;
 using namespace cce::runtime;
 
+namespace {
+void InitCtrlResEntryForTest(CtrlResEntry &entry)
+{
+    entry.taskBuffCellSize_ = sizeof(TaskInfo);
+    entry.taskPool_ = new CtrlTaskPoolEntry[CTRL_TASK_POOL_SIZE];
+    entry.taskList_ = new uint8_t[CTRL_TASK_POOL_SIZE];
+    entry.taskBaseAddr_ = new uint8_t[static_cast<size_t>(CTRL_TASK_POOL_SIZE) * sizeof(TaskInfo)]();
+    ASSERT_NE(entry.taskPool_, nullptr);
+    ASSERT_NE(entry.taskList_, nullptr);
+    ASSERT_NE(entry.taskBaseAddr_, nullptr);
+
+    for (uint32_t i = 0U; i < CTRL_TASK_POOL_SIZE; ++i) {
+        entry.taskPool_[i].taskBuff_ = entry.taskBaseAddr_ + static_cast<size_t>(i) * sizeof(TaskInfo);
+        entry.taskList_[i] = CTRL_TASK_INVALID;
+    }
+}
+}
+
 class CtrlTaskPoolEntryTest : public testing::Test
 {
 protected:
@@ -82,4 +100,85 @@ TEST_F(CtrlTaskPoolEntryTest, ErrorMessageUtilsTest)
     EXPECT_NE(&errMsgValue, nullptr);
     ErrorMessageUtils::RuntimeErrorMessage(0, errMsgKey, errMsgValue);
     ErrorMessageUtils::FuncErrorReason(rtErrCode, funcName);
+}
+
+TEST_F(CtrlTaskPoolEntryTest, AllocTaskIdSuccess)
+{
+    CtrlResEntry entry;
+    InitCtrlResEntryForTest(entry);
+    entry.resHeadIndex_ = 3U;
+    entry.resTailIndex_ = 0U;
+
+    uint32_t taskId = CTRL_INVALID_TASK_ID;
+    entry.AllocTaskId(taskId);
+
+    EXPECT_EQ(taskId, 3U);
+    EXPECT_EQ(entry.lastTaskId_, 3U);
+    EXPECT_EQ(entry.taskList_[3U], CTRL_TASK_VALID);
+    EXPECT_EQ(entry.resHeadIndex_, 4U);
+    EXPECT_EQ(entry.resTailIndex_, 0U);
+}
+
+TEST_F(CtrlTaskPoolEntryTest, AllocTaskIdWhenPoolFull)
+{
+    CtrlResEntry entry;
+    InitCtrlResEntryForTest(entry);
+    entry.resHeadIndex_ = 5U;
+    entry.resTailIndex_ = 6U;
+
+    uint32_t taskId = 100U;
+    entry.AllocTaskId(taskId);
+
+    EXPECT_EQ(taskId, CTRL_INVALID_TASK_ID);
+    EXPECT_EQ(entry.resHeadIndex_, 5U);
+    EXPECT_EQ(entry.resTailIndex_, 6U);
+    EXPECT_EQ(entry.taskList_[5U], CTRL_TASK_INVALID);
+}
+
+TEST_F(CtrlTaskPoolEntryTest, GetTaskByValidAndInvalidTaskId)
+{
+    CtrlResEntry entry;
+    InitCtrlResEntryForTest(entry);
+    constexpr uint32_t taskId = 8U;
+
+    EXPECT_EQ(entry.GetTask(taskId), nullptr);
+
+    entry.taskList_[taskId] = CTRL_TASK_VALID;
+    TaskInfo *task = entry.GetTask(taskId);
+    ASSERT_NE(task, nullptr);
+    EXPECT_EQ(reinterpret_cast<uint8_t *>(task), entry.taskPool_[taskId].taskBuff_);
+
+    entry.taskList_[taskId] = CTRL_TASK_INVALID;
+    EXPECT_EQ(entry.GetTask(taskId), nullptr);
+    EXPECT_EQ(entry.GetTask(CTRL_TASK_POOL_SIZE), nullptr);
+}
+
+TEST_F(CtrlTaskPoolEntryTest, RecycleTaskMoveTailForward)
+{
+    CtrlResEntry entry;
+    InitCtrlResEntryForTest(entry);
+    entry.resHeadIndex_ = 5U;
+    entry.resTailIndex_ = 2U;
+    entry.taskList_[2U] = CTRL_TASK_VALID;
+    entry.taskList_[3U] = CTRL_TASK_INVALID;
+    entry.taskList_[4U] = CTRL_TASK_VALID;
+
+    entry.RecycleTask(2U);
+
+    EXPECT_EQ(entry.taskList_[2U], CTRL_TASK_INVALID);
+    EXPECT_EQ(entry.resTailIndex_, 4U);
+    EXPECT_EQ(entry.taskList_[4U], CTRL_TASK_VALID);
+}
+
+TEST_F(CtrlTaskPoolEntryTest, RecycleTaskWithInvalidTaskId)
+{
+    CtrlResEntry entry;
+    InitCtrlResEntryForTest(entry);
+    entry.resHeadIndex_ = 1U;
+    entry.resTailIndex_ = 0U;
+
+    entry.RecycleTask(CTRL_TASK_POOL_SIZE);
+
+    EXPECT_EQ(entry.resHeadIndex_, 1U);
+    EXPECT_EQ(entry.resTailIndex_, 0U);
 }

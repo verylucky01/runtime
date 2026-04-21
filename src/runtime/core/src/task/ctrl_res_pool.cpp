@@ -112,10 +112,9 @@ void CtrlResEntry::AllocTaskId(uint32_t &taskId)
 
     // res pool max size is equal to taskid max size, so use resId instead of taskId
     lastTaskId_ = resHeadIndex_;
-    resHeadIndex_ = ((resHeadIndex_ + 1U) % CTRL_TASK_POOL_SIZE);
     taskId = lastTaskId_;
     taskList_[taskId] = CTRL_TASK_VALID;
-
+    resHeadIndex_ = ((resHeadIndex_ + 1U) % CTRL_TASK_POOL_SIZE);
     headMutex_.unlock();
     return;
 }

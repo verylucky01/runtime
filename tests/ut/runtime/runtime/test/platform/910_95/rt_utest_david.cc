@@ -19,6 +19,8 @@
 #include "rdma_task.h"
 #include "dump_task.h"
 #include "profiling_task.h"
+#include "cond_op_stream_task.h"
+#include "cond_op_label_task.h"
 #include "base.hpp"
 #include "stars_david.hpp"
 #include "task_res_da.hpp"

@@ -28,6 +28,8 @@
 #include "npu_driver.hpp"
 #include "model.hpp"
 #include "task_res.hpp"
+#include "cond_op_label_task.h"
+#include "cond_op_stream_task.h"
 #include "device/device_error_proc.hpp"
 #include "raw_device.hpp"
 #undef private

@@ -19,7 +19,8 @@
 #include "memory_task.h"
 #include "rdma_task.h"
 #include "reduce_task.h"
-#include "cond_op_task.h"
+#include "cond_op_stream_task.h"
+#include "cond_op_label_task.h"
 #include "debug_task.h"
 #include "stream_task.h"
 #include "davinci_multiple_task.h"
@@ -326,7 +327,7 @@ static void DavidRegDoCompleteSuccFunc(const std::vector<rtChipType_t> &chipType
         doCompleteSuccFunc[TS_TASK_TYPE_KERNEL_AICORE] = &DoCompleteSuccessForDavinciTask;
         doCompleteSuccFunc[TS_TASK_TYPE_KERNEL_AICPU] = &DoCompleteSuccessForDavinciTask;
         
-        doCompleteSuccFunc[TS_TASK_TYPE_MEMCPY] = &DoCompleteSuccessForMemcpyAsyncTask;
+        doCompleteSuccFunc[TS_TASK_TYPE_MEMCPY] = &StarsV2DoCompleteSuccessForMemcpyAsyncTask;
         
         doCompleteSuccFunc[TS_TASK_TYPE_EVENT_RECORD] = &DoCompleteSuccessForEventRecordTask;
         doCompleteSuccFunc[TS_TASK_TYPE_STREAM_WAIT_EVENT] = &DoCompleteSuccessForEventWaitTask;
@@ -362,7 +363,7 @@ static void DavidRegTaskUnInitFunc(const std::vector<rtChipType_t> &chipTypes)
         taskUnInitFunc[TS_TASK_TYPE_KERNEL_AIVEC] = &DavinciTaskUnInit;
         taskUnInitFunc[TS_TASK_TYPE_KERNEL_AICPU] = &DavinciTaskUnInit;
         taskUnInitFunc[TS_TASK_TYPE_MULTIPLE_TASK] = &DavinciMultipleTaskUnInit;
-        taskUnInitFunc[TS_TASK_TYPE_MEMCPY] = &MemcpyAsyncTaskUnInit;
+        taskUnInitFunc[TS_TASK_TYPE_MEMCPY] = &StarsV2MemcpyAsyncTaskUnInit;
         taskUnInitFunc[TS_TASK_TYPE_EVENT_RECORD] = &EventRecordTaskUnInit;
         taskUnInitFunc[TS_TASK_TYPE_EVENT_RESET] = &EventResetTaskUnInit;
         taskUnInitFunc[TS_TASK_TYPE_DAVID_EVENT_RECORD] = &DavidEventRecordTaskUnInit;

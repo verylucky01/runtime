@@ -36,6 +36,16 @@ void ConstructSqeForProfilingEnableTask(TaskInfo * const taskInfo, rtStarsSqe_t 
 void ConstructSqeForProfilingDisableTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command);
 void ConstructSqeForProfilerTraceExTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
 
+void ConstructSqeForStreamSwitchTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
+void ConstructSqeForStreamLabelSwitchByIndexTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
+void ConstructSqeForLabelSetTask(TaskInfo* taskInfo, rtStarsSqe_t * const command);
+
+void ConstructSqeForMemcpyAsyncTask(TaskInfo * const taskInfo, rtStarsSqe_t *const command);
+rtError_t WaitAsyncCopyCompleteForMemcpyTask(TaskInfo* taskInfo);
+void MemcpyAsyncTaskUnInit(TaskInfo * const taskInfo);
+void DoCompleteSuccessForMemcpyAsyncTask(TaskInfo * const taskInfo, const uint32_t devId);
+void ConstructSqeForMemWriteValueTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
+void ConstructSqeForMemWaitValueTask(TaskInfo* taskInfo, rtStarsSqe_t *const command);
 }  // namespace runtime
 }  // namespace cce
 #endif  // TASK_INFO_V100_H

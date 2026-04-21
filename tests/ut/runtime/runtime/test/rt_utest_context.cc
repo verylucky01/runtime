@@ -26,6 +26,7 @@
 #include "cmo_barrier_c.hpp"
 #include "context_protect.hpp"
 #include "profiling_task.h"
+#include "cond_op_stream_task.h"
 #include "raw_device.hpp"
 #include "kernel.hpp"
 #include "module.hpp"

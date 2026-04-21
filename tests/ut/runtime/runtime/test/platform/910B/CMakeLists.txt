@@ -26,12 +26,15 @@ set(runtimeut_common_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/task_info/model/model_execute_task_info.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/davinci_kernel_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/event_task.cc
-    ${TOP_DIR}/src/runtime/core/src/task/task_info/memory_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/memory/memory_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/memory/memory_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/rdma_task.cc
     ${TOP_DIR}/src/runtime/feature/ffts/rdma_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/reduce_task.cc
-    ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_label_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_stream_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_stream_task_v100.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_label_task.cc
+    ${TOP_DIR}/src/runtime/core/src/task/task_info/cond_op/cond_op_label_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling/profiling_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/profiling/profiling_task_v100.cc
     ${TOP_DIR}/src/runtime/core/src/task/task_info/dump/dump_task.cc
@@ -60,7 +63,6 @@ set(runtimeut_src_task_list
     ${TOP_DIR}/src/runtime/core/src/task/v100/davinci_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/task_proc_func_register_xpu.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/task_checker.cc
-    ${TOP_DIR}/src/runtime/core/src/task/v100/memory_task.cc
     ${TOP_DIR}/src/runtime/core/src/task/v100/memory_corruption_checker.cc
 )
 

@@ -27,6 +27,8 @@
 #include "label.hpp"
 #include "task_res.hpp"
 #include "stars.hpp"
+#include "cond_op_stream_task.h"
+#include "cond_op_label_task.h"
 #include "device_state_callback_manager.hpp"
 #include "npu_driver.hpp"
 

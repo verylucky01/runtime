@@ -45,7 +45,7 @@
 #include "program.hpp"
 #include "stream.hpp"
 #include "../../rt_utest_api.hpp"
-#include "cond_op_task.h"
+#include "cond_op_stream_task.h"
 #include "stream_task.h"
 #include "memcpy_c.hpp"
 using namespace testing;

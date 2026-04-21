@@ -17,6 +17,8 @@
 #include "thread_local_container.hpp"
 #include "inner_thread_local.hpp"
 #include "task_submit.hpp"
+#include "cond_op_label_task.h"
+#include "cond_op_stream_task.h"
 namespace cce {
 namespace runtime {
 LabelAllocator::LabelAllocator(const uint16_t labelMax)

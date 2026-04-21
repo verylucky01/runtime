@@ -12,6 +12,8 @@
 #include "task_david.hpp"
 #include "thread_local_container.hpp"
 #include "inner_thread_local.hpp"
+#include "cond_op_label_task.h"
+#include "cond_op_stream_task.h"
 
 namespace cce {
 namespace runtime {

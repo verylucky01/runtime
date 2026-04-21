@@ -13,7 +13,7 @@
 #include "context.hpp"
 #include "stars_cond_isa_helper.hpp"
 #include "task_manager.h"
-#include "cond_op_task.h"
+#include "cond_op_stream_task.h"
 #include "stub_task.hpp"
 
 namespace cce {
@@ -338,38 +338,6 @@ void ToCommandBodyForStreamSwitchTask(TaskInfo* taskInfo, rtCommand_t *const com
     command->u.streamswitchTask.pValuePtrVirAddr = MAX_UINT32_NUM;
 }
 
-void ConstructSqeForStreamSwitchTask(TaskInfo* taskInfo, rtStarsSqe_t *const command)
-{
-    Stream * const stm = taskInfo->stream;
-    StreamSwitchTaskInfo* streamSwitchTask = &(taskInfo->u.streamswitchTask);
-    RtStarsFunctionCallSqe &sqe = command->fuctionCallSqe;
-    sqe.kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-    sqe.csc = 1U;
-    sqe.sqeHeader.l1_lock = 0U;
-    sqe.sqeHeader.l1_unlock = 0U;
-    sqe.sqeHeader.type = RT_STARS_SQE_TYPE_COND;
-    sqe.sqeHeader.wr_cqe = stm->GetStarsWrCqeFlag();
-    sqe.sqeHeader.block_dim = 0U;
-    sqe.sqeHeader.rt_stream_id = static_cast<uint16_t>(stm->Id_());
-    sqe.sqeHeader.task_id = taskInfo->id;
-    if (streamSwitchTask->isCondEx) {
-        sqe.conds_sub_type = CONDS_SUB_TYPE_STREAM_SWITCH_EX;
-    } else {
-        sqe.conds_sub_type = CONDS_SUB_TYPE_STREAM_SWITCH;
-    }
-
-    const uint64_t funcAddr = RtPtrToValue(streamSwitchTask->funcCallSvmMem);
-
-    // func call size is rs2[19:0]*4Byte
-    ConstructFunctionCallInstr(funcAddr, (streamSwitchTask->funCallMemSize / 4UL), sqe);
-
-    PrintSqe(command, "StreamSwitchTask");
-    RT_LOG(RT_LOG_INFO, "StreamSwitchTask current stream_id=%d task_id=%hu true_stream_id_=%u.",
-        stm->Id_(), taskInfo->id, streamSwitchTask->trueStreamId);
-
-    return;
-}
-
 void PrintErrorInfoForStreamSwitchTask(TaskInfo* taskInfo, const uint32_t devId)
 {
     Stream * const stm = taskInfo->stream;
@@ -619,32 +587,6 @@ void ToCmdBodyForStreamLabelSwitchByIndexTask(TaskInfo* taskInfo, rtCommand_t *c
     command->u.streamLabelSwitchIndexTask.max = stmLblSwiByIdx->max;
     command->u.streamLabelSwitchIndexTask.indexPtrVirAddr = MAX_UINT32_NUM;
     command->u.streamLabelSwitchIndexTask.labelInfoPtrVirAddr = MAX_UINT32_NUM;
-}
-
-void ConstructSqeForStreamLabelSwitchByIndexTask(TaskInfo* taskInfo, rtStarsSqe_t *const command)
-{
-    RtStarsFunctionCallSqe &sqe = command->fuctionCallSqe;
-    StmLabelSwitchByIdxTaskInfo *stmLblSwiByIdx = &taskInfo->u.stmLabelSwitchIdxTask;
-
-    sqe.kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-    sqe.csc = 1U;
-    sqe.sqeHeader.l1_lock = 0U;
-    sqe.sqeHeader.l1_unlock = 0U;
-    sqe.sqeHeader.type = RT_STARS_SQE_TYPE_COND;
-    sqe.sqeHeader.wr_cqe = taskInfo->stream->GetStarsWrCqeFlag();
-    sqe.sqeHeader.block_dim = 0U;
-    sqe.sqeHeader.rt_stream_id = static_cast<uint16_t>(taskInfo->stream->Id_());
-    sqe.sqeHeader.task_id = taskInfo->id;
-    sqe.sqeHeader.pre_p = 1U;
-    sqe.conds_sub_type = CONDS_SUB_TYPE_LABEL_SWITCH_BY_INDEX;
-
-    const uint64_t funcAddr = RtPtrToValue(stmLblSwiByIdx->funcCallSvmMem);
-    constexpr uint64_t funcCallSize = static_cast<uint64_t>(sizeof(rtStarsLabelSwitchByIndexFc_t));
-
-    // func call size is rs2[19:0]*4Byte
-    ConstructFunctionCallInstr(funcAddr, (funcCallSize / 4UL), sqe);
-
-    PrintSqe(command, "StreamLabelSwitchByIndexTask");
 }
 
 void PrintErrorInfoForStreamLabelSwitchByIndexTask(TaskInfo* taskInfo, const uint32_t devId)

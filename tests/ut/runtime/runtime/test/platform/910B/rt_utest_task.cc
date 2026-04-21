@@ -24,6 +24,8 @@
 #include "barrier_task.h"
 #include "count_notify.hpp"
 #include "ffts_task.h"
+#include "cond_op_stream_task.h"
+#include "cond_op_label_task.h"
 #include "kernel.hpp"
 #include <thread>
 #include <chrono>

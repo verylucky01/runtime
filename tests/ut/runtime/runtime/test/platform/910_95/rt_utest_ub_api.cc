@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include "thread_local_container.hpp"
 #include "task_david.hpp"
+#include "stars_david.hpp"
 #include "task_res_da.hpp"
 #include "stream_david.hpp"
 #include "stream_c.hpp"

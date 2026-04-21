@@ -12,7 +12,7 @@
 #include "runtime.hpp"
 #include "context.hpp"
 #include "stars_cond_isa_helper.hpp"
-#include "cond_op_task.h"
+#include "cond_op_label_task.h"
 
 namespace cce {
 namespace runtime {
@@ -41,29 +41,6 @@ void ToCommandBodyForLabelSetTask(TaskInfo* taskInfo, rtCommand_t * const comman
         command->u.labelSetTask.labelPtr = pptr;
         RT_LOG(RT_LOG_DEBUG, "ts support 64k table,add label dev addr=%" PRIu64 " to command.", pptr);
     }
-}
-
-void ConstructSqeForLabelSetTask(TaskInfo* taskInfo, rtStarsSqe_t * const command)
-{
-    Stream * const stm = taskInfo->stream;
-    command->phSqe.type = RT_STARS_SQE_TYPE_PLACE_HOLDER;
-    command->phSqe.l2_lock = 0U;
-    command->phSqe.ie = 0U;
-    command->phSqe.pre_p = 0U;
-    command->phSqe.post_p = 0U;
-    command->phSqe.wr_cqe = stm->GetStarsWrCqeFlag();
-    command->phSqe.res0 = 0U;
-
-    command->phSqe.task_type = TS_TASK_TYPE_LABEL_SET;
-    command->phSqe.task_id = taskInfo->id;
-    command->phSqe.rt_streamID = static_cast<uint16_t>(stm->Id_());
-    command->phSqe.kernel_credit = RT_STARS_DEFAULT_KERNEL_CREDIT;
-    Model *mdl = stm->Model_();
-    if (mdl != nullptr) {
-        mdl->LabelCountInc();
-    }
-    PrintSqe(command, "LabelSet");
-    RT_LOG(RT_LOG_INFO, "LabelSetTask stream_id:%d task_id:%u", stm->Id_(), static_cast<uint32_t>(taskInfo->id));
 }
 
 // CHIP_910_B_93/CHIP_MINI_V3 need construct labelInfo in runtime

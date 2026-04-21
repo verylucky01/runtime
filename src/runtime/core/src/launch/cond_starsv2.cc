@@ -16,6 +16,7 @@
 #include "memory_task.h"
 #include "stream_david.hpp"
 #include "stream_task.h"
+#include "cond_op_stream_task.h"
 
 namespace cce {
 namespace runtime {

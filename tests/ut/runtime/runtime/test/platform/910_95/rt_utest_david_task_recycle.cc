@@ -22,7 +22,7 @@
 #include "raw_device.hpp"
 #include "device.hpp"
 #include "stars_engine.hpp"
-#include "cond_op_task.h"
+#include "cond_op_stream_task.h"
 #include "task_res_da.hpp"
 #include "stream_sqcq_manage.hpp"
 #include "rt_unwrap.h"

@@ -48,10 +48,13 @@ set(david_series_common_task_src_file
     ${RUNTIME_FEATURE_DIR}/ffts/davinci_kernel_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/event_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/david_event_task.cc
-    ${RUNTIME_CORE_DIR}/src/task/task_info/memory_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/memory/memory_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/memory/memory_task_v200_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/reduce_task.cc
-    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_stream_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_stream_task_v200_base.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task_v200_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/profiling/profiling_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/profiling/profiling_task_v200_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task.cc
@@ -66,7 +69,6 @@ set(david_series_common_task_src_file
     ${RUNTIME_CORE_DIR}/src/task/task_info/cmo/cmo_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cmo/cmo_task_v200_base.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/ubdma_task_david.cc
-    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_task_david.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/model/model_maintaince_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/notify_record_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/timeout_set_task.cc
@@ -91,7 +93,6 @@ set(david_series_common_task_src_file
     ${RUNTIME_CORE_DIR}/src/task/v200_base/davinci_task_launch_config.cc
     ${RUNTIME_CORE_DIR}/src/task/v200_base/memcpy_sqe_common_proc.cc
     ${RUNTIME_CORE_DIR}/src/task/v200_base/aix_sqe_common_proc.cc
-    ${RUNTIME_CORE_DIR}/src/task/v200_base/memory_task.cc
     ${RUNTIME_FEATURE_DIR}/ccu/ccu_sqe.cc
 
     # mechanism dependance
@@ -100,6 +101,9 @@ set(david_series_common_task_src_file
     ${RUNTIME_CORE_DIR}/src/task/task_info/profiling/profiling_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/stream/stream_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task_v100.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_stream_task_v100.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task_v100.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/memory/memory_task_v100.cc
 )
 
 set(libruntime_v200_task_src_files
@@ -107,12 +111,12 @@ set(libruntime_v200_task_src_files
 
     # david & solomon 专用差异化文件
     ${RUNTIME_CORE_DIR}/src/task/v200/task_proc_func_register.cc
-    ${RUNTIME_CORE_DIR}/src/task/v200/memcpy_task_to_sqe.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/aix_task_to_sqe.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/task_checker.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/notify_task_to_sqe.cc
     ${RUNTIME_CORE_DIR}/src/task/v200/memory_corruption_checker.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cmo/cmo_task_v200.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/memory/memory_task_v200.cc
 )
 
 set(libruntime_v201_task_src_files
@@ -121,13 +125,13 @@ set(libruntime_v201_task_src_files
     # v201 专用差异化文件
     ${RUNTIME_CORE_DIR}/src/task/v201/task_proc_func_register.cc
     ${RUNTIME_FEATURE_DIR}/dqs/dqs_task.cc
-    ${RUNTIME_CORE_DIR}/src/task/v201/memcpy_task_to_sqe.cc
     ${RUNTIME_CORE_DIR}/src/task/v201/task_checker.cc
     ${RUNTIME_CORE_DIR}/src/task/v201/aix_task_to_sqe.cc
     ${RUNTIME_FEATURE_DIR}/dqs/dqs_c.cc
     ${RUNTIME_CORE_DIR}/src/task/v201/notify_task_to_sqe.cc
     ${RUNTIME_CORE_DIR}/src/task/v201/memory_corruption_checker.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cmo/cmo_task_v201.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/memory/memory_task_v201.cc
 )
 
 set(libruntime_v200_context_src_files

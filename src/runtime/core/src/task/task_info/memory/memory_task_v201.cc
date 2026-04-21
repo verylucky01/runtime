@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -8,17 +8,20 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include "stars_david.hpp"
+#include "memory_task.h"
 #include "stream.hpp"
 #include "runtime.hpp"
 #include "event_david.hpp"
 #include "task_manager.h"
 #include "stars.hpp"
-#include "stars_david.hpp"
 #include "device.hpp"
 #include "task_info.h"
 #include "error_code.h"
+
 namespace cce {
 namespace runtime {
+#if F_DESC("MemcpyAsyncTask")
 void ConstructDavidSqeForMemcpyAsyncTask(TaskInfo *const taskInfo, rtDavidSqe_t *const davidSqe, uint64_t sqBaseAddr)
 {
     MemcpyAsyncTaskInfo * const memcpyAsyncTaskInfo = &(taskInfo->u.memcpyAsyncTaskInfo);
@@ -54,6 +57,6 @@ void ConstructDavidSqeForMemcpyAsyncTask(TaskInfo *const taskInfo, rtDavidSqe_t 
         taskInfo->stream->Device_()->Id_(), static_cast<int32_t>(stream->Id_()), static_cast<uint32_t>(taskInfo->id),
         memcpyAsyncTaskInfo->copyType);
 }
-
+#endif
 }  // namespace runtime
 }  // namespace cce

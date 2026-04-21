@@ -29,6 +29,7 @@
 #include "thread_local_container.hpp"
 #include "memory_task.h"
 #include "common/internal_error_define.hpp"
+#include "stars_david.hpp"
 
 using namespace testing;
 using namespace cce::runtime;

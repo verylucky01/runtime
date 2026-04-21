@@ -48,6 +48,7 @@
 #include "npu_driver.hpp"
 #include "task_submit.hpp"
 #include "task_david.hpp"
+#include "stars_david.hpp"
 #include "stream_c.hpp"
 #include "aix_c.hpp"
 #include "aicpu_c.hpp"

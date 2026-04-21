@@ -24,6 +24,8 @@
 #include "barrier_task.h"
 #include "dump_task.h"
 #include "profiling_task.h"
+#include "cond_op_stream_task.h"
+#include "cond_op_label_task.h"
 #include "count_notify.hpp"
 #include "ffts_task.h"
 #include "kernel.hpp"
@@ -60,6 +62,7 @@
 #include "cmo_task.h"
 #include "stream_task.h"
 #include "task_info.h"
+#include "task_info_v100.h"
 
 using namespace testing;
 using namespace cce::runtime;

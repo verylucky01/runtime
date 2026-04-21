@@ -301,9 +301,6 @@ rtError_t ModelToAicpuTaskInit(TaskInfo* taskInfo, const uint32_t modelIndex, co
                                const uint32_t exeFlag, const uint64_t modelPtr);
 rtError_t CallbackLaunchTaskInit(TaskInfo* taskInfo, const rtCallback_t callBackFunction, void *const functionData,
                                  const bool isBlockFlag, const int32_t evtId);
-rtError_t StreamLabelSwitchByIndexTaskInit(TaskInfo* taskInfo, void * const idPtr, const uint32_t maxIndex,
-                                           void * const labelPtr);
-rtError_t StreamLabelGotoTaskInit(TaskInfo* taskInfo, const uint16_t lblId);
 rtError_t NpuGetFloatStaTaskInit(TaskInfo *taskInfo, void * const outputAddrPtr,
                                  const uint64_t outputSize, const uint32_t checkMode,
                                  bool debugFlag = false);
@@ -324,18 +321,6 @@ rtError_t NotifyWaitTaskInit(TaskInfo *taskInfo, const uint32_t notifyIndex, con
     const CountNotifyWaitInfo * const cntNtfyInfo, void * const inNotify, const bool isCountNotify = false);
 rtError_t NotifyResetTaskInit(TaskInfo *taskInfo, const uint32_t notifyIndex,
     const SingleBitNotifyRecordInfo * const singleInfo, void * const notify);
-rtError_t StreamSwitchTaskInitV1(TaskInfo *taskInfo, const void *const ptrAddr,
-    const rtCondition_t condi, const int64_t valueNum, const Stream * const trueStream);
-rtError_t StreamSwitchTaskInitV2(TaskInfo *taskInfo, const void *const ptrAddr,
-    const rtCondition_t condi, const Stream * const trueStream,
-    const void *const valPtr, const rtSwitchDataType_t taskDataType);
-rtError_t StreamSwitchNTaskInit(TaskInfo *taskInfo, const void *const ptrAddr, const uint32_t ptrSize,
-    const void *const valPtr, const void *const trueStream,
-    const uint32_t eleSize, const rtSwitchDataType_t taskDataType);
-rtError_t LabelSetTaskInit(TaskInfo* taskInfo, const uint16_t labelIndex, void * const devDestAddr);
-rtError_t LabelSwitchTaskInit(TaskInfo* taskInfo, const void *const ptr, const rtCondition_t cond,
-    const uint32_t val, const uint16_t labelId);
-rtError_t LabelGotoTaskInit(TaskInfo* taskInfo, const uint16_t lblId);
 rtError_t AicpuInfoLoadTaskInit(TaskInfo* taskInfo, const void *const aicpuInfo, const uint32_t len);
 rtError_t TimeoutSetTaskInit(TaskInfo* taskInfo, const rtTaskTimeoutType_t type, const uint32_t timeout);
 rtError_t GetDevMsgTaskInit(TaskInfo* taskInfo, const void *const devMemAddr,
@@ -381,7 +366,6 @@ rtError_t StarsVersionTaskInit(TaskInfo * const taskInfo);
 void SetStarsResultForStarsVersionTask(TaskInfo* taskInfo, const rtLogicCqReport_t &logicCq);
 void DoCompleteSuccessForStarsVersionTask(TaskInfo* taskInfo, const uint32_t devId);
 void TryToFreeEventIdAndDestroyEvent(Event **eventPtr, int32_t freeId, bool isNeedDestroy, bool isCaptureDestroy = false);
-void IpcEventDestroy(IpcEvent **eventPtr, int32_t freeId, bool isNeedDestroy);
 rtError_t DestroyEventSync(Event *evt);
 rtError_t NopTaskInit(TaskInfo* taskInfo);
 rtError_t UpdateAddressTaskInit(TaskInfo* taskInfo, uint64_t devAddr, uint64_t len);

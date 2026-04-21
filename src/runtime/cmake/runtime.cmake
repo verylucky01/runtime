@@ -25,10 +25,13 @@ set(libruntime_v100_task_src_files
     ${RUNTIME_CORE_DIR}/src/task/task_info/davinci_kernel_task.cc
     ${RUNTIME_FEATURE_DIR}/ffts/davinci_kernel_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/event_task.cc
-    ${RUNTIME_CORE_DIR}/src/task/task_info/memory_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/memory/memory_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/memory/memory_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/reduce_task.cc
-    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_stream_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_stream_task_v100.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task.cc
+    ${RUNTIME_CORE_DIR}/src/task/task_info/cond_op/cond_op_label_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/profiling/profiling_task.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/profiling/profiling_task_v100.cc
     ${RUNTIME_CORE_DIR}/src/task/task_info/dump/dump_task.cc
@@ -55,7 +58,6 @@ set(libruntime_v100_task_src_files
     ${RUNTIME_CORE_DIR}/src/task/v100/davinci_task.cc
     ${RUNTIME_CORE_DIR}/src/task/v100/task_proc_func_register_xpu.cc
     ${RUNTIME_CORE_DIR}/src/task/v100/task_checker.cc
-    ${RUNTIME_CORE_DIR}/src/task/v100/memory_task.cc
     ${RUNTIME_CORE_DIR}/src/task/v100/memory_corruption_checker.cc
 )
 

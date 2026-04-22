@@ -281,6 +281,12 @@ enum class RtCtrlType {
     RT_LOG_CALL_MSG(ERR_MODULE_DRV, format, ##__VA_ARGS__)
 #endif
 
+#define DRV_PROCESS_ERROR_RETURN(drvErrorCode, format, ...)                                                          \
+    if (unlikely(drvErrorCode != DRV_ERROR_NONE)) {                                                                  \
+        DRV_ERROR_PROCESS(drvErrorCode, format, ##__VA_ARGS__);                                                      \
+        return RT_GET_DRV_ERRCODE(drvErrorCode);                                                                     \
+    }
+
 #if (!defined(WIN32))
 #define DRV_MALLOC_ERROR_PROCESS(drvErrorCode, moduleId, format, ...)                                                \
     do {                                                                                                             \

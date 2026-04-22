@@ -21,8 +21,8 @@ rtError_t GetConnectUbFlagFromDrv(const uint32_t deviceId, bool &connectUbFlag)
     int64_t hdConnectType = 0;
     drvRet = halGetDeviceInfo(deviceId, MODULE_TYPE_SYSTEM, INFO_TYPE_HD_CONNECT_TYPE, &hdConnectType);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "Call halGetDeviceInfo failed: drvRetCode=%u, module type=%d, info type=%d.",
-            static_cast<uint32_t>(drvRet), static_cast<int32_t>(MODULE_TYPE_SYSTEM),
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halGetDeviceInfo failed, drvRetCode=%d, moduleType=%d, infoType=%d.",
+            static_cast<int32_t>(drvRet), static_cast<int32_t>(MODULE_TYPE_SYSTEM),
             static_cast<int32_t>(INFO_TYPE_HD_CONNECT_TYPE));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
@@ -85,8 +85,8 @@ rtError_t GetIpcNotifyVa(const uint32_t notifyId, Driver * const curDrv, const u
         "[drv api] halResAddrMapV2 does not support");
     if (drvRet != DRV_ERROR_NONE) {
         DRV_ERROR_PROCESS(drvRet,
-            "[drv api] halResAddrMapV2 notify addr failed: device_id=%u, notify_id=%u, drvRetCode=%d.",
-            deviceId, notifyId, static_cast<int32_t>(drvRet));
+            "Call driver api halResAddrMapV2 failed, drvRetCode=%d, drvDevId=%u, notifyId=%u.",
+            static_cast<int32_t>(drvRet), deviceId, notifyId);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     RT_LOG(RT_LOG_INFO, "device_id=%u, notify_id=%u, phyId=%u, peerPhyId=%u, flag=0x%x.",

@@ -95,7 +95,7 @@ rtError_t NpuDriver::MallocHostSharedMemory(rtMallocHostSharedMemoryIn * const i
               "sharedMemSize=%" PRIu64 "!", static_cast<int32_t>(drvRet), deviceId, in->size);
         if (drvRet != DRV_ERROR_NONE) {
             DRV_ERROR_PROCESS(drvRet,
-                "[drv api] Malloc host shared memory failed, halHostRegister failed, drvRetCode=%d, device_id=%u!",
+                "Call driver api halHostRegister failed, drvRetCode=%d, drvDevId=%u.",
                 static_cast<int32_t>(drvRet), deviceId);
             error = RT_GET_DRV_ERRCODE(drvRet);
             goto RECYCLE;
@@ -131,8 +131,8 @@ rtError_t NpuDriver::FreeHostSharedMemory(rtFreeHostSharedMemoryIn * const in, c
         drvError_t drvRet = DRV_ERROR_NONE;
         drvRet = halHostUnregister(in->ptr, deviceId);
         if (drvRet != DRV_ERROR_NONE) {
-            DRV_ERROR_PROCESS(drvRet, "[drv api] halHostUnregister failed: device_id=%u, "
-                "drvRetCode=%d!", deviceId, static_cast<int32_t>(drvRet));
+            DRV_ERROR_PROCESS(drvRet, "Call driver api halHostUnregister failed, drvRetCode=%d, drvDevId=%u.",
+                static_cast<int32_t>(drvRet), deviceId);
             return RT_GET_DRV_ERRCODE(drvRet);
         }
         RT_LOG(RT_LOG_DEBUG, "halHostUnregister: device_id=%u, drvRetCode=%d!",
@@ -189,7 +189,7 @@ rtError_t NpuDriver::HostRegister(void *ptr, uint64_t size, rtHostRegisterType t
             "MemSize=%" PRIu64 "!", static_cast<int32_t>(drvRet), deviceId, size);
     if (drvRet != DRV_ERROR_NONE) {
         DRV_ERROR_PROCESS(drvRet,
-            "[drv api] Malloc host memory failed, halHostRegister failed, drvRetCode=%d, device_id=%u!",
+            "Call driver api halHostRegister failed, drvRetCode=%d, drvDevId=%u.",
             static_cast<int32_t>(drvRet), deviceId);
         error = RT_GET_DRV_ERRCODE(drvRet);
     } else {
@@ -217,8 +217,8 @@ rtError_t NpuDriver::HostUnregister(void *ptr,  const uint32_t deviceId)
 
     drvRet = halHostUnregisterEx(ptr, deviceId, static_cast<UINT32>(flag));
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halHostUnregister failed: device_id=%u, "
-            "drvRetCode=%d!", deviceId, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halHostUnregisterEx failed, drvRetCode=%d, drvDevId=%u.",
+            static_cast<int32_t>(drvRet), deviceId);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     EraseMappedMemory(ptr);
@@ -233,8 +233,8 @@ rtError_t NpuDriver::HostGetDevPointer(void *srcPtr, uint32_t deviceId, void **d
         "[drv api] halMemHostGetDevPointer does not exist");
     drvError_t drvRet = halMemHostGetDevPointer(srcPtr, deviceId, dstPtr);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemHostGetDevPointer failed: device_id=%u, "
-            "drvRetCode=%d!", deviceId, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemHostGetDevPointer failed, drvRetCode=%d, drvDevId=%u.",
+            static_cast<int32_t>(drvRet), deviceId);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     RT_LOG(RT_LOG_DEBUG, "halMemHostGetDevPointer: device_id=%u, drvRetCode=%d!",
@@ -250,8 +250,8 @@ rtError_t NpuDriver::HostMemMapCapabilities(uint32_t deviceId, rtHacType hacType
     UINT32 drv_capabilities;
     drvRet = halHostRegisterCapabilities(deviceId, static_cast<UINT32>(hacType), &drv_capabilities);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halHostRegisterCapabilities failed: device_id=%u, hacType=%d,"
-                          "drvRetCode=%d!", deviceId, static_cast<UINT32>(hacType), static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halHostRegisterCapabilities failed, drvRetCode=%d, drvDevId=%u, hacType=%d.",
+            static_cast<int32_t>(drvRet), deviceId, static_cast<UINT32>(hacType));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     //将drv_capabilities的值传递给capabilities
@@ -299,7 +299,7 @@ rtError_t NpuDriver::ReserveMemAddress(void** devPtr, size_t size, size_t alignm
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemAddressReserve does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemAddressReserve failed. drvRetCode=%d.", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemAddressReserve failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -317,7 +317,7 @@ rtError_t NpuDriver::ReleaseMemAddress(void* devPtr)
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] ReleaseMemAddress does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemAddressFree failed. drvRetCode=%d.", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemAddressFree failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -351,7 +351,7 @@ rtError_t NpuDriver::MallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMe
     if (drvRet != DRV_ERROR_NONE) {
         const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
         const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemCreate failed drvRetCode=%d, size=%zu(bytes), flags=%" PRIu64 ", %s",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemCreate failed, drvRetCode=%d, size=%zu(bytes), flags=%" PRIu64 ", %s.",
             static_cast<int32_t>(drvRet), size, flags, errorStr.c_str());
         return rtErrorCode;
     }
@@ -370,7 +370,7 @@ rtError_t NpuDriver::FreePhysical(rtDrvMemHandle handle)
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemRelease does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemRelease failed. drvRetCode=%d.", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemRelease failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -388,7 +388,7 @@ rtError_t NpuDriver::MapMem(void* devPtr, size_t size, size_t offset, rtDrvMemHa
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemMap does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemMap failed. drvRetCode=%d.", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemMap failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -406,7 +406,7 @@ rtError_t NpuDriver::UnmapMem(void* devPtr)
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemUnmap does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemUnmap failed. drvRetCode=%d.", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemUnmap failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -424,7 +424,7 @@ rtError_t NpuDriver::MemSetAccess(void *virPtr, size_t size, rtMemAccessDesc *de
     COND_RETURN_WARN(
         drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT, "[drv api] halMemSetAccess does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemSetAccess failed. drvRetCode=%d.", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemSetAccess failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -440,7 +440,7 @@ rtError_t NpuDriver::MemGetAccess(void *virPtr, rtMemLocation *location, uint64_
     COND_RETURN_WARN(
         drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT, "[drv api] halMemGetAccess does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemGetAccess failed. drvRetCode=%d.", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemGetAccess failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
     }
     return RT_GET_DRV_ERRCODE(drvRet);
 }
@@ -458,7 +458,7 @@ rtError_t NpuDriver::GetAllocationGranularity(const rtDrvMemProp_t *prop, rtDrvM
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemGetAllocationGranularity does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemGetAllocationGranularity failed. drvRetCode=%d.",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemGetAllocationGranularity failed, drvRetCode=%d.",
             static_cast<int32_t>(drvRet));
     }
 
@@ -491,7 +491,7 @@ rtError_t NpuDriver::ExportToShareableHandle(rtDrvMemHandle handle, rtDrvMemHand
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemExportToShareableHandle does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemExportToShareableHandle failed. drvRetCode=%d.",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemExportToShareableHandle failed, drvRetCode=%d.",
             static_cast<int32_t>(drvRet));
     }
 
@@ -539,7 +539,7 @@ rtError_t NpuDriver::ImportFromShareableHandle(uint64_t shareableHandle, int32_t
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemImportFromShareableHandle does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemImportFromShareableHandle failed. drvRetCode=%d, device_id=%d.",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemImportFromShareableHandle failed, drvRetCode=%d, drvDevId=%d.",
             static_cast<int32_t>(drvRet), devId);
     }
 
@@ -587,7 +587,7 @@ rtError_t NpuDriver::SetPidToShareableHandle(uint64_t shareableHandle, int32_t p
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemSetPidToShareableHandle does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api]halMemSetPidToShareableHandle failed. drvRetCode=%d.",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemSetPidToShareableHandle failed, drvRetCode=%d.",
             static_cast<int32_t>(drvRet));
     }
 
@@ -612,7 +612,7 @@ rtError_t NpuDriver::GetServerIdAndshareableHandle(
             shareableHandle);
         if (drvRet != DRV_ERROR_NONE) {
             DRV_ERROR_PROCESS(
-                drvRet, "[drv api]halMemTransShareableHandle failed. drvRetCode=%d.", static_cast<int32_t>(drvRet));
+                drvRet, "Call driver api halMemTransShareableHandle failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         }
         return RT_GET_DRV_ERRCODE(drvRet);
     } else if (handleType == RT_MEM_SHARE_HANDLE_TYPE_DEFAULT) {
@@ -670,16 +670,16 @@ rtError_t NpuDriver::MemPrefetchToDevice(const void * const devPtr, const uint64
     uint32_t logicDevId = 0U;
     drvError_t drvRet = drvDeviceGetIndexByPhyId(static_cast<uint32_t>(deviceId), &logicDevId);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] drvDeviceGetIndexByPhyId failed: device_id=%d, drvRetCode=%d!",
-            deviceId, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvDeviceGetIndexByPhyId failed, drvRetCode=%d, drvDevId=%d.",
+            static_cast<int32_t>(drvRet), deviceId);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
     drvRet = drvMemPrefetchToDevice(RtPtrToPtr<DVdeviceptr>(devPtr),
         static_cast<size_t>(len), static_cast<DVdevice>(logicDevId));
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] drvMemPrefetchToDevice failed: "
-            "device_id=%u, len=%" PRIu64 "(bytes), drvRetCode=%d!", logicDevId, len, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvMemPrefetchToDevice failed, drvRetCode=%d, drvDevId=%u, len=%" PRIu64 "(bytes).",
+            static_cast<int32_t>(drvRet), logicDevId, len);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -690,9 +690,8 @@ rtError_t NpuDriver::MemAddressTranslate(const int32_t deviceId, const uint64_t 
 {
     const drvError_t drvRet = drvMemAddressTranslate(static_cast<UINT64>(vptr), RtPtrToPtr<UINT64 *>(pptr));
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] drvMemAddressTranslate failed: device_id=%d, "
-            "vptr=%#" PRIx64 ", drvRetCode=%d!",
-            deviceId, vptr, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvMemAddressTranslate failed, drvRetCode=%d, drvDevId=%d, vptr=%#" PRIx64 ".",
+            static_cast<int32_t>(drvRet), deviceId, vptr);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     RT_LOG(RT_LOG_DEBUG, "device_id=%d, vptr=%#" PRIx64 ", offset=%#" PRIx64, deviceId, vptr, *pptr);
@@ -711,8 +710,8 @@ rtError_t NpuDriver::MemSetSync(const void * const devPtr, const uint64_t destMa
     record.SaveRecord();
 
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] drvMemsetD8 failed: destMax=%" PRIu64 ", value=%u, "
-            "count=%" PRIu64 ", drvRetCode=%d!", destMax, val, cnt, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvMemsetD8 failed, drvRetCode=%d, destMax=%" PRIu64 ", value=%u, count=%" PRIu64 ".",
+            static_cast<int32_t>(drvRet), destMax, val, cnt);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     return RT_ERROR_NONE;
@@ -728,8 +727,8 @@ rtError_t NpuDriver::MemAdvise(void * const devPtr, const uint64_t cnt, const ui
         if ((drvRet == DRV_ERROR_INVALID_VALUE) && (advise == RT_ADVISE_ACCESS_READWRITE || advise == RT_ADVISE_ACCESS_READONLY)) {
             RT_LOG(RT_LOG_WARNING, "[drv api] old version does not support the advise, advise=%u, device_id=%u", advise, devid);
         } else {
-            DRV_ERROR_PROCESS(drvRet, "[drv api] MemAdvise failed: device_id=%u, count=%" PRIu64
-                ", advise=%u, drvRetCode=%u", devid, cnt, advise, static_cast<uint32_t>(drvRet));
+            DRV_ERROR_PROCESS(drvRet, "Call driver api halMemAdvise failed, drvRetCode=%u, drvDevId=%u, count=%" PRIu64 ", advise=%u.",
+                static_cast<uint32_t>(drvRet), devid, cnt, advise);
             return RT_GET_DRV_ERRCODE(drvRet);
         }
     }
@@ -748,8 +747,8 @@ rtError_t NpuDriver::MemManagedAdvise(const void *const ptr, uint64_t size, uint
     const drvError_t drvRet = halMemManagedAdvise(RtPtrToPtr<DVdeviceptr>(ptr),
         static_cast<size_t>(size), advise, drvUvmLocation);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] MemManagedAdvise failed: size=%" PRIu64 ", advise=%hu, drvRetCode=%u", size,
-                        advise, static_cast<uint32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemManagedAdvise failed, drvRetCode=%u, size=%" PRIu64 ", advise=%hu.",
+            static_cast<uint32_t>(drvRet), size, advise);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     RT_LOG(RT_LOG_INFO, "MemManagedAdvise success, advise=%hu", advise);
@@ -775,8 +774,9 @@ rtError_t NpuDriver::HostMemAlloc(void ** const dptr, const uint64_t size, const
     drvFlag = FlagAddModuleId(drvFlag, moduleId);
     const drvError_t drvRet = halMemAlloc(dptr, static_cast<UINT64>(size), static_cast<UINT64>(drvFlag));
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed: size=%" PRIu64 "(bytes), drvRetCode=%d, device_id=%u, "
-            "drvFlag=%" PRIu64 ", moduleId=%hu!", size, static_cast<int32_t>(drvRet), deviceId, drvFlag, moduleId);
+        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, "
+            "size=%" PRIu64 "(bytes), drvDevId=%u, drvFlag=%" PRIu64 ", moduleId=%hu.",
+            static_cast<int32_t>(drvRet), size, deviceId, drvFlag, moduleId);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -791,7 +791,7 @@ rtError_t NpuDriver::HostMemFree(void * const dptr)
     const drvError_t drvRet = cmodelDrvFreeHost(dptr);
 #endif
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemFree failed: drvRetCode=%d, host addr=%#" PRIx64 "!",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemFree failed, drvRetCode=%d, host addr=%#" PRIx64 ".",
             static_cast<int32_t>(drvRet), RtPtrToValue(dptr));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
@@ -842,9 +842,9 @@ rtError_t NpuDriver::ManagedMemAllocInner(void ** const dptr, const uint64_t siz
     if (drvRet != DRV_ERROR_NONE) {
         const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
         const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed: "
-            "device_id=%u, size=%" PRIu64 "(bytes), flag=%d, drvRetCode=%d, drvFlag=%" PRIu64 ", %s", deviceId,
-            size, static_cast<int32_t>(flag), static_cast<int32_t>(drvRet), drvFlag, errorStr.c_str());
+        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, drvDevId=%u, "
+            "size=%" PRIu64 "(bytes), flag=%d, drvFlag=%" PRIu64 ", %s.",
+            static_cast<int32_t>(drvRet), deviceId, size, static_cast<int32_t>(flag), drvFlag, errorStr.c_str());
         return rtErrorCode;
     }
 
@@ -859,7 +859,7 @@ rtError_t NpuDriver::ManagedMemFree(const void * const dptr)
     const drvError_t drvRet = halMemFree(RtPtrToUnConstPtr<void *>(dptr));
     record.SaveRecord();
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemFree failed: drvRetCode=%d!",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemFree failed, drvRetCode=%d.",
             static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
@@ -918,9 +918,9 @@ rtError_t NpuDriver::DevMemAllocHugePageManaged(void ** const dptr, const uint64
         const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
         if (isLogError) {
             const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed:size=%" PRIu64
-            "(bytes), type=%d, moduleId=%hu, drvFlag=%" PRIu64 ", drvRetCode=%d, device_id=%u, %s",
-            size, type, moduleId, drvFlag, static_cast<int32_t>(drvRet), deviceId, errorStr.c_str());
+            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, "
+                "size=%" PRIu64 "(bytes), type=%d, moduleId=%hu, drvFlag=%" PRIu64 ", drvDevId=%u, %s.",
+                static_cast<int32_t>(drvRet), size, type, moduleId, drvFlag, deviceId, errorStr.c_str());
         } else {
             RT_LOG(RT_LOG_WARNING, "[drv api] halMemAlloc failed:size=%" PRIu64
                     "(bytes), type=%u, moduleId=%hu, drvFlag=%" PRIu64 ", drvRetCode=%d, device_id=%u!",
@@ -973,9 +973,9 @@ rtError_t NpuDriver::DevMemAlloc1GHugePage(void ** const dptr, const uint64_t si
         const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
         if (isLogError) {
             const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed:size=%" PRIu64
-            "(bytes), type=%d, moduleId=%hu, drvFlag=%" PRIu64 ", drvRetCode=%d, device_id=%u, %s",
-            size, type, moduleId, drvFlag, static_cast<int32_t>(drvRet), deviceId, errorStr.c_str());
+            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, "
+                "size=%" PRIu64 "(bytes), type=%d, moduleId=%hu, drvFlag=%" PRIu64 ", drvDevId=%u, %s.",
+                static_cast<int32_t>(drvRet), size, type, moduleId, drvFlag, deviceId, errorStr.c_str());
         } else {
             RT_LOG(RT_LOG_WARNING, "[drv api] halMemAlloc failed:size=%" PRIu64
                    "(bytes), type=%d,moduleId=%hu,drvFlag=%" PRIu64 ", drvRetCode=%d, device_id=%u!",
@@ -1040,9 +1040,9 @@ rtError_t NpuDriver::DevMemAllocManaged(void ** const dptr, const uint64_t size,
         const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
         if (isLogError) {
             const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed:size=%" PRIu64
-            "(bytes), type=%d, moduleId=%hu, drvFlag=%" PRIu64 ", drvRetCode=%d, device_id=%u, %s",
-            size, type, moduleId, drvFlag, static_cast<int32_t>(drvRet), deviceId, errorStr.c_str());
+            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, "
+                "size=%" PRIu64 "(bytes), type=%d, moduleId=%hu, drvFlag=%" PRIu64 ", drvDevId=%u, %s.",
+                static_cast<int32_t>(drvRet), size, type, moduleId, drvFlag, deviceId, errorStr.c_str());
         } else {
             RT_LOG(RT_LOG_WARNING, "[drv api] halMemAlloc failed:size=%" PRIu64
                     "(bytes), type=%d, moduleId=%hu, drvFlag=%" PRIu64 ", drvRetCode=%d, device_id=%u!",
@@ -1176,9 +1176,9 @@ rtError_t NpuDriver::MemAllocHugePolicyPageOffline(void ** const dptr, const uin
     if (drvRet != DRV_ERROR_NONE) {
         const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
         const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed: "
-            "device_id=%u, size=%" PRIu64 "(bytes), type=%u, drvRetCode=%d, drvFlag=%#" PRIx64 ", %s", deviceId, size,
-            type, static_cast<int32_t>(drvRet), drvFlag, errorStr.c_str());
+        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, drvDevId=%u, "
+            "size=%" PRIu64 "(bytes), type=%u, drvFlag=%#" PRIx64 ", %s.",
+            static_cast<int32_t>(drvRet), deviceId, size, type, drvFlag, errorStr.c_str());
         return rtErrorCode;
     }
 
@@ -1212,9 +1212,9 @@ rtError_t NpuDriver::MemAllocPolicyOffline(void ** const dptr, const uint64_t si
     if (drvRet != DRV_ERROR_NONE) {
         const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
         const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed: "
-            "memPolicy=%u, device_id=%u, type=%u, size=%" PRIu64 "(bytes), drvRetCode=%d, drvFlag=%" PRIu64 ", %s",
-            memPolicy, deviceId, type, size, static_cast<int32_t>(drvRet), drvFlag, errorStr.c_str());
+        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, drvDevId=%u, "
+            "size=%" PRIu64 "(bytes), type=%u, memPolicy=%u, drvFlag=%" PRIu64 ", %s.",
+            static_cast<int32_t>(drvRet), deviceId, size, type, memPolicy, drvFlag, errorStr.c_str());
         return rtErrorCode;
     }
     return RT_ERROR_NONE;
@@ -1259,9 +1259,9 @@ rtError_t NpuDriver::DevMemAllocOffline(void **dptr, const uint64_t size,
         if (drvRet != DRV_ERROR_NONE) {
             const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
             const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc failed: "
-                "device_id=%u, size=%" PRIu64 "(bytes), drvRetCode=%d, drvFlag=%" PRIu64 ", %s",
-                deviceId, size, static_cast<int32_t>(drvRet), drvFlag, errorStr.c_str());
+            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, drvDevId=%u,"
+                " size=%" PRIu64 "(bytes), type=%u, drvFlag=%#" PRIx64 ", %s.",
+                static_cast<int32_t>(drvRet), deviceId, size, type, drvFlag, errorStr.c_str());
             return rtErrorCode;
         }
 
@@ -1325,9 +1325,9 @@ rtError_t NpuDriver::DevMemAllocConPhy(void ** const dptr, const uint64_t size,
         static_cast<UINT64>(MEM_SET_ALIGN_SIZE(9ULL)) | static_cast<UINT64>(MEM_CONTIGUOUS_PHY) |
         static_cast<UINT64>(NODE_TO_DEVICE(deviceId)));
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemAlloc failed: "
-            "device_id=%u, size=%" PRIu64 "(bytes), type=%u, drvRetCode=%d!", deviceId, size, type,
-            static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemAlloc failed, drvRetCode=%d, drvDevId=%u, "
+            "size=%" PRIu64 "(bytes), type=%u.",
+            static_cast<int32_t>(drvRet), deviceId, size, type);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -1340,8 +1340,8 @@ rtError_t NpuDriver::DevMemConPhyFree(void * const dptr, const uint32_t deviceId
 {
     const DVresult drvRet = halMemFree(dptr);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemFree failed: device_id=%u, drvRetCode=%d.",
-            deviceId, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemFree failed, drvRetCode=%d, drvDevId=%u.",
+            static_cast<int32_t>(drvRet), deviceId);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -1393,9 +1393,9 @@ rtError_t NpuDriver::DevDvppMemAlloc(void ** const dptr, const uint64_t size, co
         RT_LOG(RT_LOG_ERROR, "[drv api] dvpp halMemAlloc failed: "
             "virtMemType=%#" PRIx64 ", memType=%#" PRIx64 ", alignSize=%u, memAttr=%#" PRIx64 ,
             virtMemType, memType, alignSize, memAttr);
-        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] dvpp halMemAlloc failed: "
-            "device_id=%u, size=%" PRIu64 "(bytes), drvFlag=%#" PRIx64 ", drvRetCode=%d",
-            deviceId, size, drvFlag, static_cast<int32_t>(drvRet));
+        DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, drvDevId=%u, "
+            "size=%" PRIu64 "(bytes), drvFlag=%#" PRIx64 ".",
+            static_cast<int32_t>(drvRet), deviceId, size, drvFlag);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     record.SaveRecord();
@@ -1419,8 +1419,8 @@ rtError_t NpuDriver::DvppCmdListMemAlloc(void ** const dptr, const uint64_t size
         static_cast<UINT64>(MEM_TYPE_HBM) | static_cast<UINT64>(MEM_READONLY) | static_cast<UINT64>(MEM_PAGE_NORMAL) |
         static_cast<UINT64>(MEM_SET_ALIGN_SIZE(9ULL)) | static_cast<UINT64>(NODE_TO_DEVICE(deviceId)));
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemAlloc failed: device_id=%u, size=%" PRIu64 "(bytes), drvRetCode=%d",
-            deviceId, size, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemAlloc failed, drvRetCode=%d, drvDevId=%u, size=%" PRIu64 "(bytes).",
+            static_cast<int32_t>(drvRet), deviceId, size);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -1478,8 +1478,9 @@ rtError_t NpuDriver::DevMemAllocForPctrace(void ** const dptr, const uint64_t si
         static_cast<UINT64>(MEM_SET_ALIGN_SIZE(9ULL)) |
         static_cast<UINT64>(MEM_ADVISE_TS) | static_cast<UINT64>(NODE_TO_DEVICE(deviceId)));        
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_MALLOC_ERROR_PROCESS(drvRet, RUNTIME_MODULE_ID, "[drv api] halMemAlloc for pctrace failed: size=%" PRIu64 "(bytes), drvRetCode=%d,"
-            " device_id=%u!", size, static_cast<int32_t>(drvRet), deviceId);
+        DRV_MALLOC_ERROR_PROCESS(drvRet, RUNTIME_MODULE_ID, "Call driver api halMemAlloc failed, drvRetCode=%d, "
+            "size=%" PRIu64 "(bytes), drvDevId=%u.",
+            static_cast<int32_t>(drvRet), size, deviceId);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -1491,8 +1492,7 @@ rtError_t NpuDriver::DevMemFreeForPctrace(const void * const dst)
 {
     const drvError_t drvRet = halMemFree(const_cast<void *>(dst));
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemFree for pctrace failed: drvRetCode=%d.",
-            static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemFree failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -1523,9 +1523,9 @@ rtError_t NpuDriver::DevMemAllocCached(void ** const dptr, const uint64_t size,
         if (drvRet != DRV_ERROR_NONE) {
             const rtError_t rtErrorCode = RT_GET_DRV_ERRCODE(drvRet);
             const std::string errorStr = RT_GET_ERRDESC(rtErrorCode);
-            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "[drv api] halMemAlloc cached failed: "
-                "device_id=%u, size=%" PRIu64 "(bytes), drvRetCode=%d, drvFlag=%" PRIu64 ", %s",
-                deviceId, size, static_cast<int32_t>(drvRet), drvFlag, errorStr.c_str());
+            DRV_MALLOC_ERROR_PROCESS(drvRet, moduleId, "Call driver api halMemAlloc failed, drvRetCode=%d, drvDevId=%u,"
+                " size=%" PRIu64 "(bytes), type=%u, drvFlag=%#" PRIx64 ", %s.",
+                static_cast<int32_t>(drvRet), deviceId, size, type, drvFlag, errorStr.c_str());
             return rtErrorCode;
         }
     }
@@ -1556,8 +1556,7 @@ rtError_t NpuDriver::DevMemFree(void * const dptr, const uint32_t deviceId)
 
     const drvError_t drvRet = halMemFree(dptr);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemFree failed, drvRetCode=%d!",
-            static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemFree failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     return RT_ERROR_NONE;
@@ -1764,8 +1763,8 @@ rtError_t NpuDriver::MemGetInfo(const uint32_t deviceId, bool isHugeOnly, size_t
     
     const drvError_t drvRet = halMemGetInfo(static_cast<DVdevice>(deviceId), type, &info);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemGetInfo failed: device_id=%u, type=%u, drvRetCode=%d!",
-            deviceId, type, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemGetInfo failed, drvRetCode=%d, drvDevId=%u, type=%u.",
+            static_cast<int32_t>(drvRet), deviceId, type);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -1828,8 +1827,8 @@ rtError_t NpuDriver::MemGetInfoByType(const uint32_t deviceId, const rtMemType_t
         "[drv api] halMemGetInfo does not support.");
     ExtractDrvMemGetInfo(type, info, &drvMemInfo);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemGetInfo failed: drv devId=%u, drvRetCode=%d!",
-            deviceId, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemGetInfo failed, drvRetCode=%d, drvDevId=%u.",
+            static_cast<int32_t>(drvRet), deviceId);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     return RT_ERROR_NONE;
@@ -1851,8 +1850,8 @@ rtError_t NpuDriver::CheckMemType(void **addrs, uint32_t size, uint32_t memType,
     ExtractDrvMemGetInfo(RT_MEM_INFO_TYPE_ADDR_CHECK, &info, &drvMemInfo);
     *checkResult = info.addrInfo.flag;
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemGetInfo failed: drv devId=%u, drvRetCode=%d!",
-            deviceId, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemGetInfo failed, drvRetCode=%d, drvDevId=%u.",
+            static_cast<int32_t>(drvRet), deviceId);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     return RT_ERROR_NONE;
@@ -1923,8 +1922,8 @@ rtError_t NpuDriver::MemGetInfoEx(const uint32_t deviceId, const rtMemInfoType_t
     struct MemInfo info;
     const drvError_t drvRet = halMemGetInfo(static_cast<DVdevice>(deviceId), type, &info);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemGetInfo failed: "
-            "device_id=%u, type=%u, drvRetCode=%d!", deviceId, type, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemGetInfo failed, drvRetCode=%d, drvDevId=%u, type=%u.",
+            static_cast<int32_t>(drvRet), deviceId, type);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
  
@@ -1964,7 +1963,7 @@ rtError_t NpuDriver::PointerGetAttributes(rtPointerAttributes_t * const attribut
     const drvError_t drvRet = drvMemGetAttribute(RtPtrToPtr<DVdeviceptr>(ptr),
         &dvAttributes);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] drvMemGetAttribute failed: drvRetCode=%d!", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvMemGetAttribute failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -2017,8 +2016,8 @@ rtError_t NpuDriver::MemManagedGetAttr(rtMemManagedRangeAttribute attribute, con
     size_t attribute_num = 1U;
     const drvError_t drvRet = halMemManagedRangeGetAttributes(&data, &dataSize, RtPtrToPtr<uint32_t *>(&attribute), attribute_num, (DVdeviceptr)(uintptr_t)(ptr), size);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemManagedRangeGetAttributes failed: drvRetCode=%d!",
-                        static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemManagedRangeGetAttributes failed, drvRetCode=%d.",
+            static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -2031,8 +2030,8 @@ rtError_t NpuDriver::MemManagedGetAttrs(rtMemManagedRangeAttribute *attributes, 
         "[drv api] halMemManagedRangeGetAttributes does not support.");
     const drvError_t drvRet = halMemManagedRangeGetAttributes(data, dataSizes, RtPtrToPtr<uint32_t *>(attributes), numAttributes, (DVdeviceptr)(uintptr_t)(ptr), size);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemManagedRangeGetAttributes failed: drvRetCode=%d!",
-                        static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemManagedRangeGetAttributes failed, drvRetCode=%d.",
+            static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -2049,7 +2048,7 @@ rtError_t NpuDriver::PtrGetAttributes(const void * const ptr, rtPtrAttributes_t 
     const drvError_t drvRet = drvMemGetAttribute(RtPtrToPtr<DVdeviceptr>(ptr),
                                                  &dvAttributes);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] drvMemGetAttribute failed: drvRetCode=%d!", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvMemGetAttribute failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -2096,7 +2095,7 @@ rtError_t NpuDriver::PtrGetRealLocation(const void * const ptr, rtMemLocationTyp
     const drvError_t drvRet = drvMemGetAttribute(RtPtrToPtr<DVdeviceptr>(ptr),
                                                  &dvAttributes);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] drvMemGetAttribute failed: drvRetCode=%d!", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvMemGetAttribute failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -2200,9 +2199,9 @@ rtError_t NpuDriver::MemCopySync(void * const dst, const uint64_t destMax, const
     }
     if (drvRet != DRV_ERROR_NONE) {
         if (errShow == true) {
-            DRV_ERROR_PROCESS(drvRet, "[drv api] drvMemcpy failed: destMax=%" PRIu64
-                ", size=%" PRIu64 "(bytes), kind=%d, drvRetCode=%d!", destMax, size,
-                static_cast<int32_t>(kind), static_cast<int32_t>(drvRet));
+            DRV_ERROR_PROCESS(drvRet, "Call driver api drvMemcpy failed, drvRetCode=%d, destMax=%" PRIu64 ", "
+                "size=%" PRIu64 "(bytes), kind=%d.",
+                static_cast<int32_t>(drvRet), destMax, size, static_cast<int32_t>(kind));
         }
         return RT_GET_DRV_ERRCODE(drvRet);
     }
@@ -2244,9 +2243,8 @@ rtError_t NpuDriver::MemCopyAsync(void * const dst, const uint64_t destMax, cons
     record.SaveRecord();
 
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] drvAsyncMemcpy failed: destMax=%" PRIu64 ","
-            " size=%" PRIu64 "(bytes), kind=%d, drvRetCode=%d!", destMax, size,
-            static_cast<int32_t>(kind), static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvAsyncMemcpy failed, drvRetCode=%d, destMax=%" PRIu64 ", size=%" PRIu64 "(bytes), kind=%d.",
+            static_cast<int32_t>(drvRet), destMax, size, static_cast<int32_t>(kind));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -2259,7 +2257,7 @@ rtError_t NpuDriver::MemCopyAsyncEx(struct DMA_ADDR *dmaHandle)
 
     drvRet = halMemcpySumbit(dmaHandle, static_cast<int32_t>(MEMCPY_SUMBIT_ASYNC));
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemcpySumbit failed, drvRetCode=%d", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemcpySumbit failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     RT_LOG(RT_LOG_INFO, "call halMemcpySumbit success.");
@@ -2276,8 +2274,8 @@ rtError_t NpuDriver::MemCopyAsyncWaitFinish(const uint64_t copyFd)
     RT_LOG(RT_LOG_INFO, "Call MemCopyAsyncWaitFinish success, copyFd=%" PRIu64, copyFd);
     const drvError_t drvRet = halMemCpyAsyncWaitFinish(copyFd);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemCpyAsyncWaitFinish failed: copyFd=%" PRIu64
-            " drvRetCode=%d!", copyFd, static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemCpyAsyncWaitFinish failed, drvRetCode=%d, copyFd=%" PRIu64 ".",
+            static_cast<int32_t>(drvRet), copyFd);
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -2288,7 +2286,7 @@ rtError_t NpuDriver::MemCopyAsyncWaitFinishEx(struct DMA_ADDR *dmaHandle)
 {
     const drvError_t drvRet = halMemcpyWait(dmaHandle);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemcpyWait failed, drvRetCode=%d!", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemcpyWait failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
     RT_LOG(RT_LOG_INFO, "Call halMemcpyWait success.");
@@ -2334,7 +2332,7 @@ rtError_t NpuDriver::MemCopy2D(void * const dst, const uint64_t dstPitch, const 
     record.SaveRecord();
 
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemcpy2D failed: drvRetCode=%d! ", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemcpy2D failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
 
@@ -2352,7 +2350,7 @@ rtError_t NpuDriver::MemcpyBatch(uint64_t dsts[], uint64_t srcs[], size_t sizes[
     const drvError_t drvRet = halMemcpyBatch(dsts, srcs, sizes, count);
     record.SaveRecord();
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] MemcpyBatch failed: drvRetCode=%d",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemcpyBatch failed, drvRetCode=%d.",
             static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
@@ -2470,7 +2468,7 @@ rtError_t NpuDriver::GetL2CacheOffset(uint32_t deviceId, uint64_t *offset)
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemCtl does not support.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemCtl get l2cache offset failed: drvRetCode=%d",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemCtl failed, drvRetCode=%d.",
             static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
@@ -2490,7 +2488,7 @@ rtError_t NpuDriver::GetC2cCtrlAddr(const int32_t deviceId, uint64_t * const add
     const drvError_t drvRet = halMemCtl(static_cast<int32_t>(CTRL_TYPE_ADDR_MAP), &inPara, sizeof(inPara),
                                         &outPara, &outSizeRet);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemCtl get c2c ctrl addr failed: drvRetCode=%d",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemCtl failed, drvRetCode=%d.",
             static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }
@@ -2542,7 +2540,7 @@ rtError_t NpuDriver::GetAddrModuleId(void *memcpyAddr, uint32_t *moduleId)
     COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "[drv api] halMemCtl not support get module id.");
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "[drv api] halMemCtl get module id failed: drvRetCode=%d",
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemCtl failed, drvRetCode=%d.",
             static_cast<int32_t>(drvRet));
         return RT_GET_DRV_ERRCODE(drvRet);
     }

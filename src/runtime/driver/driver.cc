@@ -75,7 +75,7 @@ rtError_t FacadeDriver::GetDeviceCount(int32_t * const deviceCount) const
     uint32_t devCnt = 0U;
     const drvError_t drvRet = drvGetDevNum(&devCnt);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "Call drvGetDevNum, drvRetCode=%d.", static_cast<int32_t>(drvRet));
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvGetDevNum failed, drvRetCode=%d.", static_cast<int32_t>(drvRet));
         error = RT_GET_DRV_ERRCODE(drvRet);
     }
     *deviceCount = static_cast<int32_t>(devCnt);
@@ -88,7 +88,7 @@ rtError_t FacadeDriver::GetDeviceIDs(uint32_t * const devices, const uint32_t le
 
     const drvError_t drvRet = drvGetDevIDs(devices, len);
     if (drvRet != DRV_ERROR_NONE) {
-        DRV_ERROR_PROCESS(drvRet, "Call drvGetDevIDs, drvRetCode=%d, length=%u.", drvRet, len);
+        DRV_ERROR_PROCESS(drvRet, "Call driver api drvGetDevIDs failed, drvRetCode=%d, length=%u.", static_cast<int32_t>(drvRet), len);
         error = RT_GET_DRV_ERRCODE(drvRet);
     }
     return error;

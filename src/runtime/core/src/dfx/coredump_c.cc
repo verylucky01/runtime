@@ -174,7 +174,7 @@ rtError_t ReadAICoreDebugInfo(const rtDebugMemoryParam_t * const param)
         param->elementSize, param->memLen, param->srcAddr, param->dstAddr);
 
     Driver * const devDrv = device->Driver_();
-    NULL_PTR_RETURN_MSG_OUTER(devDrv, RT_ERROR_DRV_PTRNULL);
+    NULL_PTR_RETURN(devDrv, RT_ERROR_DRV_PTRNULL);
     const uint32_t deviceId = device->Id_();
     void *devMem = nullptr;
     ret = devDrv->DevMemAlloc(&devMem, COREDUMP_MEM_SIZE, RT_MEMORY_HBM, deviceId);

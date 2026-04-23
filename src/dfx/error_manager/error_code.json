@@ -305,7 +305,7 @@
       "Arglist": "value,env,situation,reason",
       "suggestion": {
         "Possible Cause": "N/A",
-        "Solution": "Reset the environment variable by referring to the installation guide."
+        "Solution": "Reset the environment variable by referring to the Environment Variable Reference."
       }
     },
     {

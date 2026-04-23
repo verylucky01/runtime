@@ -5,16 +5,32 @@
 ## 目录总览
 
 - [0_quickstart](./0_quickstart/README.md)：快速入门，包含最基础的 Runtime Hello World、自定义 Kernel `<<<>>>` 调用、错误处理、系统信息和兼容性主题。
-- [1_basic_features](./1_basic_features/README.md)：基础特性，覆盖 Device、Context、Stream、Event、Memory。
-- [2_advanced_features](./2_advanced_features/README.md)：高级特性，覆盖 Kernel、Model RI、Callback、Notify、TDT、Label、Group 和内建任务。
-- [3_memory_advanced](./3_memory_advanced/README.md)：高级内存管理，覆盖自定义分配器、流序内存池以及更细粒度的内存控制主题。
-- [4_reliability](./4_reliability/README.md)：可靠性主题，覆盖快照、溢出检测、错误恢复和容错执行。
+- [1_basic_features](./1_basic_features/README.md)：基础特性，覆盖 Context、Device、Stream、Event、Memory。
+- [2_advanced_features](./2_advanced_features/README.md)：高级特性，覆盖 Kernel、Model RI、Callback、Notify、TDT、Label 和内建任务。
+- [3_memory_advanced](./3_memory_advanced/README.md)：高级内存管理，覆盖自定义分配器、Host 注册、托管内存、缓存维护与流序内存池主题。
+- [4_reliability](./4_reliability/README.md)：可靠性主题，覆盖溢出检测、错误恢复和容错执行。
 - [5_performance](./5_performance/README.md)：性能分析与精度调试，包含 Profiling 和 Adump。
 - [6_scenarios](./6_scenarios/README.md)：场景化主题，面向训练流水线、多设备推理和容错执行等典型用法。
 
 ## 使用方式
 
 编译运行样例前，请先完成固件、驱动和 CANN 软件包安装，具体操作请参见仓库根目录的 [README](../README.md)。
+
+编译运行样例时依赖算子包，请完成`Ascend-cann-${soc_version}-ops_${cann_version}_linux-${arch}.run`包安装。[下载链接](https://ascend.devcloud.huaweicloud.com/artifactory/cann-run/software/)
+
+```bash
+# 确保安装包具有可执行权限
+chmod +x Ascend-cann-${soc_version}-ops_${cann_version}_linux-${arch}.run
+# 安装命令
+./Ascend-cann-${soc_version}-ops_${cann_version}_linux-${arch}.run --install --force --quiet --install-path=${install_path}
+# 以950为例
+# ./Ascend-cann-950-ops_9.0.0_linux-aarch64.run --install --force --quiet --install-path=${install_path}
+```
+  
+- \$\{soc\_version\}：表示NPU型号简写，如950等。
+- \$\{cann\_version\}：表示CANN包版本号。
+- \$\{arch\}：表示CPU架构，如aarch64、x86_64。
+- \$\{install\_path\}：表示指定安装路径，可选，root用户默认安装在`/usr/local/Ascend`目录，普通用户默认安装在当前目录。
 
 典型运行步骤如下：
 

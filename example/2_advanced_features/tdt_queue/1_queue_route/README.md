@@ -28,9 +28,9 @@
 运行步骤如下：
 
 ```bash
-# 将 /usr/local/Ascend 替换为实际 CANN 安装根目录
-source /usr/local/Ascend/cann/set_env.sh
-export ASCEND_INSTALL_PATH=/usr/local/Ascend/cann
+# ${install_root} 替换为实际 CANN 安装根目录，默认安装在 /usr/local/Ascend
+source ${install_root}/cann/set_env.sh
+export ASCEND_INSTALL_PATH=${install_root}/cann
 
 # 编译运行
 bash run.sh

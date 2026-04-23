@@ -169,7 +169,6 @@ rtError_t SqAddrMemoryOrder::AllocSqAddr(const uint32_t memOrderType, uint64_t *
 
     *sqAddr = RtPtrToPtr<uint64_t *, void *>(sqAddrAllocator->AllocItem());
     if (*sqAddr == nullptr) {
-        RT_LOG(RT_LOG_DEBUG, "alloc SqAddr fail, memOrderType=%u", memOrderType);
         return RT_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -190,7 +189,7 @@ rtError_t SqAddrMemoryOrder::FreeSqAddr(const uint64_t *sqAddr, const uint32_t m
 
     const int32_t id = sqAddrAllocator->GetIdByItem(RtPtrToPtr<const void *const, const uint64_t *>(sqAddr));
     if (id < 0) {
-        RT_LOG(RT_LOG_EVENT, "Free SqAddr fail, sqAddr=%p, id=%d", sqAddr, id);
+        RT_LOG(RT_LOG_EVENT, "need check sq addr, sqAddr=%p, id=%d, memOrderType=%u.", sqAddr, id, memOrderType);
         return RT_ERROR_INVALID_VALUE;
     }
 

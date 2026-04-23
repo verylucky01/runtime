@@ -2274,6 +2274,15 @@ TEST_F(DeviceTest, SqAddrPoolAllocFree)
     ret = sqAddrMemoryManage->FreeSqAddr(reinterpret_cast<uint64_t *>(static_cast<uintptr_t>(0x1234)), 11U);
     EXPECT_NE(ret, RT_ERROR_NONE);
 
+    uint64_t addr = 0x1234ULL;
+    sqAddr = &addr;
+    BufferAllocator sqAddrAlloc(sizeof(uint32_t), 0, 100);
+    MOCKER_CPP(&SqAddrMemoryOrder::FindSqMemPoolByMemOrderType)
+        .stubs()
+        .will(returnValue(&sqAddrAlloc));
+    ret = sqAddrMemoryManage->FreeSqAddr(sqAddr, SQ_ADDR_MEM_ORDER_TYPE_32K);
+    EXPECT_NE(ret, RT_ERROR_NONE);
+
     delete device;
 }
 

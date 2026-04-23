@@ -2057,8 +2057,22 @@ aclError aclrtMemP2PMapImpl(void *devPtr, size_t size, int32_t dstDevId, uint64_
     ACL_PROFILING_REG(acl::AclProfType::aclrtMemP2PMap);
     ACL_LOG_INFO("start to execute aclrtMemP2PMap");
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(devPtr);
-    ACL_REQUIRES_TRUE(size > 0UL, ACL_ERROR_INVALID_PARAM, "size in aclrtMemP2PMap must be large than 0 !");
-    ACL_REQUIRES_TRUE(flags == 0UL, ACL_ERROR_INVALID_PARAM, "flags in aclrtMemP2PMap must be 0 !");
+
+    if (size == 0UL) {
+        ACL_LOG_ERROR("size is [%zu], size in aclrtMemP2PMap must be large than 0", size);
+        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
+            std::vector<const char *>({"param", "value", "reason"}),
+            std::vector<const char *>({"size", std::to_string(size).c_str(), "size in aclrtMemP2PMap must be large than 0"}));
+        return ACL_ERROR_INVALID_PARAM;
+    }
+    if (flags != 0UL) {
+        ACL_LOG_ERROR("flags is [%lu], flags in aclrtMemP2PMap must be 0", flags);
+        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
+            std::vector<const char *>({"param", "value", "reason"}),
+            std::vector<const char *>({"flags", std::to_string(flags).c_str(), "flags in aclrtMemP2PMap must be 0"}));
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
     uint32_t phyId = 0U;
     rtError_t rtErr = rtGetDevicePhyIdByIndex(static_cast<uint32_t>(dstDevId), &phyId);
     if (rtErr != RT_ERROR_NONE) {

@@ -5206,6 +5206,7 @@ static void BinaryMemFree(const Device * const device, Program * const prog, uin
 rtError_t Runtime::BinaryLoad(const Device *const device, Program * const prog)
 {
     void *devMem = nullptr;
+    void *baseAddr = nullptr;
     void *data = nullptr;
     bool readonly = true;
     uint32_t size = 0U;
@@ -5247,7 +5248,7 @@ rtError_t Runtime::BinaryLoad(const Device *const device, Program * const prog)
                static_cast<uint32_t>(error), static_cast<uint64_t>(devSize + INSTR_ALIGN_SIZE));
         return error;
     }
-
+    baseAddr = devMem;
     // cce instr addr should align to 4K for ARM instr ADRP
     if ((RtPtrToPtr<uintptr_t>(devMem) & 0xFFFULL) != 0ULL) {
         // 2 ^ 12 is 4K align
@@ -5261,7 +5262,7 @@ rtError_t Runtime::BinaryLoad(const Device *const device, Program * const prog)
         uint32_t adviseSize = devSize + INSTR_ALIGN_SIZE;
         error = prog->BinaryMemCopySync(devMem, adviseSize, size, data, device, readonly);
     }
-    prog->SetBinBaseAddr(devMem, device->Id_());
+    prog->SetBinBaseAddr(baseAddr, device->Id_());
     prog->SetBinAlignBaseAddr(devMem, device->Id_());
 
     if (error != RT_ERROR_NONE) {

@@ -16,6 +16,7 @@
 extern "C" {
 #endif
 
+bool AdxIsAscend950();
 size_t AdxGetCoreTypeIDOffset();
 size_t AdxGetBlockNum();
 bool AdxEnableSimtDump(size_t dumpWorkSpaceSize);

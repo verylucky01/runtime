@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
 # THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
@@ -8,8 +8,7 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-################### libadump_server.a begin ############################
-set(adumpServerHeaderList
+set(adumpServerBaseHeaderList
     ${ADUMP_DIR}/adump/
     ${ADUMP_DIR}/adump/common/
     ${ADUMP_DIR}/adcore/common/
@@ -18,7 +17,7 @@ set(adumpServerHeaderList
     ${PROJECT_TOP_DIR}/include/external
 )
 
-set(adumpServerSrcList
+set(adumpServerBaseSrcList
     ${adumpHostProtoSrcs}
     ${ADUMP_ADUMP_DIR}/adx_dump_process.cpp
     ${ADUMP_ADUMP_DIR}/adx_dump_record.cpp
@@ -29,17 +28,7 @@ set(adumpServerSrcList
     ${ADUMP_ADUMP_DIR}/host/adx_datadump_server.cpp
 )
 
-add_library(adump_server STATIC
-    ${adumpServerSrcList}
-)
-
-add_dependencies(adump_server adumpHostProto)
-
-target_include_directories(adump_server PRIVATE
-    ${adumpServerHeaderList}
-)
-
-target_compile_options(adump_server PRIVATE
+set(adumpServerBaseCompileOptions
     -O2
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>>:-Werror>
     -std=c++11
@@ -54,7 +43,7 @@ target_compile_options(adump_server PRIVATE
     $<$<CONFIG:Release>:-D_FORTIFY_SOURCE=2 -Os>
 )
 
-target_compile_definitions(adump_server PRIVATE
+set(adumpServerBaseCompileDefinitions
     $<IF:$<STREQUAL:${PRODUCT_SIDE},host>,ADX_LIB_HOST,ADX_LIB>
     LOG_CPP
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>>:OS_TYPE=0>
@@ -63,7 +52,7 @@ target_compile_definitions(adump_server PRIVATE
     google=ascend_private
 )
 
-target_link_libraries(adump_server
+set(adumpServerBaseLinkLibraries
     PRIVATE
         $<BUILD_INTERFACE:intf_pub>
         $<BUILD_INTERFACE:mmpa_headers>
@@ -80,9 +69,7 @@ target_link_libraries(adump_server
     PUBLIC
         adump_headers
 )
-################### libadump_server.a end ############################
 
-################ libadump_server_stub.a begin ########################
 set(adumpServerStubSrcList
     ${ADUMP_ADUMP_DIR}/host/adx_datadump_server_stub.cpp
 )
@@ -91,15 +78,7 @@ set(adumpServerStubHeaderList
     ${ADUMP_DIR}/external
 )
 
-add_library(adump_server_stub STATIC
-    ${adumpServerStubSrcList}
-)
-
-target_include_directories(adump_server_stub PRIVATE
-    ${adumpServerStubHeaderList}
-)
-
-target_compile_options(adump_server_stub PRIVATE
+set(adumpServerStubCompileOptions
     $<$<NOT:$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>>:-Werror>
     -std=c++11
     -fstack-protector-strong
@@ -107,11 +86,6 @@ target_compile_options(adump_server_stub PRIVATE
     -fno-strict-aliasing
 )
 
-target_compile_definitions(adump_server_stub PRIVATE
+set(adumpServerStubCompileDefinitions
     OS_TYPE=0
 )
-
-target_link_libraries(adump_server_stub PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
-)
-################### libadump_server_stub.a end ######################

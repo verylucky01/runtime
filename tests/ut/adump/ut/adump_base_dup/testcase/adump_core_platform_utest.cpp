@@ -31,16 +31,15 @@ protected:
 TEST_F(DupDumpCoreUtest, Test_DumpRegisterNotSupport)
 {
     DumpCore core("", 10);
-    uint32_t v4type = 15;
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
     MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
-    std::shared_ptr<RegisterInterface> register_ = std::make_shared<CloudV2Register>();
     core.DumpRegister(0, 0);
 }
 
 TEST_F(DupDumpCoreUtest, Test_DumpRegister)
 {
     DumpCore core("", 10);
-    uint32_t v2type = 5;
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
     MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2type)).will(returnValue(true));
     RegisterManager registerManager = RegisterManager();
     registerManager.CreateRegister();
@@ -50,7 +49,7 @@ TEST_F(DupDumpCoreUtest, Test_DumpRegister)
 TEST_F(DupDumpCoreUtest, Test_DumpRegisterReadAICoreFail)
 {
     DumpCore core("", 10);
-    uint32_t v2type = 5;
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
     MOCKER_CPP(&rtDebugReadAICore).stubs().will(returnValue(1));
     MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2type)).will(returnValue(true));
     RegisterManager registerManager = RegisterManager();
@@ -61,7 +60,7 @@ TEST_F(DupDumpCoreUtest, Test_DumpRegisterReadAICoreFail)
 TEST_F(DupDumpCoreUtest, Test_DumpRegisterMemCpyFail)
 {
     DumpCore core("", 10);
-    uint32_t v2type = 5;
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
     MOCKER_CPP(&memcpy_s).stubs().will(returnValue(1));
     MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2type)).will(returnValue(true));
     RegisterManager registerManager = RegisterManager();
@@ -71,7 +70,7 @@ TEST_F(DupDumpCoreUtest, Test_DumpRegisterMemCpyFail)
 
 TEST_F(DupDumpCoreUtest, Test_ConvertCoreIdNotSupport)
 {
-    uint32_t v4type = 15;
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
     uint8_t coreType = 0;
     uint16_t coreId = 1;
     DumpCore core("", 10);
@@ -81,7 +80,7 @@ TEST_F(DupDumpCoreUtest, Test_ConvertCoreIdNotSupport)
 
 TEST_F(DupDumpCoreUtest, Test_ConvertCoreId)
 {
-    uint32_t v2type = 5;
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
     uint8_t coreType = 0;
     uint16_t coreId = 1;
     DumpCore core("", 10);
@@ -89,6 +88,345 @@ TEST_F(DupDumpCoreUtest, Test_ConvertCoreId)
     EXPECT_EQ(core.ConvertCoreId(coreType, coreId), 1);
     coreType = 1;
     EXPECT_EQ(core.ConvertCoreId(coreType, coreId), 26);
+}
+
+TEST_F(DupDumpCoreUtest, Test_ConvertCoreIdCloudV4)
+{
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    uint8_t coreType = 0;
+    uint16_t coreId = 1;
+    DumpCore core("", 10);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    EXPECT_EQ(core.ConvertCoreId(coreType, coreId), 1);
+    coreType = 1;
+    EXPECT_EQ(core.ConvertCoreId(coreType, coreId), static_cast<uint16_t>(CORE_SIZE_AIC_DAVID + coreId));
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterCloudV4)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterCloudV4ReadAICoreFail)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&rtDebugReadAICore).stubs().will(returnValue(1));
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterCloudV4MemCpyFail)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&memcpy_s).stubs().will(returnValue(1));
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterCloudV4GetRegisterFail)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_ConvertCoreIdCloudV4VectorCore)
+{
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    uint8_t coreType = 1;
+    uint16_t coreId = 5;
+    DumpCore core("", 10);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    uint16_t expectedId = static_cast<uint16_t>(CORE_SIZE_AIC_DAVID + coreId);
+    EXPECT_EQ(core.ConvertCoreId(coreType, coreId), expectedId);
+}
+
+TEST_F(DupDumpCoreUtest, Test_ConvertCoreIdCloudV4AICore)
+{
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    uint8_t coreType = 0;
+    uint16_t coreId = 10;
+    DumpCore core("", 10);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    EXPECT_EQ(core.ConvertCoreId(coreType, coreId), 10);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpV4RegisterAddSectionFail)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    MOCKER_CPP(&Adx::ELF::DumpELF::AddSection).stubs().will(returnValue(nullptr));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_ConvertCoreIdDefaultBranch)
+{
+    uint32_t unsupportedType = 100;
+    uint8_t coreType = 0;
+    uint16_t coreId = 10;
+    DumpCore core("", 10);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(unsupportedType)).will(returnValue(true));
+    EXPECT_EQ(core.ConvertCoreId(coreType, coreId), 10);
+    coreType = 1;
+    EXPECT_EQ(core.ConvertCoreId(coreType, coreId), 10);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterV2AIVCore)
+{
+    DumpCore core("", 10);
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
+    uint8_t coreType = 1;
+    uint16_t coreId = 5;
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    core.DumpRegister(coreType, coreId);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterV4AIVCore)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    uint8_t coreType = 1;
+    uint16_t coreId = 5;
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    core.DumpRegister(coreType, coreId);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpV4RegisterEmptyRegData)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    MOCKER_CPP(&Adx::RegisterInterface::GetRegisterTypes).stubs().will(returnValue(std::vector<uint32_t>()));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpV4RegisterEmptyRegisterTable)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    std::vector<uint32_t> regTypes = {0};
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    MOCKER_CPP(&Adx::RegisterInterface::GetRegisterTypes).stubs().will(returnValue(regTypes));
+    MOCKER_CPP(&Adx::RegisterInterface::GetRegisterTable).stubs().will(returnValue(std::vector<RegisterTable>()));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpV4DebugRegisterTableNumZero)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    std::vector<uint32_t> regTypes = {0};
+    std::vector<RegisterTable> tables;
+    RegisterTable table;
+    table.num = 0;
+    tables.push_back(table);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    MOCKER_CPP(&Adx::RegisterInterface::GetRegisterTypes).stubs().will(returnValue(regTypes));
+    MOCKER_CPP(&Adx::RegisterInterface::GetRegisterTable).stubs().will(returnValue(tables));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_ConvertCoreIdAllBranches)
+{
+    DumpCore core("", 10);
+    
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2type)).will(returnValue(true));
+    EXPECT_EQ(core.ConvertCoreId(CORE_TYPE_AIC, 0), 0);
+    EXPECT_EQ(core.ConvertCoreId(1, 0), static_cast<uint16_t>(CORE_SIZE_AIC));
+    
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    EXPECT_EQ(core.ConvertCoreId(CORE_TYPE_AIC, 5), 5);
+    EXPECT_EQ(core.ConvertCoreId(1, 5), static_cast<uint16_t>(CORE_SIZE_AIC_DAVID + 5));
+    
+    uint32_t unknownType = 255;
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(unknownType)).will(returnValue(true));
+    EXPECT_EQ(core.ConvertCoreId(0, 10), 10);
+    EXPECT_EQ(core.ConvertCoreId(1, 10), 10);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterV2AllCoreTypes)
+{
+    DumpCore core("", 10);
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    
+    for (uint8_t coreType = 0; coreType <= 1; coreType++) {
+        for (uint16_t coreId = 0; coreId < 10; coreId++) {
+            core.DumpRegister(coreType, coreId);
+        }
+    }
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterV4AllCoreTypes)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    
+    for (uint8_t coreType = 0; coreType <= 1; coreType++) {
+        for (uint16_t coreId = 0; coreId < 10; coreId++) {
+            core.DumpRegister(coreType, coreId);
+        }
+    }
+}
+
+TEST_F(DupDumpCoreUtest, Test_ConvertCoreIdBoundaryValues)
+{
+    DumpCore core("", 10);
+    
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2type)).will(returnValue(true));
+    EXPECT_EQ(core.ConvertCoreId(CORE_TYPE_AIC, 0), 0);
+    EXPECT_EQ(core.ConvertCoreId(CORE_TYPE_AIC, UINT16_MAX), UINT16_MAX);
+    EXPECT_EQ(core.ConvertCoreId(CORE_TYPE_AIV, 0), static_cast<uint16_t>(CORE_SIZE_AIC));
+    
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    EXPECT_EQ(core.ConvertCoreId(CORE_TYPE_AIC, 0), 0);
+    EXPECT_EQ(core.ConvertCoreId(CORE_TYPE_AIC, UINT16_MAX), UINT16_MAX);
+    EXPECT_EQ(core.ConvertCoreId(CORE_TYPE_AIV, 0), static_cast<uint16_t>(CORE_SIZE_AIC_DAVID));
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterWithDifferentCoreIds)
+{
+    DumpCore core("", 10);
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    
+    std::vector<uint16_t> coreIds = {0, 1, 5, 10, 25, 50, 100, 200};
+    for (uint16_t coreId : coreIds) {
+        core.DumpRegister(CORE_TYPE_AIC, coreId);
+        core.DumpRegister(CORE_TYPE_AIV, coreId);
+    }
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterMultipleTimes)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    
+    for (int i = 0; i < 5; i++) {
+        core.DumpRegister(0, 0);
+    }
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterUnsupportedPlatform)
+{
+    DumpCore core("", 10);
+    uint32_t dcType = static_cast<uint32_t>(PlatformType::CHIP_DC_TYPE);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(dcType)).will(returnValue(true));
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterMiniV3)
+{
+    DumpCore core("", 10);
+    uint32_t miniType = static_cast<uint32_t>(PlatformType::CHIP_MINI_V3_TYPE);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(miniType)).will(returnValue(true));
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterMdcLite)
+{
+    DumpCore core("", 10);
+    uint32_t mdcLiteType = static_cast<uint32_t>(PlatformType::CHIP_MDC_LITE);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(mdcLiteType)).will(returnValue(true));
+    core.DumpRegister(0, 0);
+}
+
+TEST_F(DupDumpCoreUtest, Test_ConvertCoreIdAllPlatformTypes)
+{
+    DumpCore core("", 10);
+    
+    std::vector<PlatformType> supportedTypes = {
+        PlatformType::CHIP_CLOUD_V2,
+        PlatformType::CHIP_CLOUD_V4
+    };
+    
+    for (PlatformType type : supportedTypes) {
+        uint32_t platformType = static_cast<uint32_t>(type);
+        MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(platformType)).will(returnValue(true));
+        
+        uint16_t result = core.ConvertCoreId(CORE_TYPE_AIC, 5);
+        EXPECT_EQ(result, 5);
+        
+        uint16_t resultAiv = core.ConvertCoreId(CORE_TYPE_AIV, 5);
+        if (type == PlatformType::CHIP_CLOUD_V2) {
+            EXPECT_EQ(resultAiv, static_cast<uint16_t>(CORE_SIZE_AIC + 5));
+        } else if (type == PlatformType::CHIP_CLOUD_V4) {
+            EXPECT_EQ(resultAiv, static_cast<uint16_t>(CORE_SIZE_AIC_DAVID + 5));
+        }
+    }
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterV2WithRegisterTypes)
+{
+    DumpCore core("", 10);
+    uint32_t v2type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    
+    auto reg = registerManager.GetRegister();
+    if (reg != nullptr) {
+        auto types = reg->GetRegisterTypes(CORE_TYPE_AIC);
+        for (RegisterType type : types) {
+            core.DumpRegister(CORE_TYPE_AIC, 0);
+        }
+    }
+}
+
+TEST_F(DupDumpCoreUtest, Test_DumpRegisterV4WithRegisterTypes)
+{
+    DumpCore core("", 10);
+    uint32_t v4type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V4);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v4type)).will(returnValue(true));
+    RegisterManager registerManager = RegisterManager();
+    registerManager.CreateRegister();
+    
+    auto reg = registerManager.GetRegister();
+    if (reg != nullptr) {
+        auto types = reg->GetRegisterTypes(CORE_TYPE_AIC);
+        for (RegisterType type : types) {
+            core.DumpRegister(CORE_TYPE_AIC, 0);
+        }
+    }
 }
 
 

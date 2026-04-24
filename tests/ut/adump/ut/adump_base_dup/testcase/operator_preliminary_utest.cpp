@@ -31,10 +31,46 @@ TEST_F(DupOperatorPreliminaryUtest, Test_OperatorInit)
     DumpSetting dumpSetting = DumpSetting();
     OperatorPreliminary opIniter = OperatorPreliminary(dumpSetting, 0);
     EXPECT_EQ(opIniter.CalcStackSize(), 0);
-    opIniter.setting_.platformType_ = 4U;
+}
+
+TEST_F(DupOperatorPreliminaryUtest, Test_CalcStackSizeDCType)
+{
+    DumpSetting dumpSetting = DumpSetting();
+    uint32_t dcType = static_cast<uint32_t>(PlatformType::CHIP_DC_TYPE);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(dcType)).will(returnValue(true));
+    DumpConfig dumpConfig;
+    dumpConfig.dumpStatus = "on";
+    dumpConfig.dumpPath = "/path/to/dump";
+    dumpConfig.dumpMode = "all";
+    dumpSetting.Init(DumpType::OPERATOR, dumpConfig);
+    OperatorPreliminary opIniter = OperatorPreliminary(dumpSetting, 0);
     EXPECT_EQ(opIniter.CalcStackSize(), 2 * 32 * 1024);
-    opIniter.setting_.platformType_ = 5U;
+}
+
+TEST_F(DupOperatorPreliminaryUtest, Test_CalcStackSizeCloudV2)
+{
+    DumpSetting dumpSetting = DumpSetting();
+    uint32_t v2Type = static_cast<uint32_t>(PlatformType::CHIP_CLOUD_V2);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(v2Type)).will(returnValue(true));
+    DumpConfig dumpConfig;
+    dumpConfig.dumpStatus = "on";
+    dumpConfig.dumpPath = "/path/to/dump";
+    dumpConfig.dumpMode = "all";
+    dumpSetting.Init(DumpType::OPERATOR, dumpConfig);
+    OperatorPreliminary opIniter = OperatorPreliminary(dumpSetting, 0);
     EXPECT_EQ(opIniter.CalcStackSize(), 75 * 32 * 1024);
-    opIniter.setting_.platformType_ = 14U;
+}
+
+TEST_F(DupOperatorPreliminaryUtest, Test_CalcStackSizeMdcLite)
+{
+    DumpSetting dumpSetting = DumpSetting();
+    uint32_t mdcType = static_cast<uint32_t>(PlatformType::CHIP_MDC_LITE);
+    MOCKER_CPP(&Adx::AdumpDsmi::DrvGetPlatformType).stubs().with(outBound(mdcType)).will(returnValue(true));
+    DumpConfig dumpConfig;
+    dumpConfig.dumpStatus = "on";
+    dumpConfig.dumpPath = "/path/to/dump";
+    dumpConfig.dumpMode = "all";
+    dumpSetting.Init(DumpType::OPERATOR, dumpConfig);
+    OperatorPreliminary opIniter = OperatorPreliminary(dumpSetting, 0);
     EXPECT_EQ(opIniter.CalcStackSize(), 0);
 }

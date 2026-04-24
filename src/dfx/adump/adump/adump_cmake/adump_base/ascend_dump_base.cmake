@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
 # THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
@@ -8,15 +8,10 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-####################### libascend_dump.so begin ###########################
-set(ascendDumpSrcList
-    ${adumpServerSrcList}
-    ${adumpBaseProtoSrcs}
-    ${adumpHostProtoSrcs}
+set(ascendDumpBaseSrcList
     ${ADUMP_ADUMP_DIR}/adx_dump_process.cpp
     ${ADUMP_ADUMP_DIR}/adx_dump_record.cpp
     ${ADUMP_ADUMP_DIR}/common/adump_dsmi.cpp
-    ${ADUMP_ADUMP_DIR}/common/adump_platform_api/adump_platform_api.cpp
     ${ADUMP_ADUMP_DIR}/common/file.cpp
     ${ADUMP_ADUMP_DIR}/common/json_parser.cpp
     ${ADUMP_ADUMP_DIR}/common/lib_path.cpp
@@ -49,16 +44,26 @@ set(ascendDumpSrcList
     ${ADUMP_ADUMP_DIR}/manage/dump_manager/dump_manager_platform.cpp
     ${ADUMP_ADUMP_DIR}/operator/operator_dumper.cpp
     ${ADUMP_ADUMP_DIR}/operator/kernel_dfx_dumper.cpp
-    ${ADUMP_ADUMP_DIR}/operator/operator_preliminary/operator_preliminary.cpp
-    ${ADUMP_ADUMP_DIR}/operator/operator_preliminary/operator_preliminary_platform.cpp
     ${ADUMP_ADUMP_DIR}/printf/dump_printf/dump_printf.cpp
     ${ADUMP_ADUMP_DIR}/printf/dump_printf/dump_printf_platform.cpp
     ${ADUMP_ADUMP_DIR}/printf/fp16_t.cpp
     ${ADUMP_ADUMP_DIR}/printf/hifloat.cpp
 )
 
-set(ascendDumpHeaderList
-    ${adumpServerHeaderList}
+set(ascendDumpCoupleBaseSrcList
+    ${ascendDumpBaseSrcList}
+    ${ADUMP_ADUMP_DIR}/common/adump_platform_api/adump_platform_api_device.cpp
+    ${ADUMP_ADUMP_DIR}/operator/operator_preliminary/operator_preliminary_device.cpp
+)
+
+set(ascendDumpDeCoupleBaseSrcList
+    ${ascendDumpBaseSrcList}
+    ${ADUMP_ADUMP_DIR}/common/adump_platform_api/adump_platform_api.cpp
+    ${ADUMP_ADUMP_DIR}/operator/operator_preliminary/operator_preliminary.cpp
+    ${ADUMP_ADUMP_DIR}/operator/operator_preliminary/operator_preliminary_platform.cpp
+)
+
+set(ascendDumpBaseHeaderList
     ${RUNTIME_DIR}/src/dfx/error_manager
     ${CMAKE_BINARY_DIR}/proto/ascend_dump_protos
     ${CMAKE_BINARY_DIR}/proto/adumpHostProto
@@ -81,27 +86,7 @@ set(ascendDumpHeaderList
     ${ADUMP_DEPENDENCE_INC}/aicpu/
 )
 
-add_library(ascend_dump SHARED
-    ${ascendDumpSrcList}
-)
-
-add_dependencies(ascend_dump ascend_dump_protos)
-add_dependencies(ascend_dump adumpHostProto)
-
-target_compile_definitions(ascend_dump PRIVATE
-    $<IF:$<STREQUAL:${PRODUCT_SIDE},host>,ADX_LIB_HOST,ADX_LIB>
-    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:WIN32>
-    google=ascend_private
-    FUNC_VISIBILITY
-)
-
-set_target_properties(ascend_dump
-    PROPERTIES
-    OUTPUT_NAME ascend_dump
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-)
-
-target_compile_options(ascend_dump PRIVATE
+set(ascendDumpBaseCompileOptions
     -fno-common
     -fstack-protector-all
     -Wall
@@ -116,17 +101,13 @@ target_compile_options(ascend_dump PRIVATE
     $<$<CONFIG:Release>:-D_FORTIFY_SOURCE=2 -Os>
 )
 
-target_link_options(ascend_dump PRIVATE
+set(ascendDumpBaseLinkOptions
     -Wl,-z,relro,-z,now,-z,noexecstack
     -Wl,-Bsymbolic
     -Wl,--exclude-libs,ALL
 )
 
-target_include_directories(ascend_dump PRIVATE
-    ${ascendDumpHeaderList}
-)
-
-target_link_libraries(ascend_dump PRIVATE
+set(ascendDumpBaseLinkLibraries
     $<BUILD_INTERFACE:intf_pub>
     $<BUILD_INTERFACE:mmpa_headers>
     $<BUILD_INTERFACE:slog_headers>
@@ -145,31 +126,7 @@ target_link_libraries(ascend_dump PRIVATE
     -ldl
 )
 
-install(TARGETS ascend_dump OPTIONAL
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
-)
-####################### libascend_dump.so end ###########################
-
-####################### libascend_dump.a begin ###########################
-add_library(ascend_dump_static STATIC
-    ${ascendDumpSrcList}
-)
-
-target_include_directories(ascend_dump_static PRIVATE
-    ${ascendDumpHeaderList}
-)
-
-add_dependencies(ascend_dump_static ascend_dump_protos)
-add_dependencies(ascend_dump_static adumpHostProto)
-
-target_compile_definitions(ascend_dump_static PRIVATE
-    $<IF:$<STREQUAL:${PRODUCT_SIDE},host>,ADX_LIB_HOST,ADX_LIB>
-    $<$<STREQUAL:${TARGET_SYSTEM_NAME},Windows>:WIN32>
-    google=ascend_private
-    FUNC_VISIBILITY
-)
-
-target_compile_options(ascend_dump_static PRIVATE
+set(ascendDumpStaticCompileOptions
     -fno-common
     -fstack-protector-all
     -Wall
@@ -182,39 +139,3 @@ target_compile_options(ascend_dump_static PRIVATE
     $<$<CONFIG:Debug>:-D_FORTIFY_SOURCE=2 -O2>
     $<$<CONFIG:Release>:-D_FORTIFY_SOURCE=2 -O2>
 )
-
-target_link_options(ascend_dump_static PRIVATE
-    -Wl,-z,relro,-z,now,-z,noexecstack
-    -Wl,-Bsymbolic
-    -Wl,--exclude-libs,ALL
-)
-
-target_link_libraries(ascend_dump_static PRIVATE
-    $<BUILD_INTERFACE:intf_pub>
-    $<BUILD_INTERFACE:mmpa_headers>
-    $<BUILD_INTERFACE:slog_headers>
-    $<BUILD_INTERFACE:npu_runtime_headers>
-    $<BUILD_INTERFACE:npu_runtime_inner_headers>
-    $<BUILD_INTERFACE:msprof_headers>
-    $<BUILD_INTERFACE:adump_headers>
-    $<BUILD_INTERFACE:adcore_headers>
-    $<BUILD_INTERFACE:adcore>
-    json
-    -Wl,--no-as-needed
-    ascend_protobuf
-    unified_dlog
-    runtime
-    -Wl,--as-needed
-    -ldl
-)
-
-set_target_properties(ascend_dump_static
-    PROPERTIES
-    OUTPUT_NAME ascend_dump
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-)
-
-install(TARGETS ascend_dump_static OPTIONAL
-    LIBRARY DESTINATION ${INSTALL_LIBRARY_DIR}
-)
-####################### libascend_dump.a end ###########################

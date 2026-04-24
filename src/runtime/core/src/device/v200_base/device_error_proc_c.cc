@@ -340,6 +340,7 @@ static uint32_t GetRasCodeFromEvent(const rtDmsFaultEvent &event)
 
 static bool PrintRasEvents(const Device * const dev, const rtDmsFaultEvent * const faultEventInfo, const uint32_t eventCount)
 {
+    UNUSED(dev);
     for (uint32_t faultIndex = 0; faultIndex < eventCount; faultIndex++) {
         const rtDmsFaultEvent &event = faultEventInfo[faultIndex];
         uint32_t eventId = event.eventId;

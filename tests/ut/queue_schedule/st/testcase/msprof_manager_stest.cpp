@@ -294,21 +294,24 @@ TEST_F(BqsMsprofManagerSTest, ReportEventPerfSuccess02)
 TEST_F(BqsMsprofManagerSTest, MsprofFinalizeNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofFinalize(), ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
 
 TEST_F(BqsMsprofManagerSTest, MsprofRegTypeInfoNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofRegTypeInfo(0, 0, "typename"), ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
 
 TEST_F(BqsMsprofManagerSTest, MsprofRegisterCallbackNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofRegisterCallback(0, reinterpret_cast<ProfCommandHandle>(123)),
               ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
@@ -316,20 +319,23 @@ TEST_F(BqsMsprofManagerSTest, MsprofRegisterCallbackNullptr)
 TEST_F(BqsMsprofManagerSTest, MsprofReportApiNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofReportApi(0, nullptr), ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
 
 TEST_F(BqsMsprofManagerSTest, MsprofReportEventNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofReportEvent(0, nullptr), ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
 
 TEST_F(BqsMsprofManagerSTest, MsprofSysCycleTimeNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofSysCycleTime(), 0U);
 }

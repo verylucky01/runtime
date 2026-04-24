@@ -318,7 +318,6 @@ TEST_F(RouterServerUtest, ManageQsEventFail_halEschedAttachDevice)
     EXPECT_EQ(RouterServer::GetInstance().manageThreadStatus_, ThreadStatus::INIT_FAIL);
 }
 
-
 TEST_F(RouterServerUtest, ManageQsEventFail00)
 {
     MOCKER(halEschedCreateGrp)
@@ -1227,11 +1226,16 @@ TEST_F(RouterServerUtest,SaveQueryResult_error)
 {
     std::unique_ptr<ConfigInfoOperator> cfgInfoOperator_;
     cfgInfoOperator_.reset(new (std::nothrow) ConfigInfoOperator(1));
-    ConfigQuery query;
-    query.mode = QueryMode::DGW_QUERY_MODE_RESERVED;
-    query.qry.groupQry.groupId = 0;
-    query.qry.routeQry.routeNum = 1;
-    uintptr_t mbufData = reinterpret_cast<uintptr_t>(&query);
+
+    constexpr uint32_t routeNum = 1U;
+    constexpr size_t bufferSize = sizeof(ConfigQuery) + sizeof(ConfigInfo) + (routeNum * sizeof(Route)) + sizeof(CfgRetInfo);
+    char buffer[bufferSize] = {0};
+
+    ConfigQuery* query = reinterpret_cast<ConfigQuery*>(buffer);
+    query->mode = QueryMode::DGW_QUERY_MODE_RESERVED;
+    query->qry.routeQry.routeNum = routeNum;
+
+    uintptr_t mbufData = reinterpret_cast<uintptr_t>(buffer);
     std::list<std::pair<const EntityInfo *, const EntityInfo *>> routeList;
     EXPECT_EQ(cfgInfoOperator_->SaveQueryResult(routeList, mbufData, false), BQS_STATUS_PARAM_INVALID);
 }
@@ -1626,7 +1630,6 @@ TEST_F(RouterServerUtest, HandleBqsMsg_FailForNotReady)
     RouterServer::GetInstance().readyToHandleMsg_ = false;
     RouterServer::GetInstance().HandleBqsMsg(event);
 }
-
 
 TEST_F(RouterServerUtest, ManageQsEventParmERR)
 {

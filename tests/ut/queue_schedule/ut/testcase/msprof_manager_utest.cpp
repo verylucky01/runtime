@@ -293,41 +293,47 @@ TEST_F(BqsMsprofManagerUTest, ReportEventPerfSuccess02)
 TEST_F(BqsMsprofManagerUTest, MsprofFinalizeNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofFinalize(), ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
 
 TEST_F(BqsMsprofManagerUTest, MsprofRegTypeInfoNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofRegTypeInfo(0, 0, "typename"), ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
 
 TEST_F(BqsMsprofManagerUTest, MsprofRegisterCallbackNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofRegisterCallback(0, nullptr), ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
 
 TEST_F(BqsMsprofManagerUTest, MsprofReportApiNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofReportApi(0, nullptr), ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
 
 TEST_F(BqsMsprofManagerUTest, MsprofReportEventNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofReportEvent(0, nullptr), ProfStatus::PROF_MSPROF_API_NULLPTR);
 }
 
 TEST_F(BqsMsprofManagerUTest, MsprofSysCycleTimeNullptr)
 {
     GlobalMockObject::verify();
-    BqsMsprofApiAdapter apiAdapter("libaaaaa.so");
+    MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
+    BqsMsprofApiAdapter apiAdapter;
     EXPECT_EQ(apiAdapter.MsprofSysCycleTime(), 0U);
 }

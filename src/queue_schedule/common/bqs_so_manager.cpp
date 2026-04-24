@@ -14,7 +14,7 @@
 #include "bqs_log.h"
 
 namespace bqs {
-void *SoManager::GetFuncHandle(const std::string &funcName)
+void *SoManager::GetFuncHandle(const std::string &funcName) const
 {
     if (soHandle_ == nullptr) {
         BQS_LOG_ERROR("Get func handle failed by so handle is nullptr, soName=%s, funcName=%s.",
@@ -24,12 +24,9 @@ void *SoManager::GetFuncHandle(const std::string &funcName)
 
     const auto &iter = funcHandleMap_.find(funcName);
     if (iter == funcHandleMap_.end()) {
-        void *funcHandle = GetFuncHandleFromSo(funcName);
-        if (funcHandle == nullptr) {
-            return nullptr;
-        }
-        (void)funcHandleMap_.emplace(funcName, funcHandle);
-        return funcHandle;
+        BQS_LOG_ERROR("Func not loaded during init, soName=%s, funcName=%s.",
+                      soName_.c_str(), funcName.c_str());
+        return nullptr;
     }
 
     return iter->second;

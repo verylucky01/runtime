@@ -48,12 +48,21 @@ int32_t AdxDumpReceive::Process(const CommHandle &handle, const SharedPtr<MsgPro
 int32_t AdxDumpReceive::Receive(const CommHandle &handle, const SharedPtr<MsgProto> &proto)
 {
     int32_t length = 0;
+    uint32_t protoHeaderLen = static_cast<uint32_t>(sizeof(MsgProto));
+    uint32_t chunkHeaderLen = static_cast<uint32_t>(sizeof(DumpChunk));
     MsgProto *msg = nullptr;
     while (init_) {
         IDE_LOGI("receiving new dump data from device(id:%u,session:%zu)", proto->devId, handle.session);
         int ret = AdxCommOptManager::Instance().Read(handle, (IdeRecvBuffT)&msg, length, COMM_OPT_BLOCK);
         IDE_CTRL_VALUE_WARN(ret == IDE_DAEMON_OK, return ret,
             "read dump data error. device(id:%u,session:%zu), err:%d", proto->devId, handle.session, ret);
+        IDE_CTRL_VALUE_WARN(msg != nullptr && length >= 0, { IdeXfree(msg); return IDE_DAEMON_ERROR; },
+            "dump data is invalid. device(id:%u,session:%zu)", proto->devId, handle.session);
+
+        uint32_t protoEntryLen = static_cast<uint32_t>(length);
+        IDE_CTRL_VALUE_WARN(protoEntryLen >= protoHeaderLen, { IdeXfree(msg); return IDE_DAEMON_ERROR; },
+            "recvLen(%u) too small for MsgProto header(%u bytes)", protoEntryLen, protoHeaderLen);
+
         SharedPtr<MsgProto> msgPtr(msg, IdeXfree);
         msg = nullptr;
         if (msgPtr->msgType == MsgType::MSG_CTRL) {
@@ -65,12 +74,22 @@ int32_t AdxDumpReceive::Receive(const CommHandle &handle, const SharedPtr<MsgPro
                 continue;
             }
         }
+        uint32_t protoDataLen = protoEntryLen - protoHeaderLen;
+        IDE_CTRL_VALUE_WARN(msgPtr->sliceLen == protoDataLen, return IDE_DAEMON_ERROR,
+            "msg sliceLen(%u) not equal actual msg data buffer size(%u)", msgPtr->sliceLen, protoDataLen);
+
+        IDE_CTRL_VALUE_WARN(protoDataLen >= chunkHeaderLen, return IDE_DAEMON_ERROR,
+            "msg dataLen(%u) too small for DumpChunk header(%u)", protoDataLen, chunkHeaderLen);
+
         DumpChunk* dumpChunk = reinterpret_cast<DumpChunk*>(msgPtr->data);
+        uint32_t chunkDataLen = protoDataLen - chunkHeaderLen;
+        IDE_CTRL_VALUE_WARN(dumpChunk->bufLen <= chunkDataLen, return IDE_DAEMON_ERROR,
+            "chunk bufLen(%u) exceeds actual chunk data buffer size(%u)", dumpChunk->bufLen, chunkDataLen);
+
         IDE_LOGI("fileName: %s, bufLen: %u, isLastChunk: %u, offset: %ld, flag: %d",
             dumpChunk->fileName, dumpChunk->bufLen, dumpChunk->isLastChunk, dumpChunk->offset, dumpChunk->flag);
-        IDE_CTRL_VALUE_FAILED(length > 0, return IDE_DAEMON_ERROR, "receive data length(%d bytes) error", length);
-        uint32_t mdgLen = length;
-        HostDumpDataInfo data = {msgPtr, mdgLen};
+
+        HostDumpDataInfo data = {msgPtr, protoDataLen};
         MsgStatus status = MsgStatus::MSG_STATUS_NONE_ERROR;
         if (!AdxDumpRecord::Instance().RecordDumpDataToQueue(data)) {
             status = MsgStatus::MSG_STATUS_CACHE_FULL_ERROR;
@@ -78,11 +97,9 @@ int32_t AdxDumpReceive::Receive(const CommHandle &handle, const SharedPtr<MsgPro
 
         // send respone msg to device
         IdeErrorT err = AdxMsgProto::SendResponse(handle, proto->reqType, proto->devId, status);
-        if (err != IDE_DAEMON_NONE_ERROR) {
-            IDE_LOGE("send dump handshake response failed! device(id:%u,session:%zu), err: %d",
-                proto->devId, handle.session, err);
-            return IDE_DAEMON_ERROR;
-        }
+        IDE_CTRL_VALUE_FAILED(err == IDE_DAEMON_NONE_ERROR, return IDE_DAEMON_ERROR, 
+            "send dump handshake response failed! device(id:%u,session:%zu), err: %d",
+            proto->devId, handle.session, err);
     }
     return IDE_DAEMON_OK;
 }

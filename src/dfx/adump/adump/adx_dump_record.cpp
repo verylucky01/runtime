@@ -653,6 +653,7 @@ bool AdxDumpRecord::StatsDataParsing(const DumpChunk &dumpChunk)
 void AdxDumpRecord::RecordDumpInfo()
 {
     IDE_RUN_LOGI("start dump thread, remote dump record temp path : %s.", dumpPath_.c_str());
+    uint32_t chunkHeaderLen = static_cast<uint32_t>(sizeof(DumpChunk));
     while (dumpRecordFlag_ || !DumpDataQueueIsEmpty()) {
         HostDumpDataInfo data = {nullptr, 0};
         if (!hostDumpDataInfoQueue_.Pop(data)) {
@@ -662,13 +663,16 @@ void AdxDumpRecord::RecordDumpInfo()
         if (data.msg == nullptr) {
             continue;
         }
-        IDE_LOGD("record new file");
-        SharedPtr<MsgProto> dataInfo = data.msg;
-        DumpChunk *dumpChunk = reinterpret_cast<DumpChunk*>(dataInfo->data);
-        if (dumpChunk == nullptr) {
-            IDE_LOGW("transferred dumpChunk is nullptr");
-            continue;
-        }
+
+        SharedPtr<MsgProto> msgPtr = data.msg;
+        IDE_CTRL_VALUE_FAILED_NODO(data.recvLen >= chunkHeaderLen, continue,
+            "recvLen(%u) too small for DumpChunk header(%zu bytes)", data.recvLen, chunkHeaderLen);
+
+        DumpChunk* dumpChunk = reinterpret_cast<DumpChunk*>(msgPtr->data);
+
+        IDE_CTRL_VALUE_FAILED_NODO(dumpChunk->bufLen <= data.recvLen - chunkHeaderLen, continue,
+            "bufLen(%u) exceeds actual data buffer size(%u bytes), fileName: %s",
+            dumpChunk->bufLen, data.recvLen - chunkHeaderLen, dumpChunk->fileName);
 
         IDE_LOGI("Queue pop data success! filename: %s, offset: %" PRId64 ", bufLen: %u bytes, isLast: %u, flag: %d.",
             dumpChunk->fileName, dumpChunk->offset, dumpChunk->bufLen, dumpChunk->isLastChunk, dumpChunk->flag);

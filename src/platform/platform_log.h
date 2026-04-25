@@ -69,7 +69,7 @@ inline pid_t PltGetTid() {
     try {                                      \
       exec_expr0;                              \
     } catch (...) {                            \
-      PF_LOGE("Make shared failed");           \
+      PF_LOGE("Make shared failed.");           \
       exec_expr1;                              \
     }                                          \
   } while (0)

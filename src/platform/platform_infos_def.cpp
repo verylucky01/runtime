@@ -313,31 +313,31 @@ bool PlatFormInfos::InitByInstance() {
 
 std::string PlatFormInfos::SaveToBuffer() {
 #ifdef _OPEN_SOURCE_LLT_
-  PF_LOGW("_OPEN_SOURCE_LLT_ has define");
+  PF_LOGW("_OPEN_SOURCE_LLT_ is defined");
   return "";
 #else
   platform::tiling::PlatformInfosDef platformInfosDef;
   for (const auto &iter : GetAICoreIntrinsicDtype()) {
     const auto &dtypes = iter.second;
     platform::tiling::ListDType listDtype;
-    for (const auto &dytpe: dtypes) {
-      listDtype.add_dtype(dytpe);
+    for (const auto &dtype: dtypes) {
+      listDtype.add_dtype(dtype);
     }
     platformInfosDef.mutable_ai_core_intrinsic_dtype_map()->insert({iter.first, listDtype});
   }
   for (const auto &iter: GetVectorCoreIntrinsicDtype()) {
     const auto &dtypes = iter.second;
     platform::tiling::ListDType listDtype;
-    for (const auto &dytpe: dtypes) {
-      listDtype.add_dtype(dytpe);
+    for (const auto &dtype: dtypes) {
+      listDtype.add_dtype(dtype);
     }
     platformInfosDef.mutable_vector_core_intrinsic_dtype_map()->insert({iter.first, listDtype});
   }
   for (const auto &iter: GetFixPipeDtypeMap()) {
     const auto &dtypes = iter.second;
     platform::tiling::ListDType listDtype;
-    for (const auto &dytpe: dtypes) {
-      listDtype.add_dtype(dytpe);
+    for (const auto &dtype: dtypes) {
+      listDtype.add_dtype(dtype);
     }
     platformInfosDef.mutable_fixpipe_dtype_map()->insert({iter.first, listDtype});
   }

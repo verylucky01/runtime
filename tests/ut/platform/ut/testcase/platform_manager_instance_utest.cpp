@@ -225,4 +225,5 @@ TEST_F(PlatformManagerUTest, platform_instance_Trim) {
   std::string strNg = " \t \t \t \t \t                  ";
   instance.Trim(strNg);
 }
+
 }

@@ -256,10 +256,10 @@ int32_t PlatformManagerV2::GetSocSpec(const std::string &soc_version,
     return ret;
   }
   if (!platform_info.GetPlatformResWithLock(label, key, value)) {
-    PF_LOGW("Failed to get platform info, lable[%s], key[%s].", label.c_str(), key.c_str());
+    PF_LOGW("Failed to get platform info, label[%s], key[%s].", label.c_str(), key.c_str());
     return PLATFORM_ERROR_NOT_FOUND;
   }
-  PF_LOGD("GetSocSpec lable[%s], key[%s], value[%s].", label.c_str(), key.c_str(), value.c_str());
+  PF_LOGD("GetSocSpec label[%s], key[%s], value[%s].", label.c_str(), key.c_str(), value.c_str());
   return PLATFORM_SUCCESS;
 }
 

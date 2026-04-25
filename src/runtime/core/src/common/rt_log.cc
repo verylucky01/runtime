@@ -94,10 +94,22 @@ std::vector<std::string> GetParamNames(ErrorCode code) {
             return {"func", "value", "param", "reason"};
         case ErrorCode::EE1012: 
             return {"func", "value", "param", "reason"};
+        case ErrorCode::EE1013:
+            return {"buf_size"};
+        case ErrorCode::EE1014:
+            return {"reason"};
         case ErrorCode::EE1015: 
+            return {"func", "reason"};
+        case ErrorCode::EE1016:
             return {"func", "reason"};
         case ErrorCode::EE1017:
             return {"func", "param", "reason"};
+        case ErrorCode::EE1018:
+            return {"func", "reason"};
+        case ErrorCode::EE1019:
+            return {"func", "reason"};
+        case ErrorCode::EE1020:
+            return {"func1", "func2", "ret_code", "reason", "extend_info"};
         case ErrorCode::EE2002:
             return {"value", "env", "expect"};
         case ErrorCode::WE0001:
@@ -186,16 +198,53 @@ void PrintErrMsgToLog(ErrorCode errCode, const char *file, const int32_t line, c
                 "%s failed. Value %s for %s is invalid. Reason: %s. ErrorCode=EE1012." "\n",
                 values[0].c_str(), values[1].c_str(), values[2].c_str(), values[3].c_str());
             break;
+        // Resource_Error_Insufficient_Host_Memory
+        case ErrorCode::EE1013:
+            RecordErrorLog(file, line, func,
+                "Failed to allocate %s host memory for RTS. ErrorCode=EE1013." "\n",
+                values[0].c_str());
+            break;
+        // File_Operation_Error_Parse
+        case ErrorCode::EE1014:
+            RecordErrorLog(file, line, func,
+                "Failed to parse the binary file of the operator. Reason: %s. ErrorCode=EE1014." "\n",
+                values[0].c_str());
+            break;
         // Package_Error_Incorrect_Driver_Version
         case ErrorCode::EE1015:
             RecordErrorLog(file, line, func,
                 "%s failed. Reason: The driver version capacity is insufficient. %s ErrorCode=EE1015." "\n",
                 values[0].c_str(), values[1].c_str());
             break;
+        // Not_Supported
+        case ErrorCode::EE1016:
+            RecordErrorLog(file, line, func,
+                "%s failed. Reason: %s. ErrorCode=EE1016." "\n",
+                values[0].c_str(), values[1].c_str());
+            break;
+        // Invalid_Argument
         case ErrorCode::EE1017:
             RecordErrorLog(file, line, func,
                 "%s failed. Parameter %s is invalid. Reason: %s. ErrorCode=EE1017." "\n",
                 values[0].c_str(), values[1].c_str(), values[2].c_str());
+            break;
+        // Invalid_Argument_API_Call_Sequence
+        case ErrorCode::EE1018:
+            RecordErrorLog(file, line, func,
+                "%s failed. Reason: %s. ErrorCode=EE1018." "\n",
+                values[0].c_str(), values[1].c_str());
+            break;
+        // Execution_Error
+        case ErrorCode::EE1019:
+            RecordErrorLog(file, line, func,
+                "%s (for delivering tasks to the stream) failed. Reason: %s. ErrorCode=EE1019." "\n",
+                values[0].c_str(), values[1].c_str());
+            break;
+        // Invalid_Argument
+        case ErrorCode::EE1020:
+            RecordErrorLog(file, line, func,
+                "%s failed. Reason: Standard function %s failed. [Errno %s] %s. %s ErrorCode=EE1020." "\n",
+                values[0].c_str(), values[1].c_str(), values[2].c_str(), values[3].c_str(), values[4].c_str());
             break;
         // Config_Error_Invalid_Environment_Variable
         case ErrorCode::EE2002:

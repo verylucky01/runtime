@@ -452,7 +452,11 @@
       "errTitle": "Not_Supported",
       "ErrCode": "EE1006",
       "ErrMessage": "%s execution failed because %s is not supported.",
-      "Arglist": "func, type"
+      "Arglist": "func, type",
+      "suggestion": {
+        "Possible Cause": "1.The current CANN software version is not supported. 2.The current driver software version does not supported. 3.The current chip version is not supported.",
+        "Solution": "1.Upgrade the CANN software version. 2.Upgrade the driver software version."
+      }
     },
     {
       "errClass": "RTS Errors",
@@ -511,6 +515,39 @@
     },
     {
       "errClass": "RTS Errors",
+      "errTitle": "Invalid_Argument",
+      "ErrCode": "EE1012",
+      "ErrMessage": "%s failed. Value %s for %s is invalid. Reason: %s.",
+      "Arglist": "func, value, param, reason",
+      "suggestion": {
+        "Possible Cause": "N/A",
+        "Solution": "NA"
+      }
+    },
+    {
+      "errClass": "RTS Errors",
+      "errTitle": "Resource_Error_Insufficient_Host_Memory",
+      "ErrCode": "EE1013",
+      "ErrMessage": "Failed to allocate %s bytes host memory for Runtime.",
+      "Arglist": "buf_size",
+      "suggestion": {
+        "Possible Cause": "Allocation failed due to insufficient host memory.",
+        "Solution": "Stop unnecessary processes and ensure that the required memory is available."
+      }
+    },
+    {
+      "errClass": "RTS Errors",
+      "errTitle": "File_Operation_Error_Parse",
+      "ErrCode": "EE1014",
+      "ErrMessage": "Failed to parse the binary file of the operator. Reason: %s.",
+      "Arglist": "reason",
+      "suggestion": {
+        "Possible Cause": "1. The binary file of the operator is damaged. 2. The build parameter is incorrect.",
+        "Solution": "Rebuild and load the binary file of the operator."
+      }
+    },
+    {
+      "errClass": "RTS Errors",
       "errTitle": "Package_Error_Incorrect_Driver_Version",
       "ErrCode": "EE1015",
       "ErrMessage": "%s failed. Reason: The driver version capacity is insufficient. %s",
@@ -518,6 +555,17 @@
       "suggestion": {
         "Possible Cause": "N/A",
         "Solution": "Upgrade the driver software version."
+      }
+    },
+    {
+      "errClass": "RTS Errors",
+      "errTitle": "Not_Supported",
+      "ErrCode": "EE1016",
+      "ErrMessage": "%s failed. Reason: %s.",
+      "Arglist": "func, reason",
+      "suggestion": {
+        "Possible Cause": "N/A",
+        "Solution": "N/A"
       }
     },
     {
@@ -533,10 +581,47 @@
     },
     {
       "errClass": "RTS Errors",
+      "errTitle": "Invalid_Argument_API_Call_Sequence",
+      "ErrCode": "EE1018",
+      "ErrMessage": "%s failed. Reason: %s.",
+      "Arglist": "func, reason",
+      "suggestion": {
+        "Possible Cause": "N/A",
+        "Solution": "N/A"
+      }
+    },
+    {
+      "errClass": "RTS Errors",
+      "errTitle": "Execution_Error",
+      "ErrCode": "EE1019",
+      "ErrMessage": "%s (for delivering tasks to the stream) failed. Reason: %s.",
+      "Arglist": "func, reason",
+      "suggestion": {
+        "Possible Cause": "NA",
+        "Solution": "1. Reduce the number of tasks delivered to the same stream. 2.Use multiple streams to submit tasks in parallel. 3.Before submitting a new task, call aclrtSynchronize Stream to wait until the submitted task is complete."
+      }
+    },
+    {
+      "errClass": "RTS Errors",
+      "errTitle": "Invalid_Argument",
+      "ErrCode": "EE1020",
+      "ErrMessage": "%s failed. Reason: Standard function %s failed. [Errno %s] %s. %s",
+      "Arglist": "func1, func2, ret_code, reason, extend_info",
+      "suggestion": {
+        "Possible Cause": "N/A",
+        "Solution": "NA"
+      }
+    },
+    {
+      "errClass": "RTS Errors",
       "errTitle": "Config_Error_Invalid_Environment_Variable",
       "ErrCode": "EE2002",
       "ErrMessage": "Value %s for environment variable %s is invalid. Expected value: %s.",
-      "Arglist": "value, env, expect"
+      "Arglist": "value, env, expect",
+      "suggestion": {
+        "Possible Cause": "N/A",
+        "Solution": "Reset the environment variable by referring to the Environment Variable Reference."
+      }
     },
     {
       "errClass": "RTS Errors",
@@ -566,17 +651,6 @@
       "ErrCode": "WE0001",
       "ErrMessage": "Failed to %s because %s is not supported.",
       "Arglist": "function, type",
-      "suggestion": {
-        "Possible Cause": "N/A",
-        "Solution": "NA"
-      }
-    },
-    {
-      "errClass": "RTS Errors",
-      "errTitle": "Invalid_Argument",
-      "ErrCode": "EE1012",
-      "ErrMessage": "%s failed. Value %s for %s is invalid. Reason: %s.",
-      "Arglist": "func, value, param, reason",
       "suggestion": {
         "Possible Cause": "N/A",
         "Solution": "NA"

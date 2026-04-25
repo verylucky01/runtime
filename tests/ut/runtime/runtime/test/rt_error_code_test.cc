@@ -96,11 +96,30 @@ TEST_F(RtErrorCodeTest, PrintErrMsgToLog)
     std::vector<std::string> values1012 = {"NotifyWait", "0", "current deviceId", "The current device cannot deliver Notify Wait"};
     PrintErrMsgToLog(ErrorCode::EE1012, "file", 1000, "func", values1012);
 
+    std::vector<std::string> values1013 = {"100"};
+    PrintErrMsgToLog(ErrorCode::EE1013, "file", 1000, "func", values1013);
+
+    std::vector<std::string> values1014 = {"The ELF section header address in the operator binary ELF file header cannot be empty"};
+    PrintErrMsgToLog(ErrorCode::EE1014, "file", 1000, "func", values1014);
+
     std::vector<std::string> values1015 = {"rtsIpcMemImportByKey", "The driver interface halShmemInfoGet does not exist."};
     PrintErrMsgToLog(ErrorCode::EE1015, "file", 1000, "func", values1015);
 
+    std::vector<std::string> values1016 = {"MemCopySync", "Other threads of the current context are in the capture state"};
+    PrintErrMsgToLog(ErrorCode::EE1016, "file", 1000, "func", values1016);
+
     std::vector<std::string> values1017 = {"rtMemCpy", "size", "size is not 0"};
     PrintErrMsgToLog(ErrorCode::EE1017, "file", 1000, "func", values1017);
+
+    std::vector<std::string> values1018 = {"aclrtSetLabel", "Before setting the label using aclrtSetLabel, you need to call aclrtCreateLabelList to create a label list"};
+    PrintErrMsgToLog(ErrorCode::EE1018, "file", 1000, "func", values1018);
+
+    std::vector<std::string> values1019 = {"AddTaskToList", "stream task public buffer is full"};
+    PrintErrMsgToLog(ErrorCode::EE1019, "file", 1000, "func", values1019);
+
+    std::vector<std::string> values1020 = {"rtGetSocVersion", "memcpy_s", "1", "count is greater than dest_max",
+        "src=0x1, dest=0x2, dest_max=10, count=11."};
+    PrintErrMsgToLog(ErrorCode::EE1020, "file", 1000, "func", values1020);
 
     std::vector<std::string> values9 = {"1, 2, 2", "SetVisible", "not repeat"};
     PrintErrMsgToLog(ErrorCode::EE2002, "file", 1000, "func", values9);
@@ -123,11 +142,21 @@ TEST_F(RtErrorCodeTest, RePortErrCode)
     RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1009, "10", "model invalid");
     RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1010, "rtModelExecute", "stream");
     RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1011, "rtMemCpy", "0", "size", "size is not 0");
+    RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1012, "NotifyWait", "0", "current deviceId", "The current device cannot deliver Notify Wait");
+    RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1013, "100");
+    RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, "The ELF section header address in the operator binary ELF file header cannot be empty");
+    RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1015, "rtsIpcMemImportByKey", "The driver interface halShmemInfoGet does not exist.");
+    RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1016, "MemCopySync", "Other threads of the current context are in the capture state");
     RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1017, "rtMemCpy", "size", "size is not 0");
+    RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1018, "aclrtSetLabel", "Before setting the label using aclrtSetLabel, you need to call aclrtCreateLabelList to create a label list");
+    RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1019, "AddTaskToList", "stream task public buffer is full");
+    RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1020, "rtGetSocVersion", "memcpy_s", "1", "count is greater than dest_max", "src=0x1, dest=0x2, dest_max=10, count=11.");
     RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE2002, "1, 2, 2", "SetVisible", "not repeat");
     RT_LOG_OUTER_MSG_IMPL(ErrorCode::WE0001, "set the saturation mode", "only the Inf/NaN mode can be set and the saturation mode");
-    RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1012, "NotifyWait", "0", "current deviceId", "The current device cannot deliver Notify Wait");
- 
+}
+
+TEST_F(RtErrorCodeTest, CheckErrCodeParams)
+{
     auto names = GetParamNames(ErrorCode::EE1001);
     EXPECT_EQ(names, (std::vector<std::string>{"extend_info"}));
     names = GetParamNames(ErrorCode::EE1002);
@@ -150,6 +179,24 @@ TEST_F(RtErrorCodeTest, RePortErrCode)
     EXPECT_EQ(names, (std::vector<std::string>{"func", "object"}));
     names = GetParamNames(ErrorCode::EE1011);
     EXPECT_EQ(names, (std::vector<std::string>{"func", "value", "param", "reason"}));
+    names = GetParamNames(ErrorCode::EE1012);
+    EXPECT_EQ(names, (std::vector<std::string>{"func", "value", "param", "reason"}));
+    names = GetParamNames(ErrorCode::EE1013);
+    EXPECT_EQ(names, (std::vector<std::string>{"buf_size"}));
+    names = GetParamNames(ErrorCode::EE1014);
+    EXPECT_EQ(names, (std::vector<std::string>{"reason"}));
+    names = GetParamNames(ErrorCode::EE1015);
+    EXPECT_EQ(names, (std::vector<std::string>{"func", "reason"}));
+    names = GetParamNames(ErrorCode::EE1016);
+    EXPECT_EQ(names, (std::vector<std::string>{"func", "reason"}));
+    names = GetParamNames(ErrorCode::EE1017);
+    EXPECT_EQ(names, (std::vector<std::string>{"func", "param", "reason"}));
+    names = GetParamNames(ErrorCode::EE1018);
+    EXPECT_EQ(names, (std::vector<std::string>{"func", "reason"}));
+    names = GetParamNames(ErrorCode::EE1019);
+    EXPECT_EQ(names, (std::vector<std::string>{"func", "reason"}));
+    names = GetParamNames(ErrorCode::EE1020);
+    EXPECT_EQ(names, (std::vector<std::string>{"func1", "func2", "ret_code", "reason", "extend_info"}));
     names = GetParamNames(ErrorCode::EE2002);
     EXPECT_EQ(names, (std::vector<std::string>{"value", "env", "expect"}));
     names = GetParamNames(ErrorCode::EE_NO_ERROR);

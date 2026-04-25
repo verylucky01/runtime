@@ -221,16 +221,28 @@ constexpr const char* ErrorCodeToString(ErrorCode code) {
             return "EE1010";
         case ErrorCode::EE1011:
             return "EE1011";
+        case ErrorCode::EE1012:
+            return "EE1012";
+        case ErrorCode::EE1013:
+            return "EE1013";
+        case ErrorCode::EE1014:
+            return "EE1014";
         case ErrorCode::EE1015:
             return "EE1015";
+        case ErrorCode::EE1016:
+            return "EE1016";
         case ErrorCode::EE1017:
             return "EE1017";
+        case ErrorCode::EE1018:
+            return "EE1018";
+        case ErrorCode::EE1019:
+            return "EE1019";
+        case ErrorCode::EE1020:
+            return "EE1020";
         case ErrorCode::EE2002:
             return "EE2002";
         case ErrorCode::WE0001:
             return "WE0001";
-        case ErrorCode::EE1012:
-            return "EE1012";
         default:
             return "UNKNOWN";
     }

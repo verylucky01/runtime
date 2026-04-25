@@ -507,7 +507,7 @@ TEST_F(ApiDCDisableThreadTest, user_logic_devid_03)
 
 TEST_F(ApiDCDisableThreadTest, GetDeviceIDs_00)
 {
-    uint32_t devices[10] = { -1 };
+    uint32_t devices[10] = { 0 };
     size_t arrayLen = sizeof(devices) / sizeof(devices[0]);
     uint32_t devNum = static_cast<uint32_t>(arrayLen);
     MOCKER(drvGetDevNum)

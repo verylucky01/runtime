@@ -501,7 +501,7 @@ void AddBlockInfo(unsigned char *data)
     cce::runtime::fp16_t num10[] = {23.32, 3214.2, -23.2, -93.1};
     double num11[] = {2.331};  // not support
     uint16_t num12[] = {16256, 49152, 65408, 16043, 65409, 32768, 16457, 32640};
-    int8_t num13[] = {0, 3, 138, 20, 62, 67, 97, 200};
+    int8_t num13[] = {0, 3, -118, 20, 62, 67, 97, -56};
     bool boolNums[8];
     for (uint8_t i = 0U; i < 8U; ++i) {
         boolNums[i] = (i % 2U == 0U);

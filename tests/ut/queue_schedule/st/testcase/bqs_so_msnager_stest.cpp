@@ -58,13 +58,15 @@ TEST_F(BqsSoManagerSTest, SoManagerInitWithFuncNames)
 
 TEST_F(BqsSoManagerSTest, OpenSoWithEmptyName)
 {
-    SoManager manager("");
+    const std::vector<std::string> funcNames = {};
+    SoManager manager("", funcNames);
     EXPECT_EQ(manager.soHandle_, nullptr);
 }
 
 TEST_F(BqsSoManagerSTest, GetFuncFromNull)
 {
-    SoManager manager("");
+    const std::vector<std::string> funcNames = {};
+    SoManager manager("", funcNames);
     EXPECT_EQ(manager.soHandle_, nullptr);
     const auto ret = manager.GetFuncHandle("Foo1");
     EXPECT_EQ(ret, nullptr);
@@ -74,7 +76,8 @@ TEST_F(BqsSoManagerSTest, DlopenFail)
 {
     GlobalMockObject::verify();
     MOCKER(dlopen).stubs().will(returnValue(static_cast<void *>(nullptr)));
-    SoManager manager(SoFileName);
+    const std::vector<std::string> funcNames = {"Foo0"};
+    SoManager manager(SoFileName, funcNames);
     EXPECT_EQ(manager.soHandle_, nullptr);
 }
 
@@ -83,9 +86,21 @@ TEST_F(BqsSoManagerSTest, DlsymFail)
     GlobalMockObject::verify();
     MOCKER(dlsym).stubs().will(returnValue(static_cast<void *>(nullptr)));
     MOCKER(dlclose).stubs().will(returnValue(0));
-    SoManager manager(SoFileName);
+    MOCKER_DLFCN();
+    const std::vector<std::string> funcNames = {"Foo1"};
+    SoManager manager(SoFileName, funcNames);
     manager.soHandle_ = reinterpret_cast<void*>(0x1);
     const auto ret = manager.GetFuncHandle("Foo1");
     EXPECT_EQ(ret, nullptr);
     manager.soHandle_ = nullptr;
+}
+
+TEST_F(BqsSoManagerSTest, GetFuncHandleNotFound)
+{
+    MOCKER_DLFCN();
+    const std::vector<std::string> funcNames = {"Foo0"};
+    SoManager manager(SoFileName, funcNames);
+    EXPECT_NE(manager.soHandle_, nullptr);
+    const auto ret = manager.GetFuncHandle("NotExistFunc");
+    EXPECT_EQ(ret, nullptr);
 }

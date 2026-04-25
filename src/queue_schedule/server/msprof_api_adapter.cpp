@@ -32,9 +32,17 @@ using MsprofReportEventFunc = int32_t (*)(uint32_t, const MsprofEvent*);
 using MsprofSysCycleTimeFunc = uint64_t (*)();
 }
 
+BqsMsprofApiAdapter::BqsMsprofApiAdapter()
+    : SoManager(MsprofSoName, {MsprofInitFuncName, MsprofFinalizeFuncName,
+                               MsprofRegTypeInfoFuncName, MsprofRegisterCallbackFuncName,
+                               MsprofReportApiFuncName, MsprofReportEventFuncName,
+                               MsprofSysCycleTimeFuncName})
+{
+}
+
 BqsMsprofApiAdapter &BqsMsprofApiAdapter::GetInstance()
 {
-    static BqsMsprofApiAdapter instance(MsprofSoName.c_str());
+    static BqsMsprofApiAdapter instance;
     return instance;
 }
 

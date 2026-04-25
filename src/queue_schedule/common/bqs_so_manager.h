@@ -18,11 +18,6 @@
 namespace bqs {
 class SoManager {
 public:
-    SoManager(const std::string &soName) : soName_(soName), soHandle_(nullptr), funcHandleMap_({})
-    {
-        OpenSo();
-    };
-
     SoManager(const std::string &soName, const std::vector<std::string> &funcNames) : soName_(soName),
                                                                                       soHandle_(nullptr),
                                                                                       funcHandleMap_({})
@@ -38,7 +33,7 @@ public:
         CloseSo();
     }
 
-    void *GetFuncHandle(const std::string &funcName);
+    void *GetFuncHandle(const std::string &funcName) const;
 
     bool IsSoLoad() const;
 

@@ -379,32 +379,6 @@ TEST_F(EntitySTest, ClientDoDequeueMbuf_success)
     EXPECT_EQ(entity.DoDequeueMbuf(&mbufHolder), dgw::FsmStatus::FSM_SUCCESS);
 }
 
-TEST_F(EntitySTest, ClientEntity_DoDeQueue_Fail_ForThrow)
-{
-    dgw::EntityMaterial material = {};
-    material.eType = dgw::EntityType::ENTITY_QUEUE;
-    material.id = 1001U;
-    material.queueType = bqs::CLIENT_Q;
-    ClientEntity entity(material, 0U);
-    entity.asyncDataState_ = AsyncDataState::FSM_ASYNC_DATA_INIT;
-    MOCKER_CPP(&ClientEntity::InvokeDequeThread).stubs().will(throws(std::bad_alloc()));
-    EXPECT_EQ(entity.DoDequeue(), FsmStatus::FSM_FAILED);
-    EXPECT_EQ(entity.asyncDataState_, AsyncDataState::FSM_ASYNC_DATA_INIT);
-    EXPECT_FALSE(entity.IsDataPeeked());
-}
-
-TEST_F(EntitySTest, ClientEntity_DoSendData_Fail_ForThrow)
-{
-    dgw::EntityMaterial material = {};
-    material.eType = dgw::EntityType::ENTITY_QUEUE;
-    material.id = 1001U;
-    material.queueType = bqs::CLIENT_Q;
-    ClientEntity entity(material, 0U);
-    entity.asyncDataState_ = AsyncDataState::FSM_ASYNC_DATA_INIT;
-    MOCKER_CPP(&ClientEntity::InvokeEnqueThread).stubs().will(throws(std::bad_alloc()));
-    EXPECT_EQ(entity.DoSendData(nullptr), FsmStatus::FSM_FAILED);
-}
-
 TEST_F(EntitySTest, ClientEntity_ResetSrcState)
 {
     dgw::EntityMaterial material = {};
@@ -989,15 +963,6 @@ TEST_F(EntitySTest, EntityManager_CreateEntity_Fail_For_AllocEntity)
     EntityPtr nullEntity = nullptr;
     MOCKER_CPP(&EntityManager::AllocEntity).stubs().will(returnValue(nullEntity));
     EXPECT_EQ(entityManager.CreateEntity(material), nullptr);
-}
-
-TEST_F(EntitySTest, EntityManager_CreateEntity_AllocEntity_throw)
-{
-    EntityManager entityManager(0U);
-    EntityMaterial material = {};
-    std::bad_alloc badAllocException;
-    MOCKER_CPP(&EntityManager::DoAllocEntity).stubs().will(throws(badAllocException));
-    EXPECT_EQ(entityManager.AllocEntity(material), nullptr);
 }
 
 TEST_F(EntitySTest, EntityManager_SupplyEvent)

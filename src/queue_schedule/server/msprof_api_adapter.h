@@ -26,7 +26,7 @@ enum class ProfStatus : int32_t {
 
 class BqsMsprofApiAdapter : public SoManager {
 public:
-    BqsMsprofApiAdapter(const std::string &soName) : SoManager(soName) {};
+    BqsMsprofApiAdapter();
     ~BqsMsprofApiAdapter() = default;
 
     static BqsMsprofApiAdapter &GetInstance();

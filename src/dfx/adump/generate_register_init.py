@@ -294,7 +294,7 @@ def generate_cpp_output(all_normal_registers, all_debug_registers, output_file):
         if ranges:
             cpp_lines.append(f"        {{{reg_type}, {{")
             for reg_range in ranges:
-                line = f"            {{0x{reg_range['start']:x}, {reg_range['bit_width']}, {reg_range['count']}}},"
+                line = f"            {{0x{reg_range['start']:x}, {reg_range['bit_width']}, {reg_range['count'] // 8}}},"
                 cpp_lines.append(line)
             cpp_lines.append("        },")
     
@@ -305,7 +305,7 @@ def generate_cpp_output(all_normal_registers, all_debug_registers, output_file):
         if ranges:
             cpp_lines.append(f"        {{{reg_type}, {{")
             for reg_range in ranges:
-                line = f"            {{0x{reg_range['start']:x}, {reg_range['bit_width']}, {reg_range['count']}}},"
+                line = f"            {{0x{reg_range['start']:x}, {reg_range['bit_width']}, {reg_range['count'] // 4}}},"
                 cpp_lines.append(line)
             cpp_lines.append("        },")
     

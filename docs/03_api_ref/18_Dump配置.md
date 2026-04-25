@@ -131,7 +131,7 @@ aclError aclmdlSetDump(const char *dumpCfgPath)
 
 ### 模型Dump配置、单算子Dump配置
 
-**模型Dump配置**（用于导出模型中每一层算子输入和输出数据）、**单算子Dump配置**（用于导出单个算子的输入和输出数据），导出的数据用于与指定模型或算子进行比对，定位精度问题，具体比对方法请参见《精度调试工具用户指南》。**默认不启用该Dump配置。**
+**模型Dump配置**（用于导出模型中每一层算子输入和输出数据）、**单算子Dump配置**（用于导出单个算子的输入和输出数据），导出的数据用于与指定模型或算子进行比对，定位精度问题，具体比对方法请参见[《精度调试工具用户指南》](https://hiascend.com/document/redirect/CannCommunityToolAccucacy)。**默认不启用该Dump配置。**
 
 通过本接口启用Dump配置，需通过dump\_path参数配置保存Dump数据的路径。
 
@@ -236,11 +236,11 @@ aclError aclmdlSetDump(const char *dumpCfgPath)
 
     dump文件存储路径的优先级如下：NPU\_COLLECT\_PATH环境变量 \> ASCEND\_WORK\_PATH环境变量 \> 配置文件中的dump\_path \> 应用程序的当前执行目录
 
-    环境变量的详细描述请参见《环境变量参考》。
+    环境变量的详细描述请参见[《环境变量参考》](https://hiascend.com/document/redirect/CannCommunityEnvRef)。
 
--   若需查看导出的dump文件内容，先将dump文件转换为numpy格式文件后，再通过Python查看numpy格式文件，详细转换步骤请参见《精度调试工具用户指南》。
+-   若需查看导出的dump文件内容，先将dump文件转换为numpy格式文件后，再通过Python查看numpy格式文件，详细转换步骤请参见[《精度调试工具用户指南》](https://hiascend.com/document/redirect/CannCommunityToolAccucacy)。
 
-    若将dump\_scene参数设置为aic\_err\_detail\_dump时，需使用msDebug工具查看导出的dump文件内容，详细方法请参见《算子开发工具用户指南》。
+    若将dump\_scene参数设置为aic\_err\_detail\_dump时，需使用msDebug工具查看导出的dump文件内容，详细方法请参见[《算子开发工具用户指南》](https://hiascend.com/document/redirect/CannCommunityopdev)。
 
 -   异常算子Dump配置，不能与模型Dump配置或单算子Dump配置同时开启。
 
@@ -264,7 +264,7 @@ aclError aclmdlSetDump(const char *dumpCfgPath)
 -   不配置dump\_debug或将dump\_debug配置为off表示不开启溢出算子配置。
 -   若开启溢出算子配置，则dump\_path必须配置，表示导出dump文件的存储路径。
 
-    获取导出的数据文件后，文件的解析请参见《精度调试工具用户指南》。
+    获取导出的数据文件后，文件的解析请参见[《精度调试工具用户指南》](https://hiascend.com/document/redirect/CannCommunityToolAccucacy)。
 
     dump\_path支持配置绝对路径或相对路径：
 
@@ -308,7 +308,7 @@ aclError aclmdlSetDump(const char *dumpCfgPath)
 
 -   开启算子Dump Watch模式，则dump\_path必须配置，表示导出dump文件的存储路径。
 
-    此处收集的dump文件无法通过文本工具直接查看其内容，若需查看dump文件内容，先将dump文件转换为numpy格式文件后，再通过Python查看numpy格式文件，详细转换步骤请参见《精度调试工具用户指南》。
+    此处收集的dump文件无法通过文本工具直接查看其内容，若需查看dump文件内容，先将dump文件转换为numpy格式文件后，再通过Python查看numpy格式文件，详细转换步骤请参见[《精度调试工具用户指南》](https://hiascend.com/document/redirect/CannCommunityToolAccucacy)。
 
     dump\_path支持配置绝对路径或相对路径：
 
@@ -354,9 +354,9 @@ Atlas A2 训练系列产品/Atlas A2 推理系列产品
 
 -   dump\_path：启用算子Kernel调测信息Dump功能时，dump\_path必须配置，表示导出Dump文件的存储路径，支持配置绝对路径或相对路径。
 
-    Dump文件存储路径的优先级如下：ASCEND\_DUMP\_PATH环境变量 \> ASCEND\_WORK\_PATH环境变量 \> 配置文件中的dump\_path，环境变量的详细描述请参见《环境变量参考》。
+    Dump文件存储路径的优先级如下：ASCEND\_DUMP\_PATH环境变量 \> ASCEND\_WORK\_PATH环境变量 \> 配置文件中的dump\_path，环境变量的详细描述请参见[《环境变量参考》](https://hiascend.com/document/redirect/CannCommunityEnvRef)。
 
-    导出的Dump文件无法通过文本工具直接查看其内容，若需查看，需使用show\_kernel\_debug\_data工具将调测信息解析为可读格式，工具使用指导请参见《Ascend C算子开发指南》中的”。
+    导出的Dump文件无法通过文本工具直接查看其内容，若需查看，需使用show\_kernel\_debug\_data工具将调测信息解析为可读格式，工具使用指导请参见[《Ascend C算子开发指南》](https://hiascend.com/document/redirect/CannCommunityOpdevAscendC)。
 
 ### 参考资源
 

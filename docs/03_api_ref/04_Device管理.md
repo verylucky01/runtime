@@ -497,7 +497,9 @@ const char *aclrtGetSocName()
 
 ### 返回值说明
 
-返回AI处理器版本字符串的指针。如果通过该接口获取芯片版本失败，则返回空指针。
+返回AI处理器版本字符串的指针。
+
+如果通过该接口获取芯片版本失败，则返回空指针；如果运行环境上Device数量大于1，则固定返回Device 0的AI处理器版本名称。
 
 
 <br>
@@ -1180,7 +1182,7 @@ aclError aclrtGetLogicDevIdByUserDevId(const int32_t userDevid, int32_t *const l
 
 ![](figures/Device-Context-Stream之间的关系.png)
 
-关于ASCEND\_RT\_VISIBLE\_DEVICES环境的详细介绍请参见《环境变量参考》。
+关于ASCEND\_RT\_VISIBLE\_DEVICES环境的详细介绍请参见[《环境变量参考》](https://hiascend.com/document/redirect/CannCommunityEnvRef)。
 
 
 <br>
@@ -1230,7 +1232,7 @@ aclError aclrtGetUserDevIdByLogicDevId(const int32_t logicDevId, int32_t *const 
 
 ![](figures/Device-Context-Stream之间的关系.png)
 
-关于ASCEND\_RT\_VISIBLE\_DEVICES环境的详细介绍请参见《环境变量参考》。
+关于ASCEND\_RT\_VISIBLE\_DEVICES环境的详细介绍请参见[《环境变量参考》](https://hiascend.com/document/redirect/CannCommunityEnvRef)。
 
 
 <br>
@@ -1280,7 +1282,7 @@ aclError aclrtGetLogicDevIdByPhyDevId(const int32_t phyDevId, int32_t *const log
 
 ![](figures/Device-Context-Stream之间的关系.png)
 
-关于ASCEND\_RT\_VISIBLE\_DEVICES环境的详细介绍请参见《环境变量参考》。
+关于ASCEND\_RT\_VISIBLE\_DEVICES环境的详细介绍请参见[《环境变量参考》](https://hiascend.com/document/redirect/CannCommunityEnvRef)。
 
 
 <br>
@@ -1330,7 +1332,7 @@ aclError aclrtGetPhyDevIdByLogicDevId(const int32_t logicDevId, int32_t *const p
 
 ![](figures/Device-Context-Stream之间的关系.png)
 
-关于ASCEND\_RT\_VISIBLE\_DEVICES环境的详细介绍请参见《环境变量参考》。
+关于ASCEND\_RT\_VISIBLE\_DEVICES环境的详细介绍请参见[《环境变量参考》](https://hiascend.com/document/redirect/CannCommunityEnvRef)。
 
 
 <br>

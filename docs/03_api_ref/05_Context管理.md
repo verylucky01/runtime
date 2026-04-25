@@ -32,7 +32,7 @@ aclError aclrtCreateContext(aclrtContext *context, int32_t deviceId)
 
 ### 功能说明
 
-在当前线程中显式创建Context。
+在当前线程中显式创建Context，并将当前线程与新创建的Context相关联。
 
 若不调用aclrtCreateContext接口显式创建Context，那系统会使用默认Context，该默认Context是在调用[aclrtSetDevice](04_Device管理.md#aclrtSetDevice)接口时隐式创建的。默认Context适合简单、无复杂交互逻辑的应用，但缺点在于，在多线程编程中，执行结果取决于线程调度的顺序。显式创建的Context适合大型、复杂交互逻辑的应用，且便于提高程序的可读性、可维护性。
 

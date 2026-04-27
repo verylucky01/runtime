@@ -133,9 +133,9 @@ public:
         return freq;
     };
 
-    inline const float64_t GetTimeCost(const uint64_t tick) const
+    inline float64_t GetTimeCost(const uint64_t tick) const
     {
-        return static_cast<const float64_t>(tick) / oneUsForTick_;
+        return static_cast<float64_t>(tick) / oneUsForTick_;
     }
 
     void InitProfileManager(const uint32_t deviceId);

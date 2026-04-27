@@ -82,7 +82,7 @@ public:
         return true;
     }
 
-    inline const uint32_t GetId() const
+    inline uint32_t GetId() const
     {
         return id_;
     }
@@ -90,7 +90,7 @@ public:
     {
         return optionalArgs_.eType;
     }
-    inline const bqs::GroupPolicy GetGroupPolicy() const
+    inline bqs::GroupPolicy GetGroupPolicy() const
     {
         return optionalArgs_.policy;
     }
@@ -114,37 +114,37 @@ public:
         return entityDesc_;
     }
 
-    inline const uint32_t GetPeerInstanceNum() const
+    inline uint32_t GetPeerInstanceNum() const
     {
         return optionalArgs_.peerInstanceNum;
     }
 
-    inline const uint32_t GetLocalInstanceIndex() const
+    inline uint32_t GetLocalInstanceIndex() const
     {
         return optionalArgs_.localInstanceIndex;
     }
 
-    inline const uint32_t GetGlobalId() const
+    inline uint32_t GetGlobalId() const
     {
         return optionalArgs_.globalId;
     }
 
-    inline const uint32_t GetUuId() const
+    inline uint32_t GetUuId() const
     {
         return optionalArgs_.uuId;
     }
 
-    inline const uint32_t GetSchedCfgKey() const
+    inline uint32_t GetSchedCfgKey() const
     {
         return optionalArgs_.schedCfgKey;
     }
 
-    inline const uint32_t GetDeviceId() const
+    inline uint32_t GetDeviceId() const
     {
         return deviceId_;
     }
 
-    inline const uint32_t GetQueueType() const
+    inline uint32_t GetQueueType() const
     {
         return optionalArgs_.queueType;
     }

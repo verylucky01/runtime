@@ -520,7 +520,7 @@ StatusCode OpDumpTask::Dump(const std::string &path,
                             const bool isLastSlice) const
 {
     if (ideSession != nullptr) {
-        IdeDumpChunk ideDumpChunk = {nullptr};
+        IdeDumpChunk ideDumpChunk = {};
         ideDumpChunk.fileName = const_cast<char_t *>(path.c_str());
         ideDumpChunk.dataBuf = reinterpret_cast<uint8_t *>(data);
         ideDumpChunk.bufLen = static_cast<uint32_t>(len);

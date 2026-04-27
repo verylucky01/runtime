@@ -17,7 +17,7 @@
 #include "ascend_hal.h"
 
 namespace AicpuSchedule {
-inline const uint64_t GetTid()
+inline uint64_t GetTid()
 {
     thread_local static const uint64_t tid = static_cast<uint64_t>(syscall(__NR_gettid));
     return tid;

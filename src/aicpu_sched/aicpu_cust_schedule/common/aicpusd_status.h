@@ -21,7 +21,7 @@ namespace AicpuSchedule {
 constexpr const char_t *AICPUSD_MODULE = "AICPU_SCHEDULE";
 constexpr const char_t *REPORT_DRV_MODULE = "DRV";
 constexpr const char_t *REPORT_AICPU_MODULE = "AICPU";
-inline const uint64_t GetTid()
+inline uint64_t GetTid()
 {
     thread_local static const uint64_t tid = static_cast<uint64_t>(syscall(__NR_gettid));
     return tid;

@@ -127,8 +127,6 @@ target_compile_options(aicpu_custom_scheduler_so PRIVATE
     -O2
     -Werror -Wall
     -Wno-error=array-bounds    # For controlling the compiler's warnings and errors regarding array out-of-bounds access.
-    -Wno-pessimizing-move      # Used to disable the warning about using std::move to prevent copy elision.
-    -Wno-unused-private-field  # To disable warnings about unused private fields.
     -fstack-protector
     -fno-common
     -fno-strict-aliasing

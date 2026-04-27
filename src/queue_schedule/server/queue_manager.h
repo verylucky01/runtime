@@ -165,12 +165,12 @@ public:
      * @brief get device id
      * @return device id
      */
-    inline const uint32_t GetDeviceId() const
+    inline uint32_t GetDeviceId() const
     {
         return deviceId_;
     }
 
-    inline const uint32_t GetExtraDeviceId() const
+    inline uint32_t GetExtraDeviceId() const
     {
         return deviceIdExtra_;
     }

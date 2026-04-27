@@ -356,8 +356,6 @@ if(${PRODUCT_SIDE} STREQUAL host)
         -Wno-error=array-bounds       # For controlling the compiler's warnings and errors regarding array out-of-bounds access.
         -Wno-unused-variable          # Used to suppress warnings about unused variables.
         -Wno-unused-but-set-variable  # Used to suppress warnings about assigned but unused variables.
-        -Wno-unused-private-field     # To disable warnings about unused private fields.
-        -Wno-c++20-compat             # To suppress warnings related to C++20 compatibility.
         $<$<STREQUAL:${CMAKE_CXX_COMPILER_VERSION},13.3.0>:-Wno-deprecated-declarations> #Do not warn about the use of deprecated declarations
         $<$<STREQUAL:${RESERVED_SYMBOL},true>:-g>
     )
@@ -437,9 +435,6 @@ else()
         -Wno-error=array-bounds       # For controlling the compiler's warnings and errors regarding array out-of-bounds access.
         -Wno-unused-variable          # Used to suppress warnings about unused variables.
         -Wno-unused-but-set-variable  # Used to suppress warnings about assigned but unused variables.
-        -Wno-unused-private-field     # To disable warnings about unused private fields.
-        -Wno-c++20-compat             # To suppress warnings related to C++20 compatibility.
-        -Wno-unknown-attributes       # Some compiler not support optimize o0 attribute.
         -fno-common
         -fno-strict-aliasing
         -fvisibility=hidden
@@ -472,8 +467,6 @@ else()
         -Wno-error=array-bounds       # For controlling the compiler's warnings and errors regarding array out-of-bounds access.
         -Wno-unused-variable          # Used to suppress warnings about unused variables.
         -Wno-unused-but-set-variable  # Used to suppress warnings about assigned but unused variables.
-        -Wno-unused-private-field     # To disable warnings about unused private fields.
-        -Wno-c++20-compat             # To suppress warnings related to C++20 compatibility.
         -fno-common
         -fno-strict-aliasing
         -DEIGEN_MPL2_ONLY

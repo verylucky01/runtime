@@ -54,7 +54,7 @@ public:
         return true;
     }
 
-    inline const HcclComm GetHandle() const
+    inline HcclComm GetHandle() const
     {
         return handle_;
     }

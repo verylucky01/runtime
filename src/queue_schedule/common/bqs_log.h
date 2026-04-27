@@ -29,7 +29,7 @@ enum class QsLogFuncId : uint32_t {
     FUNC_MAXID = 4
 };
 
-inline const int64_t GetTid()
+inline int64_t GetTid()
 {
     thread_local static const int64_t BQS_TID = syscall(__NR_gettid);
     return BQS_TID;

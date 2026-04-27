@@ -110,10 +110,6 @@ namespace AicpuSchedule {
             return false;
         }
 
-        if (val < 0U) {
-            return false;
-        }
-
         profilingMode_ = val;
         return true;
     }

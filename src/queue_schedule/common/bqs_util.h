@@ -136,7 +136,7 @@ public:
         numaFlag_ = numaFlag;
     }
 
-    inline bool const GetNumaFlag() const
+    inline bool GetNumaFlag() const
     {
         return numaFlag_;
     }

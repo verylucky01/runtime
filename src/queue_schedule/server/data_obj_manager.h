@@ -33,7 +33,7 @@ public:
     DataObj &operator = (const DataObj &) = delete;
     DataObj &operator = (DataObj &&) = delete;
 
-    inline const bool CopRef() const
+    inline bool CopRef() const
     {
         return copyRef_;
     }

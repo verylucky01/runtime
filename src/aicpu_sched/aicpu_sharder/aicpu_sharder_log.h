@@ -31,7 +31,7 @@
 #include <sys/syscall.h>
 #include "aicpu_sharder_weak_log.h"
 namespace aicpu {
-inline const int64_t GetTid()
+inline int64_t GetTid()
 {
     thread_local static const int64_t TID = syscall(__NR_gettid);
     return TID;

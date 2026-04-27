@@ -1057,7 +1057,22 @@ TEST_F(TRANSPORT_TRANSPORT_ITRANSPORT_TEST, ParseTlvChunk) {
     message->chunk = std::string(reinterpret_cast<CHAR_PTR>(&tlv_data2) + 100, sizeof(ProfTlv) - 100);
     message->chunkSize = message->chunk.size();
     EXPECT_EQ(PROFILING_SUCCESS, trans->ParseTlvChunk(message));
+
     tlv_data1.head = 111;
+    message->chunk = std::string(reinterpret_cast<CHAR_PTR>(&tlv_data1), sizeof(ProfTlv));
+    message->chunkSize = message->chunk.size();
+    EXPECT_EQ(PROFILING_FAILED, trans->ParseTlvChunk(message));
+
+    tlv_data1.head = TLV_HEAD;
+    tlv_data1.len = TLV_VALUE_MAX_LEN + 1;
+    message->chunk = std::string(reinterpret_cast<CHAR_PTR>(&tlv_data1), sizeof(ProfTlv));
+    message->chunkSize = message->chunk.size();
+    EXPECT_EQ(PROFILING_FAILED, trans->ParseTlvChunk(message));
+
+    ProfTlvValue tlvValue;
+    tlvValue.chunkSize = TLV_VALUE_CHUNK_MAX_LEN + 1;
+    memcpy_s(tlv_data1.value, TLV_VALUE_MAX_LEN, &tlvValue, sizeof(ProfTlvValue));
+    tlv_data1.len = sizeof(ProfTlvValue);
     message->chunk = std::string(reinterpret_cast<CHAR_PTR>(&tlv_data1), sizeof(ProfTlv));
     message->chunkSize = message->chunk.size();
     EXPECT_EQ(PROFILING_FAILED, trans->ParseTlvChunk(message));

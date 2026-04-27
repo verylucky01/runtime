@@ -22,9 +22,9 @@ set_runtime_params("${RUNTIME_DIR}")
 
 # third_party
 include(${RUNTIME_DIR}/cmake/third_party/protobuf.cmake)
-include(${RUNTIME_DIR}/cmake/third_party/csec.cmake)
-include(${RUNTIME_DIR}/cmake/third_party/json.cmake)
 include(${RUNTIME_DIR}/cmake/third_party/acl_compat.cmake)
+add_cann_third_party(json)
+add_cann_third_party(csec)
 
 add_cann_subdirectories_relative(${RUNTIME_DIR}
     ${RUNTIME_DIR}/src/mmpa

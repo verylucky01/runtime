@@ -8,6 +8,11 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
+#include <algorithm>
+#include <cinttypes>
+#include <string>
+#include <vector>
+
 #include "stream.hpp"
 #include "runtime.hpp"
 #include "driver.hpp"
@@ -31,6 +36,74 @@ namespace {
 const std::set<int32_t> MEM_ERROR_CODE = {TS_ERROR_AICORE_MTE_ERROR,
                                           TS_ERROR_SDMA_LINK_ERROR,
                                           TS_ERROR_SDMA_POISON_ERROR};
+
+// FFTS 失败路径只做轻量可观测增强：围绕上报的 contextId 打印结构化摘要和原始 context，
+// 避免在正常路径引入额外观测开销。
+std::string GetFftsPlusContextTypeName(const uint16_t contextType)
+{
+    switch (contextType) {
+        case RT_CTX_TYPE_AICORE:
+            return "AICORE";
+        case RT_CTX_TYPE_AIV:
+            return "AIV";
+        case RT_CTX_TYPE_MIX_AIC:
+            return "MIX_AIC";
+        case RT_CTX_TYPE_MIX_AIV:
+            return "MIX_AIV";
+        case RT_CTX_TYPE_SDMA:
+            return "SDMA";
+        case RT_CTX_TYPE_NOTIFY_WAIT:
+            return "NOTIFY_WAIT";
+        case RT_CTX_TYPE_NOTIFY_RECORD:
+            return "NOTIFY_RECORD";
+        case RT_CTX_TYPE_WRITE_VALUE:
+            return "WRITE_VALUE";
+        case RT_CTX_TYPE_AICPU:
+            return "AICPU";
+        case RT_CTX_TYPE_COND_SWITCH:
+            return "COND_SWITCH";
+        case RT_CTX_TYPE_CASE_SWITCH:
+            return "CASE_SWITCH";
+        case RT_CTX_TYPE_LABEL:
+            return "LABEL";
+        case RT_CTX_TYPE_DSA:
+            return "DSA";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+rtError_t CopyFftsPlusContextToHost(TaskInfo *taskInfo, const uint32_t contextId, void *ctxInfo)
+{
+    FftsPlusTaskInfo *fftsPlusTask = &taskInfo->u.fftsPlusTask;
+    const uint64_t offset = static_cast<uint64_t>(contextId) * CONTEXT_LEN;
+    // 所有失败处理分支都复用这层保护，遇到 contextId 非法、descriptor 为空或越界时，
+    // 统一停在一条明确错误上，避免继续打印派生噪声。
+    COND_RETURN_ERROR_MSG_INNER((ctxInfo == nullptr) || (fftsPlusTask->descAlignBuf == nullptr) ||
+        ((offset + CONTEXT_LEN) > fftsPlusTask->descBufLen), RT_ERROR_INVALID_VALUE,
+        "invalid ffts context copy request, context_id=%u, descBufLen=%" PRIu64 ".", contextId, fftsPlusTask->descBufLen);
+
+    return taskInfo->stream->Device_()->Driver_()->MemCopySync(ctxInfo, CONTEXT_LEN,
+        static_cast<void *>((reinterpret_cast<uint8_t *>(fftsPlusTask->descAlignBuf)) + offset),
+        CONTEXT_LEN, RT_MEMCPY_DEVICE_TO_HOST);
+}
+
+void LogFftsPlusContextDetail(TaskInfo *taskInfo, const uint32_t devId, const uint32_t contextId,
+    const uint8_t *ctxInfo)
+{
+    const auto * const commonCtx = reinterpret_cast<const rtFftsPlusComCtx_t *>(ctxInfo);
+    const auto * const buf = reinterpret_cast<const uint32_t *>(ctxInfo);
+    const std::string contextTypeName = GetFftsPlusContextTypeName(commonCtx->contextType);
+    RT_LOG(RT_LOG_ERROR, "fftsplus context detail, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
+        "context_type=%u[%s], successor_num=%u, thread_id=%u, thread_dim=%u.",
+        devId, taskInfo->stream->Id_(), taskInfo->id, contextId, commonCtx->contextType,
+        contextTypeName.c_str(), commonCtx->successorNum,
+        commonCtx->threadId, commonCtx->threadDim);
+    for (uint32_t j = 0U; j < (CONTEXT_LEN / sizeof(uint32_t)); ++j) {
+        RT_LOG(RT_LOG_ERROR, "FftsPlusTask-%s The %u context-buf[%u]=%#010x.", contextTypeName.c_str(),
+            contextId, j, buf[j]);
+    }
+}
 } // namespace 
 
 constexpr const uint16_t STARS_DATADUMP_LOADINFO_END_BITMAP = 0x20U;
@@ -495,6 +568,24 @@ static const std::string GetErrMsgStrForFftsPlusTask(const uint32_t errType)
     }
 }
 
+static bool ReportFftsPlusCurrentContextDetail(TaskInfo *taskInfo, const uint32_t devId,
+    const rtFftsPlusTaskErrInfo_t &info)
+{
+    alignas(uint64_t) uint8_t ctxInfo[CONTEXT_LEN] = {};
+    const rtError_t ret = CopyFftsPlusContextToHost(taskInfo, info.contextId, ctxInfo);
+    if (ret != RT_ERROR_NONE) {
+        Stream *const reportStream = GetReportStream(taskInfo->stream);
+        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
+            "fftsplus context copy failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
+            "thread_id=%u, err_type=%u[%s], error_code=%u, retCode=%#x.", devId, taskInfo->stream->Id_(),
+            taskInfo->id, info.contextId, info.threadId, info.errType,
+            GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode, ret);
+        return false;
+    }
+    LogFftsPlusContextDetail(taskInfo, devId, info.contextId, ctxInfo);
+    return true;
+}
+
 static void UpdateSqeSubTypeForMix(TaskInfo *taskInfo)
 {
     FftsPlusTaskInfo *fftPlusTask = &taskInfo->u.fftsPlusTask;
@@ -534,31 +625,25 @@ void ConstructSqeForFftsPlusTask(TaskInfo* taskInfo, rtStarsSqe_t *const command
 
 void PrintAicAivErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const rtFftsPlusTaskErrInfo_t &info, uint32_t devId)
 {
-    const auto dev = taskInfo->stream->Device_();
-    rtFftsPlusAicAivCtx_t contextInfo;
-    const uint64_t offset = static_cast<uint64_t>(info.contextId) * CONTEXT_LEN;
-    FftsPlusTaskInfo *fftsPlusTask = &taskInfo->u.fftsPlusTask;
+    rtFftsPlusAicAivCtx_t contextInfo = {};
     Stream *const reportStream = GetReportStream(taskInfo->stream);
-    if (((offset + CONTEXT_LEN) > fftsPlusTask->descBufLen) || (fftsPlusTask->descAlignBuf == nullptr)) {
-        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS, "fftsplus task report failed, dev_id=%u, stream_id=%d, "
-            "task_id=%u, context_id=%u, maxctx_num:%u, thread_Id=%u, err_type=%u[%s] or descAlignBuf is invalid.",
-            devId, taskInfo->stream->Id_(), taskInfo->id, info.contextId, fftsPlusTask->descBufLen/CONTEXT_LEN,
-            info.threadId, info.errType, GetErrMsgStrForFftsPlusTask(info.errType).c_str());
-        return;
-    }
-    Driver * const devDrv = dev->Driver_();
-    const rtError_t ret = devDrv->MemCopySync(&contextInfo, CONTEXT_LEN,
-        static_cast<void *>((reinterpret_cast<uint8_t *>(fftsPlusTask->descAlignBuf)) + offset),
-        CONTEXT_LEN, RT_MEMCPY_DEVICE_TO_HOST);
+    // AIC/AIV 场景保留原有的 pcStart 到 kernelName 关联能力，
+    // 命中后再补充与其他 FFTS 异常一致的当前 context 紧凑信息。
+    const rtError_t ret = CopyFftsPlusContextToHost(taskInfo, info.contextId, &contextInfo);
     if (ret != RT_ERROR_NONE) {
-        RT_LOG(RT_LOG_ERROR, "MemCopySync failed, retCode=%#x.", ret);
+        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
+            "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
+            "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, taskInfo->stream->Id_(),
+            taskInfo->id, info.contextId, info.threadId, info.errType,
+            GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode);
+        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
+            "fftsplus context copy failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
+            "thread_id=%u, err_type=%u[%s], error_code=%u, retCode=%#x.", devId, taskInfo->stream->Id_(),
+            taskInfo->id, info.contextId, info.threadId, info.errType,
+            GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode, ret);
         return;
     }
-    const uint32_t * const buf = reinterpret_cast<uint32_t *>(&contextInfo);
-    for (uint32_t j = 0U; j < 32U; j++) {
-        RT_LOG(RT_LOG_ERROR, "FftsPlusTask-%s The %u context-buf[%u]=%#010x.", "aicaiv context",
-            info.contextId, j, buf[j]);
-    }
+
     std::vector<uint64_t> mapAddr;
     uint16_t blockDim = 0U;
     if ((contextInfo.contextType == RT_CTX_TYPE_AICORE) || (contextInfo.contextType == RT_CTX_TYPE_AIV)) {
@@ -566,71 +651,49 @@ void PrintAicAivErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const rtFftsPlusTas
         mapAddr.emplace_back(CombineTo64Bit(contextInfo.tailTaskStartPcH, contextInfo.tailTaskStartPcL));
         blockDim = contextInfo.tailBlockdim;
     } else if ((contextInfo.contextType == RT_CTX_TYPE_MIX_AIC) || (contextInfo.contextType == RT_CTX_TYPE_MIX_AIV)) {
-        rtFftsPlusMixAicAivCtx_t *mixCtx = nullptr;
-        mixCtx = reinterpret_cast<rtFftsPlusMixAicAivCtx_t *>(&contextInfo);
+        const auto * const mixCtx = reinterpret_cast<const rtFftsPlusMixAicAivCtx_t *>(&contextInfo);
         mapAddr.emplace_back(CombineTo64Bit(mixCtx->nonTailAicTaskStartPcH, mixCtx->nonTailAicTaskStartPcL));
         mapAddr.emplace_back(CombineTo64Bit(mixCtx->tailAicTaskStartPcH, mixCtx->tailAicTaskStartPcL));
         mapAddr.emplace_back(CombineTo64Bit(mixCtx->nonTailAivTaskStartPcH, mixCtx->nonTailAivTaskStartPcL));
         mapAddr.emplace_back(CombineTo64Bit(mixCtx->tailAivTaskStartPcH, mixCtx->tailAivTaskStartPcL));
         blockDim = mixCtx->tailBlockdim;
-    } else {
-        // no operation
     }
 
     std::string kernelName;
     for (uint32_t i = 0U; i < mapAddr.size(); i++) {
         RT_LOG(RT_LOG_DEBUG, "contextype=%u, map[%u]=%#" PRIx64 ".", contextInfo.contextType, i, mapAddr[i]);
         if (mapAddr[i] == info.pcStart) {
-            kernelName = dev->LookupKernelNameByAddr(mapAddr[i]);
+            kernelName = taskInfo->stream->Device_()->LookupKernelNameByAddr(mapAddr[i]);
             break;
         }
     }
     if (!kernelName.empty()) {
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
-            "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, thread_id=%u, "
-            "err_type=%u[%s], pc start=%#" PRIx64 ". fault kernel_name=%s, blockDim=%u", devId,
+            "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
+            "thread_id=%u, err_type=%u[%s], error_code=%u, pc start=%#" PRIx64 ". "
+            "fault kernel_name=%s, blockDim=%u", devId,
             taskInfo->stream->Id_(), taskInfo->id, info.contextId, info.threadId, info.errType,
-            GetErrMsgStrForFftsPlusTask(info.errType).c_str(), info.pcStart, kernelName.c_str(), blockDim);
+            GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode,
+            info.pcStart, kernelName.c_str(), blockDim);
     } else {
-        RT_LOG(RT_LOG_DEBUG, "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
-            "thread_id=%u, err_type=%u[%s], pc start=%#" PRIx64 ", blockDim=%u, addr not match.", devId,
-            taskInfo->stream->Id_(), taskInfo->id, info.contextId, info.threadId, info.errType,
-            GetErrMsgStrForFftsPlusTask(info.errType).c_str(), info.pcStart, blockDim);
+        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
+            "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
+            "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, taskInfo->stream->Id_(),
+            taskInfo->id, info.contextId, info.threadId, info.errType,
+            GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode);
     }
+    LogFftsPlusContextDetail(taskInfo, devId, info.contextId, reinterpret_cast<const uint8_t *>(&contextInfo));
 }
 
 static void PrintSdmaErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const rtFftsPlusTaskErrInfo_t &info, const uint32_t devId)
 {
-    uint8_t ctxInfo[CONTEXT_LEN];
-    const auto dev = taskInfo->stream->Device_();
-    const uint64_t offset = static_cast<uint64_t>(info.contextId) * CONTEXT_LEN;
     Stream *const reportStream = GetReportStream(taskInfo->stream);
-    FftsPlusTaskInfo *fftsPlusTask = &taskInfo->u.fftsPlusTask;
-    if (((offset + CONTEXT_LEN) > fftsPlusTask->descBufLen) || (fftsPlusTask->descAlignBuf == nullptr)) {
-        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS, "FftsPlusTask report failed, dev_id=%u, stream_id=%d, "
-            "task_id=%u, context_id=%u, maxctx_num:%u, thread_Id=%u, err_type=%u[%s] or descAlignBuf is invalid.",
-            devId, taskInfo->stream->Id_(), taskInfo->id, info.contextId, fftsPlusTask->descBufLen/CONTEXT_LEN,
-            info.threadId, info.errType, GetErrMsgStrForFftsPlusTask(info.errType).c_str());
-        return;
-    }
-    Driver * const devDrv = dev->Driver_();
-    const rtError_t ret = devDrv->MemCopySync(ctxInfo, CONTEXT_LEN,
-        static_cast<void *>((reinterpret_cast<uint8_t *>(fftsPlusTask->descAlignBuf)) + offset),
-        CONTEXT_LEN, RT_MEMCPY_DEVICE_TO_HOST);
-    if (ret != RT_ERROR_NONE) {
-        RT_LOG(RT_LOG_ERROR, "MemCopySync failed, retCode=%#x.", ret);
-        return;
-    }
-
-    const uint32_t * const buf = reinterpret_cast<uint32_t *>(ctxInfo);
-    for (uint32_t j = 0U; j < 32U; j++) {
-        RT_LOG(RT_LOG_ERROR, "FftsPlusTask-%s The %u context-buf[%u]=%#010x.", "sdma type", info.contextId, j, buf[j]);
-    }
-
     STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
         "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
-        "context_id=%u, thread_id=%u, err_type=%u[%s]", devId, taskInfo->stream->Id_(), taskInfo->id,
-        info.contextId, info.threadId, info.errType, GetErrMsgStrForFftsPlusTask(info.errType).c_str());
+        "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, taskInfo->stream->Id_(),
+        taskInfo->id, info.contextId, info.threadId, info.errType,
+        GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode);
+    (void)ReportFftsPlusCurrentContextDetail(taskInfo, devId, info);
 }
 
 void PrintDsaErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const rtFftsPlusTaskErrInfo_t &info, const uint32_t devId)
@@ -640,9 +703,12 @@ void PrintDsaErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const rtFftsPlusTaskEr
     (void)StarsCommonTaskInit(&dsaTaskInfo, info.dsaSqe, 0U);
     (void)PrintDsaErrorInfoForStarsCommonTask(&dsaTaskInfo);
     Stream *const reportStream = GetReportStream(taskInfo->stream);
-    STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_FE, "fftsplus task execute failed, dev_id=%u, stream_id=%d, "
-        "task_id=%u, context_id=%u, thread_id=%u, err_type=%u[%s]", devId, taskInfo->stream->Id_(), taskInfo->id,
-        info.contextId, info.threadId, info.errType, GetErrMsgStrForFftsPlusTask(info.errType).c_str());
+    STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_FE,
+        "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
+        "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, taskInfo->stream->Id_(),
+        taskInfo->id, info.contextId, info.threadId, info.errType,
+        GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode);
+    (void)ReportFftsPlusCurrentContextDetail(taskInfo, devId, info);
 }
 
 void GetExceptionArgsForFftsPlus(TaskInfo* taskInfo, const rtExceptionExpandInfo_t * const expandInfo,
@@ -748,10 +814,15 @@ void PrintErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const uint32_t devId)
         } else if (loop.errType == FFTS_PLUS_SDMA_ERROR) {
             PrintSdmaErrorInfoForFftsPlusTask(taskInfo, loop, devId);
         } else {
-            RT_LOG(RT_LOG_ERROR,
+            // 未知或新增的 FFTS errType 也沿用同样的轻量摘要和当前 context 展开，
+            // 这样即使不属于 AIC/AIV、SDMA、DSA，也还能继续做定界。
+            Stream *const reportStream = GetReportStream(taskInfo->stream);
+            STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
                 "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
-                "context_id=%u, thread_id=%u, err_type=%u[%s]", devId, streamId, taskId,
-                loop.contextId, loop.threadId, loop.errType, GetErrMsgStrForFftsPlusTask(loop.errType).c_str());
+                "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, streamId, taskId,
+                loop.contextId, loop.threadId, loop.errType, GetErrMsgStrForFftsPlusTask(loop.errType).c_str(),
+                taskInfo->errorCode);
+            (void)ReportFftsPlusCurrentContextDetail(taskInfo, devId, loop);
         }
         expandInfo.type = RT_EXCEPTION_FFTS_PLUS;
         expandInfo.u.fftsPlusInfo.contextId = static_cast<uint16_t>(loop.contextId);

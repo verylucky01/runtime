@@ -1,0 +1,52 @@
+{
+    "name": "Runtime Dev Container",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+
+    // ── 工作区挂载 ─────────────────────────────────────────────────────────────
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+    // ── 环境变量 ───────────────────────────────────────────────────────────────
+    "containerEnv": {
+        "CMAKE_TLS_VERIFY": "0"
+    },
+
+    // ── 容器启动后自动执行的初始化命令 ─────────────────────────────────────────
+    // 1) 下载第三方依赖到 ./third_party
+    // 2) 软链到 build.sh / build_ut.sh 的默认路径 output/third_party，
+    //    以便用户无需显式传 --cann_3rd_lib_path 即可直接编译
+    //    （CMake 的 INTERFACE_INCLUDE_DIRECTORIES 拒绝相对路径，因此必须使用绝对路径或默认位置）
+    "postCreateCommand": "bash -c 'cd /workspace && python3 download_3rd_party.py && mkdir -p output && ln -sfn /workspace/third_party /workspace/output/third_party && echo \"Third-party ready: /workspace/third_party (linked at /workspace/output/third_party)\" || echo \"Third-party download failed (offline?). Run manually: python3 download_3rd_party.py && ln -sfn \\$(pwd)/third_party output/third_party\"'",
+
+    // ── VS Code 扩展 ───────────────────────────────────────────────────────────
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-vscode.cmake-tools",
+                "ms-python.python",
+                "ms-vscode.cpptools-extension-pack",
+                "twxs.cmake",
+                "eamodio.gitlens"
+            ],
+            "settings": {
+                "cmake.buildDirectory": "${workspaceFolder}/build",
+                "cmake.generator": "Unix Makefiles",
+                "C_Cpp.default.compilerPath": "/usr/bin/gcc",
+                "C_Cpp.default.cStandard": "c11",
+                "C_Cpp.default.cppStandard": "c++17",
+                "editor.formatOnSave": false,
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
+        }
+    },
+
+    // ── 端口转发（按需取消注释） ────────────────────────────────────────────────
+    // "forwardPorts": [],
+
+    // ── 以 root 运行（与 CANN toolkit 安装路径 /usr/local/Ascend 匹配）────────
+    "remoteUser": "root"
+}

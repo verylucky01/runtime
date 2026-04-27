@@ -15,7 +15,7 @@ export ASCEND_GLOBAL_LOG_LEVEL=2
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARAM_FILE="${SCRIPT_DIR}/../pre-smoking-testcase"
-RTS_PACKAGE_URL="https://ascend-ci.obs.cn-north-4.myhuaweicloud.com/package/master/latest/aarch64/ascend910b-testcase-9.0.0-aarch64.tar.gz"
+RTS_PACKAGE_URL="https://ascend-ci.obs.cn-north-4.myhuaweicloud.com/package/master/latest/aarch64/910b-testcase-9.0.0-aarch64.tar.gz"
 EXTRACT_DIR=""
 RTS_LIB_ROOT=""
 

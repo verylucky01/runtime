@@ -373,7 +373,7 @@ aclError aclrtMemUceRepairImpl(int32_t deviceId, aclrtMemUceInfo *memUceInfoArra
 
     const rtError_t rtErr = rtMemUceRepair(deviceId, &rtUceInfo);
     if (rtErr != RT_ERROR_NONE) {
-        ACL_LOG_CALL_ERROR("rtMemUceRepair failed, device id is runtime result = %d", static_cast<int32_t>(rtErr));
+        ACL_LOG_CALL_ERROR("rtMemUceRepair failed, device id = %d, runtime result = %d", deviceId, static_cast<int32_t>(rtErr));
         return ACL_GET_ERRCODE_RTS(rtErr);
     }
     return ACL_SUCCESS;

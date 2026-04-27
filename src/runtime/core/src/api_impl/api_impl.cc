@@ -6557,7 +6557,7 @@ rtError_t ApiImpl::MemcpyHostTask(void * const dst, const uint64_t destMax, cons
 
 rtError_t ApiImpl::CmoTaskLaunch(const rtCmoTaskInfo_t * const taskInfo, Stream * const stm, const uint32_t flag)
 {
-    RT_LOG(RT_LOG_DEBUG, "Cmo Task launch. opCode=%u, lengthInner=%u", taskInfo->opCode, taskInfo->lengthInner);
+    RT_LOG(RT_LOG_DEBUG, "Cmo task launch. opCode=%u, lengthInner=%u", taskInfo->opCode, taskInfo->lengthInner);
     Context * const curCtx = CurrentContext();
     CHECK_CONTEXT_VALID_WITH_RETURN(curCtx, RT_ERROR_CONTEXT_NULL);
 

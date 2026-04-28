@@ -317,6 +317,8 @@
         <file value="Ascend950DT_95A2.ini" install_mod="440" entity="true"/>
         <file value="Ascend950DT_950x.ini" install_mod="440" entity="true"/>
         <file value="Ascend950DT_950y.ini" install_mod="440" entity="true"/>
+        <file value="Ascend350_354f.ini" install_mod="440" entity="true"/>
+        <file value="Ascend350_355e.ini" install_mod="440" entity="true"/>
     </file_info>
     <file_info copy_type="source" src_path="" dst_path="$(TARGET_ENV)/data/platform_config" install_path="$(TARGET_ENV)/data/platform_config" install_type="all">
         <file value="Ascend031.ini" install_mod="440" entity="true"/>

@@ -75,6 +75,7 @@
 ### G. 文档
 
 1. **API 文档同步**：修改了 `include/external/acl/acl_rt.h` 文件时，必须检查是否同步修改了对应的 `docs/` 目录文件；未修改则提出 **[必须修改]** 的检视意见
+2. **错误码文档同步**：修改了 `include/external/acl/error_codes/rt_error_codes.h` 文件时，必须检查是否同步修改了 `docs/03_api_ref/25_数据类型及其操作接口.md` 文件；未修改则提出 **[必须修改]** 的检视意见
 
 ### H. 软件架构
 

@@ -19,7 +19,7 @@ TsMsgAdapter::TsMsgAdapter() : pid_(0U), cmdType_(0U), vfId_(0U), tid_(0U), tsId
 {}
 
 int32_t TsMsgAdapter::ResponseToTs(
-    TsAicpuSqe& aicpuSqe, unsigned int handleId, unsigned int devId, unsigned int tsId) const
+    TsAicpuSqe& aicpuSqe, uint32_t handleId, uint32_t devId, uint32_t tsId) const
 {
     aicpusd_info("Response start: payload=sqe.");
     const auto ret = tsDevSendMsgAsync(
@@ -34,7 +34,7 @@ int32_t TsMsgAdapter::ResponseToTs(
 }
 
 int32_t TsMsgAdapter::ResponseToTs(
-    TsAicpuMsgInfo& aicpuMsgInfo, unsigned int handleId, unsigned int devId, unsigned int tsId) const
+    TsAicpuMsgInfo& aicpuMsgInfo, uint32_t handleId, uint32_t devId, uint32_t tsId) const
 {
     aicpusd_info("Response start: payload=msg_info.");
     const auto ret = tsDevSendMsgAsync(

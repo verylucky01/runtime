@@ -25,9 +25,9 @@ public:
     TsMsgAdapter(const uint32_t pid, const uint8_t cmdType, const uint8_t vfId, const uint8_t tid, const uint8_t tsId);
     TsMsgAdapter();
     virtual ~TsMsgAdapter() = default;
-    int32_t ResponseToTs(TsAicpuSqe& aicpuSqe, unsigned int handleId, unsigned int devId, unsigned int tsId) const;
+    int32_t ResponseToTs(TsAicpuSqe& aicpuSqe, uint32_t handleId, uint32_t devId, uint32_t tsId) const;
     int32_t ResponseToTs(
-        TsAicpuMsgInfo& aicpuMsgInfo, unsigned int handleId, unsigned int devId, unsigned int tsId) const;
+        TsAicpuMsgInfo& aicpuMsgInfo, uint32_t handleId, uint32_t devId, uint32_t tsId) const;
     int32_t ResponseToTs(hwts_response_t& hwtsResp, uint32_t devId, EVENT_ID eventId, uint32_t subeventId) const;
 
     // invalid parameter

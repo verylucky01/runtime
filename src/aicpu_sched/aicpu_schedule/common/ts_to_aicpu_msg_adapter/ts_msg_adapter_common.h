@@ -12,8 +12,8 @@
 #define TS_MSG_ADAPTER_COMMON_H
 namespace AicpuSchedule {
 struct ErrLogRptInfo;
-constexpr uint16_t INVALID_VALUE16 = 0xFFFF;
-constexpr uint32_t INVALID_VALUE32 = 0xFFFFFFFF;
+constexpr uint16_t INVALID_VALUE16 = 0xFFFFU;
+constexpr uint32_t INVALID_VALUE32 = 0xFFFFFFFFU;
 constexpr uint8_t VERSION_0 = 0;
 constexpr uint8_t VERSION_1 = 1;
 constexpr uint8_t MSG_EVENT_SUB_EVENTID_RECORD = 1;

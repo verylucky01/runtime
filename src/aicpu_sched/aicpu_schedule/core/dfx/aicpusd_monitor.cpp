@@ -27,9 +27,9 @@
 
 namespace {
 // aicpu task timeout
-const uint64_t AICPU_TASK_TIMEOUT = 28UL;
-const uint64_t AICPU_TASK_TIMEOUT_LONG = 60UL;
-const uint64_t AICPU_TASK_TIMEOUT_FPGA = 2800UL;
+constexpr uint64_t AICPU_TASK_TIMEOUT = 28UL;
+constexpr uint64_t AICPU_TASK_TIMEOUT_LONG = 60UL;
+constexpr uint64_t AICPU_TASK_TIMEOUT_FPGA = 2800UL;
 constexpr const uint32_t MONITOR_SLEEP_INTERVAL = 100000U; // 100ms
 #ifndef aicpusd_UT
 constexpr const uint32_t MONITOR_TIMEOUT_COUNT = 10U; // 1s

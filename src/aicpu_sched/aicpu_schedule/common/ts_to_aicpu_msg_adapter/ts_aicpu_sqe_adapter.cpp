@@ -44,7 +44,7 @@ void TsAicpuSqeAdapter::GetAicpuDataDumpInfo(AicpuDataDumpInfo& info)
     info.is_model = (tmpInfo.model_id != INVALID_VALUE16);
     info.is_debug = ((tmpInfo.task_id1 != INVALID_VALUE16) && (tmpInfo.stream_id1 != INVALID_VALUE16));
     info.file_name_stream_id = info.is_debug ? tmpInfo.stream_id1 : tmpInfo.stream_id;
-    info.file_name_task_id = info.is_debug ? tmpInfo.task_id1 : tmpInfo.task_id;
+    info.file_name_task_id = static_cast<uint32_t>(info.is_debug ? tmpInfo.task_id1 : tmpInfo.task_id);
 }
 
 void TsAicpuSqeAdapter::GetAicpuDumpFFTSPlusDataInfo(AicpuDumpFFTSPlusDataInfo& info)
@@ -56,14 +56,14 @@ void TsAicpuSqeAdapter::GetAicpuDumpFFTSPlusDataInfo(AicpuDumpFFTSPlusDataInfo& 
 
 bool TsAicpuSqeAdapter::IsOpMappingDumpTaskInfoVaild(const AicpuOpMappingDumpTaskInfo& info) const
 {
-    bool isOutOfRange = (info.proto_info_task_id > INVALID_VALUE16) || (info.proto_info_stream_id > INVALID_VALUE16) ||
+    const bool isOutOfRange = (info.proto_info_task_id > INVALID_VALUE16) || (info.proto_info_stream_id > INVALID_VALUE16) ||
                         (info.stream_id > INVALID_VALUE16) || (info.task_id > INVALID_VALUE16);
     return !isOutOfRange;
 }
 
 void TsAicpuSqeAdapter::GetAicpuDumpTaskInfo(AicpuOpMappingDumpTaskInfo& opmappingInfo, AicpuDumpTaskInfo& dumpTaskInfo)
 {
-    opmappingInfo.proto_info_task_id &= 0xFFFF;
+    opmappingInfo.proto_info_task_id &= 0xFFFFU;
     aicpusd_info(
         "Dump task mapping: proto_task=%u proto_stream=%u mapped_task=%u mapped_stream=%u",
         opmappingInfo.proto_info_task_id, opmappingInfo.proto_info_stream_id, opmappingInfo.task_id,
@@ -121,7 +121,7 @@ int32_t TsAicpuSqeAdapter::AicpuDumpResponseToTs(const int32_t result)
     aicpusd_info(
         "Dump response: message_type=%u result=%u ack_stream=%u ack_task=%u.", aicpuSqe.cmd_type, result,
         aicpuSqe.u.aicpu_dump_resp.stream_id, aicpuSqe.u.aicpu_dump_resp.task_id);
-    return ResponseToTs(aicpuSqe, handleId, AicpuDrvManager::GetInstance().GetDeviceId(), aicpuSqe.ts_id);
+    return ResponseToTs(aicpuSqe, handleId, AicpuDrvManager::GetInstance().GetDeviceId(), static_cast<uint32_t>(aicpuSqe.ts_id));
 }
 
 int32_t TsAicpuSqeAdapter::AicpuDataDumpLoadResponseToTs(const int32_t result)
@@ -140,7 +140,7 @@ int32_t TsAicpuSqeAdapter::AicpuDataDumpLoadResponseToTs(const int32_t result)
     aicpusd_info(
         "Dump load response: message_type=%u result=%u stream=%u task=%u.", aicpuSqe.cmd_type, result,
         aicpuSqe.u.aicpu_dump_resp.stream_id, aicpuSqe.u.aicpu_dump_resp.task_id);
-    return ResponseToTs(aicpuSqe, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), aicpuSqe.ts_id);
+    return ResponseToTs(aicpuSqe, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), static_cast<uint32_t>(aicpuSqe.ts_id));
 }
 
 void TsAicpuSqeAdapter::GetAicpuModelOperateInfo(AicpuModelOperateInfo& info)
@@ -199,7 +199,7 @@ void TsAicpuSqeAdapter::AicpuActiveStreamSetMsg(ActiveStreamInfo& info)
         aicpuSqe.cmd_type,
         aicpuSqe.u.aicpu_active_stream.stream_id,
         aicpuSqe.u.aicpu_active_stream.aicpu_stamp);
-    AicpuMsgSend::SetTsDevSendMsgAsync(info.device_id, info.ts_id, aicpuSqe, info.handle_id);
+    AicpuMsgSend::SetTsDevSendMsgAsync(info.device_id, static_cast<uint32_t>(info.ts_id), aicpuSqe, info.handle_id);
 }
 
 void TsAicpuSqeAdapter::GetAicpuMsgVersionInfo(AicpuMsgVersionInfo& info) 
@@ -225,7 +225,7 @@ int32_t TsAicpuSqeAdapter::AicpuMsgVersionResponseToTs(const int32_t result)
         msgInfo.u.aicpu_resp.result_code,
         msgInfo.u.aicpu_resp.stream_id,
         msgInfo.u.aicpu_resp.task_id);
-    return ResponseToTs(msgInfo, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), msgInfo.ts_id);
+    return ResponseToTs(msgInfo, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), static_cast<uint32_t>(msgInfo.ts_id));
 }
 
 void TsAicpuSqeAdapter::GetAicpuTaskReportInfo(AicpuTaskReportInfo& info) 
@@ -258,7 +258,7 @@ int32_t TsAicpuSqeAdapter::ErrorMsgResponseToTs(ErrMsgRspInfo& rspInfo)
         rspInfo.err_code,
         rspInfo.stream_id,
         rspInfo.task_id);
-    return ResponseToTs(aicpuSqe, rspInfo.model_id, AicpuDrvManager::GetInstance().GetDeviceId(), aicpuSqe.ts_id);
+    return ResponseToTs(aicpuSqe, rspInfo.model_id, AicpuDrvManager::GetInstance().GetDeviceId(), static_cast<uint32_t>(aicpuSqe.ts_id));
 }
 
 int32_t TsAicpuSqeAdapter::AicpuNoticeTsPidResponse(const uint32_t deviceId) const 
@@ -323,7 +323,7 @@ int32_t TsAicpuSqeAdapter::AicpuInfoLoadResponseToTs(const int32_t result)
         result,
         tmpInfo.stream_id,
         tmpInfo.task_id);
-    return ResponseToTs(aicpuSqe, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), aicpuSqe.ts_id);
+    return ResponseToTs(aicpuSqe, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), static_cast<uint32_t>(aicpuSqe.ts_id));
 }
 
 void TsAicpuSqeAdapter::GetAicErrReportInfo(AicErrReportInfo& info) 
@@ -360,11 +360,11 @@ int32_t TsAicpuSqeAdapter::AicpuRecordResponseToTs(AicpuRecordInfo& info)
         aicpuSqe.u.aicpu_record.fault_stream_id,
         aicpuSqe.u.aicpu_record.ret_code);
     if (!retSucc) {
-        return ResponseToTs(aicpuSqe, 0U, info.dev_id, info.ts_id);
+        return ResponseToTs(aicpuSqe, 0U, info.dev_id, static_cast<uint32_t>(info.ts_id));
     }
     aicpusd_info("Record response: path=halTsDevRecord.");
-    int32_t ret = halTsDevRecord(info.dev_id, info.ts_id, static_cast<uint32_t>(info.record_type), info.record_id);
-    if (ret != static_cast<uint32_t>(DRV_ERROR_NONE)) {
+    int32_t ret = halTsDevRecord(info.dev_id, static_cast<uint32_t>(info.ts_id), static_cast<uint32_t>(info.record_type), info.record_id);
+    if (static_cast<uint32_t>(ret) != static_cast<uint32_t>(DRV_ERROR_NONE)) {
         aicpusd_err(
             "Record notify failed: send_ret=%d notify_id=%u response_result=%d.", ret, info.record_id, info.ret_code);
         return AICPU_SCHEDULE_ERROR_FROM_DRV;

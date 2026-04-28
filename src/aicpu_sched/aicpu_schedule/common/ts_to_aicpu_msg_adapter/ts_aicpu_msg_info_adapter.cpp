@@ -33,7 +33,7 @@ bool TsAicpuMsgInfoAdapter::IsAdapterInvaildParameter() const
 // dump
 void TsAicpuMsgInfoAdapter::GetAicpuDataDumpInfo(AicpuDataDumpInfo& info)
 {
-    switch (cmdType_) {
+    switch (static_cast<uint32_t>(cmdType_)) {
         case TS_AICPU_DEBUG_DATADUMP_REPORT: {
             TsToAicpuDebugDataDumpMsg tmpInfo = aicpuMsgInfo_.u.ts_to_aicpu_debug_datadump;
             aicpusd_info(
@@ -64,6 +64,7 @@ void TsAicpuMsgInfoAdapter::GetAicpuDataDumpInfo(AicpuDataDumpInfo& info)
         }
         default:
             aicpusd_err("Unsupported message type: message_type=%u", cmdType_);
+            break;
     }
     info.file_name_stream_id = info.dump_stream_id;
     info.file_name_task_id = info.dump_task_id;
@@ -110,7 +111,7 @@ int32_t TsAicpuMsgInfoAdapter::AicpuDumpResponseToTs(const int32_t result)
     msgInfo.ts_id = tsId_;
     msgInfo.cmd_type = cmdType_;
     msgInfo.u.aicpu_resp.result_code = static_cast<uint16_t>(result);
-    switch (cmdType_) {
+    switch (static_cast<uint32_t>(cmdType_)) {
         case TS_AICPU_NORMAL_DATADUMP_REPORT: {
             TsToAicpuNormalDataDumpMsg tmpInfo = aicpuMsgInfo_.u.ts_to_aicpu_normal_datadump;
             msgInfo.u.aicpu_resp.task_id = tmpInfo.dump_task_id;
@@ -135,7 +136,7 @@ int32_t TsAicpuMsgInfoAdapter::AicpuDumpResponseToTs(const int32_t result)
         msgInfo.u.aicpu_resp.result_code,
         msgInfo.u.aicpu_resp.task_id,
         msgInfo.u.aicpu_resp.stream_id);
-    return ResponseToTs(msgInfo, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), msgInfo.ts_id);
+    return ResponseToTs(msgInfo, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), static_cast<uint32_t>(msgInfo.ts_id));
 }
 int32_t TsAicpuMsgInfoAdapter::AicpuDataDumpLoadResponseToTs(const int32_t result) 
 {
@@ -184,7 +185,7 @@ int32_t TsAicpuMsgInfoAdapter::AicpuModelOperateResponseToTs(const int32_t resul
     aicpuMsgInfo.u.aicpu_resp.result_code = static_cast<uint16_t>(result);
     aicpuMsgInfo.u.aicpu_resp.stream_id = INVALID_VALUE16;
     aicpuMsgInfo.u.aicpu_resp.task_id = INVALID_VALUE32;
-    aicpuMsgInfo.u.aicpu_resp.reserved = 0;
+    aicpuMsgInfo.u.aicpu_resp.reserved = 0U;
     aicpusd_info("Model operation response: message_type=%u result=%u stream=%u task=%u",
         cmdType_,
         result,
@@ -213,7 +214,7 @@ void TsAicpuMsgInfoAdapter::AicpuActiveStreamSetMsg(ActiveStreamInfo& info)
         msgInfo.cmd_type,
         msgInfo.u.aicpu_active_stream.stream_id,
         msgInfo.u.aicpu_active_stream.aicpu_stamp);
-    AicpuMsgSend::SetTsDevSendMsgAsync(info.device_id, info.ts_id, msgInfo, info.handle_id);
+    AicpuMsgSend::SetTsDevSendMsgAsync(info.device_id, static_cast<uint32_t>(info.ts_id), msgInfo, info.handle_id);
 }
 
 // version set
@@ -261,7 +262,7 @@ int32_t TsAicpuMsgInfoAdapter::ErrorMsgResponseToTs(ErrMsgRspInfo& rspInfo)
         rspInfo.err_code,
         rspInfo.stream_id,
         rspInfo.task_id);
-    return ResponseToTs(msgInfo, rspInfo.model_id, AicpuDrvManager::GetInstance().GetDeviceId(), msgInfo.ts_id);
+    return ResponseToTs(msgInfo, rspInfo.model_id, AicpuDrvManager::GetInstance().GetDeviceId(), static_cast<uint32_t>(msgInfo.ts_id));
 }
 
 // pid notice
@@ -329,13 +330,13 @@ int32_t TsAicpuMsgInfoAdapter::AicpuInfoLoadResponseToTs(const int32_t result)
     msgInfo.u.aicpu_resp.stream_id = tmpInfo.stream_id;
     msgInfo.u.aicpu_resp.task_id = tmpInfo.task_id;
     msgInfo.u.aicpu_resp.result_code = static_cast<uint16_t>(result);
-    msgInfo.u.aicpu_resp.reserved = 0;
+    msgInfo.u.aicpu_resp.reserved = 0U;
     aicpusd_info("Info load response: message_type=%u result=%u stream=%u task=%u.",
         msgInfo.cmd_type,
         result,
         tmpInfo.stream_id,
         tmpInfo.task_id);
-    return ResponseToTs(msgInfo, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), msgInfo.ts_id);
+    return ResponseToTs(msgInfo, 0U, AicpuDrvManager::GetInstance().GetDeviceId(), static_cast<uint32_t>(msgInfo.ts_id));
 }
 
 // err report
@@ -372,6 +373,6 @@ int32_t TsAicpuMsgInfoAdapter::AicpuRecordResponseToTs(AicpuRecordInfo& info)
         msgInfo.u.aicpu_record.fault_task_id,
         msgInfo.u.aicpu_record.ret_code,
         handleId);
-    return ResponseToTs(msgInfo, handleId, info.dev_id, msgInfo.ts_id);
+    return ResponseToTs(msgInfo, handleId, info.dev_id, static_cast<uint32_t>(msgInfo.ts_id));
 }
 } // namespace AicpuSchedule

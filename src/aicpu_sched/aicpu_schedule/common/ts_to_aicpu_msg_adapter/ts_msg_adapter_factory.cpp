@@ -17,7 +17,7 @@ std::unique_ptr<TsMsgAdapter> TsMsgAdapterFactory::CreateAdapter(const char_t *m
         return nullptr;
     }
     const uint8_t version = FeatureCtrl::GetTsMsgVersion();
-    switch (version) {
+    switch (static_cast<uint8_t>(version)) {
         case VERSION_0: {
             const TsAicpuSqe* const sqe = PtrToPtr<const char_t, const TsAicpuSqe>(msg);
             return std::make_unique<TsAicpuSqeAdapter>(*sqe);
@@ -28,6 +28,7 @@ std::unique_ptr<TsMsgAdapter> TsMsgAdapterFactory::CreateAdapter(const char_t *m
         }
         default:
             aicpusd_err("Create adapter failed: unsupported_version=%u.", version);
+            break;
     }
     return nullptr;
 }
@@ -35,7 +36,7 @@ std::unique_ptr<TsMsgAdapter> TsMsgAdapterFactory::CreateAdapter(const char_t *m
 std::unique_ptr<TsMsgAdapter> TsMsgAdapterFactory::CreateAdapter() const
 {
     const uint8_t version = FeatureCtrl::GetTsMsgVersion();
-    switch (version) {
+    switch (static_cast<uint8_t>(version)) {
         case VERSION_0: {
             return std::make_unique<TsAicpuSqeAdapter>();
         }
@@ -44,6 +45,7 @@ std::unique_ptr<TsMsgAdapter> TsMsgAdapterFactory::CreateAdapter() const
         }
         default:
             aicpusd_err("Create adapter failed: unsupported_version=%u.", version);
+            break;
     }
     return nullptr;
 }

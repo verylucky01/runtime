@@ -53,94 +53,160 @@
   ```
 
 
-## 源码编译&部署
+## 环境部署
 
-### Runtime仓整包源码编译
+### 环境安装
 
-#### 前提条件
+#### 手动安装
+对于有昇腾设备的开发者，若您想手动搭建昇腾环境，请参考下述步骤。
 
-使用本项目前，请确保如下基础依赖、NPU驱动和固件已安装。
+##### 安装基础依赖
 
-1. **安装依赖**
+本项目基础依赖如下，请注意版本要求。
 
-    本项目源码编译用到的依赖如下，请注意版本要求。
+- python >= 3.7.0 (python 3.7 python3.8官方已经EOL，CANN将于2027年3月停止支持，请升级到>= 3.9.0版本)
+- pip3
+- gcc >= 7.3.0, <= 13
+- cmake >= 3.16.0
+- ccache
+- autoconf
+- gperf
+- libtool
+- make
 
-    - python >= 3.7.0 (python 3.7 python3.8官方已经EOL，CANN将于2027年3月停止支持，请升级到>= 3.9.0版本)
-    - pip3
-    - gcc >= 7.3.0, <= 13
-    - cmake >= 3.16.0
-    - ccache
-    - autoconf
-    - gperf
-    - libtool
-    - make
+ Ubuntu/Debian操作系统安装命令示例如下：
+```bash
+sudo apt install python3 python3-pip python3-dev gcc-9 g++-9 cmake ccache autoconf gperf libtool libtool-bin make
+```
+CentOS/EulerOS操作系统安装命令示例如下：
+```bash
+sudo yum install python3 python3-pip python3-devel gcc gcc-c++ cmake ccache autoconf gperf libtool make
+```
 
-    Ubuntu/Debian操作系统安装命令示例如下：
+##### 安装软件
+
+- **场景1：体验master版本能力或基于master版本进行开发**
+
+  1. **安装驱动与固件（可选，仅运行[样例](example/README.md)依赖）**
+   
+      若仅编译runtime包，可跳过本操作步骤。运行runtime样例时须安装驱动与固件。
+
+      下载和安装操作请参考《[CANN软件安装指南](https://www.hiascend.com/document/redirect/CannCommunityInstWizard)》中“准备软件包”和“安装NPU驱动和固件”章节。
+
+  2. **安装CANN包**
+
+      请单击[下载链接](https://ascend.devcloud.huaweicloud.com/artifactory/cann-run-mirror/software/master/)，选择最新时间版本，并根据产品型号和环境架构下载对应包。安装命令如下，更多指导参考《[CANN软件安装指南](https://www.hiascend.com/document/redirect/CannCommunityInstWizard)》。
+
+      - 安装CANN toolkit包
+
+        ```bash
+        # 确保安装包具有可执行权限
+        chmod +x Ascend-cann-toolkit_${cann_version}_linux-${arch}.run
+        # 安装命令
+        ./Ascend-cann-toolkit_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
+        ```
+        - `${cann_version}`：表示CANN包版本号。
+        - `${arch}`：表示CPU架构，如`aarch64`、`x86_64`。
+        - `${install_path}`：表示指定安装路径，需要与Toolkit包安装在相同路径，root用户默认安装在`/usr/local/Ascend`目录。
+  
+      - 安装CANN ops算子包（可选，仅运行[样例](example/README.md)依赖）。
+  
+        若仅编译runtime包，可跳过本操作步骤。运行runtime样例时须安装CANN ops算子包。
+
+        ```bash
+        # 确保安装包具有可执行权限
+        chmod +x Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run
+        # 安装命令
+        ./Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
+        ```
+        - `${soc_name}`表示NPU型号名称。
+
+          | 产品 | soc_name |
+          | --- | --- |
+          | Atlas A2 训练系列产品/Atlas A2 推理系列产品 | 910b |
+          | Atlas A3 训练系列产品/Atlas A3 推理系列产品 | A3 |
+          | Ascend 950PR/Ascend 950DT产品 | 950 |
+
+
+- **场景2：体验已发布版本能力或基于已发布版本进行开发**
+
+    请访问[CANN官网下载中心](https://www.hiascend.com/cann/download)，选择发布版本（仅支持CANN 8.5.0及后续版本）、产品型号和环境架构，参考CANN 快速安装指导完成安装。
+
+
+
+    
+### 环境验证
+
+安装完CANN包后，需验证环境和驱动是否正常。
+
+- **检查NPU设备**
+
     ```bash
-    sudo apt install python3 python3-pip python3-dev gcc-9 g++-9 cmake ccache autoconf gperf libtool libtool-bin make
-    ```
-    CentOS/EulerOS操作系统安装命令示例如下：
-    ```bash
-    sudo yum install python3 python3-pip python3-devel gcc gcc-c++ cmake ccache autoconf gperf libtool make
-    ```
-
-2. **安装驱动与固件（运行态依赖）**
-
-    若仅编译runtime包，可跳过本操作步骤。运行Runtime时必须安装驱动与固件。
-
-    单击[下载链接](https://www.hiascend.com/hardware/firmware-drivers/community)，根据实际产品型号和环境架构，获取对应的`Ascend-hdk-<chip_type>-npu-driver_<version>_linux-<arch>.run`、`Ascend-hdk-<chip_type>-npu-firmware_<version>.run`包。
-    安装指导详见《[CANN 软件安装指南](https://www.hiascend.com/document/redirect/CannCommunityInstSoftware)》。
-
-    通过如下方式验证驱动安装是否正常
-    ```bash
-    # 运行npu-smi, 若能正常显示设备信息，则驱动正常。
+    # 运行npu-smi，若能正常显示设备信息，则驱动正常
     npu-smi info
     ```
 
-#### 环境准备
+- **检查CANN版本**
 
-1. **安装CANN toolkit包**
-    
-    ***注意！*** 请根据实际环境架构和[release仓库](https://gitcode.com/cann/release-management)中的版本配套说明，获取对应的`Ascend-cann-toolkit_${cann_version}_linux-${arch}.run`包，否则可能存在版本不匹配的风险。[下载链接](https://ascend.devcloud.huaweicloud.com/artifactory/cann-run/software/)
+  ```bash
+    # 查看CANN Toolkit开发套件包的version字段提供的版本信息（默认路径安装），<arch>表示CPU架构（aarch64或x86_64）。
+    cat /usr/local/Ascend/cann/<arch>-linux/ascend_toolkit_install.info
+    # 查看CANN ops包版本信息（默认路径安装）
+    cat /usr/local/Ascend/cann/${arch}-linux/ascend_ops_install.info
+  ```
 
-    ```bash
-    # 确保安装包具有可执行权限
-    chmod +x Ascend-cann-toolkit_${cann_version}_linux-${arch}.run
-    # 安装命令
-    ./Ascend-cann-toolkit_${cann_version}_linux-${arch}.run --full --force --quiet --install-path=${install_path}
-    ```
-    - \$\{cann\_version\}：表示CANN包版本号。
-    - \$\{arch\}：表示CPU架构，如aarch64、x86_64。
-    - \$\{install\_path\}：表示指定安装路径，可选，root用户默认安装在`/usr/local/Ascend`目录，普通用户默认安装在当前目录。
 
-2. **配置环境变量**
-	
-	根据实际场景，选择合适的命令。
+## 源码构建
 
-    ```bash
-    # 默认路径安装，以root用户为例（非root用户，将/usr/local替换为${HOME}）  
-    source /usr/local/Ascend/cann/set_env.sh
-    # 指定路径安装
-    source ${install_path}/cann/set_env.sh
-    ```
+本项目支持源码构建，编译运行前需参考以上步骤完成环境部署。
 
-3. **下载源码**
-
+### 下载源码
+   
     ```bash
     # 下载项目源码，以master分支为例
     git clone https://gitcode.com/cann/runtime.git
     ```
 
-> [!NOTE] 注意
-> gitcode平台在使用HTTPS协议的时候要配置并使用个人访问令牌代替登录密码进行克隆，推送等操作。  
+### 环境变量配置
 
-若您的编译环境无法访问网络，由于无法通过`git`指令下载代码，须在联网环境中下载源码后，手动上传至目标环境。
-- 在联网环境中，进入[本项目主页](https://gitcode.com/cann/runtime.git), 通过`下载ZIP`或`clone`按钮，根据指导，完成源码下载。
-- 连接至离线环境中，上传源码至您指定的目录下。若下载的为源码压缩包，还需进行解压。
+按需选择合适的命令使环境变量生效。
 
-#### 开源第三方软件依赖
+```bash
+# 默认路径安装，以root用户为例（非root用户，将/usr/local替换为${HOME}）
+source /usr/local/Ascend/cann/set_env.sh
+# 指定路径安装
+source ${install_path}/cann/set_env.sh
+```
 
-Runtime在编译时，依赖的第三方开源软件列表如下：
+### 编译runtime包
+
+若您的编译环境可以访问网络，编译过程中将自动下载开源第三方软件，可以使用如下命令进行编译：
+
+```bash
+export CMAKE_TLS_VERIFY=0
+bash build.sh
+```
+
+若您的编译环境无法访问网络，可以直接调用脚本获取开源组件压缩包，脚本将自动下载至当前新建的 `third_party` 目录中：
+
+```bash
+python download_3rd_party.py
+```
+
+下载完成后，可以使用如下命令进行编译：
+```bash
+bash build.sh --cann_3rd_lib_path=third_party
+```
+更多编译参数可以通过`bash build.sh -h`查看。
+
+编译完成之后会在`build_out`目录下生成`cann-npu-runtime_<version>_linux-<arch>.run`软件包。
+\<version>表示版本号。
+\<arch>表示操作系统架构，取值包括x86_64与aarch64。
+
+
+**开源第三方软件依赖**
+
+runtime在编译时，依赖的第三方开源软件列表如下：
 
 | 开源软件 | 版本 | 下载地址 |
 |---|---|---|
@@ -163,31 +229,8 @@ Runtime在编译时，依赖的第三方开源软件列表如下：
 > [!NOTE]注意
 > 如果您从其他地址下载，请确保版本号一致。
 
-#### 编译安装
-
-若您的编译环境可以访问网络，编译过程中将自动下载上述开源第三方软件，可以使用如下命令进行编译：
-
-```bash
-export CMAKE_TLS_VERIFY=0
-bash build.sh
-```
-
-若您的编译环境无法访问网络，可以直接调用脚本获取开源组件压缩包，脚本将自动下载至当前新建的 `third_party` 目录中：
-
-```bash
-python download_3rd_party.py
-```
-
-下载完成后，可以使用如下命令进行编译：
-```bash
-bash build.sh --cann_3rd_lib_path=third_party
-```
-更多编译参数可以通过`bash build.sh -h`查看。
-
-编译完成之后会在`build_out`目录下生成`cann-npu-runtime_<version>_linux-<arch>.run`软件包。
-\<version>表示版本号。
-\<arch>表示操作系统架构，取值包括x86_64与aarch64。
-可执行如下命令安装编译生成的Runtime软件包。
+### 安装runtime包
+执行如下命令安装编译生成的runtime软件包。
 
 ```bash
 ./cann-npu-runtime_<version>_linux-<arch>.run --full --install-path=${install_path}
@@ -198,7 +241,7 @@ bash build.sh --cann_3rd_lib_path=third_party
 
 安装完成之后，用户编译生成的Runtime软件包会替换已安装CANN开发套件包中的Runtime相关软件。
                                        
-## 本地验证 
+### 本地验证 
 
 编译完成后，用户可以进行开发测试，验证项目功能是否正常，本节将介绍如何做单元测试(UT: Unit Testing)。
 > 说明：

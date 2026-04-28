@@ -16,22 +16,6 @@
 
 编译运行样例前，请先完成固件、驱动和 CANN 软件包安装，具体操作请参见仓库根目录的 [README](../README.md)。
 
-编译运行样例时依赖算子包，请完成`Ascend-cann-${soc_version}-ops_${cann_version}_linux-${arch}.run`包安装。[下载链接](https://ascend.devcloud.huaweicloud.com/artifactory/cann-run/software/)
-
-```bash
-# 确保安装包具有可执行权限
-chmod +x Ascend-cann-${soc_version}-ops_${cann_version}_linux-${arch}.run
-# 安装命令
-./Ascend-cann-${soc_version}-ops_${cann_version}_linux-${arch}.run --install --force --quiet --install-path=${install_path}
-# 以950为例
-# ./Ascend-cann-950-ops_9.0.0_linux-aarch64.run --install --force --quiet --install-path=${install_path}
-```
-  
-- \$\{soc\_version\}：表示NPU型号简写，如950等。
-- \$\{cann\_version\}：表示CANN包版本号。
-- \$\{arch\}：表示CPU架构，如aarch64、x86_64。
-- \$\{install\_path\}：表示指定安装路径，可选，root用户默认安装在`/usr/local/Ascend`目录，普通用户默认安装在当前目录。
-
 典型运行步骤如下：
 
 ```bash

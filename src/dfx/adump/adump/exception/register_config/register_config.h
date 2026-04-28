@@ -97,6 +97,10 @@ private:
     void GenAIVDbgAddr();
     void GenAICOffsetAddr();
     void GenAIVOffsetAddr();
+    std::vector<RegisterTable> GenAIVDbgSUAddr();
+    std::vector<RegisterTable> GenAIVDbgMTEAddr();
+    std::vector<RegisterTable> GenAIVDbgVECRBAddr();
+    std::vector<RegisterTable> GenAIVDbgOthersAddr();
 };
 
 class RegisterManager {

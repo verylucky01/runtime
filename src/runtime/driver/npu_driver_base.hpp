@@ -117,6 +117,7 @@ drvError_t __attribute__((weak)) halGetDeviceInfoByBuff(uint32_t devId, int modu
     int infoType, void *buf, int32_t *size);
 drvError_t __attribute__((weak)) halSetDeviceInfoByBuff(uint32_t devId, int32_t moduleType,
     int32_t infoType, void *buf, int32_t size);
+drvError_t __attribute__((weak)) halRepairFault(uint32_t devid, halRepairFaultInfo *info);
 drvError_t __attribute__((weak)) halShrIdSetPodPid(const char *name, uint32_t sdid, pid_t pid);
 drvError_t __attribute__((weak)) halParseSDID(uint32_t sdid, struct halSDIDParseInfo *sdid_parse);
 DVresult __attribute__((weak)) halShmemSetPodPid(const char *name, uint32_t sdid, int pid[], int num);

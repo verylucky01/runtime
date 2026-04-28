@@ -782,6 +782,13 @@ rtError_t NpuDriver::SetDeviceInfoByBuff(const uint32_t deviceId, const int32_t 
     return RT_ERROR_NONE;
 }
 
+rtError_t NpuDriver::L3PortRepair(const uint32_t deviceId, halRepairFaultInfo * const repairInfo)
+{
+    UNUSED(deviceId);
+    UNUSED(repairInfo);
+    return RT_ERROR_NONE;
+}
+
 rtError_t NpuDriver::GetDeviceAicpuStat(const uint32_t deviceId)
 {
     UNUSED(deviceId);

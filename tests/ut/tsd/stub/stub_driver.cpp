@@ -267,6 +267,12 @@ drvError_t halSetDeviceInfoByBuff(uint32_t deviceId, int32_t moduleType, int32_t
   }
 }
 
+drvError_t halRepairFault(uint32_t devid, halRepairFaultInfo *info) {
+  (void)devid;
+  (void)info;
+  return DRV_ERROR_NONE;
+}
+
 drvError_t halTsCmdlistMemMap(unsigned int devId, unsigned int tsId)
 {
     return DRV_ERROR_NONE;

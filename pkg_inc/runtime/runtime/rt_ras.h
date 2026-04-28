@@ -24,6 +24,7 @@ typedef enum {
     RT_ERROR_L2,
     RT_ERROR_AICORE,
     RT_ERROR_LINK,
+    RT_ERROR_L3_PORT,
     RT_ERROR_OTHERS = 0xFFFF, // other errors
 } rtErrType;
 

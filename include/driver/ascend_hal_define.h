@@ -1433,4 +1433,16 @@ struct hal_fault_event_resume {
     unsigned char node_id;
     unsigned char resv[9];  /* Confirmed with the driver, this field needs to be reserved due to alignment requirements. */
 };
+
+typedef enum {
+    HAL_REPAIR_FAULT_TYPE_UBMEM = 5,
+    HAL_REPAIR_FAULT_TYPE_MAX,
+} halRepairFaultType;
+
+typedef struct hal_repair_fault_info {
+    halRepairFaultType fault_type;
+    uint32_t payload_size;
+    uint8_t *payload;
+} halRepairFaultInfo;
+
 #endif

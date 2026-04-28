@@ -39,6 +39,7 @@ public:
     static void SetGlobalFailureErr(const uint32_t devId, const rtError_t errCode);
     static void SetGlobalErrToCtx(const rtError_t errCode);
     static void DeviceSetFaultType(const uint32_t devId, DeviceFaultType deviceFaultType);
+    static bool DeviceSetFaultTypeIfNoError(const uint32_t devId, DeviceFaultType deviceFaultType);
     static void DeviceGetStreamlist(int32_t devId, rtStreamlistType_t type, StreamList_t *stmList);
     static void DeviceGetModelList(int32_t devId, ModelList_t *mdlList);
     static bool CheckStreamPtrIsValid(Stream * const stm);

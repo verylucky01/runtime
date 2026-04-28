@@ -432,6 +432,7 @@ public:
     virtual uint32_t GetPageFaultBaseCnt() const = 0;
     virtual uint64_t GetPageFaultBaseTime() const = 0;
     virtual void SetDeviceFaultType(const DeviceFaultType type) = 0;
+    virtual bool SetDeviceFaultTypeIfNoError(const DeviceFaultType type) = 0;
     virtual DeviceFaultType GetDeviceFaultType()  const = 0;
     virtual void AddSimtPrintTlvCnt(uint64_t val) const = 0;
     virtual uint64_t GetSimtPrintTlvCnt() const = 0;

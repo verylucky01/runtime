@@ -142,6 +142,13 @@ drvError_t halSetDeviceInfoByBuff(uint32_t devId, int32_t moduleType,
     return DRV_ERROR_NONE;
 }
 
+drvError_t halRepairFault(uint32_t devid, halRepairFaultInfo *info)
+{
+    (void)devid;
+    (void)info;
+    return DRV_ERROR_NONE;
+}
+
 int64_t g_device_driver_version_stub = 1;
 void halSetDeviceInfoEncap(int32_t moduleType, int32_t infoType, int64_t value) {
     if (moduleType == MODULE_TYPE_SYSTEM && infoType == INFO_TYPE_VERSION) {

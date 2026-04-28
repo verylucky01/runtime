@@ -1352,6 +1352,16 @@ DLLEXPORT drvError_t halSetDeviceInfoByBuff(uint32_t devId, int32_t moduleType,
 
 /**
 * @ingroup driver
+* @brief This interface is used to invoke unified fault-repair hooks based on fault type.
+* @attention payload and payload_size are reserved for fault specific extension.
+* @param [in] devId device id
+* @param [in] info fault repair info
+* @return 0 success, others for fail
+*/
+DLLEXPORT drvError_t halRepairFault(uint32_t devid, halRepairFaultInfo *info);
+
+/**
+* @ingroup driver
 * @brief Get device info using physical device id
 * @attention each  moduleType  and infoType will get a different
 * if the type you input is not compatitable with the table below, then will return fail

@@ -333,6 +333,22 @@ void ContextManage::DeviceSetFaultType(const uint32_t devId, DeviceFaultType dev
     return;
 }
 
+bool ContextManage::DeviceSetFaultTypeIfNoError(const uint32_t devId, DeviceFaultType deviceFaultType)
+{
+    RT_LOG(RT_LOG_EVENT, "DeviceSetFaultTypeIfNoError start, device_id=%u", devId);
+    const ReadProtect wp(&g_ctxMan.GetSetRwLock());
+    bool setFaultFlag = false;
+    for (Context *const ctx : g_ctxMan.GetSetObj()) {
+        if (ctx != nullptr && ctx->Device_() != nullptr) {
+            COND_PROC((ctx->Device_()->Id_() != devId), continue);
+            if (ctx->Device_()->SetDeviceFaultTypeIfNoError(deviceFaultType)) {
+                setFaultFlag = true;
+            }
+        }
+    }
+    return setFaultFlag;
+}
+
 void ContextManage::DeviceGetStreamlist(int32_t devId, rtStreamlistType_t type, StreamList_t *stmList)
 {
     RT_LOG(RT_LOG_INFO, "start");

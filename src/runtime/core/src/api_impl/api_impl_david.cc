@@ -1856,6 +1856,10 @@ rtError_t ApiImplDavid::GetErrorVerbose(const uint32_t deviceId, rtErrorInfo * c
             errorInfo->errorType = RT_ERROR_LINK;
             errorInfo->tryRepair = 1U;
             break;
+        case DeviceFaultType::L3_PORT_ERROR:
+            errorInfo->errorType = RT_ERROR_L3_PORT;
+            errorInfo->tryRepair = 1U;
+            break;
         default:
             UnknowErrorProc(curCtx, errorInfo);
             break;
@@ -1895,6 +1899,31 @@ static rtError_t UBMemErrorResume(Device * const dev)
     return error;
 }
 
+static rtError_t L3PortRepairResume(Device * const dev)
+{
+    halRepairFaultInfo repairInfo = {};
+    repairInfo.fault_type = HAL_REPAIR_FAULT_TYPE_UBMEM;
+    const rtError_t error = NpuDriver::L3PortRepair(dev->Id_(), &repairInfo);
+    COND_RETURN_WARN(error == RT_ERROR_FEATURE_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT, 
+        "Not support l3 prot resume.");
+    COND_PROC((error != RT_ERROR_NONE),
+        RT_LOG(RT_LOG_ERROR, "l3 port err repair failed, deviceId=%u, retCode=%#x.",
+            dev->Id_(), static_cast<uint32_t>(error)));
+    dev->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
+    return error;
+}
+
+static void L3PortErrorStatusReset(Device * const dev)
+{
+    dev->SetDeviceStatus(RT_ERROR_NONE);
+    const WriteProtect wp(&ContextDataManage::Instance().GetSetRwLock());
+    for (Context *const ctx : ContextDataManage::Instance().GetSetObj()) {
+        COND_PROC((ctx->Device_()->Id_() != dev->Id_()), continue);
+        ctx->SetStreamsStatus(RT_ERROR_NONE);
+        ctx->SetFailureError(RT_ERROR_NONE);
+    }
+}
+
 rtError_t ApiImplDavid::RepairError(const uint32_t deviceId, const rtErrorInfo * const errorInfo)
 {
     rtError_t error = RT_ERROR_NONE;
@@ -1915,6 +1944,10 @@ rtError_t ApiImplDavid::RepairError(const uint32_t deviceId, const rtErrorInfo *
             break;
         case RT_ERROR_LINK:
             error = UBMemErrorResume(dev);
+            break;
+        case RT_ERROR_L3_PORT:
+            error = L3PortRepairResume(dev);
+            L3PortErrorStatusReset(dev);
             break;
         default:
             error = RT_ERROR_INVALID_VALUE;

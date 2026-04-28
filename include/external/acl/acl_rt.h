@@ -414,6 +414,7 @@ typedef enum {
     ACL_RT_ERROR_L2 = 2,
     ACL_RT_ERROR_AICORE = 3,
     ACL_RT_ERROR_LINK = 4,
+    ACL_RT_ERROR_L3_PORT = 5,
     ACL_RT_ERROR_OTHERS = 0xFFFF,
 } aclrtErrorType;
 

@@ -651,6 +651,7 @@ public:
         void * const buf, int32_t * const size);
     static rtError_t SetDeviceInfoByBuff(const uint32_t deviceId, const int32_t moduleType, const int32_t infoType,
         void * const buf, const int32_t size);
+    static rtError_t L3PortRepair(const uint32_t deviceId, halRepairFaultInfo * const repairInfo);
     drvError_t MemCopySyncAdapter(void * const dst, const uint64_t destMax, const void * const src,
         const uint64_t size, const rtMemcpyKind_t kind, const uint32_t devId) override;
     rtError_t ResourceReset(const uint32_t deviceId, const uint32_t tsId, drvIdType_t type) override;

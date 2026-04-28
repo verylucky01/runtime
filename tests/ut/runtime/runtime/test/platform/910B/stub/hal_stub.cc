@@ -166,6 +166,13 @@ drvError_t halSetDeviceInfoByBuff(uint32_t devId, int32_t moduleType,
     return DRV_ERROR_NONE;
 }
 
+drvError_t halRepairFault(uint32_t devid, halRepairFaultInfo *info)
+{
+    (void)devid;
+    (void)info;
+    return DRV_ERROR_NONE;
+}
+
 int64_t g_device_driver_version_stub = 1;
 int64_t g_device_driver_aicore_stub = 24;
 int64_t g_device_driver_vector_core_stub = 48;

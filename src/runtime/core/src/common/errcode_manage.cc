@@ -99,6 +99,7 @@ void ErrorcodeManage::InitRtErrCodeMap()
     rtErrMap_[RT_ERROR_DRV_COPY_USER_FAIL] = {ACL_ERROR_RT_COPY_DATA, "driver error:copy data fail"};
     rtErrMap_[RT_ERROR_DEVICE_MEM_ERROR] = {ACL_ERROR_RT_DEVICE_MEM_ERROR, "device mem error"};
     rtErrMap_[RT_ERROR_DEVICE_LINK_ERROR] = {ACL_ERROR_RT_LINK_ERROR, "device network link error"};
+    rtErrMap_[RT_ERROR_L3_PORT_ERROR] = {ACL_ERROR_RT_L3_PORT_ERROR, "device ub mem error"};
     rtErrMap_[RT_ERROR_SDMA_POISON_ERROR] = {ACL_ERROR_RT_DEVICE_MEM_ERROR, "device mem error"};
     rtErrMap_[RT_ERROR_LOCAL_MEM_ERROR] = {ACL_ERROR_RT_DEVICE_MEM_ERROR, "device local mem error"};
     rtErrMap_[RT_ERROR_REMOTE_MEM_ERROR] = {ACL_ERROR_RT_SUSPECT_REMOTE_ERROR, "device remote mem error"};

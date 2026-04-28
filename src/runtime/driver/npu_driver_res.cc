@@ -173,6 +173,22 @@ rtError_t NpuDriver::SetDeviceInfoByBuff(const uint32_t deviceId, const int32_t 
     return RT_GET_DRV_ERRCODE(drvRet);
 }
 
+rtError_t NpuDriver::L3PortRepair(const uint32_t deviceId, halRepairFaultInfo * const repairInfo)
+{
+    drvError_t drvRet = DRV_ERROR_NONE;
+
+    COND_RETURN_WARN(&halRepairFault == nullptr, RT_ERROR_FEATURE_NOT_SUPPORT,
+        "[drv api] halRepairFault does not exist");
+    drvRet = halRepairFault(deviceId, repairInfo);
+    COND_RETURN_WARN(drvRet == DRV_ERROR_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
+        "[drv api] halRepairFault does not support.");
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "[drv api] halRepairFault failed. drvRetCode=%d, device_id=%u.",
+            static_cast<int32_t>(drvRet), deviceId);
+    }
+    return RT_GET_DRV_ERRCODE(drvRet);
+}
+
 rtError_t NpuDriver::GetDeviceAicpuStat(const uint32_t deviceId)
 {
     COND_RETURN_INFO(halCheckProcessStatus == nullptr, RT_ERROR_NONE, "[drv api] halCheckProcessStatus does not exist.");

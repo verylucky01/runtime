@@ -62,6 +62,7 @@ constexpr uint32_t UB_POISON_ERROR_EVENT_ID = 0x81AF8009U;
 constexpr uint32_t HBM_ECC_NOTIFY_EVENT_ID = 0x80E18400U; // for ReadFaultEvent
 constexpr uint32_t HBM_ECC_EVENT_ID = 0x80E01801U;
 constexpr uint32_t L2_BUFFER_ECC_EVENT_ID = 0x80CD8008U;
+constexpr uint32_t UB_MEM_NETWORK_EXCEPTION_EVENT_ID = 0x81AFAA06U;
 constexpr uint16_t RT_DSM_EVENT_FILTER_FLAG_EVENT_ID = 1U;
 constexpr uint16_t READ_FAULT_EVENT_TIMEOUT = 1000U;
 
@@ -910,6 +911,8 @@ private:
     rtError_t GetEnvPath(std::string &binaryPath) const;
     rtError_t GetDcacheLockMixOpPath(std::string &dcacheLockMixOpPath) const;
     void ReportHBMRasProc();
+    void ReportUBMemRasProc();
+    void ProcUBMemNetworkException(const uint32_t devId, const rtDmsFaultEvent *faultEventInfo, uint32_t eventCount);
     void ProcHBMRas(const uint32_t devId);
     void ReportPageFaultProc();
     void ProcPageFault(Device * const device, const uint32_t value);

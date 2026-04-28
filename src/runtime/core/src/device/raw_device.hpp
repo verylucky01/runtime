@@ -174,6 +174,15 @@ public:
         deviceFaultType_.Set(type);
     }
 
+    bool SetDeviceFaultTypeIfNoError(const DeviceFaultType type) override
+    {
+        if (deviceFaultType_.Value() == DeviceFaultType::NO_ERROR) {
+            deviceFaultType_.Set(type);
+            return true;
+        }
+        return false;
+    }
+
     DeviceFaultType GetDeviceFaultType() const override
     {
         return deviceFaultType_.Value();

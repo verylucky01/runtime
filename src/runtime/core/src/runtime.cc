@@ -48,6 +48,7 @@
 #include "runtime_keeper.h"
 #include "utils.h"
 #include "device.hpp"
+#include "device_error_proc.hpp"
 #include "api_impl_creator.hpp"
 #include "dev_info_manage.h"
 #include "soc_info.h"
@@ -4961,7 +4962,6 @@ void Runtime::ReportRasRun(void)
             static_cast<int32_t>(GetChipType()));
         return;
     }
-
     GlobalStateManager::GetInstance().IncBackgroundThreadCount(__func__);
     while (hbmRasThreadRunFlag_ && !isExiting_ && threadGuard_->GetMonitorStatus()) {
         GlobalStateManager::GetInstance().BackgroundThreadWaitIfLocked(__func__);
@@ -4971,6 +4971,7 @@ void Runtime::ReportRasRun(void)
         if (pageFaultSupportFlag_) {
             ReportPageFaultProc();
         }
+        ReportUBMemRasProc();
         (void)mmSleep(10U); // 每10ms进行一次检测
     }
     GlobalStateManager::GetInstance().DecBackgroundThreadCount(__func__);
@@ -5046,6 +5047,45 @@ void Runtime::ReportHBMRasProc(void)
         SetRasInfo(dmsEvent.deviceId, 0U);
     } else {
         // no op
+    }
+}
+
+void Runtime::ReportUBMemRasProc()
+{
+    constexpr uint32_t maxFaultNum = 128U;
+    rtDmsFaultEvent *faultEventInfo = new (std::nothrow)rtDmsFaultEvent[maxFaultNum];
+    COND_RETURN_VOID((faultEventInfo == nullptr), "new rtDmsFaultEvent failed.");
+    const size_t totalSize = maxFaultNum * sizeof(rtDmsFaultEvent);
+    (void)memset_s(faultEventInfo, totalSize, 0, totalSize);
+
+    const std::function<void()> releaseFunc = [&faultEventInfo]() { DELETE_A(faultEventInfo); };
+    ScopeGuard faultEventInfoRelease(releaseFunc);
+
+    for (uint32_t devId = 0U; devId < RT_MAX_DEV_NUM; devId++) {
+        Device *dev = GetDevice(devId, 0U, false);
+        if (dev == nullptr || dev->IsDeviceRelease()) {
+            continue;
+        }
+        uint32_t eventCount = 0U;
+        rtError_t error = GetDeviceFaultEvents(devId, faultEventInfo, eventCount, maxFaultNum);
+        if (error != RT_ERROR_NONE) {
+            continue;
+        }
+        ProcUBMemNetworkException(devId, faultEventInfo, eventCount);
+    }
+}
+
+void Runtime::ProcUBMemNetworkException(const uint32_t devId, const rtDmsFaultEvent *faultEventInfo, uint32_t eventCount)
+{
+    for (uint32_t faultIndex = 0U; faultIndex < eventCount; faultIndex++) {
+        if (faultEventInfo[faultIndex].eventId == UB_MEM_NETWORK_EXCEPTION_EVENT_ID) {
+            if (ContextManage::DeviceSetFaultTypeIfNoError(devId, DeviceFaultType::L3_PORT_ERROR)) {
+                ContextManage::SetGlobalFailureErr(devId, RT_ERROR_L3_PORT_ERROR);
+                RT_LOG(RT_LOG_INFO, "set fault type for ub mem, device id=%u, event id=0x%x.",
+                    devId, faultEventInfo[faultIndex].eventId);
+            }
+            break;
+        }
     }
 }
 

@@ -7654,6 +7654,223 @@ TEST_F(ApiDavidTest, rtsRepairErrorForAicError)
     GlobalContainer::SetRtChipType(type);
 }
 
+TEST_F(ApiDavidTest, rtsRepairErrorForL3PortError)
+{
+    rtError_t error;
+    rtErrorInfo errorInfo = {};
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    rtChipType_t type = rtInstance->chipType_;
+
+    rtInstance->SetChipType(CHIP_MINI);
+    GlobalContainer::SetRtChipType(CHIP_MINI);
+    error = rtsGetErrorVerbose(0, &errorInfo);
+    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    error = rtsRepairError(0, &errorInfo);
+    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+
+    rtInstance->SetChipType(CHIP_DAVID);
+    GlobalContainer::SetRtChipType(CHIP_DAVID);
+    Device *device = rtInstance->DeviceRetain(0, 0);
+    device->SetDeviceFaultType(DeviceFaultType::L3_PORT_ERROR);
+    error = rtsGetErrorVerbose(0, &errorInfo);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(errorInfo.errorType, RT_ERROR_L3_PORT);
+    EXPECT_EQ(errorInfo.tryRepair, 1);
+
+    MOCKER(halRepairFault)
+        .stubs()
+        .will(returnValue(DRV_ERROR_NONE));
+
+    error = rtsRepairError(0, &errorInfo);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
+    GlobalMockObject::verify();
+    rtInstance->chipType_ = type;
+    GlobalContainer::SetRtChipType(type);
+}
+
+static drvError_t stubhalRepairFaultNotSupport(uint32_t devid, halRepairFaultInfo *info)
+{
+    (void)devid;
+    (void)info;
+    return DRV_ERROR_NOT_SUPPORT;
+}
+
+static drvError_t stubhalRepairFaultFailed(uint32_t devid, halRepairFaultInfo *info)
+{
+    (void)devid;
+    (void)info;
+    return DRV_ERROR_INVALID_VALUE;
+}
+
+TEST_F(ApiDavidTest, rtsRepairErrorForL3PortError_NotSupport)
+{
+    rtError_t error;
+    rtErrorInfo errorInfo = {};
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    rtChipType_t type = rtInstance->chipType_;
+
+    rtInstance->SetChipType(CHIP_DAVID);
+    GlobalContainer::SetRtChipType(CHIP_DAVID);
+    Device *device = rtInstance->DeviceRetain(0, 0);
+    device->SetDeviceFaultType(DeviceFaultType::L3_PORT_ERROR);
+    GlobalMockObject::verify();
+
+    error = rtsGetErrorVerbose(0, &errorInfo);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(errorInfo.errorType, RT_ERROR_L3_PORT);
+
+    MOCKER(halRepairFault)
+        .stubs()
+        .will(invoke(stubhalRepairFaultNotSupport));
+
+    error = rtsRepairError(0, &errorInfo);
+    EXPECT_EQ(error, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+
+    GlobalMockObject::verify();
+    rtInstance->chipType_ = type;
+    GlobalContainer::SetRtChipType(type);
+    device->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
+}
+
+TEST_F(ApiDavidTest, rtsRepairErrorForL3PortError_Failed)
+{
+    rtError_t error;
+    rtErrorInfo errorInfo = {};
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    rtChipType_t type = rtInstance->chipType_;
+
+    rtInstance->SetChipType(CHIP_DAVID);
+    GlobalContainer::SetRtChipType(CHIP_DAVID);
+    Device *device = rtInstance->DeviceRetain(0, 0);
+    device->SetDeviceFaultType(DeviceFaultType::L3_PORT_ERROR);
+    GlobalMockObject::verify();
+
+    error = rtsGetErrorVerbose(0, &errorInfo);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    EXPECT_EQ(errorInfo.errorType, RT_ERROR_L3_PORT);
+
+    MOCKER(halRepairFault)
+        .stubs()
+        .will(invoke(stubhalRepairFaultFailed));
+
+    error = rtsRepairError(0, &errorInfo);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+
+    GlobalMockObject::verify();
+    rtInstance->chipType_ = type;
+    GlobalContainer::SetRtChipType(type);
+    device->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
+}
+
+static drvError_t stubhalGetFaultEventUBMem(uint32_t devId, struct halEventFilter* filter,
+    struct halFaultEventInfo* eventInfo, uint32_t len, uint32_t *eventCount)
+{
+    *eventCount = 1;
+    eventInfo[0].event_id = UB_MEM_NETWORK_EXCEPTION_EVENT_ID;
+    eventInfo[0].deviceid = 0;
+    return DRV_ERROR_NONE;
+}
+
+TEST_F(ApiDavidTest, ReportUBMemRasProc_FindEvent)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    Device *device = rtInstance->DeviceRetain(0, 0);
+
+    DeviceFaultType originalFaultType = device->GetDeviceFaultType();
+    rtError_t originalDeviceStatus = device->GetDeviceStatus();
+
+    device->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
+    device->SetDeviceStatus(RT_ERROR_NONE);
+    GlobalMockObject::verify();
+
+    MOCKER(halGetFaultEvent)
+        .stubs()
+        .will(invoke(stubhalGetFaultEventUBMem));
+
+    rtInstance->ReportUBMemRasProc();
+
+    GlobalMockObject::verify();
+
+    device->SetDeviceFaultType(originalFaultType);
+    device->SetDeviceStatus(originalDeviceStatus);
+}
+
+TEST_F(ApiDavidTest, ReportUBMemRasProc_GetEventFailed)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    Device *device = rtInstance->DeviceRetain(0, 0);
+
+    DeviceFaultType originalFaultType = device->GetDeviceFaultType();
+    rtError_t originalDeviceStatus = device->GetDeviceStatus();
+
+    device->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
+    device->SetDeviceStatus(RT_ERROR_NONE);
+    GlobalMockObject::verify();
+
+    MOCKER(halGetFaultEvent)
+        .stubs()
+        .will(returnValue(DRV_ERROR_INVALID_VALUE));
+
+    rtInstance->ReportUBMemRasProc();
+
+    GlobalMockObject::verify();
+
+    device->SetDeviceFaultType(originalFaultType);
+    device->SetDeviceStatus(originalDeviceStatus);
+}
+
+TEST_F(ApiDavidTest, ReportUBMemRasProc_FeatureNotSupported)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    rtChipType_t originalChipType = rtInstance->GetChipType();
+    rtInstance->chipType_ = CHIP_END;
+    GlobalContainer::SetRtChipType(CHIP_END);
+    GlobalMockObject::verify();
+    rtInstance->ReportUBMemRasProc();
+    GlobalMockObject::verify();
+    rtInstance->chipType_ = originalChipType;
+    GlobalContainer::SetRtChipType(originalChipType);
+}
+
+TEST_F(ApiDavidTest, DeviceSetFaultTypeIfNoError_Success)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    Device *device = rtInstance->DeviceRetain(0, 0);
+    
+    DeviceFaultType originalFaultType = device->GetDeviceFaultType();
+    
+    device->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
+    GlobalMockObject::verify();
+
+    bool result = ContextManage::DeviceSetFaultTypeIfNoError(0, DeviceFaultType::L3_PORT_ERROR);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(device->GetDeviceFaultType(), DeviceFaultType::L3_PORT_ERROR);
+
+    GlobalMockObject::verify();
+    
+    device->SetDeviceFaultType(originalFaultType);
+}
+
+TEST_F(ApiDavidTest, DeviceSetFaultTypeIfNoError_NoChange)
+{
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    Device *device = rtInstance->DeviceRetain(0, 0);
+    
+    DeviceFaultType originalFaultType = device->GetDeviceFaultType();
+    
+    device->SetDeviceFaultType(DeviceFaultType::AICORE_UNKNOWN_ERROR);
+    GlobalMockObject::verify();
+
+    bool result = ContextManage::DeviceSetFaultTypeIfNoError(0, DeviceFaultType::L3_PORT_ERROR);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(device->GetDeviceFaultType(), DeviceFaultType::AICORE_UNKNOWN_ERROR);
+
+    GlobalMockObject::verify();
+    
+    device->SetDeviceFaultType(originalFaultType);
+}
+
 TEST_F(ApiDavidTest, captureEvent4)
 {
     rtContext_t current = NULL;
@@ -7919,6 +8136,7 @@ TEST_F(ApiDavidTest, captureStreamCascade)
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtEventDestroy(event);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
+    GlobalMockObject::verify();
 }
 
 TEST_F(ApiDavidTest, captureReduceAsync)
@@ -7975,6 +8193,7 @@ TEST_F(ApiDavidTest, captureReduceAsync)
     EXPECT_EQ(error, RT_ERROR_NONE);
     error = rtStreamDestroy(stream1);
     EXPECT_EQ(error, RT_ERROR_NONE);
+    GlobalMockObject::verify();
 }
 
 TEST_F(ApiDavidTest, TestSendNopTask)
@@ -9443,6 +9662,7 @@ TEST_F(ApiDavidTest, rtsValueWait_failed)
 
     error = rtFree(devPtr);
     EXPECT_EQ(error, RT_ERROR_NONE);
+    GlobalMockObject::verify();
 }
 
 TEST_F(ApiDavidTest, rtStreamAbort_01) {

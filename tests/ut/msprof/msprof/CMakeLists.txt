@@ -147,6 +147,7 @@ set(profilerSrcFile
     test/main.cpp
     #test/msprof_reporter_utest.cpp
     #test/prof_acl_core_utest.cpp
+    test/sigint_handler_utest.cpp
     test/platform_utest.cpp
     test/msprof_dynamic_utest.cpp
     test/msprofiler_adapter_utest.cpp

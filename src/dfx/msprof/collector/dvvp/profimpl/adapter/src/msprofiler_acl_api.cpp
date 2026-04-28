@@ -43,10 +43,6 @@ using namespace Analysis::Dvvp::Common::Config;
 using namespace Dvvp::Collect::Report;
 using namespace Analysis::Dvvp::Host::Adapter;
 
-using ProfSignalHandler = void (*)(int);
-
-static ProfSignalHandler oldSigHandler = nullptr;
-
 std::mutex g_profMutex;
 std::map<uint32_t, std::string> g_subscribeTypeMap = {
     {ACL_API_TYPE, "acl"},
@@ -235,35 +231,8 @@ aclError ProfWarmup(ProfType type, PROF_CONFIG_CONST_PTR profilerConfig)
     return ACL_SUCCESS;
 }
 
-static void newSigHandler(int signum) {
-    MSPROF_LOGI("Msprof receive ctrl C signal. signum:%d, exiting now.", signum);
-    MSPROF_LOGI("Msprof SignalHandler start");
-    PROF_CONFIG_CONST_PTR config = ProfSetDefaultConfig();
-    aclError aclRet = ProfStop(ACL_API_TYPE, config);
-    if (aclRet == ACL_SUCCESS) {
-        MSPROF_LOGI("Msprof SignalHandler ok");
-    } else {
-        MSPROF_LOGE("Msprof SignalHandler failed");
-    }
-    
-    if(oldSigHandler && oldSigHandler != SIG_IGN) {
-        MSPROF_LOGI("old SignalHandler start");
-        oldSigHandler(signum);
-        MSPROF_LOGI("old SignalHandler end");
-    }
-}
-
-static void RegisterSiganlHandler(void ) {
-    oldSigHandler = signal(SIGINT, newSigHandler);
-    MSPROF_LOGI("RegisterSiganlHandler done");
-    if(oldSigHandler && oldSigHandler != SIG_IGN) {
-        MSPROF_LOGI("Store oldSigHandler");
-    }
-}
-
 aclError ProfStart(ProfType type, PROF_CONFIG_CONST_PTR profilerConfig)
 {
-    RegisterSiganlHandler();
     PROF_CONFIG_CONST_PTR config = profilerConfig;
     if (profilerConfig == nullptr) {
         config = ProfSetDefaultConfig();

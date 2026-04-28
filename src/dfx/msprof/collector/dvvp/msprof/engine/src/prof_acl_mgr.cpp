@@ -11,6 +11,11 @@
 #include "prof_acl_mgr.h"
 #include <iomanip>
 #include <algorithm>
+#include <thread>
+#include <csignal>
+#include <cstring>
+#include <memory>
+#include "osal.h"
 #include "config/config.h"
 #include "config_manager.h"
 #include "errno/error_code.h"
@@ -54,9 +59,6 @@ using namespace Analysis::Dvvp::JobWrapper;
 using namespace Analysis::Dvvp::MsprofErrMgr;
 using namespace Analysis::Dvvp::ProfilerCommon;
 using namespace Collector::Dvvp::Mstx;
-using ProfSignalHandler = void (*)(int);
-
-static ProfSignalHandler oldSigHandler = nullptr;
 
 namespace Msprofiler {
 namespace Api {
@@ -274,21 +276,124 @@ bool ProfAclMgr::IsPureCpuMode()
     return false;
 }
 
-static ProfAclMgr* profAclMgrObjPtr = NULL;
+static ProfAclMgr*           profAclMgrObjPtr      = NULL;
+static std::mutex            g_sigHandlerMtx;
+static bool                  g_sigHandlerRegistered = false;
+static volatile sig_atomic_t g_sigintReceived       = 0;  // 信号处理使用，符合 POSIX async-signal-safe
+static std::atomic<bool>     g_sigWatcherQuit{false};  // 改为 atomic 以符合 C++ 内存模型
+static std::unique_ptr<std::thread> g_sigWatcherThread;
+static struct sigaction oldSigAction;
 
-static void newSigHandler(int signum) {
+// forward declaration: SigintWatcherThread references newSigHandler by address
+static void newSigHandler(int signum);
+
+static void SigintWatcherThread()
+{
+    MSPROF_LOGI("SigintWatcherThread started");
+    while (g_sigintReceived == 0 && !g_sigWatcherQuit.load()) {
+        OsalSleep(10);
+    }
+    if (g_sigWatcherQuit.load()) {
+        MSPROF_LOGI("SigintWatcherThread: normal quit");
+        return;
+    }
+    int signum = static_cast<int>(g_sigintReceived);
+    MSPROF_LOGI("SigintWatcherThread: received signal %d, calling MsprofFinalizeHandle", signum);
     if (profAclMgrObjPtr != NULL) {
-        profAclMgrObjPtr->MsprofFinalizeHandle();
+        (void)profAclMgrObjPtr->MsprofFinalizeHandle();
     }
-    if(oldSigHandler && oldSigHandler != SIG_IGN && oldSigHandler != newSigHandler) {
-        oldSigHandler(signum);
+    if (oldSigAction.sa_handler == SIG_DFL) {
+        struct sigaction defaultAction;
+        (void)memset_s(&defaultAction, sizeof(defaultAction), 0, sizeof(defaultAction));
+        defaultAction.sa_handler = SIG_DFL;
+        sigemptyset(&defaultAction.sa_mask);
+        if (sigaction(signum, &defaultAction, nullptr) != 0) {
+            MSPROF_LOGE("Failed to restore SIG_DFL handler");
+        }
+        raise(signum);
+    } else if (oldSigAction.sa_handler != nullptr && oldSigAction.sa_handler != SIG_IGN) {
+        if (sigaction(signum, &oldSigAction, nullptr) != 0) {
+            MSPROF_LOGE("Failed to restore custom SIGINT handler");
+        }
+        raise(signum);
     }
+    MSPROF_LOGI("SigintWatcherThread exited");
 }
 
-static void RegisterSiganlHandler(ProfAclMgr* ptr) {
-    if (oldSigHandler != NULL) return;
-    oldSigHandler = signal(SIGINT, newSigHandler);
+static void UnregisterSigalHandler()
+{
+    std::lock_guard<std::mutex> lk(g_sigHandlerMtx);
+    if (!g_sigHandlerRegistered) {
+        return;
+    }
+    // 使用 sigaction 恢复原始信号处理器
+    if (sigaction(SIGINT, &oldSigAction, nullptr) != 0) {
+        MSPROF_LOGE("Failed to restore SIGINT handler");
+    }
+
+    g_sigWatcherQuit.store(true);
+    if (g_sigWatcherThread != nullptr) {
+        if (g_sigWatcherThread->joinable()) {
+            g_sigWatcherThread->join();
+        }
+        g_sigWatcherThread.reset();
+    }
+    profAclMgrObjPtr       = NULL;
+    g_sigHandlerRegistered = false;
+    g_sigintReceived       = 0;
+    g_sigWatcherQuit.store(false);
+    MSPROF_LOGI("UnregisterSigalHandler done");
+}
+
+static void newSigHandler(int signum)
+{
+    // Only sig_atomic_t assignment: async-signal-safe per POSIX
+    // Actual finalize is done by SigintWatcherThread in normal thread context
+    g_sigintReceived = static_cast<sig_atomic_t>(signum);
+}
+
+static void RegisterSiganlHandler(ProfAclMgr* ptr)
+{
+    std::lock_guard<std::mutex> lk(g_sigHandlerMtx);
+    if (g_sigHandlerRegistered) {
+        MSPROF_LOGI("SIGINT handler already registered, skip");
+        return;
+    }
+
+    // 步骤1: 先创建线程（可能失败）
+    try {
+        g_sigWatcherThread = std::make_unique<std::thread>(SigintWatcherThread);
+    } catch (const std::system_error& e) {
+        MSPROF_LOGE("Failed to create SigintWatcherThread: %s", e.what());
+        return;
+    } catch (...) {
+        MSPROF_LOGE("Failed to create SigintWatcherThread: unknown error");
+        return;
+    }
+
+    // 步骤2: 设置对象指针
     profAclMgrObjPtr = ptr;
+
+    // 步骤3: 使用 sigaction 注册信号处理器
+    struct sigaction newAction;
+    (void)memset_s(&newAction, sizeof(newAction), 0, sizeof(newAction));
+    newAction.sa_handler = newSigHandler;
+    (void)sigemptyset(&newAction.sa_mask);
+
+    if (sigaction(SIGINT, &newAction, &oldSigAction) != 0) {
+        MSPROF_LOGE("Failed to register SIGINT handler");
+        // 清理：停止线程并删除
+        g_sigWatcherQuit.store(true);
+        if (g_sigWatcherThread != nullptr && g_sigWatcherThread->joinable()) {
+            g_sigWatcherThread->join();
+        }
+        g_sigWatcherThread.reset();
+        profAclMgrObjPtr = nullptr;
+        return;
+    }
+
+    // 步骤4: 标记已注册
+    g_sigHandlerRegistered = true;
     MSPROF_LOGI("RegisterSiganlHandler done");
 }
 
@@ -315,6 +420,7 @@ int32_t ProfAclMgr::Init()
 
 int32_t ProfAclMgr::UnInit()
 {
+    UnregisterSigalHandler();
     params_ = nullptr;
     devTasks_.clear();
     isReady_ = false;
@@ -1991,9 +2097,7 @@ int32_t ProfAclMgr::MsprofFinalizeHandle(void)
         MSPROF_LOGW("Finalize profiling not common or aclapi task.");
         return MSPROF_ERROR_NONE;
     }
-
     DoFinalizeHandle();
-
     MSPROF_EVENT("Finalize profiling");
     UploaderMgr::instance()->SetAllUploaderTransportStopped();
     std::lock_guard<std::mutex> lk(mtx_);

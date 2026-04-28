@@ -108,6 +108,7 @@ void ErrorcodeManage::InitRtErrCodeMap()
     rtErrMap_[RT_ERROR_MEM_RAS_ERROR] = {ACL_ERROR_RT_HBM_MULTI_BIT_ECC_ERROR, "hbm Multi-bit ECC error"};
     rtErrMap_[RT_ERROR_SUSPECT_DEVICE_MEM_ERROR] = {ACL_ERROR_RT_SUSPECT_DEVICE_MEM_ERROR, "suspect device mem error"};
     rtErrMap_[RT_ERROR_SUSPECT_REMOTE_ERROR] = {ACL_ERROR_RT_SUSPECT_REMOTE_ERROR, "suspect remote error"};
+    rtErrMap_[RT_ERROR_DRV_TIMEOUT] = {ACL_ERROR_RT_TIMEOUT, "driver timeout"};
 
     // stream error
     rtErrMap_[RT_ERROR_STREAM_BASE] = {ACL_ERROR_RT_INTERNAL_ERROR, "stream base error"};
@@ -557,6 +558,7 @@ void ErrorcodeManage::InitDrvErrCodeMap()
     drvErrMap_[DRV_ERROR_NO_RESOURCES] = RT_ERROR_DRV_NO_RESOURCES;
     drvErrMap_[DRV_ERROR_COPY_USER_FAIL] = RT_ERROR_DRV_COPY_USER_FAIL;
     drvErrMap_[DRV_ERROR_MEMORY_OPT_FAIL] = RT_ERROR_DRV_MEMORY_OPT_FAIL;
+    drvErrMap_[DRV_ERROR_RESUME] = RT_ERROR_DRV_TIMEOUT;
 }
 
 RtInnerErrcodeType ErrorcodeManage::GetDrvErrCode(const DrvErrcodeType drvErrcode)

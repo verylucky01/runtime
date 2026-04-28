@@ -80,6 +80,7 @@ extern "C" {
 #define  ACL_ERROR_RT_OVER_FLOW                  207017 // common over flow
 #define  ACL_ERROR_RT_DEVICE_OOM                 207018 // device oom
 #define  ACL_ERROR_RT_FEATURE_NOT_SUPPORT_UPDATE_OP 207019 // not support to update this op 
+#define  ACL_ERROR_RT_TIMEOUT                    207020 // driver timeout
 
 #define  ACL_ERROR_RT_INTERNAL_ERROR             507000 // runtime internal error
 #define  ACL_ERROR_RT_TS_ERROR                   507001 // ts internel error

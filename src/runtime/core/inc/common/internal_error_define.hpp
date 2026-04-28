@@ -98,6 +98,8 @@ constexpr int32_t RT_ERROR_DRV_NO_RESOURCES         = 0x07020023;
 constexpr int32_t RT_ERROR_DRV_COPY_USER_FAIL       = 0x07020024;
 constexpr int32_t RT_ERROR_DRV_MEMORY_OPT_FAIL      = 0x07020025;
 constexpr int32_t RT_ERROR_DRV_NOT_SUPPORT_UPDATE_OP = 0x07020026;
+constexpr int32_t RT_ERROR_DRV_TIMEOUT              = 0x07020027;
+
 constexpr int32_t RT_ERROR_DEVICE_MEM_ERROR         = 0x07010026;
 constexpr int32_t RT_ERROR_SDMA_POISON_ERROR        = 0x07010027;
 constexpr int32_t RT_ERROR_MEM_RAS_ERROR            = 0x07010028;

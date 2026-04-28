@@ -8646,6 +8646,9 @@ TEST_F(ApiDavidTest, StreamLaunchKernel_aclgraph_update)
     error = impl.KernelLaunch(&function_, 1 /* coredim */, &wwargsInfo, stream, 0, nullptr, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
+    error = rtDevBinaryUnRegister(binHandle_);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
     delete stream;
     delete capStream;
     delete mdl;

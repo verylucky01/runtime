@@ -2555,6 +2555,8 @@ TEST_F(ApiTest, kernel_trans_arg)
 
     error = rtKernelConfigTransArg(&error, 128, 0, &arg);
     EXPECT_EQ(error, RT_ERROR_NONE);
+
+    rtDevBinaryUnRegister(binHdl);
 }
 
 
@@ -3441,6 +3443,8 @@ TEST_F(ApiTest, LAUNCH_KERNEL_TEST_1)
 
     error = rtStreamSynchronize(stream_);
     EXPECT_EQ(error, RT_ERROR_NONE);
+
+    rtDevBinaryUnRegister(binHdl);
 }
 
 TEST_F(ApiTest, LAUNCH_KERNEL_TEST_3)
@@ -4159,6 +4163,8 @@ TEST_F(ApiTest, kernel_launch_with_onlineprof_dulstart)
 
     error = rtStopOnlineProf(stream_);
     EXPECT_EQ(error, ACL_RT_SUCCESS);
+
+    rtDevBinaryUnRegister(binHdl);
 }
 
 

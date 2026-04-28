@@ -334,6 +334,9 @@ TEST_F(ChipModelTest, l1fusiondumpaddrset)
     error = rtFree(dumpAddr);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
+    error = rtDevBinaryUnRegister(binHandle_);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
     error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 

@@ -725,6 +725,9 @@ TEST_F(CloudV2ApiTest, LAUNCH_KERNEL_WITH_TYPE)
 
     stub_func = (void *)0x12345;
     error = rtFunctionRegister(binHandle_, stub_func, "stub_func1", "foo", (3 << 16)); // mix aic && aiv
+
+    error = rtDevBinaryUnRegister(binHandle_);
+    EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
 TEST_F(CloudV2ApiTest, GetDevArgsAddr)
@@ -3253,6 +3256,7 @@ TEST_F(CloudV2ApiTest, apiImpl_datadump_loadinfo)
     error = rtStreamEndCapture(stream, &m);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
+    error = rtDevBinaryUnRegister(binHandle_);
     error = rtModelDestroy(m);
     error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);

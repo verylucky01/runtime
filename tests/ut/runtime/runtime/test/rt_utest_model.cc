@@ -789,6 +789,9 @@ TEST_F(ModelTest, datadumploadinfo)
     error = rtKernelLaunchWithFlag(&function_, 1, &argsInfo, NULL, stream, 0);
     EXPECT_EQ(error, RT_ERROR_NONE);
 
+    error = rtDevBinaryUnRegister(binHandle_);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+
     error = rtModelDestroy(model);
     EXPECT_EQ(error, RT_ERROR_NONE);
 

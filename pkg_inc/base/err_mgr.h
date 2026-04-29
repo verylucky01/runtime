@@ -46,14 +46,14 @@ struct ErrMsgRawItem {
  * @return int32_t 0(success) -1(fail)
  */
 GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
-int32_t ErrMgrInit(ErrorMessageMode error_mode) WEAK_SYMBOL;
+int32_t ErrMgrInit(ErrorMessageMode error_mode);
 
 /**
  * @brief Get Error manager context
  * @return An error manager context
  */
 GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
-ErrorManagerContext GetErrMgrContext() WEAK_SYMBOL;
+ErrorManagerContext GetErrMgrContext();
 
 /**
  * @brief Set Error manager context
@@ -61,28 +61,28 @@ ErrorManagerContext GetErrMgrContext() WEAK_SYMBOL;
  * @return void
  */
 GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
-void SetErrMgrContext(ErrorManagerContext error_context) WEAK_SYMBOL;
+void SetErrMgrContext(ErrorManagerContext error_context);
 
 /**
  * @brief Get error message from error manager
  * @return unique_const_char_array, error message
  */
 GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
-unique_const_char_array GetErrMgrErrorMessage() WEAK_SYMBOL;
+unique_const_char_array GetErrMgrErrorMessage();
 
 /**
  * @brief Get warning message from error manager
  * @return unique_const_char_array, warning message
  */
 GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
-unique_const_char_array GetErrMgrWarningMessage() WEAK_SYMBOL;
+unique_const_char_array GetErrMgrWarningMessage();
 
 /**
  * @brief Get raw error message from error manager
  * @return the complete info of the error message
  */
 GE_FUNC_HOST_VISIBILITY GE_FUNC_DEV_VISIBILITY
-std::vector<ErrMsgRawItem> GetErrMgrRawErrorMessages() WEAK_SYMBOL;
+std::vector<ErrMsgRawItem> GetErrMgrRawErrorMessages();
 }  // namespace error_message
 
 #endif  // PKG_INC_BASE_ERR_MGR_H_

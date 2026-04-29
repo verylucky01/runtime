@@ -16,6 +16,7 @@
 #include "runtime.hpp"
 #include "stream.hpp"
 #include "task.hpp"
+#include "base.h"
 #include "error_message_manage.hpp"
 #include "task_submit.hpp"
 #include "context.hpp"
@@ -416,6 +417,46 @@ static bool CheckSmmuFault(const uint32_t deviceId)
     return false;
 }
 
+bool IsSmmuFault(const uint32_t deviceId)
+{
+    bool isSmmuFault = false;
+    rtError_t error = NpuDriver::GetSmmuFaultValid(deviceId, isSmmuFault);
+    COND_RETURN_WARN(error == RT_ERROR_FEATURE_NOT_SUPPORT, false, "Not support get fault smmu valid");
+    if (error != RT_ERROR_NONE) {
+        RT_LOG(RT_LOG_ERROR, "can not get smmu of device_id=%u, error=%d", deviceId, error);
+        return false;
+    }
+    return isSmmuFault;
+}
+
+bool IsHitBlacklist(const uint32_t deviceId, const std::map<uint32_t, std::string>& eventIdBlkList)
+{
+    constexpr uint32_t maxFaultNum = 128U;
+    rtDmsFaultEvent *faultEventInfo = new (std::nothrow)rtDmsFaultEvent[maxFaultNum];
+    COND_PROC((faultEventInfo == nullptr), return false);
+    const std::function<void()> releaseFunc = [&faultEventInfo]() { DELETE_A(faultEventInfo); };
+    ScopeGuard faultEventInfoRelease(releaseFunc);
+
+    const size_t totalSize = maxFaultNum * sizeof(rtDmsFaultEvent);
+    auto eRet = memset_s(faultEventInfo, totalSize, 0, totalSize);
+    COND_RETURN_WARN(eRet != EOK, false, "Mem set error, ret=%d", eRet);
+
+    uint32_t eventCount = 0U;
+    rtError_t error = GetDeviceFaultEvents(deviceId, faultEventInfo, eventCount, maxFaultNum);
+    COND_PROC((faultEventInfo == nullptr) || (error != RT_ERROR_NONE), return false);
+    for (uint32_t faultIndex = 0U; faultIndex < eventCount; faultIndex++) {
+        if (eventIdBlkList.find(faultEventInfo[faultIndex].eventId) != eventIdBlkList.end()) {
+            std::ostringstream oss;
+            std::string faultInfo;
+            oss << std::hex << faultEventInfo[faultIndex].eventId;
+            faultInfo = faultInfo + "[0x" + oss.str() + "]" + faultEventInfo[faultIndex].eventName;
+            RT_LOG(RT_LOG_INFO, "Fault message is: [%s].", faultInfo.c_str());
+            return true;
+        }
+    }
+    return false;
+}
+
 bool HasBlacklistEventOnDevice(const uint32_t deviceId, const std::map<uint32_t, std::string>& eventIdBlkList)
 {
     constexpr uint32_t maxFaultNum = 128U;
@@ -492,22 +533,41 @@ rtError_t GetDeviceFaultEvents(const uint32_t deviceId, rtDmsFaultEvent* const f
     return error;
 }
 
+void ProcessSdmaError(TaskInfo *taskInfo)
+{
+    Stream * const stream = taskInfo->stream;
+    NULL_PTR_RETURN_DIRECTLY(stream);
+    Device * const dev = stream->Device_();
+    NULL_PTR_RETURN_DIRECTLY(dev);
+    if (HasMteErr(stream->Device_())) {
+        taskInfo->errorCode = TS_ERROR_SDMA_POISON_ERROR;
+        (RtPtrToUnConstPtr<Device *>(dev))->SetDeviceFaultType(DeviceFaultType::HBM_UCE_ERROR);
+    } else if (!HasMemUceErr(stream->Device_()->Id_())) {
+        taskInfo->errorCode = TS_ERROR_SDMA_LINK_ERROR;
+        (RtPtrToUnConstPtr<Device *>(dev))->SetDeviceFaultType(DeviceFaultType::LINK_ERROR);
+    } else {
+        taskInfo->errorCode = TS_ERROR_SDMA_ERROR;
+    }
+}
+
 void SetTaskMteErr(TaskInfo *errTaskPtr, const Device * const dev,
     const std::map<uint32_t, std::string>& eventIdBlkList)
 {
     // 若不支持ras上报接口，直接返回内存错误
-    bool hasSpecialErrorCode = false;
+    bool isMteError = false;
     if (Runtime::Instance()->GetHbmRasProcFlag() == HBM_RAS_NOT_SUPPORT) {
-        SetDeviceFaultTypeByErrorType(dev, AICORE_ERROR, hasSpecialErrorCode);
+        SetDeviceFaultTypeByErrorType(dev, AICORE_ERROR, isMteError);
         RT_LOG(RT_LOG_WARNING, "Task Hbm Ras reporting is not supported.");
-        errTaskPtr->mte_error = (hasSpecialErrorCode ? TS_ERROR_AICORE_MTE_ERROR : TS_SUCCESS);
+        errTaskPtr->mte_error = (isMteError ? TS_ERROR_AICORE_MTE_ERROR : TS_SUCCESS);
     } else {
         errTaskPtr->mte_error = HasMteErr(dev) ? TS_ERROR_AICORE_MTE_ERROR : TS_ERROR_SDMA_LINK_ERROR;
         if (errTaskPtr->mte_error == TS_ERROR_AICORE_MTE_ERROR) {
-            MteErrorProc(errTaskPtr, dev, RT_ERROR_DEVICE_MEM_ERROR, hasSpecialErrorCode);
-            errTaskPtr->mte_error = (hasSpecialErrorCode ? TS_ERROR_AICORE_MTE_ERROR : TS_SUCCESS);
+            MteErrorProc(errTaskPtr, dev, RT_ERROR_DEVICE_MEM_ERROR, isMteError);
+            errTaskPtr->mte_error = (isMteError ? TS_ERROR_AICORE_MTE_ERROR : TS_SUCCESS);
         } else if (HasMemUceErr(dev->Id_(), eventIdBlkList)) {
             errTaskPtr->mte_error = 0U;
+        } else {
+            (RtPtrToUnConstPtr<Device *>(dev))->SetDeviceFaultType(DeviceFaultType::LINK_ERROR);
         }
     }
 }
@@ -518,17 +578,19 @@ void GetMteErrFromCqeStatus(TaskInfo *errTaskPtr, const Device * const dev, cons
     if ((cqeStatus == TS_SDMA_STATUS_DDRC_ERROR) || (cqeStatus == TS_SDMA_STATUS_LINK_ERROR) ||
         (cqeStatus == TS_SDMA_STATUS_POISON_ERROR)) {
         // 若不支持ras上报接口，处理0x8、0x9和0xa直接返回内存错误
-        bool hasSpecialErrorCode= false;
+        bool isMteError= false;
         if (Runtime::Instance()->GetHbmRasProcFlag() == HBM_RAS_NOT_SUPPORT) {
-            SetDeviceFaultTypeByErrorType(dev, SDMA_ERROR, hasSpecialErrorCode);
-            errTaskPtr->mte_error = (hasSpecialErrorCode ? TS_ERROR_SDMA_POISON_ERROR : TS_SUCCESS);
+            SetDeviceFaultTypeByErrorType(dev, SDMA_ERROR, isMteError);
+            errTaskPtr->mte_error = (isMteError ? TS_ERROR_SDMA_POISON_ERROR : TS_SUCCESS);
         } else {
             errTaskPtr->mte_error = HasMteErr(dev) ? TS_ERROR_SDMA_POISON_ERROR : TS_ERROR_SDMA_LINK_ERROR;
             if (errTaskPtr->mte_error == TS_ERROR_SDMA_POISON_ERROR) {
-                SetDeviceFaultTypeByErrorType(dev, SDMA_ERROR, hasSpecialErrorCode);
-                errTaskPtr->mte_error = (hasSpecialErrorCode ? TS_ERROR_SDMA_POISON_ERROR : TS_SUCCESS);
+                SetDeviceFaultTypeByErrorType(dev, SDMA_ERROR, isMteError);
+                errTaskPtr->mte_error = (isMteError ? TS_ERROR_SDMA_POISON_ERROR : TS_SUCCESS);
             } else if (HasMemUceErr(dev->Id_(), eventIdBlkList)) {
                 errTaskPtr->mte_error = 0U;
+            } else {
+                (RtPtrToUnConstPtr<Device *>(dev))->SetDeviceFaultType(DeviceFaultType::LINK_ERROR);
             }
         }
     }
@@ -738,6 +800,7 @@ rtError_t DeviceErrorProc::ProcessStarsCoreErrorInfo(const StarsDeviceErrorInfo 
     // 本地没有其他告警，且报错写mte错误，认为疑似是远端出错
     if (isMteErr && (errTaskPtr != nullptr) && (!HasMteErr(dev)) && (!HasMemUceErr(dev->Id_()))) {
         errTaskPtr->mte_error = TS_ERROR_SDMA_LINK_ERROR;
+        (RtPtrToUnConstPtr<Device *>(dev))->SetDeviceFaultType(DeviceFaultType::LINK_ERROR);
     }
     if (errTaskPtr != nullptr) {
         RT_LOG(RT_LOG_ERROR, "devId=%u, streamId=%u, taskId=%u, MTE errorCode=%u.", dev->Id_(),

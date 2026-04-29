@@ -2524,3 +2524,38 @@ TEST_F(CloudV2ApiTest910b, memory_attritue_apiDec)
     error = apiDec.HostFree(hostPtr);
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
+
+static drvError_t stubhalGetFaultEvent_MTE(uint32_t devId, struct halEventFilter* filter,
+    struct halFaultEventInfo* eventInfo, uint32_t len, uint32_t *eventCount)
+{
+    *eventCount = 1;
+    eventInfo[0].event_id = 0x80e01801U;
+    return DRV_ERROR_NONE;
+}
+
+TEST_F(CloudV2ApiTest910b, get_mem_uce_info_proc_fast_recover)
+{
+    rtError_t error;
+    Runtime *rtInstance = (Runtime *)Runtime::Instance();
+    Device * device = rtInstance->DeviceRetain(0, 0);
+    device->SetDeviceFaultType(DeviceFaultType::HBM_UCE_ERROR);
+    GlobalMockObject::verify();
+    MOCKER(halGetFaultEvent)
+        .stubs()
+        .will(invoke(stubhalGetFaultEvent_MTE));
+
+    MOCKER(halGetDeviceInfoByBuff)
+        .stubs()
+        .will(returnValue(DRV_ERROR_NONE));
+
+    rtErrorInfo errorInfo = {};
+
+    error = rtsGetErrorVerbose(0,  &errorInfo);
+    EXPECT_EQ(errorInfo.errorType, RT_ERROR_MEMORY);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    device->SetDeviceFaultType(DeviceFaultType::HBM_UCE_ERROR);
+
+    error = rtsRepairError(0, &errorInfo);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    device->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
+}

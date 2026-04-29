@@ -328,9 +328,8 @@ rtError_t MemUceErrorResume(Device * const dev, const uint32_t deviceId, const r
     }
     COND_RETURN_WARN(error == RT_ERROR_FEATURE_NOT_SUPPORT, RT_ERROR_FEATURE_NOT_SUPPORT,
         "Not support Mem uce error repair.");
-    COND_PROC((error != RT_ERROR_NONE),
-        RT_LOG(RT_LOG_ERROR, "Mem uce error repair failed, drv devId=%u, retCode=%#x.",
-        deviceId, static_cast<uint32_t>(error)));
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Mem uce error repair failed, drv devId=%u, retCode=%#x.", deviceId, static_cast<uint32_t>(error));
 
     dev->SetDeviceFaultType(DeviceFaultType::NO_ERROR);
     return RT_ERROR_NONE;

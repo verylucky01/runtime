@@ -41,14 +41,14 @@ uint16_t GetMteErrWaitCount()
     return 20U;
 }
 
-void MteErrorProc(const TaskInfo * const errTaskPtr, const Device * const dev, const int32_t errorCode, bool &hasSpecialErrorCode)
+void MteErrorProc(const TaskInfo * const errTaskPtr, const Device * const dev, const int32_t errorCode, bool &isMteError)
 {
     UNUSED(errTaskPtr);
     UNUSED(errorCode);
-    SetDeviceFaultTypeByErrorType(dev, AICORE_ERROR, hasSpecialErrorCode);
+    SetDeviceFaultTypeByErrorType(dev, AICORE_ERROR, isMteError);
 }
 
-void SetDeviceFaultTypeByErrorType(const Device * const dev, const rtErrorType errorType, bool &hasSpecialErrorCode)
+void SetDeviceFaultTypeByErrorType(const Device * const dev, const rtErrorType errorType, bool &isMteError)
 {
     constexpr uint32_t maxFaultNum = 128U;
     rtDmsFaultEvent *faultEventInfo = new (std::nothrow)rtDmsFaultEvent[maxFaultNum];
@@ -69,11 +69,11 @@ void SetDeviceFaultTypeByErrorType(const Device * const dev, const rtErrorType e
     }
     if (IsFaultEventOccur(L2_BUFFER_ECC_EVENT_ID, faultEventInfo, eventCount) &&
         (!IsHitBlacklist(faultEventInfo, eventCount, g_l2MulBitEccEventIdBlkList))) {
-        hasSpecialErrorCode = true;
+        isMteError = true;
         (RtPtrToUnConstPtr<Device *>(dev))->SetDeviceFaultType(DeviceFaultType::L2_BUFFER_ERROR);
     } else if (IsFaultEventOccur(HBM_ECC_EVENT_ID, faultEventInfo, eventCount) &&
         (!IsHitBlacklist(faultEventInfo, eventCount, g_mulBitEccEventIdBlkList))) {
-        hasSpecialErrorCode = true;
+        isMteError = true;
         (RtPtrToUnConstPtr<Device *>(dev))->SetDeviceFaultType(DeviceFaultType::HBM_UCE_ERROR);
     }
 }

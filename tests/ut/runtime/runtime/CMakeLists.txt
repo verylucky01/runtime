@@ -385,6 +385,7 @@ set(runtimeut_src_tiny_include_list
     ${TOP_DIR}/src/runtime/api/api_c_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_error_tiny_stub.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/api_impl_tiny_stub.cc
+    ${TOP_DIR}/src/runtime/core/src/dfx/fast_recover.cc
     ${TOP_DIR}/src/runtime/core/src/api_impl/v100/api_impl_v100.cc
     ${TOP_DIR}/src/runtime/core/src/context/context_tiny_stub.cc
     ${TOP_DIR}/src/runtime/feature/aclgraph/tiny/context_tiny_stub_aclgraph.cc
@@ -447,6 +448,7 @@ set(runtimeut_src_list
     ${TOP_DIR}/src/runtime/core/src/device/device.cc
     ${TOP_DIR}/src/runtime/core/src/device/raw_device.cc
     ${TOP_DIR}/src/runtime/core/src/device/raw_device_res.cc
+    ${TOP_DIR}/src/runtime/core/src/dfx/fast_recover.cc
     ${TOP_DIR}/src/runtime/feature/snapshot/device_snapshot.cc
     ${TOP_DIR}/src/runtime/feature/snapshot/snapshot_process_helper.cc
     ${TOP_DIR}/src/runtime/core/src/device/device_sq_cq_pool.cc

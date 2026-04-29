@@ -540,13 +540,7 @@ void SetStarsResultForDavinciTask(TaskInfo* taskInfo, const rtLogicCqReport_t &l
             if (logicCq.errorCode == AICPU_HCCL_OP_RETRY_FAILED) {
                 taskInfo->errorCode = TS_ERROR_AICPU_HCCL_OP_RETRY_FAILED;
             } else {
-                if (HasMteErr(taskInfo->stream->Device_())) {
-                    taskInfo->errorCode = TS_ERROR_SDMA_POISON_ERROR;
-                } else if (!HasMemUceErr(taskInfo->stream->Device_()->Id_())) {
-                    taskInfo->errorCode = TS_ERROR_SDMA_LINK_ERROR;
-                } else {
-                    taskInfo->errorCode = TS_ERROR_SDMA_ERROR;
-                }
+                ProcessSdmaError(taskInfo);
             }
             return;
         }

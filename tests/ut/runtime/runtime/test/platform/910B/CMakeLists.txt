@@ -296,6 +296,7 @@ set(runtimeut_910b_src_list
     ${TOP_DIR}/src/runtime/core/src/dfx/pctrace.cc
     ${TOP_DIR}/src/runtime/core/src/dfx/printf.cc
     ${TOP_DIR}/src/runtime/core/src/dfx/kernel_dfx_info.cc
+    ${TOP_DIR}/src/runtime/core/src/dfx/fast_recover.cc
     ${TOP_DIR}/src/runtime/core/src/utils/subscribe.cc
     ${TOP_DIR}/src/runtime/core/src/profiler/onlineprof.cc
     ${TOP_DIR}/src/runtime/core/src/device/device_error_proc.cc

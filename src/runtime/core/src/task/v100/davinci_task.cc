@@ -41,6 +41,5 @@ void DavinciMultipleTaskUnInit(TaskInfo* taskInfo)
     ResetCmdList(taskInfo);
 }
 #endif
-
 }  // namespace runtime
 }  // namespace cce

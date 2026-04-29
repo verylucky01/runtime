@@ -324,13 +324,7 @@ static void ReportNotifyErrorForNotifyWaitTask(TaskInfo *taskInfo, const uint32_
 {
     Stream * const stream = taskInfo->stream;
     if (IsSdmaMteErrorCode(static_cast<int32_t>(taskInfo->errorCode))) {
-        if (HasMteErr(stream->Device_())) {
-            taskInfo->errorCode = TS_ERROR_SDMA_POISON_ERROR;
-        } else if (!HasMemUceErr(stream->Device_()->Id_())) {
-            taskInfo->errorCode = TS_ERROR_SDMA_LINK_ERROR;
-        } else {
-            taskInfo->errorCode = TS_ERROR_SDMA_ERROR;
-        }
+        ProcessSdmaError(taskInfo);
     } else {
         MapNotifyErrorCodeForFastRecovery(taskInfo, devId);
     }

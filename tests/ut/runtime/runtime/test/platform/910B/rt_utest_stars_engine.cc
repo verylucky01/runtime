@@ -1728,6 +1728,9 @@ TEST_F(CloudV2StarsEngineTest, ReportRasProc)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     mmSleep(400U);
     device.SetDeviceRas(true);
+    MOCKER(halGetFaultEvent)
+        .stubs()
+        .will(returnValue(DRV_ERROR_INVALID_VALUE));
     GetMteErrFromCqeStatus(&task, &device, TS_SDMA_STATUS_POISON_ERROR);
     EXPECT_EQ(task.mte_error, TS_ERROR_SDMA_POISON_ERROR);
     task.mte_error = 0U;

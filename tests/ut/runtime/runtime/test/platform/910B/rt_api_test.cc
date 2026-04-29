@@ -514,19 +514,6 @@ TEST_F(CloudV2ApiAbnormalTest, debug_abnormal)
  	EXPECT_NE(error, RT_ERROR_NONE);
 }
 
-TEST_F(CloudV2ApiAbnormalTest, rtsGetErrorVerbosefault_abnormal)
-{
-    rtError_t error;
-    Runtime *rtInstance = (Runtime *)Runtime::Instance();
-
-    MOCKER(halGetFaultEvent)
-        .stubs()
-        .will(returnValue(DRV_ERROR_INVALID_VALUE));
-    rtErrorInfo errorInfo = {};
-    error = rtsGetErrorVerbose(0, &errorInfo);
-    EXPECT_NE(error, RT_ERROR_NONE);
-}
-
 TEST_F(CloudV2ApiAbnormalTest, rtsRepairError_abnormal)
 {
     rtError_t error;

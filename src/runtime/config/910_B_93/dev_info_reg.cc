@@ -149,7 +149,8 @@ static const std::unordered_set<RtOptionalFeatureType> CHIP_CLOUD_V2_FEATURE{
     RtOptionalFeatureType::RT_FEATURE_DEVICE_FLOAT_STATUS,
     RtOptionalFeatureType::RT_FEATURE_DEVICE_EVENT_POOL,
     RtOptionalFeatureType::RT_FEATURE_DEVICE_CTRL_SQ,
-    RtOptionalFeatureType::RT_FEATURE_MEM_WAIT_PROF
+    RtOptionalFeatureType::RT_FEATURE_MEM_WAIT_PROF,
+    RtOptionalFeatureType::RT_FEATURE_DFX_ERR_GET_AND_REPAIR,
 };
 
 REGISTER_CHIP_FEATURE_SET(CHIP_910_B_93, CHIP_CLOUD_V2_FEATURE);

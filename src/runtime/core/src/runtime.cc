@@ -56,6 +56,7 @@
 #include "kernel.hpp"
 #include "stream_mem_pool.hpp"
 #include "api_impl_soma.hpp"
+#include "device_error_proc.hpp"
 
 namespace cce {
 namespace runtime {
@@ -4987,6 +4988,10 @@ void Runtime::ProcHBMRas(const uint32_t devId)
     rtDeviceStatus deviceStatus = RT_DEVICE_STATUS_NORMAL;
     rtError_t error = GetWatchDogDevStatus(devId, &deviceStatus);
     RT_LOG(RT_LOG_ERROR, "get WatchDogDevStatus, ret=%u.", deviceStatus);
+    if (IsHitBlacklist(devId, g_mulBitEccEventId) || IsSmmuFault(devId)) {
+        RT_LOG(RT_LOG_ERROR, "hit black list or hit smmu fault!");
+        return;
+    }
     if (error == RT_ERROR_NONE && deviceStatus == RT_DEVICE_STATUS_NORMAL) {
         RtHbmRasInfo rasInfo = {};
         rasInfo.eventId = HBM_ECC_EVENT_ID;

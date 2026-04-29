@@ -477,9 +477,9 @@ static void SetDeviceFaultTypeByAixErrClass(const Device * const dev, const Star
 {
     switch (static_cast<AixErrClass>(info->u.coreErrorInfo.comm.flag)) {
         case AixErrClass::AIX_MTE_POISON_ERROR: {
-            bool hasSpecialErrorCode = false;
+            bool isMteError = false;
             COND_PROC((errTaskPtr == nullptr) && (Runtime::Instance()->GetHbmRasProcFlag() == HBM_RAS_NOT_SUPPORT),
-                SetDeviceFaultTypeByErrorType(dev, AICORE_ERROR, hasSpecialErrorCode));
+                SetDeviceFaultTypeByErrorType(dev, AICORE_ERROR, isMteError));
             if (errTaskPtr != nullptr) {
                 SetTaskMteErr(errTaskPtr, dev, g_mulBitEccEventIdBlkList);
                 RT_LOG(RT_LOG_ERROR, "mte error, stream_id=%hu, task_id=%hu, errorCode=%u.",
@@ -661,9 +661,9 @@ static void RecordSdmaErrorInfo(const Device * const dev, uint32_t coreNum, Task
         const uint32_t cqeStatus = info->u.sdmaErrorInfo.sdma.starsInfoForDavid[coreIdx].cqeStatus;
         if ((cqeStatus == TS_SDMA_STATUS_DDRC_ERROR) || (cqeStatus == TS_SDMA_STATUS_LINK_ERROR) ||
             (cqeStatus == TS_SDMA_STATUS_POISON_ERROR)) {
-            bool hasSpecialErrorCode = false;
+            bool isMteError = false;
             COND_PROC((errTaskPtr == nullptr) && (Runtime::Instance()->GetHbmRasProcFlag() == HBM_RAS_NOT_SUPPORT),
-                SetDeviceFaultTypeByErrorType(dev, SDMA_ERROR, hasSpecialErrorCode));
+                SetDeviceFaultTypeByErrorType(dev, SDMA_ERROR, isMteError));
             if (errTaskPtr != nullptr) {
                 GetMteErrFromCqeStatus(errTaskPtr, dev, cqeStatus, g_mulBitEccEventIdBlkList);
                 RT_LOG(RT_LOG_ERROR, "Get sdma mte error, stream_id=%hu, task_id=%hu, errorCode=%u.",

@@ -34,7 +34,7 @@ rtError_t CoprocessorStream::Setup()
     constexpr uint32_t drvFlag = static_cast<uint32_t>(TSDRV_FLAG_REMOTE_ID);
     error = stmSqCqManage->AllocStreamSqCq(this, priority_, drvFlag, tmpSqId, tmpCqId);
     if (error != RT_ERROR_NONE) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "[SqCqManage]Alloc coprocessor sq cq fail, stream_id=%d, retCode=%#x.",
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Alloc coprocessor sq cq failed, stream_id=%d, retCode=%#x.",
             streamId_, static_cast<uint32_t>(error));
         device_->GetStreamSqCqManage()->DelStreamIdToStream(static_cast<uint32_t>(streamId_));
         (void)device_->Driver_()->StreamIdFree(streamId_, device_->Id_(), device_->DevGetTsId(), flags_);

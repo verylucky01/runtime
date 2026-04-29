@@ -34,8 +34,9 @@ rtError_t StreamWithDqs::SetupByFlagAndCheck(void)
     }
 
     if ((flags_ & RT_STREAM_DQS_INTER_CHIP) != 0U) {
-        COND_RETURN_ERROR(Device_()->DevGetTsId() == RT_TSC_ID, RT_ERROR_INVALID_VALUE,
-            "Cannot create dqs inter chip stream with ts_id(%u), should use ts_id(%u)", RT_TSC_ID, RT_TSV_ID);
+        COND_RETURN_ERROR_MSG_INNER(Device_()->DevGetTsId() == RT_TSC_ID, RT_ERROR_INVALID_VALUE,
+            "The DQS stream cannot be created by using ts_id %u. Instead, it should be created by using ts_id %u.",
+            RT_TSC_ID, RT_TSV_ID);
         error = CreateDqsInterChipSpace();
         ERROR_RETURN(error, "Failed to init dqs inter chip space, retCode=%#x.", static_cast<uint32_t>(error));
     }
@@ -90,7 +91,8 @@ static rtError_t InvokeCreateDqsCtrlSpace(const bool isInterChip, const int32_t 
     const rtError_t error = IoctlUtil::GetInstance().IoctlByCmd(cmd, &args);
     COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "ioctl failed, retCode=%#x", static_cast<uint32_t>(error));
 
-    COND_RETURN_ERROR((res.cs_va == nullptr) || (res.status != 0U), RT_ERROR_DRV_IOCTRL, "ioctl failed, retCode=%#x",
+    COND_RETURN_ERROR_MSG_INNER((res.cs_va == nullptr) || (res.status != 0U), RT_ERROR_DRV_IOCTRL,
+        "Ioctl failed, res.cs_va cannot be a NULL pointer and res.status must be 0, retCode=%#x.",
         static_cast<uint32_t>(RT_ERROR_DRV_IOCTRL));
 
     ctrlSpacePtr = res.cs_va;
@@ -199,7 +201,10 @@ rtError_t StreamWithDqs::SetCtrlSpaceInputQueInfo(const rtDqsSchedCfg_t * const 
 
     const errno_t err = memcpy_s(dqsCtrlSpace_->input_queue_ids, sizeof(dqsCtrlSpace_->input_queue_ids),
         dqsSchedCfg->inputQueueIds, sizeof(dqsSchedCfg->inputQueueIds));
-    COND_RETURN_ERROR(err != EOK, RT_ERROR_SEC_HANDLE, "memcpy_s failed, retCode=%d", err);
+    COND_RETURN_ERROR_MSG_INNER(err != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy input queue ids, dest=%p, dest_max=%zu, src=%p, count=%zu, retCode=%d.",
+        dqsCtrlSpace_->input_queue_ids, sizeof(dqsCtrlSpace_->input_queue_ids),
+        dqsSchedCfg->inputQueueIds, sizeof(dqsSchedCfg->inputQueueIds), err);
 
     // set input queue gqm base addr to control space
     DqsQueueInfo queInfo = {};
@@ -209,8 +214,9 @@ rtError_t StreamWithDqs::SetCtrlSpaceInputQueInfo(const rtDqsSchedCfg_t * const 
         const uint32_t qid = dqsCtrlSpace_->input_queue_ids[i];
         ret = dev->Driver_()->GetDqsQueInfo(dev->Id_(), qid, &queInfo);
         ERROR_RETURN(ret, "get dqs que info failed, ret=%#x.", static_cast<uint32_t>(ret));
-        COND_RETURN_ERROR(queInfo.queType != GQM_ENTITY_TYPE, RT_ERROR_INVALID_VALUE,
-            "qid[%u] is invalid, queType=%d", qid, static_cast<int32_t>(queInfo.queType));
+        COND_RETURN_ERROR_MSG_INNER(queInfo.queType != GQM_ENTITY_TYPE, RT_ERROR_INVALID_VALUE,
+            "queInfo.queType %u is not equal to %u(GQM_ENTITY_TYPE), qid=%u.",
+            static_cast<uint32_t>(queInfo.queType), GQM_ENTITY_TYPE, qid);
         dqsCtrlSpace_->input_queue_gqm_base_addrs[i] = queInfo.dequeOpAddr;
         RT_LOG(RT_LOG_INFO, "input queue id=%hu, gqm base=%#llx", qid, dqsCtrlSpace_->input_queue_gqm_base_addrs[i]);
     }
@@ -228,7 +234,9 @@ static rtError_t GetOutputQueMbufPoolInfo(const uint16_t *queueIds, uint8_t queu
     stars_get_queue_mbuf_pool_info_param_t param = {};
     param.count = queueNum;
     errno_t err = memcpy_s(param.queue_list, sizeof(param.queue_list), queueIds, sizeof(param.queue_list));
-    COND_RETURN_ERROR(err != EOK, RT_ERROR_SEC_HANDLE, "memcpy_s failed, retCode=%d", err);
+    COND_RETURN_ERROR_MSG_INNER(err != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy queue list, dest=%p, dest_max=%zu, src=%p, count=%zu, retCode=%d.",
+        param.queue_list, sizeof(param.queue_list), queueIds, sizeof(param.queue_list), err);
 
     args.input_ptr = &param;
     args.input_len = sizeof(stars_get_queue_mbuf_pool_info_param_t);
@@ -238,8 +246,8 @@ static rtError_t GetOutputQueMbufPoolInfo(const uint16_t *queueIds, uint8_t queu
     const rtError_t error = IoctlUtil::GetInstance().IoctlByCmd(STARS_IOCTL_CMD_GET_QUEUE_MBUF_POOL, &args);
     COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "ioctl failed, retCode=%#x", static_cast<uint32_t>(error));
 
-    COND_RETURN_ERROR((res->count == 0U) || (res->count > STARS_DQS_MAX_OUTPUT_QUEUE_NUM),
-        RT_ERROR_DRV_IOCTRL, "ioctl failed, count=%u", res->count);
+    COND_RETURN_ERROR_MSG_INNER((res->count == 0U) || (res->count > STARS_DQS_MAX_OUTPUT_QUEUE_NUM),
+        RT_ERROR_DRV_IOCTRL, "res->count %u is invalid. expected value: (0, %u].", res->count, STARS_DQS_MAX_OUTPUT_QUEUE_NUM);
 
     return RT_ERROR_NONE;    
 }
@@ -279,7 +287,10 @@ rtError_t StreamWithDqs::SetCtrlSpaceOutputQueInfo(const rtDqsSchedCfg_t * const
     dqsCtrlSpace_->output_queue_num = dqsSchedCfg->outputQueueNum;
     const errno_t err = memcpy_s(dqsCtrlSpace_->output_queue_ids, sizeof(dqsCtrlSpace_->output_queue_ids),
        dqsSchedCfg->outputQueueIds, sizeof(dqsSchedCfg->outputQueueIds));
-    COND_RETURN_ERROR(err != EOK, RT_ERROR_SEC_HANDLE, "memcpy_s failed, retCode=%d", err);
+    COND_RETURN_ERROR_MSG_INNER(err != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy output queue ids, dest=%p, dest_max=%zu, src=%p, count=%zu, retCode=%d.",
+        dqsCtrlSpace_->output_queue_ids, sizeof(dqsCtrlSpace_->output_queue_ids),
+        dqsSchedCfg->outputQueueIds, sizeof(dqsSchedCfg->outputQueueIds), err);
 
     stars_dqs_queue_mbuf_pool_result_t result = {};
     rtError_t ret = GetOutputQueMbufPoolInfo(dqsSchedCfg->outputQueueIds, dqsCtrlSpace_->output_queue_num, &result);
@@ -293,13 +304,14 @@ rtError_t StreamWithDqs::SetCtrlSpaceOutputQueInfo(const rtDqsSchedCfg_t * const
         ret = dev->Driver_()->GetDqsQueInfo(dev->Id_(), qid, &queInfo);
         ERROR_RETURN(ret, "get dqs que info failed, ret=%#x.", static_cast<uint32_t>(ret));
         COND_RETURN_ERROR(queInfo.queType != QMNGR_ENTITY_TYPE, RT_ERROR_INVALID_VALUE,
-            "qid[%u] is invalid, queType=%d", qid, static_cast<int32_t>(queInfo.queType));
+            "queInfo.queType %u is not equal to %u(QMNGR_ENTITY_TYPE), qid=%u.",
+            static_cast<uint32_t>(queInfo.queType), QMNGR_ENTITY_TYPE, qid);
         dqsCtrlSpace_->output_qmngr_enqueue_addrs[i] = queInfo.enqueOpAddr;
         dqsCtrlSpace_->output_qmngr_ow_addrs[i] = queInfo.prodqOwAddr;
 
         const stars_queue_bind_mbuf_pool_item_t * const item = GetMbufPoolInfoByPid(qid, result);
-        COND_RETURN_ERROR(item == nullptr, RT_ERROR_INVALID_VALUE,
-            "mbuf pool info of qid[%u] does not exist. please check config flow.", qid);
+        COND_RETURN_ERROR_MSG_INNER(item == nullptr, RT_ERROR_INVALID_VALUE,
+            "The mbuf pool info corresponding to qid %u does not exist. Check the configuration process.", qid);
 
         dqsCtrlSpace_->output_mbuf_pool_ids[i] = item->mbuf_pool_id;
         dqsCtrlSpace_->output_head_pool_base_addrs[i] = item->mbuf_head_pool_base_addr + item->mbuf_head_pool_offset;

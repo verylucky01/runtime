@@ -46,9 +46,9 @@ rtError_t GetCaptureEventFromTask(const Device * const dev, uint32_t streamId, u
         COND_RETURN_ERROR((task == nullptr),
             RT_ERROR_TASK_NULL,
             "Get task failed, stream_id=%u, task_id=%u.", streamId, pos);
-        COND_RETURN_ERROR(!((task->type == TS_TASK_TYPE_EVENT_RECORD) || (task->type == TS_TASK_TYPE_CAPTURE_RECORD)),
+        COND_RETURN_ERROR_MSG_INNER(!((task->type == TS_TASK_TYPE_EVENT_RECORD) || (task->type == TS_TASK_TYPE_CAPTURE_RECORD)),
             RT_ERROR_STREAM_UNJOINED,
-            "The last task type is not event record, stream_id=%u, task_id=%u, task_type=%d (%s)",
+            "The type of the task is not event record nor capture record, stream_id=%u, task_id=%u, task_type=%d (%s).",
             streamId, pos, static_cast<int32_t>(task->type), task->typeName);
         if (task->type == TS_TASK_TYPE_EVENT_RECORD) {
             eventPtr = task->u.eventRecordTaskInfo.event;
@@ -63,9 +63,9 @@ rtError_t GetCaptureEventFromTask(const Device * const dev, uint32_t streamId, u
 rtError_t ResetCaptureEventsProc(const CaptureModel * const captureModel, Stream * const stm)
 {
     for (Event * const evt : captureModel->GetCaptureEvent()) {
-        COND_RETURN_ERROR((!(evt->HasRecord())),
+        COND_RETURN_ERROR_MSG_INNER((!(evt->HasRecord())),
             RT_ERROR_CAPTURE_DEPENDENCY,
-            "the capture event has not been recorded, stream_id=%d, event_id=%d.",
+            "The capture event has not been recorded, stream_id=%d, event_id=%d.",
             stm->Id_(), evt->EventId_());
         const rtError_t error = evt->Reset(stm);
         COND_RETURN_ERROR((error != RT_ERROR_NONE), error,

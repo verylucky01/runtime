@@ -35,11 +35,11 @@ rtError_t CondLabelSwitchByIndex(void* const ptr, const uint32_t maxIndex, void*
 
     rtError_t error = StreamLabelSwitchByIndexTaskInit(rtStreamLabelSwitchIndexTask, ptr, maxIndex, labelInfoPtr);
     ERROR_GOTO_MSG_INNER(
-        error, ERROR_RECYCLE, "Stream label switch by index task init failed, stream_id=%d, task_id=%hu, retCode=%#x.",
+        error, ERROR_RECYCLE, "Failed to init stream_label_switch_by_index task, stream_id=%d, task_id=%hu, retCode=%#x.",
         streamId, rtStreamLabelSwitchIndexTask->id, error);
 
     error = ctx->Device_()->SubmitTask(rtStreamLabelSwitchIndexTask, ctx->TaskGenCallback_());
-    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Stream label switch by index task submit failed, retCode=%#x", error);
+    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Failed to submit stream_label_switch_by_index task, retCode=%#x.", error);
 
     GET_THREAD_TASKID_AND_STREAMID(rtStreamLabelSwitchIndexTask, streamId);
     return error;

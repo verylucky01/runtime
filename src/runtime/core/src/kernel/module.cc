@@ -94,7 +94,7 @@ rtError_t Module::Load(Program * const prog)
 
             error = curDrv->MemCopySync(kernelNamesBaseAddr_, progKernelName.size(), progKernelName.c_str(),
                 progKernelName.size(), RT_MEMCPY_HOST_TO_DEVICE);
-            ERROR_GOTO_MSG_INNER(error, FAIL_FREE, "Memcpy failed, retCode=%#x.", static_cast<uint32_t>(error));
+            ERROR_GOTO(error, FAIL_FREE, "Memcpy failed, retCode=%#x.", static_cast<uint32_t>(error));
 
             error = curDrv->DevMemAlloc(&soNamesBaseAddr_, prog->GetSoName().size(), RT_MEMORY_HBM, device_->Id_());
             ERROR_GOTO(error, FAIL_FREE, "Malloc so names buffer failed, size=%zu(bytes), "
@@ -103,7 +103,7 @@ rtError_t Module::Load(Program * const prog)
 
             error = curDrv->MemCopySync(soNamesBaseAddr_, prog->GetSoName().size(),
                 prog->GetSoName().c_str(), prog->GetSoName().size(), RT_MEMCPY_HOST_TO_DEVICE);
-            ERROR_GOTO_MSG_INNER(error, FAIL_FREE, "Memcpy so names failed, size=%zu(bytes), "
+            ERROR_GOTO(error, FAIL_FREE, "Memcpy so names failed, size=%zu(bytes), "
                 "type=%d(RT_MEMCPY_HOST_TO_DEVICE), retCode=%#x.", prog->GetSoName().size(),
                 static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(error));
             kernelNamesSize_ = progKernelName.size() + 1U;
@@ -119,7 +119,7 @@ rtError_t Module::Load(Program * const prog)
     ERROR_GOTO(error, FAIL_FREE, "refresh symbol address failed!");
 
     COND_GOTO_ERROR_MSG_AND_ASSIGN_INNER(size == 0U, FAIL_FREE, error, RT_ERROR_PROGRAM_SIZE,
-        "Module load failed, prog size should be larger than 0, but current prog size is 0.");
+        "Failed to load the module because the program size (which should be greater than 0) is 0.");
     NULL_PTR_GOTO_MSG_INNER(data, FAIL_FREE, error, RT_ERROR_PROGRAM_DATA);
 
     {
@@ -165,7 +165,7 @@ rtError_t Module::Load(Program * const prog)
             error = prog->BinaryMemCopySync(baseAddrAlign_, adviseSize, size, data, device_, readonly);
         }
 
-        ERROR_GOTO_MSG_INNER(error, FAIL_FREE, "Memcpy failed, size=%u(bytes),"
+        ERROR_GOTO(error, FAIL_FREE, "Memcpy failed, size=%u(bytes),"
             "type=%d(RT_MEMCPY_HOST_TO_DEVICE), retCode=%#x",
             size, static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(error));
     }
@@ -211,7 +211,7 @@ rtError_t Module::CalModuleHash(std::size_t &hash) const
 {
     void *hostMem = nullptr;
     const bool suppSimt = device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_DEVICE_SIMT);
-    COND_RETURN_ERROR_MSG_INNER((baseAddrAlign_ == nullptr) || (baseAddrSize_ == 0U) ||
+    COND_RETURN_ERROR((baseAddrAlign_ == nullptr) || (baseAddrSize_ == 0U) ||
         (suppSimt && (baseAddrSize_ <= PREFETCH_INCREASE_SIZE)), RT_ERROR_INVALID_VALUE,
         "Cal module hash failed, support simt=%d, address size=%u(bytes)", suppSimt, baseAddrSize_);
     const uint32_t dataSize = suppSimt ? (baseAddrSize_ - PREFETCH_INCREASE_SIZE) : baseAddrSize_;
@@ -223,7 +223,7 @@ rtError_t Module::CalModuleHash(std::size_t &hash) const
     error = deviceDrv->MemCopySync(hostMem, static_cast<uint64_t>(dataSize) + 1ULL, baseAddrAlign_,
         static_cast<uint64_t>(dataSize), RT_MEMCPY_DEVICE_TO_HOST);
 
-    COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, (void)deviceDrv->HostMemFree(hostMem);,
+    COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, (void)deviceDrv->HostMemFree(hostMem);,
         "Memcpy failed, size=%u(bytes), type=%d(RT_MEMCPY_DEVICE_TO_HOST), retCode=%#x.",
         dataSize, static_cast<int32_t>(RT_MEMCPY_DEVICE_TO_HOST), static_cast<uint32_t>(error));
     // calculate hash

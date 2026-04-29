@@ -32,7 +32,7 @@ rtError_t Event::CaptureEventProcess(Stream * const stm)
     };
     ScopeGuard tskErrRecycle(errRecycle);
     error = dev->AllocExpandingPoolEvent(&eventAddr, &newEventId);
-    ERROR_RETURN_MSG_INNER(error, "capture addr error, deviceId=%u, tsId=%u, retCode=%#x!",
+    ERROR_RETURN_MSG_INNER(error, "Capture addr error, deviceId=%u, tsId=%u, retCode=%#x.",
                             device_->Id_(), device_->DevGetTsId(), error);
     eventAddr_ = eventAddr;
     eventId_ = newEventId;

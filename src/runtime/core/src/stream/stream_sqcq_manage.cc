@@ -203,9 +203,10 @@ rtError_t StreamSqCqManage::UpdateStreamSqCq(Stream *newStm)
         newStm->SetSqBaseAddr(sqAddr);
     }
 
-    COND_RETURN_ERROR(
+    COND_RETURN_ERROR_MSG_INNER(
         ((newStm->GetSqId() != sqId) || (newStm->GetCqId() != cqId) || (newStm->GetLogicalCqId() != logicCqId)),
         RT_ERROR_DRV_ERR,
+        "The re-applied SQ, CQ, or logical CQ is inconsistent with the original value, "
         "stream_id=%u, sqId=%u, cqId=%u, logicCqId=%u, tmp_sq_id=%u, tmp_cq_id=%u, tmpLogicCqId=%u.",
         streamId, newStm->GetSqId(), newStm->GetCqId(), newStm->GetLogicalCqId(), sqId, cqId, logicCqId);
     return RT_ERROR_NONE;
@@ -237,7 +238,8 @@ rtError_t StreamSqCqManage::ReAllocSqCqId(const Stream * const newStm)
     rtError_t error = device_->Driver_()->NormalSqCqAllocate(device_->Id_(), device_->DevGetTsId(), drvFlag,
         &sqId, &cqId, info, sizeof(info), RtPtrToPtr<uint32_t *>(&infoEx), sizeof(rtStreamInfoExMsg_t));
     COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "NormalSqCqAllocate fail, retCode=%#x.", error);
-    COND_RETURN_ERROR(((newStm->GetSqId() != sqId) || (newStm->GetCqId() != cqId)), RT_ERROR_DRV_ERR,
+    COND_RETURN_ERROR_MSG_INNER(((newStm->GetSqId() != sqId) || (newStm->GetCqId() != cqId)), RT_ERROR_DRV_ERR,
+        "The re-applied SQ CQ is inconsistent with the original value, "
         "stream_id=%u, sqId=%u, cqId=%u, tmp_sq_id=%u, tmp_cq_id=%u.",
         streamId, newStm->GetSqId(), newStm->GetCqId(), sqId, cqId);
 
@@ -303,8 +305,8 @@ rtError_t StreamSqCqManage::Alloc(const uint32_t streamId, const uint32_t drvFla
 {
     const auto itor = streamIdToSqIdMap_.find(streamId);
     if (unlikely(itor != streamIdToSqIdMap_.end())) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Stream repeat alloc, streamId=%u, sqId=%u, cqId=%u.", streamId,
-            itor->second, normalCq_);
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "The SQ and CQ have been applied for the current stream and cannot be applied for again, "
+            "streamId=%u, sqId=%u, cqId=%u.", streamId, itor->second, normalCq_);
         return RT_ERROR_STREAM_DUPLICATE;
     }
 
@@ -324,7 +326,7 @@ rtError_t StreamSqCqManage::Alloc(const uint32_t streamId, const uint32_t drvFla
     }
 
     if (sqIdRefMap_.count(sqId) != 0U) {
-        RT_LOG(RT_LOG_ERROR, "The remote SQ cannot be reused, deviceId=%u, sqId=%u.", device_->Id_(), sqId);
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "The remote SQ cannot be reused, deviceId=%u, sqId=%u.", device_->Id_(), sqId);
         return RT_ERROR_REMOTE_SQID_DUPLICATE;
     }
     sqIdRefMap_[sqId] = UINT32_MAX; // Ensure that the remote SQ is not reused.
@@ -590,7 +592,7 @@ rtError_t StreamSqCqManage::UnbindandFreeLogicCq(const uint32_t streamId)
     if (device_->IsStarsPlatform()) {
         ret = device_->Driver_()->StreamUnBindLogicCq(device_->Id_(), device_->DevGetTsId(), streamId, info.logicCqId);
         if (ret != RT_ERROR_NONE) {
-            RT_LOG_INNER_MSG(RT_LOG_ERROR,
+            RT_LOG(RT_LOG_ERROR,
                 "Error(%#x), StreamUnBindLogicCq failed, devId(%u), tsId(%u), streamId(%u), cqId(%u)",
                 static_cast<uint32_t>(ret), device_->Id_(), device_->DevGetTsId(), streamId, info.logicCqId);
             return ret;
@@ -599,7 +601,7 @@ rtError_t StreamSqCqManage::UnbindandFreeLogicCq(const uint32_t streamId)
 
     ret = device_->Driver_()->LogicCqFree(device_->Id_(), device_->DevGetTsId(), info.logicCqId);
     if (ret != RT_ERROR_NONE) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR,
+        RT_LOG(RT_LOG_ERROR,
             "Error(%#x), LogicCqFree failed, threadId(%" PRIu64 "),devId(%u),tsId(%u),cqId(%u), isFastCq(%u)",
             static_cast<uint32_t>(ret), threadId, device_->Id_(), device_->DevGetTsId(), info.logicCqId, info.isFastCq);
         return ret;
@@ -640,7 +642,7 @@ rtError_t StreamSqCqManage::FreeLogicCq(const uint32_t streamId)
             ret = device_->Driver_()->StreamUnBindLogicCq(device_->Id_(), device_->DevGetTsId(), streamId,
                 logicCqInfo.logicCqId, logicCqInfo.remoteFlag);
             if (ret != RT_ERROR_NONE) {
-                RT_LOG_INNER_MSG(RT_LOG_ERROR,
+                RT_LOG(RT_LOG_ERROR,
                     "Error(%#x), StreamUnBindLogicCq failed, devId(%u), tsId(%u), streamId(%u), cqId(%u)",
                     static_cast<uint32_t>(ret), device_->Id_(), device_->DevGetTsId(), streamId, logicCqInfo.logicCqId);
                 break;
@@ -650,7 +652,7 @@ rtError_t StreamSqCqManage::FreeLogicCq(const uint32_t streamId)
         ret = device_->Driver_()->LogicCqFree(device_->Id_(), device_->DevGetTsId(), logicCqInfo.logicCqId,
             logicCqInfo.remoteFlag);
         if (ret != RT_ERROR_NONE) {
-            RT_LOG_INNER_MSG(RT_LOG_ERROR, "Error(%#x), LogicCqFree failed, threadIdentifier(%" PRIu64 "), devId(%u), "
+            RT_LOG(RT_LOG_ERROR, "Error(%#x), LogicCqFree failed, threadIdentifier(%" PRIu64 "), devId(%u), "
                 "tsId(%u), cqId(%u), isFastCq(%u)", static_cast<uint32_t>(ret), logicCq.first, device_->Id_(),
                 device_->DevGetTsId(), logicCqInfo.logicCqId, logicCqInfo.isFastCq);
             break;

@@ -35,7 +35,7 @@ rtError_t TschStream::Setup()
     error = stmSqCqManage->AllocStreamSqCq(this, priority_, static_cast<uint32_t>(TSDRV_FLAG_ONLY_SQCQ_ID),
                                            tmpSqId, tmpCqId);
     if (error != RT_ERROR_NONE) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "[SqCqManage]Alloc sq cq fail, stream_id=%d, retCode=%#x.",
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Alloc sq cq failed, stream_id=%d, retCode=%#x.",
             streamId_, static_cast<uint32_t>(error));
         device_->GetStreamSqCqManage()->DelStreamIdToStream(static_cast<uint32_t>(streamId_));
         (void)device_->Driver_()->StreamIdFree(streamId_, device_->Id_(), device_->DevGetTsId());
@@ -62,7 +62,7 @@ rtError_t TschStream::AllocDsaSqAddr() const
     NULL_PTR_RETURN_MSG(stm, RT_ERROR_STREAM_NULL);
 
     TaskInfo *tsk = stm->AllocTask(&taskSubmit, TS_TASK_TYPE_ALLOC_DSA_ADDR, errorReason);
-    NULL_PTR_RETURN(tsk, errorReason);
+    NULL_PTR_RETURN_MSG(tsk, errorReason);
 
     rtError_t error = AllocDsaAddrTaskInit(tsk, static_cast<uint16_t>(sqId_));
     ERROR_GOTO(error, ERROR_TASK, "Failed to init create ringbuffer task.");

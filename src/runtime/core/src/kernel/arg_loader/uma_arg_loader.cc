@@ -59,55 +59,47 @@ rtError_t UmaArgLoader::Init()
         argAllocator_ = new (std::nothrow) H2DCopyMgr(
             device_, itemSize_, argAllocatorSize, device_->GetDevProperties().maxSupportTaskNum,
             BufferAllocator::LINEAR, COPY_POLICY_DEFAULT); // 512 cell for init
-
-        COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, argAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-            "Init uma arg loader stage1 failed, new BufferAllocator failed.");
+        COND_RETURN_AND_MSG_OUTER(argAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013, std::to_string(sizeof(H2DCopyMgr)));
         if (device_->IsSupportFeature(RtOptionalFeatureType::RT_FEATURE_KERNEL_UMA_SUPER_ARGS_ALLOC)) {
             const uint32_t superArgAllocatorSize = device_->GetDevProperties().superArgAllocatorSize;
             superArgAllocator_ = new (std::nothrow) H2DCopyMgr(
                 device_, MULTI_GRAPH_SUPER_ARG_ENTRY_SIZE, superArgAllocatorSize,
                 device_->GetDevProperties().maxSupportTaskNum, BufferAllocator::LINEAR, COPY_POLICY_DEFAULT);
 
-            COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, superArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-                "Init uma arg loader stage2 failed, new BufferAllocator failed.");
+            COND_RETURN_AND_MSG_OUTER(superArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013, std::to_string(sizeof(H2DCopyMgr)));
             const uint32_t maxArgAllocatorSize =  device_->GetDevProperties().maxArgAllocatorSize;
             maxArgAllocator_ = new (std::nothrow) H2DCopyMgr(
                 device_, maxItemSize_, maxArgAllocatorSize, device_->GetDevProperties().maxSupportTaskNum,
                 BufferAllocator::LINEAR, COPY_POLICY_DEFAULT);
 
-            COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, maxArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-                "Init uma arg loader stage3 failed, new BufferAllocator failed.");
+            COND_RETURN_AND_MSG_OUTER(maxArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013, std::to_string(sizeof(H2DCopyMgr)));
         } else {
             // only when the aicpu does not exist, do this
             if (Runtime::Instance()->GetAicpuCnt() != 0) {
                 maxArgAllocator_ = new (std::nothrow) H2DCopyMgr(
                     device_, maxItemSize_, ARG_MAX_ENTRY_INIT_NUM, device_->GetDevProperties().maxSupportTaskNum,
                     BufferAllocator::LINEAR, COPY_POLICY_DEFAULT);
-                COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, maxArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-                    "Init uma arg loader stage3 failed, new BufferAllocator failed.");
+                COND_RETURN_AND_MSG_OUTER(maxArgAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013, std::to_string(sizeof(H2DCopyMgr)));
             }
         }
     }
 
     randomAllocator_ = new (std::nothrow) H2DCopyMgr(device_, COPY_POLICY_SYNC);
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, randomAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-        "Init uma arg loader stage4 failed, new BufferAllocator failed.");
+    COND_RETURN_AND_MSG_OUTER(randomAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013, std::to_string(sizeof(H2DCopyMgr)));
 
     RT_LOG(RT_LOG_INFO, "new BufferAllocator superArgAllocator_ ok, Runtime_alloc_size %zu", sizeof(BufferAllocator));
     const uint32_t handleAllocatorSize = device_->GetDevProperties().handleAllocatorSize;
     handleAllocator_ = new (std::nothrow) BufferAllocator(
         static_cast<uint32_t>(sizeof(Handle)), handleAllocatorSize, device_->GetDevProperties().maxSupportTaskNum);
 
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, handleAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-        "Init uma arg loader stage4 failed, new BufferAllocator failed.");
+    COND_RETURN_AND_MSG_OUTER(handleAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013, std::to_string(sizeof(BufferAllocator)));
     RT_LOG(RT_LOG_INFO, "new BufferAllocator handleAllocator_ ok, Runtime_alloc_size %zu", sizeof(BufferAllocator));
     const uint32_t kernelInfoAllocatorSize =  device_->GetDevProperties().kernelInfoAllocatorSize;
     kernelInfoAllocator_ = new (std::nothrow) BufferAllocator(
         KERNEL_INFO_ENTRY_SIZE, kernelInfoAllocatorSize, device_->GetDevProperties().maxSupportTaskNum,
         BufferAllocator::LINEAR, &MallocBuffer, &FreeBuffer, device_);
 
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, kernelInfoAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-        "Init uma arg loader stage5 failed, new BufferAllocator failed.");
+    COND_RETURN_AND_MSG_OUTER(kernelInfoAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013, std::to_string(sizeof(BufferAllocator)));
     RT_LOG(RT_LOG_INFO, "new BufferAllocator kernelInfoAllocator_ ok, Runtime_alloc_size %zu", sizeof(BufferAllocator));
 
     RT_LOG(RT_LOG_INFO, "ALLOC PCIE is support[%d]", static_cast<int32_t>(isPcieBarSupport));
@@ -115,8 +107,7 @@ rtError_t UmaArgLoader::Init()
         argPcieBarAllocator_ = new (std::nothrow) H2DCopyMgr(
             device_, PCIE_BAR_COPY_SIZE, 1024U, device_->GetDevProperties().maxSupportTaskNum, BufferAllocator::LINEAR,
             COPY_POLICY_PCIE_BAR);
-        COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, argPcieBarAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-            "Init uma arg loader stage6 failed, new BufferAllocator failed.");
+        COND_RETURN_AND_MSG_OUTER(argPcieBarAllocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013, std::to_string(sizeof(H2DCopyMgr)));
     }
     return RT_ERROR_NONE;
 }
@@ -181,7 +172,7 @@ rtError_t UmaArgLoader::LoadInputOutputArgsHuge(const Stream * const stm, void *
         UpdateArgsAddr(umaArgAllocator->GetDevAddr(kerArgs), argsInfo);
         const uint64_t cpySize = static_cast<uint64_t>(size);
         error = umaArgAllocator->H2DMemCopy(kerArgs, args, cpySize);
-        ERROR_RETURN_MSG_INNER(error, "H2DMemCopy, kind=%d, retCode=%#x.",
+        ERROR_RETURN(error, "H2DMemCopy, kind=%d, retCode=%#x.",
             static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(error));
     }
 
@@ -209,7 +200,7 @@ rtError_t UmaArgLoader::LoadInputOutputArgs(const Stream * const stm, void *&ker
         const uint64_t cpySize = ((argItemSize > size) ?
             static_cast<uint64_t>(size) : static_cast<uint64_t>(argItemSize));
         error = umaArgAllocator->H2DMemCopy(kerArgs, args, cpySize);
-        ERROR_RETURN_MSG_INNER(error, "H2DMemCopy, kind=%d, retCode=%#x.",
+        ERROR_RETURN(error, "H2DMemCopy, kind=%d, retCode=%#x.",
             static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(error));
     }
 
@@ -228,7 +219,7 @@ rtError_t UmaArgLoader::LoadInputOutputArgsForMix(const Stream * const stm, void
         copyArgs = true;
         UpdateArgsAddr(devAddr, argsInfo);
         error = umaArgAllocator->H2DMemCopy(devAddr, args, size);
-        ERROR_RETURN_MSG_INNER(error, "H2DMemCopy, kind=%d, retCode=%#x.",
+        ERROR_RETURN(error, "H2DMemCopy, kind=%d, retCode=%#x.",
             static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(error));
     }
 
@@ -289,14 +280,15 @@ rtError_t UmaArgLoader::LoadForMix(const rtArgsEx_t * const argsInfo,
     H2DCopyMgr *umaArgAllocator = argPcieBarAllocator_;
 
     if ((umaArgAllocator == nullptr) || (size > PCIE_BAR_COPY_SIZE)) {
-        ERROR_RETURN_MSG_INNER(RT_ERROR_INVALID_VALUE, "invalid para, byteSize=%u.", size);
+        ERROR_RETURN_MSG_INNER(RT_ERROR_INVALID_VALUE, "argsInfo->argsSize %u must be less than or equal to %u.",
+            size, PCIE_BAR_COPY_SIZE);
     }
     argHandle = static_cast<Handle *>(handleAllocator_->AllocItem());
     NULL_PTR_RETURN(argHandle, RT_ERROR_MEMORY_ALLOCATION);
     kerArgs = umaArgAllocator->AllocDevMem();
     if (kerArgs == nullptr) {
         error = RT_ERROR_MEMORY_ALLOCATION;
-        ERROR_GOTO_MSG_INNER(error, RECYCLE, "alloc kerArgs failed");
+        ERROR_GOTO_MSG_INNER(error, RECYCLE, "Failed to allocate device memory.");
     }
 
     if (argsInfo->isNoNeedH2DCopy == 0U) {
@@ -408,7 +400,7 @@ rtError_t UmaArgLoader::PureLoad(const uint32_t size, const void * const args, A
     const uint32_t argItemSize = (size > itemSize_) ? maxItemSize_ : itemSize_;
     const uint64_t cpySize = ((argItemSize > size) ? static_cast<uint64_t>(size) : static_cast<uint64_t>(argItemSize));
     error = umaArgAllocator->H2DMemCopy(kerArgs, args, cpySize);
-    ERROR_RETURN_MSG_INNER(error, "H2DMemCopy, kind=%d, retCode=%#x.",
+    ERROR_RETURN(error, "H2DMemCopy, kind=%d, retCode=%#x.",
         static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), error);
 
     argHandle->kerArgs = kerArgs;
@@ -452,7 +444,7 @@ rtError_t UmaArgLoader::LoadCpuKernelArgs(const rtArgsEx_t * const argsInfo, Str
 
         copyArgs = true;
         error = umaArgAllocator->H2DMemCopy(kerArgs, argsInfo->args, cpySize);
-        ERROR_GOTO_MSG_CALL(ERR_MODULE_DRV, error, RECYCLE, "Synchronize memcpy failed, kind=%d, retCode=%#x.",
+        ERROR_GOTO(error, RECYCLE, "Synchronize memcpy failed, kind=%d, retCode=%#x.",
             static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(error));
     }
 
@@ -526,7 +518,7 @@ rtError_t UmaArgLoader::LoadCpuKernelArgsEx(const rtAicpuArgsEx_t * const argsIn
         copyArgs = true;
         RT_LOG(RT_LOG_DEBUG, "H2DMemCopy src:%p, dst:%p, size:%u.", argsInfo->args, kerArgs, size);
         error = umaArgAllocator->H2DMemCopy(kerArgs, argsInfo->args, cpySize);
-        ERROR_GOTO_MSG_CALL(ERR_MODULE_DRV, error, RECYCLE, "Load cpu kernel args failed, kind=%d, retCode=%#x.",
+        ERROR_GOTO(error, RECYCLE, "Load cpu kernel args failed, kind=%d, retCode=%#x.",
             static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(error));
     }
 
@@ -565,9 +557,9 @@ rtError_t UmaArgLoader::GetKernelInfoDevAddr(const char_t * const name, const Ke
             break;
         }
         default: {
-            RT_LOG_OUTER_MSG_INVALID_PARAM(type,
-                "[" + std::to_string(static_cast<int32_t>(SO_NAME)) + ", " +
-                std::to_string(static_cast<int32_t>(MAX_NAME)) + ")");
+            RT_LOG(RT_LOG_ERROR, "Invalid kernel info type=%d, valid type is [%d, %d).",
+                static_cast<int32_t>(type), static_cast<int32_t>(SO_NAME),
+                static_cast<int32_t>(MAX_NAME));
             error = RT_ERROR_KERNEL_TYPE;
             break;
         }
@@ -601,7 +593,7 @@ void UmaArgLoader::GetKernelInfoFromAddr(std::string &name, const KernelInfoType
             break;
         }
         default: {
-            RT_LOG_INNER_MSG(RT_LOG_ERROR,
+            RT_LOG(RT_LOG_ERROR,
                              "Invalid kernel info type, current type = %d, valid type is %d or %d.",
                              static_cast<int32_t>(type), static_cast<int32_t>(SO_NAME),
                              static_cast<int32_t>(KERNEL_NAME));
@@ -742,7 +734,7 @@ rtError_t UmaArgLoader::FindOrInsertDevAddr(const char_t * const name,
 
     if (error != RT_ERROR_NONE) {
         kernelInfoAllocator_->FreeByItem(devAddr);
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "MemCopySync for so name %s failed, retCode=%#x",
+        RT_LOG(RT_LOG_ERROR, "MemCopySync for so name %s failed, retCode=%#x",
                          name, static_cast<uint32_t>(error));
         return error;
     }

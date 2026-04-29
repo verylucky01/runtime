@@ -116,7 +116,7 @@ void Program::Dereference()
     while (!mapUsedCtx_.empty() && err == RT_ERROR_NONE) {
         const auto iter = mapUsedCtx_.begin();
         if (iter->first == nullptr) {
-            RT_LOG_INNER_MSG(RT_LOG_ERROR, "Null module attached to context.");
+            RT_LOG(RT_LOG_ERROR, "Null module attached to context.");
             break;
         }
 
@@ -145,7 +145,7 @@ void Program::Remove2CtxMap(Module ** const moduleItem)
 
     const size_t eraseNum = mapUsedCtx_.erase(moduleItem);
     if (eraseNum == 0ULL) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Can not find context which the module attached to.");
+        RT_LOG(RT_LOG_ERROR, "Can not find context which the module attached to.");
     }
 
     mapLock_.Unlock();
@@ -259,7 +259,8 @@ rtError_t Program::ArrayInsert(const int32_t insertIndex, const uint64_t tilingK
         const errno_t ret = memmove_s(KernelTable_ + insertIndex + 1, copySize, KernelTable_ + insertIndex, copySize);
 
         COND_RETURN_ERROR_MSG_INNER(ret != EOK, RT_ERROR_SEC_HANDLE,
-            "Call memmove_s failed, copy size is %u", copySize);
+            "Failed to call memmove_s to move kernel table, dest=%p, destsz=%u, src=%p, count=%u, retCode=%d.",
+            KernelTable_ + insertIndex + 1, copySize, KernelTable_ + insertIndex, copySize, ret);
     }
 
     KernelTable_[insertIndex].TilingKey = tilingKey;
@@ -366,7 +367,7 @@ void Program::DependencyRegister(Program * const prog)
 {
     const bool success = Runtime::Instance()->GetProgram(prog);
     if (unlikely(!success)) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Dependence program may be already released");
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "The depended program may have been released.");
         return;
     }
 
@@ -728,7 +729,8 @@ rtError_t PlainProgram::LoadExtract(void * const output, const uint32_t size)
 
     const errno_t ret = memcpy_s(output, static_cast<size_t>(size), binary_, binarySize_);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE,
-        "Memcpy_s failed, retCode=%d, dst length=%u, src length=%" PRIu64, ret, size, binarySize_);
+        "Failed to call memcpy_s to copy binary data, dest=%p, dest_max=%zu, src=%p, count=%lu, retCode=%d.",
+        output, static_cast<size_t>(size), binary_, binarySize_, ret);
     return RT_ERROR_NONE;
 }
 
@@ -964,7 +966,8 @@ rtError_t ElfProgram::LoadExtract(void * const output, const uint32_t size)
     const errno_t ret = memcpy_s(output, static_cast<size_t>(size),
                                  RtPtrToPtr<char_t *>(binary_) + elfData_->text_offset, elfData_->text_size);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE,
-        "Memcpy_s failed, retCode=%d, dst length=%u, src length=%" PRIu64, ret, size, elfData_->text_size);
+        "Failed to call memcpy_s to copy text, dest=%p, dest_max=%zu, src=%p, count=%lu, retCode=%d.",
+        output, static_cast<size_t>(size), RtPtrToPtr<char_t *>(binary_) + elfData_->text_offset, elfData_->text_size, ret);
     RT_LOG(RT_LOG_INFO, "text_offset:%" PRIu64 ", elfData_->text_size:%" PRIu64, elfData_->text_offset,
         elfData_->text_size);
     return RT_ERROR_NONE;
@@ -1367,7 +1370,7 @@ rtError_t Program::BinaryMemCopySync(void * const devMem, const uint32_t adviseS
     // in the UB scenario, read-only memory cannot be directly copied from host to device (H2D).
     // the memory needs to be set as readable and writable first.
     rtError_t error = BinaryMemAdvise(devMem, adviseSize, RT_ADVISE_ACCESS_READWRITE, device, readonly);
-    ERROR_RETURN_MSG_INNER(error, "advise dev_mem failed, adviseSize=%u(bytes),"
+    ERROR_RETURN(error, "advise dev_mem failed, adviseSize=%u(bytes),"
         "type=%d(RT_ADVISE_ACCESS_READWRITE), retCode=%#x, device_id=%u.",
         adviseSize, static_cast<int32_t>(RT_ADVISE_ACCESS_READWRITE), static_cast<uint32_t>(error), devId);
 
@@ -1381,7 +1384,7 @@ rtError_t Program::BinaryMemCopySync(void * const devMem, const uint32_t adviseS
 
     // after the host-to-device (H2D) transfer is completed, the memory needs to be set as read-only.
     error = BinaryMemAdvise(devMem, adviseSize, RT_ADVISE_ACCESS_READONLY, device, readonly);
-    ERROR_RETURN_MSG_INNER(error, "advise dev_mem failed, adviseSize=%u(bytes),"
+    ERROR_RETURN(error, "advise dev_mem failed, adviseSize=%u(bytes),"
         "type=%d(RT_ADVISE_ACCESS_READONLY), retCode=%#x, device_id=%u.",
         adviseSize, static_cast<int32_t>(RT_ADVISE_ACCESS_READONLY), static_cast<uint32_t>(error), devId);
     
@@ -1405,7 +1408,7 @@ rtError_t Program::BinaryPoolMemCopySync(void * const devMem, const uint32_t siz
     // in the UB scenario, read-only memory cannot be directly copied from host to device (H2D).
     // the memory needs to be set as readable and writable first.
     rtError_t error = BinaryMemAdvise(baseAddr, size, RT_ADVISE_ACCESS_READWRITE, device, readonly);
-    ERROR_RETURN_MSG_INNER(error, "advise pool_mem failed, size=%u(bytes),"
+    ERROR_RETURN(error, "advise pool_mem failed, size=%u(bytes),"
         "type=%d(RT_ADVISE_ACCESS_READWRITE), retCode=%#x, device_id=%u.",
         size, static_cast<int32_t>(RT_ADVISE_ACCESS_READWRITE), static_cast<uint32_t>(error), devId);
 
@@ -1419,7 +1422,7 @@ rtError_t Program::BinaryPoolMemCopySync(void * const devMem, const uint32_t siz
 
     // after the host-to-device (H2D) transfer is completed, the memory needs to be set as read-only.
     error = BinaryMemAdvise(baseAddr, size, RT_ADVISE_ACCESS_READONLY, device, readonly);
-    ERROR_RETURN_MSG_INNER(error, "advise pool_mem failed, size=%u(bytes),"
+    ERROR_RETURN(error, "advise pool_mem failed, size=%u(bytes),"
         "type=%d(RT_ADVISE_ACCESS_READONLY), retCode=%#x, device_id=%u.",
         size, static_cast<int32_t>(RT_ADVISE_ACCESS_READONLY), static_cast<uint32_t>(error), devId);
     

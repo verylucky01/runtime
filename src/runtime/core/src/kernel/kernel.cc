@@ -135,7 +135,8 @@ rtError_t KernelTable::ArrayInsert(const int32_t insertIndex, const void * const
     if (copySize > 0) {
         const errno_t ret = memmove_s(kernelArr_ + insertIndex + 1, copySize, kernelArr_ + insertIndex, copySize);
         COND_RETURN_ERROR_MSG_INNER(ret != EOK, RT_ERROR_SEC_HANDLE,
-            "Call memmove_s failed, copy size is %u", copySize);
+            "Failed to call memmove_s to move kernel array, dest=%p, destsz=%u, src=%p, count=%u, retCode=%d.",
+            kernelArr_ + insertIndex + 1, copySize, kernelArr_ + insertIndex, copySize, ret);
     }
 
     kernelArr_[insertIndex].stub = stub;
@@ -235,8 +236,9 @@ rtError_t KernelTable::RemoveAll(const Program * const prog)
             if (copySize > 0) {
                 const errno_t ret = memmove_s(kernelArr_ + halfSearchResult.matchIndex, copySize,
                                         kernelArr_ + halfSearchResult.matchIndex + 1, copySize);
-                COND_PROC_RETURN_ERROR(ret != EOK, RT_ERROR_SEC_HANDLE, kernelMapLock_.Unlock(),
-                    "Call memmove_s failed, copy size is %u", copySize);
+                COND_PROC_RETURN_ERROR_MSG_INNER(ret != EOK, RT_ERROR_SEC_HANDLE, kernelMapLock_.Unlock(),
+                    "Failed to call memmove_s to move kernel array, dest=%p, destsz=%u, src=%p, count=%u, retCode=%d.",
+                    kernelArr_ + halfSearchResult.matchIndex, copySize, kernelArr_ + halfSearchResult.matchIndex + 1, copySize, ret);
             }
 
             delete delKernel;

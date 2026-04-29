@@ -158,7 +158,7 @@ rtError_t CheckCaptureModelForUpdate(const Stream* stm) {
     COND_RETURN_WITH_NOLOG((isSupportResult != RT_ERROR_NONE), isSupportResult);
 
     Model* const mdl = stm->Model_();
-    NULL_PTR_RETURN(mdl, RT_ERROR_MODEL_NULL);
+    NULL_PTR_RETURN_MSG_OUTER(mdl, RT_ERROR_MODEL_NULL);
     COND_RETURN_AND_MSG_OUTER(mdl->GetModelType() != RT_MODEL_CAPTURE_MODEL, RT_ERROR_FEATURE_NOT_SUPPORT, 
         ErrorCode::EE1006, __func__, "non aclGraph mode");
     CaptureModel* captureModel = dynamic_cast<CaptureModel*>(mdl);
@@ -167,9 +167,10 @@ rtError_t CheckCaptureModelForUpdate(const Stream* stm) {
         RawDevice* const rawDev = dynamic_cast<RawDevice *>(dev);
         rawDev->PollEndGraphNotifyInfoByModelId(mdl->Id_());
         if (!captureModel->CanUpdate()) {
-            RT_LOG(
-                RT_LOG_ERROR, "model is not ready for update, model_id=%u, current status=%d", captureModel->Id_(),
-                captureModel->GetCaptureModelStatus());
+            RT_LOG_INNER_MSG(RT_LOG_ERROR,
+                "The ACL Graph model %u bound to the current stream %d does not meet the update condition. "
+                "All ACL Graph models in the running or capture state cannot be updated, capture_model_status=%d.",
+                captureModel->Id_(), stm->Id_(), static_cast<int>(captureModel->GetCaptureModelStatus()));
             return RT_ERROR_MODEL_UPDATE_FAILED;    
         }
     }

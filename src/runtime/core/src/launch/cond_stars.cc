@@ -133,7 +133,7 @@ rtError_t CondStreamActive(const Stream* const activeStream, Stream* const stm, 
         NULL_PTR_RETURN_MSG(tsk, errorReason);
 
         error = mdl->MallocDevValue(&activeStreamId, static_cast<uint32_t>(sizeof(int32_t)), &args);
-        ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Active task malloc device value failed, retCode=%#x.", error);
+        ERROR_GOTO(error, ERROR_RECYCLE, "Active task malloc device value failed, retCode=%#x.", error);
 
         (void)ActiveAicpuStreamTaskInit(
             tsk, RtPtrToValue<void*>(args), static_cast<uint32_t>(sizeof(int32_t)), RtPtrToValue<const void*>(funcName),
@@ -146,14 +146,13 @@ rtError_t CondStreamActive(const Stream* const activeStream, Stream* const stm, 
 
         error = StreamActiveTaskInit(tsk, activeStream);
         ERROR_GOTO_MSG_INNER(
-            error, ERROR_RECYCLE, "Active task init failed, stream_id=%d, task_id=%hu, retCode=%#x", streamId, tsk->id,
+            error, ERROR_RECYCLE, "Stream activation task init failed, stream_id=%d, task_id=%hu, retCode=%#x", streamId, tsk->id,
             error);
     }
 
     error = curCtx->Device_()->SubmitTask(tsk, curCtx->TaskGenCallback_());
     ERROR_GOTO_MSG_INNER(
-        error, ERROR_RECYCLE, "Active task submit ActiveAicpuStreamTask or StreamActiveTask failed, retCode=%#x.",
-        error);
+        error, ERROR_RECYCLE, "Submit task failed, stream_id=%d, task_id=%hu, retCode=%#x.", streamId, tsk->id, error);
 
     GET_THREAD_TASKID_AND_STREAMID(tsk, streamId);
     return error;

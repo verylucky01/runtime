@@ -498,7 +498,7 @@ rtError_t LaunchFusionKernel(Stream* stm, void * const fusionKernelInfo, rtFusio
     } else {
         error = DavidSendTask(taskInfo, dstStm);
     }
-    ERROR_RETURN_MSG_INNER(error, "stream_id=%d submit task failed, retCode=%#x.", stm->Id_(),
+    ERROR_RETURN_MSG_INNER(error, "Submit task failed, stream_id=%d, retCode=%#x.", stm->Id_(),
         static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();

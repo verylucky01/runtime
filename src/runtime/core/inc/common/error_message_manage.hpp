@@ -107,6 +107,13 @@
 #define NULL_PTR_GOTO_MSG_INNER(PTR, LABEL, ERROR, ERRCODE) \
     NULL_PTR_GOTO_MSG_(INNER, PTR, LABEL, ERROR, ERRCODE) \
 
+#define COND_GOTO_MSG_OUTER(COND, LABEL, ERROR, RTERRCODE, ERRCODE, ...) \
+    if (unlikely(COND)) { \
+        RT_LOG_OUTER_MSG_IMPL(ERRCODE, ##__VA_ARGS__); \
+        (ERROR) = static_cast<rtError_t>(RTERRCODE); \
+        goto LABEL; \
+    }
+
 #define ERROR_RETURN_MSG_INNER(ERRCODE, format, ...) \
     ERROR_RETURN_MSG_(INNER, ERRCODE, format, ##__VA_ARGS__) \
 
@@ -147,6 +154,13 @@
         return RTERRCODE; \
     }
 
+//带PROC的外部错误码条件返回
+#define COND_PROC_RETURN_AND_MSG_OUTER(COND, RTERRCODE, ERRCODE, PROC, ...) \
+    if (unlikely(COND)) { \
+        PROC; \
+        RT_LOG_OUTER_MSG_IMPL(ERRCODE, ##__VA_ARGS__); \
+        return RTERRCODE; \
+    }
 //EE9999 错误码使用
 #define COND_RETURN_AND_MSG_INNER(COND, RTERRCODE, format, ...) \
     if (unlikely(COND)) { \

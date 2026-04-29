@@ -36,12 +36,14 @@ rtError_t BarrierTaskLaunch(const rtBarrierTaskInfo_t* const taskInfo, Stream* c
     NULL_PTR_RETURN(rtBarrierTask, errorReason);
 
     rtError_t error = BarrierTaskInit(rtBarrierTask, taskInfo, stm, flag);
-    ERROR_GOTO(
-        error, ERROR_RECYCLE, "Barrier task init failed, stream_id=%d, task_id=%hu, retCode=%#x.", streamId,
-        rtBarrierTask->id, error);
+    ERROR_GOTO_MSG_INNER(
+        error, ERROR_RECYCLE, "Failed to init barrier task, stream_id=%d, task_id=%hu, retCode=%#x.",
+        streamId, rtBarrierTask->id, error);
 
     error = dev->SubmitTask(rtBarrierTask, (curCtx != nullptr) ? curCtx->TaskGenCallback_() : nullptr);
-    ERROR_GOTO(error, ERROR_RECYCLE, "Barrier task submit failed, retCode=%#x", error);
+    ERROR_GOTO_MSG_INNER(
+        error, ERROR_RECYCLE, "Failed to submit barrier task, stream_id=%d, task_id=%hu, retCode=%#x", 
+        streamId, rtBarrierTask->id, error);
 
     GET_THREAD_TASKID_AND_STREAMID(rtBarrierTask, streamId);
     return error;

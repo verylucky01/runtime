@@ -455,8 +455,8 @@ rtError_t CaptureModel::UpdateNotifyId(Stream * const exeStream)
 {
     Stream *origCaptureStream = GetOriginalCaptureStream();
     Notify *ntf = GetEndGraphNotify();
-    COND_RETURN_ERROR((origCaptureStream == nullptr || ntf == nullptr), RT_ERROR_STREAM_NULL,
-        "capture stream is null, model_id=%u.", Id_());
+    COND_RETURN_ERROR_MSG_INNER((origCaptureStream == nullptr || ntf == nullptr), RT_ERROR_STREAM_NULL,
+        "Origin capture stream and end graph notify cannot be NULL pointers, model_id=%u.", Id_());
 
     rtError_t error = RT_ERROR_NONE;
     do {
@@ -481,13 +481,13 @@ rtError_t CaptureModel::BuildSqCq(Stream * const exeStream)
         "sqCqNum_=%u", sqCqNum_);
 
     const uint32_t streamNum = static_cast<uint32_t>(StreamList_().size());
-    COND_RETURN_ERROR(streamNum == 0U, RT_ERROR_INVALID_VALUE,
-        "stream num is 0, model_id=%u.", Id_());
+    COND_RETURN_ERROR_MSG_INNER(streamNum == 0U, RT_ERROR_INVALID_VALUE,
+        "Stream number cannot be 0, model_id=%u.", Id_());
 
     if (!IsModelLoadComplete()) {
         Stream *origCaptureStream = GetOriginalCaptureStream();
-        COND_RETURN_ERROR((origCaptureStream == nullptr), RT_ERROR_STREAM_NULL,
-            "capture stream is null, model_id=%u.", Id_());
+        COND_RETURN_ERROR_MSG_INNER((origCaptureStream == nullptr), RT_ERROR_STREAM_NULL,
+            "Original capture stream is a NULL pointer, model_id=%u.", Id_());
 
         Api * const apiObj = Runtime::Instance()->ApiImpl_();
         rtError_t error = RT_ERROR_NONE;
@@ -508,8 +508,8 @@ rtError_t CaptureModel::BuildSqCq(Stream * const exeStream)
     }
 
     sqCqArray_ = new (std::nothrow) rtDeviceSqCqInfo_t[streamNum];
-    COND_RETURN_ERROR(sqCqArray_ == nullptr, RT_ERROR_STREAM_NEW,
-        "new sq cq array failed, sqNum=%u", streamNum);
+    COND_RETURN_AND_MSG_OUTER(sqCqArray_ == nullptr, RT_ERROR_STREAM_NEW, ErrorCode::EE1013, 
+        std::to_string(sizeof(rtDeviceSqCqInfo_t) * streamNum));
 
     rtError_t error = AllocSqCqProc(streamNum);
     ERROR_PROC_RETURN_MSG_INNER(error, DELETE_A(sqCqArray_);,
@@ -623,13 +623,12 @@ rtError_t CaptureModel::BindSqCq(void)
     const uint32_t streamNum = static_cast<uint32_t>(StreamList_().size());
     Device * const dev = Context_()->Device_();
 
-    COND_RETURN_ERROR((sqCqNum_ != streamNum), RT_ERROR_INVALID_VALUE,
-        "sq num is not equal to stream num, sq num=%u, stream num=%u", sqCqNum_, streamNum);
+    COND_RETURN_ERROR_MSG_INNER((sqCqNum_ != streamNum), RT_ERROR_INVALID_VALUE,
+        "SQ/CQ numbers must be equal to stream numbers, sq num=%u, stream num=%u.", sqCqNum_, streamNum);
 
     if (switchInfo_ == nullptr) {
         switchInfo_ = new (std::nothrow) struct sq_switch_stream_info[sqCqNum_]();
-        COND_RETURN_ERROR(switchInfo_ == nullptr, RT_ERROR_STREAM_NEW,
-            "new sq switch info failed, sqNum=%u", sqCqNum_);
+        COND_RETURN_AND_MSG_OUTER(switchInfo_ == nullptr, RT_ERROR_STREAM_NEW, ErrorCode::EE1013, std::to_string(sizeof(sq_switch_stream_info) * sqCqNum_));
     }
 
     /* bind sq to stream */
@@ -717,7 +716,7 @@ rtError_t CaptureModel::UpdateStreamActiveTaskFuncCallMem(void)
 
     for (auto task : streamActiveTaskList_) {
         if (task == nullptr) {
-            RT_LOG(RT_LOG_ERROR, "task is nullptr, device_id=%u, model_id=%u.",
+            RT_LOG_INNER_MSG(RT_LOG_ERROR, "Task cannot be a NULL pointer, device_id=%u, model_id=%u.",
                 Context_()->Device_()->Id_(), Id_());
             return RT_ERROR_TASK_NULL;
         }
@@ -829,7 +828,7 @@ rtError_t CaptureModel::SetShapeInfo(const Stream* const stm, const uint32_t tas
     const size_t totalSize = MS_PROF_SHAPE_INFO_SIZE + MS_PROF_SHAPE_HEADER_SIZE + infoSize;
     auto rawMemPtr = std::make_unique<uint8_t []>(totalSize);
     if (unlikely(rawMemPtr == nullptr)) {
-        RT_LOG(RT_LOG_ERROR, "New memory failed, stream_id=%d, task_id=%u.", stm->Id_(), taskId);
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1013, std::to_string(totalSize));
         return RT_ERROR_MEMORY_ALLOCATION;
     }
     MsprofShapeInfo *shapeInfo = RtPtrToPtr<MsprofShapeInfo *, uint8_t *>(rawMemPtr.get());
@@ -849,18 +848,15 @@ rtError_t CaptureModel::SetShapeInfo(const Stream* const stm, const uint32_t tas
 
     uint8_t* headerCursor = shapeInfo->data;
     auto err = memcpy_s(headerCursor, MS_PROF_SHAPE_HEADER_SIZE, &header, MS_PROF_SHAPE_HEADER_SIZE);
-    if (err != EOK) {
-        RT_LOG(RT_LOG_ERROR, "Memcpy header failed, err=%d", err);
-        return RT_ERROR_SEC_HANDLE;
-    }
-    
+    COND_RETURN_ERROR_MSG_INNER(err != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy header, dest=%p, dest_max=%u, src=%p, count=%u, retCode=%d.",
+        headerCursor, MS_PROF_SHAPE_HEADER_SIZE, &header, MS_PROF_SHAPE_HEADER_SIZE, err);
+
     const uint64_t offset = RtPtrToValue(shapeInfo->data) + MS_PROF_SHAPE_HEADER_SIZE;
     err = memcpy_s(RtValueToPtr<void *>(offset), infoSize, infoPtr, infoSize);
-    if (err != EOK) {
-        RT_LOG(RT_LOG_ERROR, "Memcpy shapeInfo data failed, device_id=%u, stream_id=%u, task_id=%u, size=%zu,"
-            "error=%d.", header.deviceId, header.streamId, header.taskId, infoSize, err);
-        return RT_ERROR_SEC_HANDLE;
-    }
+    COND_RETURN_ERROR_MSG_INNER(err != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy shapeInfo data, dest=%p, dest_max=%zu, src=%p, count=%zu, retCode=%d.",
+        RtValueToPtr<void *>(offset), infoSize, infoPtr, infoSize, err);
 
     shapeInfo->dataLen = static_cast<uint32_t>(MS_PROF_SHAPE_HEADER_SIZE + infoSize);
 
@@ -889,7 +885,10 @@ void* CaptureModel::GetShapeInfo(const int32_t streamId, const uint32_t taskId, 
 rtError_t CaptureModel::CacheLastTaskOpInfo(const void * const infoPtr, const size_t infoSize, const Stream * const stm)
 {
     if (GetModelCacheOpInfoSwitch() == 0U) {
-        RT_LOG(RT_LOG_ERROR, "Cache op info switch is off, model_id=%u, stream_id=%d.", Id_(), stm->Id_());
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1018, "rtCacheLastTaskOpInfo",
+            "The operator information cache function is not enabled. "
+            "Call the rtSetStreamAttribute API to enable the operator information cache function first, "
+            "model_id=" + std::to_string(Id_()) + ", stream_id=" + std::to_string(stm->Id_()));
         return RT_ERROR_MODEL_OP_CACHE_CLOSED;
     }
 

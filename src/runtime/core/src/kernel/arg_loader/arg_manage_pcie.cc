@@ -75,12 +75,13 @@ rtError_t PcieArgManage::H2DArgCopy(const DavidArgLoaderResult * const result, v
     Handle *handle = static_cast<Handle *>(result->handle);
     if (handle != nullptr) {
         error = handle->argsAlloc->H2DMemCopy(result->kerArgs, args, static_cast<uint64_t>(size));
-        ERROR_RETURN_MSG_INNER(error, "H2DMemCopy failed, kind=%d, retCode=%#x.",
-            static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(error));
+        ERROR_RETURN(error, "H2DMemCopy failed, kind=%d, retCode=%#x.",
+            static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), error);
     } else {
         const errno_t ret = memcpy_s(result->kerArgs, static_cast<uint64_t>(size), args, static_cast<uint64_t>(size));
         COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_DRV_MEMORY,
-            "Pcie bar memcpy failed, kind=%d, ret=%d.", RT_MEMCPY_HOST_TO_DEVICE, ret);
+            "Failed to call memcpy_s to copy args, dest=%p, dest_max=%lu, src=%p, count=%lu, retCode=%d.",
+            result->kerArgs, static_cast<uint64_t>(size), args, static_cast<uint64_t>(size), ret);
     }
     return error;
 }

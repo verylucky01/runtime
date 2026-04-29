@@ -22,8 +22,8 @@ rtError_t CondLabelCreate(Label** const result, Model* const mdl, Context* const
 {
     rtError_t error = RT_ERROR_NONE;
     Label* newLabel = new (std::nothrow) Label(mdl);
-    COND_GOTO_ERROR_MSG_AND_ASSIGN_INNER(
-        newLabel == nullptr, ERROR_RETURN, error, RT_ERROR_LABEL_NEW, "Label create failed, failed to alloc label.");
+    COND_GOTO_MSG_OUTER(newLabel == nullptr, ERROR_RETURN, error, RT_ERROR_LABEL_NEW,
+        ErrorCode::EE1013, std::to_string(sizeof(Label)));
 
     error = newLabel->Setup(ctx);
     ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Setup label failed, retCode=%#x.", error);
@@ -80,7 +80,7 @@ rtError_t CondLabelListCpy(
             tempLabelInfo.labelId, tempLabelInfo.modelId, tempLabelInfo.streamId, labelStep);
         if ((device->GetTschVersion() >= TS_VERSION_MORE_LABEL) || (device->IsDavidPlatform())) {
             error = labelList[idx]->SetLabelDevAddr(devAddr);
-            ERROR_RETURN_MSG_INNER(
+            ERROR_RETURN(
                 error,
                 "Label list copy failed, have same labels in label list, label_id=%hu,"
                 " model_id=%hu, label_step=%u, retCode=%#x",
@@ -89,8 +89,7 @@ rtError_t CondLabelListCpy(
             error = device->Driver_()->MemCopySync(
                 devAddr, static_cast<uint64_t>(labelStep), static_cast<void*>(&tempLabelInfo),
                 static_cast<uint64_t>(labelStep), RT_MEMCPY_HOST_TO_DEVICE);
-            ERROR_RETURN_MSG_INNER(
-                error,
+            ERROR_RETURN(error,
                 "Label list copy failed, mem copy stream label info failed, label_id=%hu,"
                 " model_id=%hu, label_step=%u, retCode=%#x",
                 tempLabelInfo.labelId, tempLabelInfo.modelId, labelStep, error);
@@ -99,8 +98,7 @@ rtError_t CondLabelListCpy(
             error = device->Driver_()->MemCopySync(
                 devAddr, static_cast<uint64_t>(labelStep), static_cast<void*>(&tempLabelInfo),
                 static_cast<uint64_t>(labelStep), RT_MEMCPY_DEVICE_TO_DEVICE);
-            ERROR_RETURN_MSG_INNER(
-                error,
+            ERROR_RETURN(error,
                 "Label list copy failed, mem copy stream label info failed, label_id=%u,"
                 " model_id=%u, label_step=%u, retCode=%#x",
                 tempLabelInfo.labelId, tempLabelInfo.modelId, labelStep, error);

@@ -79,7 +79,8 @@ rtError_t StreamLaunchKernelEx(const void * const args, const uint32_t argsSize,
         return StreamLaunchKernelExForAicpuStream(args, argsSize, flags, stm);
     }
     rtError_t error = CheckTaskCanSend(stm);
-    COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE), error, "stream_id=%d, retCode=%#x.",
+    COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE), error,
+        "The current stream status does not meet the conditions for sending the task, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
     uint32_t pos = 0xFFFFU;
     Stream *dstStm = stm;
@@ -91,7 +92,7 @@ rtError_t StreamLaunchKernelEx(const void * const args, const uint32_t argsSize,
     stm->StreamLock();
     error = AllocTaskInfoForCapture(&kernelTask, stm, pos, dstStm);
     ERROR_PROC_RETURN_MSG_INNER(error, stm->StreamUnLock();,
-        "stream_id=%d alloc task failed, retCode=%#x.", streamId, static_cast<uint32_t>(error));
+        "Alloc task failed, stream_id=%d, retCode=%#x.", streamId, static_cast<uint32_t>(error));
     SaveTaskCommonInfo(kernelTask, dstStm, pos);
     ScopeGuard tskErrRecycle(errRecycle);
     AicpuTaskInit(kernelTask, 1U, flags);
@@ -103,13 +104,13 @@ rtError_t StreamLaunchKernelEx(const void * const args, const uint32_t argsSize,
     aicpuTask->aicpuKernelType = static_cast<uint8_t>(TS_AICPU_KERNEL_FMK);
     aicpuTask->aicpuFlags = flags;
     error = DavidSendTask(kernelTask, dstStm);
-    ERROR_RETURN_MSG_INNER(error, "stream_id=%d submit task failed, retCode=%#x.",
+    ERROR_RETURN_MSG_INNER(error, "Submit task failed, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
     SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), kernelTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
-    ERROR_RETURN_MSG_INNER(error, "kernel launch submit fail, stream_id=%d, retCode=%#x.",
+    ERROR_RETURN_MSG_INNER(error, "Post-processing after task submission failed, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
 }
@@ -128,7 +129,7 @@ static rtError_t StreamLaunchCpuKernelForAicpuStream(const rtKernelLaunchNames_t
     kernelTask->stream = stm;
     DavidStream *davidStm = static_cast<DavidStream *>(stm);
     rtError_t error = davidStm->LoadArgsInfo(argsInfo, false, &result);
-    ERROR_RETURN_MSG_INNER(error, "Failed to load args without stm pool, stream_id=%d, retCode=%#x.",
+    ERROR_RETURN_MSG_INNER(error, "Failed to load args, stream_id=%d, useArgPool=false, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
     AicpuTaskInit(kernelTask, static_cast<uint16_t>(coreDim), flag);
     SetArgsAicpu(argsInfo, nullptr, kernelTask, &result);
@@ -142,14 +143,15 @@ static rtError_t StreamLaunchCpuKernelForAicpuStream(const rtKernelLaunchNames_t
             error = devArgLdr->GetKernelInfoDevAddr(static_cast<const char_t *>(launchSoName),
                                                     KernelInfoType::SO_NAME, &soNameAddr);
             ERROR_PROC_RETURN_MSG_INNER(error, StreamLaunchKernelRecycle(result, kernelTask, nullptr, stm);,
-                "stream_id=%d failed to get so address by name, retCode=%#x.", streamId, static_cast<uint32_t>(error));
+                "Failed to obtain the SO address based on the SO name, so_name=%s, stream_id=%d, retCode=%#x.",
+                launchSoName, streamId, static_cast<uint32_t>(error));
         }
         if (kernelName != nullptr) {
             error = devArgLdr->GetKernelInfoDevAddr(static_cast<const char_t *>(kernelName),
                                                     KernelInfoType::KERNEL_NAME, &kernelNameAddr);
             ERROR_PROC_RETURN_MSG_INNER(error, StreamLaunchKernelRecycle(result, kernelTask, nullptr, stm);,
-                "stream_id=%d failed to get kernel address by name, retCode=%#x.",
-                streamId, static_cast<uint32_t>(error));
+                "Failed to obtain the kernel address based on the kernel name, kernel_name=%s, stream_id=%d, retCode=%#x.",
+                kernelName, streamId, static_cast<uint32_t>(error));
         }
         SetNameArgs(kernelTask, soNameAddr, kernelNameAddr);
     }
@@ -162,7 +164,7 @@ static rtError_t StreamLaunchCpuKernelForAicpuStream(const rtKernelLaunchNames_t
     aicpuTask->aicpuKernelType = static_cast<uint8_t>(aicpuKernelType);
     error = ProcAicpuTask(kernelTask);
     COND_PROC_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE), error, StreamLaunchKernelRecycle(result, kernelTask, nullptr, stm);,
-        "streamId=%d process aicpu task fail.", streamId);
+        "process aicpu task failed, stream_id=%d.", streamId);
 
     return RT_ERROR_NONE;
 }
@@ -187,14 +189,16 @@ rtError_t StreamLaunchCpuKernel(const rtKernelLaunchNames_t * const launchNames,
         stm->StreamUnLock();
     };
     rtError_t error = CheckTaskCanSend(stm);
-    ERROR_RETURN_MSG_INNER(error, "stream_id=%d, retCode=%#x.", streamId, static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error,
+        "The current stream status does not meet the conditions for sending the task. stream_id=%d, retCode=%#x.",
+        streamId, static_cast<uint32_t>(error));
     DavidStream *davidStm = static_cast<DavidStream *>(stm);
     bool useArgPool = UseArgsPool(davidStm, argsInfo, false);
 
     stm->StreamLock();
     error = AllocTaskInfoForCapture(&kernelTask, stm, pos, dstStm);
     ScopeGuard tskErrRecycle(errRecycle);
-    ERROR_RETURN_MSG_INNER(error, "stream_id=%d alloc task failed, retCode=%#x.", streamId, static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Alloc task failed, stream_id=%d, retCode=%#x.", streamId, static_cast<uint32_t>(error));
     SaveTaskCommonInfo(kernelTask, dstStm, pos);
     AicpuTaskInit(kernelTask, static_cast<uint16_t>(coreDim), flag);
     
@@ -212,14 +216,14 @@ rtError_t StreamLaunchCpuKernel(const rtKernelLaunchNames_t * const launchNames,
         if (launchSoName != nullptr) {
             error = devArgLdr->GetKernelInfoDevAddr(static_cast<const char_t *>(launchSoName),
                                                     KernelInfoType::SO_NAME, &soNameAddr);
-            ERROR_RETURN_MSG_INNER(error, "Failed to get so address by name, retCode=%#x.",
-                static_cast<uint32_t>(error));
+            ERROR_RETURN_MSG_INNER(error, "Failed to obtain the SO address based on the SO name, so_name=%s, retCode=%#x.",
+                launchSoName, static_cast<uint32_t>(error));
         }
         if (kernelName != nullptr) {
             error = devArgLdr->GetKernelInfoDevAddr(static_cast<const char_t *>(kernelName),
                                                     KernelInfoType::KERNEL_NAME, &kernelNameAddr);
-            ERROR_RETURN_MSG_INNER(error, "Failed to get kernel address by name, retCode=%#x.",
-                static_cast<uint32_t>(error));
+            ERROR_RETURN_MSG_INNER(error, "Failed to obtain the kernel address based on the kernel name, kernel_name=%s, retCode=%#x.",
+                kernelName, static_cast<uint32_t>(error));
         }
         SetNameArgs(kernelTask, soNameAddr, kernelNameAddr);
     }
@@ -235,13 +239,13 @@ rtError_t StreamLaunchCpuKernel(const rtKernelLaunchNames_t * const launchNames,
     aicpuTask->timeout = timeout;
 
     error = DavidSendTask(kernelTask, dstStm);
-    ERROR_RETURN_MSG_INNER(error,  "stream_id=%d submit task failed, retCode=%#x.",
+    ERROR_RETURN_MSG_INNER(error,  "Submit task failed, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
     SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), kernelTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
-    ERROR_RETURN_MSG_INNER(error, "kernel launch submit fail, stream_id=%d, retCode=%#x.",
+    ERROR_RETURN_MSG_INNER(error, "Post-processing after task submission failed, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
 }
@@ -257,7 +261,7 @@ static rtError_t StreamLaunchCpuKernelExWithArgsForAicpuStm(const uint32_t coreD
     kernelTask->stream = stm;
     DavidStream *davidStm = static_cast<DavidStream *>(stm);
     rtError_t error = davidStm->LoadArgsInfo(argsInfo, false, &result);
-    ERROR_RETURN_MSG_INNER(error, "Failed to load args without stm pool, stream_id=%d, retCode=%#x.",
+    ERROR_RETURN_MSG_INNER(error, "Failed to load args, stream_id=%d, useArgPool=false, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
     AicpuTaskInit(kernelTask, static_cast<uint16_t>(coreDim), flag);
     SetArgsAicpu(nullptr, argsInfo, kernelTask, &result);
@@ -270,7 +274,7 @@ static rtError_t StreamLaunchCpuKernelExWithArgsForAicpuStm(const uint32_t coreD
         kernelType, flag, aicpuTask->timeout, aicpuTask->comm.kernelFlag, aicpuTask->comm.dim);
     error = ProcAicpuTask(kernelTask);
     ERROR_PROC_RETURN_MSG_INNER(error, StreamLaunchKernelRecycle(result, kernelTask, nullptr, stm);,
-        "stream_id=%d process aicpu task fail.", streamId);
+        "Process AI CPU task failed, stream_id=%d.", streamId);
     return RT_ERROR_NONE;
 }
 
@@ -299,13 +303,15 @@ rtError_t StreamLaunchCpuKernelExWithArgs(const uint32_t coreDim, const rtAicpuA
     DavidArgLoaderResult result = {nullptr, nullptr, nullptr, UINT32_MAX, nullptr, nullptr};
     TaskInfo *kernelTask = nullptr;
     rtError_t error = CheckTaskCanSend(stm);
-    ERROR_RETURN_MSG_INNER(error, "stream_id=%d, retCode=%#x.", streamId, static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, 
+        "The current stream status does not meet the conditions for sending the task, stream_id=%d, retCode=%#x.",
+        streamId, static_cast<uint32_t>(error));
     DavidStream *davidStm = static_cast<DavidStream *>(stm);
     bool useArgPool = UseArgsPool(davidStm, argsInfo, false);
     Kernel *newKernel = nullptr;
     if (kernel != nullptr) {
         newKernel =  new (std::nothrow) Kernel(kernel->GetCpuKernelSo(), kernel->GetCpuFuncName(), kernel->GetCpuOpType());
-        NULL_PTR_RETURN_MSG(newKernel, RT_ERROR_KERNEL_NEW);
+        COND_RETURN_AND_MSG_OUTER(newKernel == nullptr, RT_ERROR_KERNEL_NEW, ErrorCode::EE1013, std::to_string(sizeof(Kernel)));
     }
 
     Stream *dstStm = stm;
@@ -318,7 +324,7 @@ rtError_t StreamLaunchCpuKernelExWithArgs(const uint32_t coreDim, const rtAicpuA
     stm->StreamLock();
     error = AllocTaskInfoForCapture(&kernelTask, stm, pos, dstStm);
     ScopeGuard tskErrRecycle(errRecycle);
-    ERROR_PROC_RETURN_MSG_INNER(error, DELETE_O(newKernel);, "stream_id=%d alloc task failed, retCode=%#x.", stm->Id_(),
+    ERROR_PROC_RETURN_MSG_INNER(error, DELETE_O(newKernel);, "Alloc task failed, stream_id=%d, retCode=%#x.", stm->Id_(),
         static_cast<uint32_t>(error));
     SaveTaskCommonInfo(kernelTask, dstStm, pos);
     AicpuTaskInit(kernelTask, static_cast<uint16_t>(coreDim), flag);
@@ -335,13 +341,13 @@ rtError_t StreamLaunchCpuKernelExWithArgs(const uint32_t coreDim, const rtAicpuA
         static_cast<uint32_t>(cpuParamHeadOffset), 0, static_cast<uint8_t>(kernelType), 0};
     SetTaskInfo(kernelTask, argsInfo, newKernel, taskCfg, tmpTaskInfo);
     error = DavidSendTask(kernelTask, dstStm);
-    ERROR_RETURN_MSG_INNER(error, "stream_id=%d submit task failed, retCode=%#x.",
+    ERROR_RETURN_MSG_INNER(error, "Submit task failed, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
     tskErrRecycle.ReleaseGuard();
     stm->StreamUnLock();
     SET_THREAD_TASKID_AND_STREAMID(dstStm->GetExposedStreamId(), kernelTask->taskSn);
     error = SubmitTaskPostProc(dstStm, pos);
-    ERROR_RETURN_MSG_INNER(error, "kernel launch submit fail, stream_id=%d, retCode=%#x.",
+    ERROR_RETURN_MSG_INNER(error, "Post-processing after task submission failed, stream_id=%d, retCode=%#x.",
         streamId, static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
 }

@@ -153,7 +153,7 @@ std::unique_ptr<char_t[]> GetStringTableCopy(const char_t * const src, const uin
     /* + 1 so that we can '\0' terminate invalid string table sections.  */
     std::unique_ptr<char_t[]> strTbl(new (std::nothrow) char_t[size + 1UL]);
     if (strTbl == nullptr) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Get string table copy failed, new failed, size = %" PRIu64, size);
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1013, std::to_string(size + 1UL));
         return nullptr;
     }
 
@@ -161,8 +161,8 @@ std::unique_ptr<char_t[]> GetStringTableCopy(const char_t * const src, const uin
     stringTbl[size] = '\0';
     const errno_t ret = memcpy_s(stringTbl, size, src, size);
     if (ret != EOK) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Get string table copy failed, memcpy_s failed, size=%" PRIu64 ", retCode=%d",
-            size, ret);
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call memcpy_s to copy string table, dest=%p, dest_max=%lu, src=%p, count=%lu, retCode=%d.",
+            stringTbl, size, src, size, ret);
         return nullptr;
     }
     return strTbl;
@@ -181,27 +181,29 @@ int32_t Get64bitSectionHeaders(rtElfData * const elfData)
 
     /* Cope with unexpected section header sizes.  */
     if ((size == 0U) || (num == 0U) || (num > ((~(static_cast<uint64_t>(0))) / size))) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR,
-            "The value of e_shentsize field or e_shnum is incorrect, e_shentsize = %u, e_shnum = %u",
-            size, num);
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, 
+            "The value " + std::to_string(size) + " of e_shentsize or the value " + std::to_string(num) + 
+            " of e_shnum in the operator binary ELF file header is incorrect. The expected value complies the following rule: "
+            "both e_shentsize and e_shnum are not 0, and the product of the values of e_shnum and e_shentsize cannot be greater than the maximum value of uint64_t");
         return ELF_FAIL;
     }
 
     if (size != sizeof(*shdrs)) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR,
-            "The value of e_shentsize field is inconsistent with the size of an ELF section header.");
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, 
+            "The value " + std::to_string(size) + " of e_shentsize in the operator binary ELF file header must be equal to the size " + 
+            std::to_string(sizeof(*shdrs)) + " of the ELF section header");
         return ELF_FAIL;
     }
 
     shdrs = RtPtrToPtr<Elf64_External_Shdr *>(elfData->obj_ptr_origin + elfData->elf_header.e_shoff);
     if (shdrs == nullptr) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "shdrs is null");
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, "The ELF section header address in the operator binary ELF file header cannot be empty");
         return ELF_FAIL;
     }
 
     elfData->section_headers = new (std::nothrow) Elf_Internal_Shdr[num];
     if (elfData->section_headers == nullptr) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "New section headers failed, num = %u", num);
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1013, std::to_string(sizeof(Elf_Internal_Shdr) * num));
         return ELF_FAIL;
     }
 
@@ -209,9 +211,9 @@ int32_t Get64bitSectionHeaders(rtElfData * const elfData)
     for (i = 0U; (i < num) && (GetByte != nullptr); i++) {
         const uint64_t objOffset = RtPtrToValue(shdrs + (i + 1)) - RtPtrToValue(elfData->obj_ptr_origin);
         if (objOffset > elfData->obj_size) {
-            RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "Section %u is out of obj, num:%u, e_shoff:%" PRIu64 ", "
-                "Elf64_External_Shdr size:%zu, obj size:%" PRIu64 ".", i, num, elfData->elf_header.e_shoff,
-                sizeof(Elf64_External_Shdr), elfData->obj_size);
+            RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, 
+                "The offset " + std::to_string(objOffset) + " of the section ranked " + std::to_string(i) + 
+                " exceeds the size " + std::to_string(elfData->obj_size) + " of the ELF object");
             return ELF_FAIL;
         }
 
@@ -226,10 +228,9 @@ int32_t Get64bitSectionHeaders(rtElfData * const elfData)
         internalShdrs->sh_offset = GetByte(static_cast<const uint8_t *>(shdrs[i].sh_offset), 8);
         internalShdrs->sh_addralign = GetByte(static_cast<const uint8_t *>(shdrs[i].sh_addralign), 8);
         if (internalShdrs->sh_link > num) {
-            RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR,
-                " Section %u sh_link value is invalid, current sh_link value is %u,"
-                "valid sh_link value range is [%u, %u]!",
-                i, internalShdrs->sh_link, 0U, num);
+            RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, 
+                "The value " + std::to_string(internalShdrs->sh_link) + " of sh_link in the section ranked " + std::to_string(i) + 
+                " is invalid. The valid value range is [0, " + std::to_string(num) + "]");
             return ELF_FAIL;
         }
         internalShdrs++;
@@ -253,35 +254,36 @@ std::unique_ptr<Elf_Internal_Sym[]> Get64bitElfSymbols(const rtElfData * const e
     *numSymsReturn = 0UL;
 
     if (section->sh_size == 0ULL) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "Section->shsize: %" PRIu64 " is NULL.",
-            section->sh_size);
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, 
+            "The value 0 of section->sh_size is invalid. The valid value must be greater than 0");
         return nullptr;
     }
 
     /* Run some sanity checks first.  */
     if ((section->sh_entsize == 0ULL) || (section->sh_entsize > section->sh_size)) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "Section has an out of range, current sh_entsize: %" PRIu64
-            "range is (%u, %" PRIu64 "]!", section->sh_entsize, 0U, section->sh_size);
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, 
+            "The value " + std::to_string(section->sh_entsize) + " of section->sh_entsize is invalid. The valid value range is (0, " + 
+            std::to_string(section->sh_size) + "]");
         return nullptr;
     }
     number = section->sh_size / section->sh_entsize;
 
     if ((number * sizeof(Elf64_External_Sym)) > (section->sh_size + 1ULL)) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR,
-            "Section has an out of range Elf64_External_Sym: %zu!",
-            sizeof(Elf64_External_Sym));
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, 
+            "The value " + std::to_string(section->sh_size) + " of section->sh_size is invalid. The valid value must be greater than or equal to " + 
+            std::to_string(number * sizeof(Elf64_External_Sym) - 1));
         return nullptr;
     }
 
     esyms = RtPtrToPtr<Elf64_External_Sym *>(elfData->obj_ptr_origin + section->sh_offset);
     if (esyms == nullptr) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "esyms is null");
+        RT_LOG(RT_LOG_ERROR, "esyms is null");
         return nullptr;
     }
 
     std::unique_ptr<Elf_Internal_Sym[]> isyms(new (std::nothrow) Elf_Internal_Sym[number]);
     if (isyms == nullptr) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "New symbols failed, num = %" PRIu64, number);
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1013, std::to_string(sizeof(Elf_Internal_Sym) * number));
         return nullptr;
     }
 
@@ -289,9 +291,9 @@ std::unique_ptr<Elf_Internal_Sym[]> Get64bitElfSymbols(const rtElfData * const e
     for (j = 0U; (j < number) && (GetByte != nullptr); j++) {
         const uint64_t objOffset = RtPtrToValue(esyms + (j + 1)) - RtPtrToValue(elfData->obj_ptr_origin);
         if (objOffset > elfData->obj_size) {
-            RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR,
-                "j:%u, number:%" PRIu64 ", Elf64_External_Sym size:%zu, sh_offset:%" PRIu64 ", obj_size:%" PRIu64 ".",
-                j, number, sizeof(Elf64_External_Sym), section->sh_offset, elfData->obj_size);
+            RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, 
+                "The offset " + std::to_string(objOffset) + " of the sh_ent ranked " + std::to_string(j) + 
+                " exceeds the size " + std::to_string(elfData->obj_size) + " of the ELF object");
             return nullptr;
         }
 
@@ -323,7 +325,7 @@ static uint32_t GetSymbolName(const char_t *stringTab, const Elf_Internal_Sym * 
     uint64_t si;
     const Elf_Internal_Sym *internalSym = psym;
     Runtime *rtInstance = Runtime::Instance();
-    COND_RETURN_ERROR_MSG_INNER(rtInstance == nullptr, RT_ERROR_INSTANCE_NULL, "Runtime instance is null");
+    COND_RETURN_ERROR(rtInstance == nullptr, RT_ERROR_INSTANCE_NULL, "Runtime instance is null");
     if (stringTab == nullptr) {
         return RT_ERROR_NONE;
     }
@@ -360,7 +362,7 @@ rtError_t RefreshSymbolAddress(rtElfData *elfData)
     if (((elfData->ascendMetaFlag & KERNEL_PRINT_FIFO_ADDR_BIT) != 0) && (elfData->symbolAddr.g_sysPrintFifoSpace != nullptr)) {
         uint64_t *addr = elfData->symbolAddr.g_sysPrintFifoSpace;
         const rtError_t error = curCtx->Device_()->GetPrintFifoAddrAndCreateThread(&sourceAddr, PRINT_SIMD);
-        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get printf fifo space address failed!");
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get printf fifo space address failed.");
         *addr = sourceAddr;
         RT_LOG(RT_LOG_DEBUG, "Set global variable address in binary, g_sysPrintFifoSpace = %p, addr = %p", *addr, addr);
     }
@@ -368,7 +370,7 @@ rtError_t RefreshSymbolAddress(rtElfData *elfData)
         uint64_t *addr = elfData->symbolAddr.g_sysFftsAddr;
         uint32_t sourceAddrLen = 0;
         const rtError_t error = curDrv->GetC2cCtrlAddr(drvDeviceId, &sourceAddr, &sourceAddrLen);
-        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get ffts address failed!");
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get ffts address failed.");
         *addr = sourceAddr;
         RT_LOG(RT_LOG_DEBUG, "Set global variable address in binary, g_sysFftsAddr = %p, addr = %p", *addr, addr);
     }
@@ -379,21 +381,21 @@ rtError_t RefreshSymbolAddress(rtElfData *elfData)
         if (error == RT_ERROR_FEATURE_NOT_SUPPORT) {
             return RT_ERROR_NONE;
         }
-        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get L2Cache address failed!");
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get L2Cache address failed.");
         *addr = sourceAddr;
         RT_LOG(RT_LOG_DEBUG, "Set global variable address in binary, g_opL2CacheHintCfg = %p, addr = %p", *addr, addr);
     }
     if (((elfData->ascendMetaFlag & KERNEL_SIMT_PRINT_FIFO_ADDR_BIT) != 0) && (elfData->symbolAddr.g_sysSimtPrintFifoSpace != nullptr)) {
         uint64_t *addr = elfData->symbolAddr.g_sysSimtPrintFifoSpace;
         const rtError_t error = curCtx->Device_()->GetPrintFifoAddrAndCreateThread(&sourceAddr, PRINT_SIMT);
-        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get simt printf fifo space address failed!");
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get simt printf fifo space address failed.");
         *addr = sourceAddr;
         RT_LOG(RT_LOG_DEBUG, "Set global variable address in binary, g_sysSimtPrintFifoSpace = %p, addr = %p", *addr, addr);
     }
     if (IsAssertOnly(elfData->ascendMetaFlag) && (elfData->symbolAddr.g_sysPrintFifoSpace != nullptr)) {
         uint64_t *addr = elfData->symbolAddr.g_sysPrintFifoSpace;
         const rtError_t error = curCtx->Device_()->GetPrintSimdAddress(&sourceAddr);
-        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get printf fifo space address failed!");
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get printf fifo space address failed.");
         *addr = sourceAddr;
         RT_LOG(RT_LOG_DEBUG, "Set global variable address in binary, g_sysPrintFifoSpace=%p, addr=%p", *addr, addr);
     }
@@ -1052,7 +1054,7 @@ RtKernel *GetKernels(rtElfData * const elfData)
         uint64_t numSyms = 0UL;
         const std::unique_ptr<Elf_Internal_Sym[]> symTab = Get64bitElfSymbols(elfData, section, &numSyms);
         if (symTab == nullptr) {
-            RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "Get 64bit elf symbols failed");
+            RT_LOG(RT_LOG_ERROR, "Get 64bit elf symbols failed");
             section++;
             continue;
         }
@@ -1258,10 +1260,10 @@ static RtKernel *ProcessSymbolTable(rtElfData * const elfData)
                 elfData->text_offset = section->sh_offset;
             }
             if ((MAX_UINT64_NUM - section->sh_size) < (section->sh_offset - elfData->text_offset)) {
-                RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "elfData->text_size invalid value, current size is %" PRIu64
-                    "valid range is [0, %" PRIu64 "]",
-                    (section->sh_offset + section->sh_size - elfData->text_offset),
-                    static_cast<uint64_t>(MAX_UINT64_NUM));
+                RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, 
+                    "The value " + std::to_string(section->sh_offset + section->sh_size - elfData->text_offset) + 
+                    " of elfData->text_size is invalid. The valid value range is (0, " + 
+                    std::to_string(static_cast<uint64_t>(MAX_UINT64_NUM)) + "]");
                 KernelInfoMapRelease(kernelInfoMap);
                 return nullptr;
             }
@@ -1323,7 +1325,8 @@ static int32_t GetFileHeader(rtElfData * const elfData)
     errno_t ret = memcpy_s(elfData->elf_header.e_ident, static_cast<size_t>(EI_NIDENT), elfData->obj_ptr,
         static_cast<size_t>(EI_NIDENT));
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, ELF_FAIL,
-        "Get file header failed, memcpy_s failed, size=%zu, retCode=%d!", static_cast<size_t>(EI_NIDENT), ret);
+        "Failed to call memcpy_s to copy the elf_header.e_ident, dest=%p, dest_max=%zu, src=%p, count=%zu, retCode=%d.",
+        elfData->elf_header.e_ident, static_cast<size_t>(EI_NIDENT), elfData->obj_ptr, static_cast<size_t>(EI_NIDENT), ret);
     elfData->obj_ptr += EI_NIDENT;
 
     /* Determine how to read the rest of the header.  */
@@ -1334,15 +1337,15 @@ static int32_t GetFileHeader(rtElfData * const elfData)
 
     /* Read in the rest of the header.  */
     if (is32bitElf) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR,
-            "Elf can no be 32bit.");
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1014, "The ELF file must be a 64-bit file");
         return ELF_FAIL;
     } else {
         const size_t tmpSize = sizeof(Elf64_External_Ehdr) - static_cast<size_t>(EI_NIDENT);
         uint8_t hdr[tmpSize];
         ret = memcpy_s(&hdr[0], tmpSize, elfData->obj_ptr, tmpSize);
         COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, ELF_FAIL,
-            "Get file header failed, second memcpy_s failed, size=%zu, retCode=%d!", tmpSize, ret);
+            "Failed to call memcpy_s to copy elf header, dest=%p, dest_max=%zu, src=%p, count=%zu, retCode=%d.",
+            &hdr[0], tmpSize, elfData->obj_ptr, tmpSize, ret);
         elfData->obj_ptr += tmpSize;
         elfData->elf_header.e_type = static_cast<uint16_t>(GetByte(static_cast<const uint8_t *>(&hdr[0]), 2));
         elfData->elf_header.e_machine = static_cast<uint16_t>(GetByte(static_cast<const uint8_t *>(hdr + 2), 2));
@@ -1394,7 +1397,7 @@ static void ProcessSymbolTableGetOffset(rtElfData *elfData, uint32_t* offset)
 RtKernel *ProcessObject(char_t * const objBuf, rtElfData * const elfData)
 {
     if (objBuf == nullptr) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR,
+        RT_LOG(RT_LOG_ERROR,
             "read ELF buffer failed");
         return nullptr;
     }
@@ -1405,7 +1408,7 @@ RtKernel *ProcessObject(char_t * const objBuf, rtElfData * const elfData)
     elfData->stackSize = 0ULL;
 
     if (GetFileHeader(elfData) == ELF_FAIL) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR,
+        RT_LOG(RT_LOG_ERROR,
             "read object header failed");
         return nullptr;
     }
@@ -1575,7 +1578,7 @@ rtError_t GetBinaryMetaInfo(const rtElfData * const elfData, const uint16_t type
 
         const errno_t ret = memcpy_s(data[i], dataSize[i], metaInfo[i].first, metaInfo[i].second);
         COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, ELF_FAIL,
-            "Call memcpy_s failed, dst addr=%p, dst size=%zu, src addr=%p, src size=%u, retCode=%d!", 
+            "Failed to call memcpy_s to copy metaInfo, dest=%p, dest_max=%zu, src=%p, count=%u, retCode=%d.",
             data[i], dataSize[i], metaInfo[i].first, metaInfo[i].second, ret);
 
         RT_LOG(RT_LOG_INFO, "Get meta info segment, type=%u, size=%zu", type, dataSize[i]);

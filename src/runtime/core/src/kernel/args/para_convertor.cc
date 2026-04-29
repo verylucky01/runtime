@@ -32,8 +32,9 @@ rtError_t ConvertArgsByArgsHandle(rtArgsEx_t &oldArgs, const RtArgsHandle *const
         if (argsHandle->para[idx].type == 0U) { // 0 is Common param, 1 is place holder param
             continue;
         }
-        COND_RETURN_OUT_ERROR_MSG_CALL(phIndex >= arrayArgsNum, RT_ERROR_INVALID_VALUE,
-            "phIndex[%u] should less than phNum[%u].", phIndex, arrayArgsNum);
+        COND_RETURN_AND_MSG_OUTER(phIndex >= arrayArgsNum, RT_ERROR_INVALID_VALUE, ErrorCode::EE1017,
+            "Launch kernel", "argsWithType->args.argHandle", "The number (" + std::to_string(phIndex) +
+            ") of parameters whose para.type is place holder in argHandle must be less than " + std::to_string(arrayArgsNum));
         specialArgsInfos[phIndex].dataOffset = static_cast<uint32_t>(argsHandle->para[idx].dataOffset);
         specialArgsInfos[phIndex].addrOffset = argsHandle->para[idx].paraOffset;
         phIndex++;
@@ -71,8 +72,9 @@ rtError_t ConvertCpuArgsByArgsHandle(rtCpuKernelArgs_t &oldArgs, const RtArgsHan
         if (argsHandle->para[idx].type == 0U) { // 0 is Common param, 1 is place holder param
             continue;
         }
-        COND_RETURN_OUT_ERROR_MSG_CALL(phIndex >= arrayArgsNum, RT_ERROR_INVALID_VALUE,
-            "phIndex[%u] should less than phNum[%u].", phIndex, arrayArgsNum);
+        COND_RETURN_AND_MSG_OUTER(phIndex >= arrayArgsNum, RT_ERROR_INVALID_VALUE, ErrorCode::EE1017,
+            "Launch kernel", "argsWithType->args.argHandle", "The number (" + std::to_string(phIndex) +
+            ") of parameters whose para.type is place holder in argHandle must be less than " + std::to_string(arrayArgsNum));
         specialArgsInfos[phIndex].dataOffset = argsHandle->para[idx].dataOffset;
         specialArgsInfos[phIndex].addrOffset = argsHandle->para[idx].paraOffset;
         phIndex++;

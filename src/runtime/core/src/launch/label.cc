@@ -62,15 +62,15 @@ rtError_t LabelAllocator::LabelIdAlloc(uint16_t &idAlloc)
 rtError_t LabelAllocator::LabelIdFree(const uint16_t idFree)
 {
     if (idFree >= labelMaxNum_) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Invalid label id, label range is [0,%hu), current id=%hu!",
-            labelMaxNum_, idFree);
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Value %hu for parameter idFree is invalid. Expected value: [0, %hu).",
+            idFree, labelMaxNum_);
         return RT_ERROR_LABEL_ID;
     }
 
     mutex_.lock();
     if (labelIds_[idFree] == static_cast<uint16_t>(LABEL_FREE)) {
         mutex_.unlock();
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Repeat free label id=%hu", idFree);
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Label ID %u is released repeatedly.", idFree);
         return RT_ERROR_LABEL_FREE;
     }
     labelIds_[idFree] = static_cast<uint16_t>(LABEL_FREE);
@@ -153,18 +153,21 @@ rtError_t Label::Setup(Context * const curCtx)
 rtError_t Label::Set(Stream * const stm)
 {
     NULL_PTR_RETURN_MSG(stm->Model_(), RT_ERROR_STREAM_MODEL);
-    COND_RETURN_ERROR_MSG_INNER((mgrType_ == LABEL_MGR_TYPE_MODEL) && (stm->Model_() != model_),
-        RT_ERROR_LABEL_MODEL, "Set label failed, stream don't bind to label mdl!");
-    COND_RETURN_ERROR_MSG_INNER((stream_ != nullptr) && (stream_ != stm), RT_ERROR_LABEL_STREAM,
-        "Set label failed, label stream not same with create stream!");
-    COND_RETURN_ERROR_MSG_INNER(setFlag_, RT_ERROR_LABEL_SET,
-        "Set label failed, label already set!");
+    COND_RETURN_AND_MSG_OUTER((mgrType_ == LABEL_MGR_TYPE_MODEL) && (stm->Model_() != model_),
+        RT_ERROR_LABEL_MODEL, ErrorCode::EE1017, "rtLabelSet", "stream",
+        "Model " + std::to_string(stm->Model_()->Id_()) + " bound to the stream is inconsistent with model "
+        + std::to_string(model_->Id_()) + " to which the label belongs");
+    COND_RETURN_AND_MSG_OUTER((stream_ != nullptr) && (stream_ != stm), RT_ERROR_LABEL_STREAM, ErrorCode::EE1017,
+        "rtLabelSet", "stream", "The current stream " + std::to_string(stm->Id_()) +
+        " is inconsistent with the stream " + std::to_string(stream_->Id_()) + " associated with the label");
+    COND_RETURN_AND_MSG_OUTER(setFlag_, RT_ERROR_LABEL_SET, ErrorCode::EE1018,
+        "rtsLabelSet", "The label cannot be set repeatedly");
 
     Device * const dev = context_->Device_();
-    COND_RETURN_ERROR_MSG_INNER(((devDstAddr_ == nullptr) &&
+    COND_RETURN_AND_MSG_OUTER(((devDstAddr_ == nullptr) &&
         (dev->GetTschVersion() >= static_cast<uint32_t>(TS_VERSION_MORE_LABEL))),
-        RT_ERROR_LABEL_PHY_ADDR_NULL,
-        "Need call label list cpy api before set label task.");
+        RT_ERROR_LABEL_PHY_ADDR_NULL, ErrorCode::EE1018,
+        "aclrtSetLabel", "Before setting the label using aclrtSetLabel, you need to call aclrtCreateLabelList to create a label list");
 
     TaskInfo submitTask = {};
     rtError_t errorReason;
@@ -172,11 +175,11 @@ rtError_t Label::Set(Stream * const stm)
     NULL_PTR_RETURN_MSG(labelTask, errorReason);
 
     rtError_t error = LabelSetTaskInit(labelTask, labelId_, devDstAddr_);
-    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Init label set task failed, retCode=%#x!",
+    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Init label set task failed, retCode=%#x.",
                          static_cast<uint32_t>(error));
 
     error = dev->SubmitTask(labelTask, context_->TaskGenCallback_());
-    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Submit label set task failed, retCode=%#x!",
+    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Submit label set task failed, retCode=%#x.",
                          static_cast<uint32_t>(error));
 
     setFlag_ = true;
@@ -192,7 +195,8 @@ ERROR_RECYCLE:
 
 rtError_t Label::SetStream(Stream * const stm)
 {
-    COND_RETURN_ERROR_MSG_INNER(stream_ != nullptr, RT_ERROR_LABEL_STREAM, "Create label failed, already create!");
+    COND_RETURN_ERROR_MSG_INNER(stream_ != nullptr, RT_ERROR_LABEL_STREAM,
+        "The current label has been set to another stream, label_id=%u, stream_id=%d.", Id_(), stream_->Id_());
 
     stream_ = stm;
     return RT_ERROR_NONE;
@@ -211,11 +215,11 @@ rtError_t Label::Switch(const void * const ptr, const rtCondition_t condition, c
     NULL_PTR_RETURN_MSG(labelTask, errorReason);
 
     rtError_t error = LabelSwitchTaskInit(labelTask, ptr, condition, val, labelId_);
-    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Init label switch task failed, retCode=%#x!",
+    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Init label switch task failed, retCode=%#x.",
                          static_cast<uint32_t>(error));
 
     error = dev->SubmitTask(labelTask, context_->TaskGenCallback_());
-    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Submit label switch task failed, retCode=%#x!",
+    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Submit label switch task failed, retCode=%#x.",
                          static_cast<uint32_t>(error));
 
     GET_THREAD_TASKID_AND_STREAMID(labelTask, stm->Id_());
@@ -240,11 +244,11 @@ rtError_t Label::Goto(Stream * const stm)
     NULL_PTR_RETURN_MSG(labelTask, errorReason);
 
     rtError_t error = LabelGotoTaskInit(labelTask, labelId_);
-    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Init label goto task failed, retCode=%#x!",
+    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Init label goto task failed, retCode=%#x.",
                          static_cast<uint32_t>(error));
 
     error = dev->SubmitTask(labelTask, context_->TaskGenCallback_());
-    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Submit label goto task failed, retCode=%#x!",
+    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Submit label goto task failed, retCode=%#x.",
                          static_cast<uint32_t>(error));
 
     GET_THREAD_TASKID_AND_STREAMID(labelTask, stm->Id_());
@@ -271,7 +275,7 @@ rtError_t Label::StreamGoto(Stream * const stm)
 
     (void)StreamLabelGotoTaskInit(labelTask, labelId_);
     error = dev->SubmitTask(labelTask, context_->TaskGenCallback_());
-    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Submit stream label goto task failed, retCode=%#x!",
+    ERROR_GOTO_MSG_INNER(error, ERROR_RECYCLE, "Submit stream label goto task failed, retCode=%#x.",
                          static_cast<uint32_t>(error));
 
     GET_THREAD_TASKID_AND_STREAMID(labelTask, stm->Id_());
@@ -286,7 +290,7 @@ ERROR_RECYCLE:
 rtError_t Label::SetLabelDevAddr(void * const addr)
 {
     COND_RETURN_ERROR_MSG_INNER(devDstAddr_ != nullptr, RT_ERROR_SAME_LABELS_IN_SWITCH,
-        "Label addr repeat setting, maybe have same labels in switch task.");
+        "Label address is set repeatedly.");
     devDstAddr_ = addr;
     return RT_ERROR_NONE;
 }

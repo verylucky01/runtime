@@ -45,7 +45,8 @@ rtError_t InternalLaunchWithKernelAndArgs(const Kernel* const kernel, const uint
     AicpuTaskInit(kernelTask, static_cast<uint16_t>(coreDim), flag);
     kernelTask->u.aicpuTaskInfo.headParamOffset = static_cast<uint32_t>(cpuParamHeadOffset);
     Kernel* newKernel = new(std::nothrow) Kernel(kernel->GetCpuKernelSo(), kernel->GetCpuFuncName(),
-        kernel->GetCpuOpType()); NULL_PTR_GOTO_MSG_INNER(newKernel, ERROR_FREE, error, RT_ERROR_KERNEL_NEW);
+        kernel->GetCpuOpType()); 
+    COND_GOTO_MSG_OUTER(newKernel == nullptr, ERROR_FREE, error, RT_ERROR_KERNEL_NEW, ErrorCode::EE1013, std::to_string(sizeof(Kernel)));
     // newKernel申请完毕需要立即绑定到kernelTask上，确保ERROR_FREE能在所有异常分支回收newKernel
     kernelTask->u.aicpuTaskInfo.kernel = newKernel;
 
@@ -205,11 +206,15 @@ rtError_t StreamLaunchCpuKernel(const rtKernelLaunchNames_t* const launchNames, 
         void* kernelNameAddr = nullptr;
         if (launchSoName != nullptr) {
             error = devArgLdr->GetKernelInfoDevAddr(launchSoName, SO_NAME, &soNameAddr);
-            ERROR_GOTO_MSG_INNER(error, ERROR_FREE, "Failed to get so address by name, retCode=%#x", error);
+            ERROR_GOTO_MSG_INNER(error, ERROR_FREE,
+                "Failed to obtain the SO address based on the SO name, so_name=%s, retCode=%#x.",
+                launchSoName, error);
         }
         if (kernelName != nullptr) {
             error = devArgLdr->GetKernelInfoDevAddr(kernelName, KERNEL_NAME, &kernelNameAddr);
-            ERROR_GOTO_MSG_INNER(error, ERROR_FREE, "Failed to get kernel address by name, retCode=%#x", error);
+            ERROR_GOTO_MSG_INNER(error, ERROR_FREE,
+                "Failed to obtain the kernel address based on the kernel name, kernel_name=%s, retCode=%#x.",
+                kernelName, error);
         }
         SetNameArgs(kernTask, soNameAddr, kernelNameAddr);
     }

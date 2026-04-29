@@ -165,29 +165,29 @@ rtError_t Model::ReBuild(void)
     RT_LOG(RT_LOG_EVENT, "Begin to rebuild model, id=%d.", id_);
 
     rtError_t error = ReSetup();
-    ERROR_RETURN_MSG_INNER(error,"ReSetup model failed. retCode=%#x!",
+    ERROR_RETURN_MSG_INNER(error,"ReSetup model failed. retCode=%#x.",
         static_cast<uint32_t>(error));
 
     ResetForRestore();
 
     error = ReBindStreams();
-    ERROR_RETURN_MSG_INNER(error,"ReBind stream failed. retCode=%#x!",
+    ERROR_RETURN_MSG_INNER(error,"ReBind stream failed. retCode=%#x.",
         static_cast<uint32_t>(error));
 
     error = SinkSqTasksRestore();
-    ERROR_RETURN_MSG_INNER(error,"Restore tasks failed. retCode=%#x!",
+    ERROR_RETURN_MSG_INNER(error,"Restore tasks failed. retCode=%#x.",
         static_cast<uint32_t>(error));
  
     error = CheckRestoredSqStatus();
-    ERROR_RETURN_MSG_INNER(error,"Check SQ status failed. retCode=%#x!",
+    ERROR_RETURN_MSG_INNER(error,"Check SQ status failed. retCode=%#x.",
         static_cast<uint32_t>(error));
 
     error = LoadCompleteByStream();
-    ERROR_RETURN_MSG_INNER(error,"ReLoad complete failed. retCode=%#x!",
+    ERROR_RETURN_MSG_INNER(error,"ReLoad complete failed. retCode=%#x.",
         static_cast<uint32_t>(error));
     
     error = UpdateSnapShotSqe();
-    ERROR_RETURN_MSG_INNER(error,"update sqe failed. retCode=%#x!",
+    ERROR_RETURN_MSG_INNER(error,"Update sqe failed. retCode=%#x.",
         static_cast<uint32_t>(error));
 
     RT_LOG(RT_LOG_EVENT, "Success to rebuild model, id=%d.", id_);

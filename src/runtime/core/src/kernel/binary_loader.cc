@@ -174,12 +174,15 @@ rtError_t BinaryLoader::SetCpuBinInfo(const rtLoadBinaryOptionValue_t &option)
 {
     const int32_t mode = option.cpuKernelMode;
     // 0, 1 user for load from file
-    COND_RETURN_OUT_ERROR_MSG_CALL((isLoadFromFile_ && (mode != 0) && (mode != 1)), RT_ERROR_INVALID_VALUE,
-        "load from file scenario cpu kernel mode is invalid, mode=%d, should be [0, 1]", mode);
+    COND_RETURN_AND_MSG_OUTER((isLoadFromFile_ && (mode != 0) && (mode != 1)), RT_ERROR_INVALID_VALUE,
+        ErrorCode::EE1017, "rtsBinaryLoadFromFile", "option.cpuKernelMode",
+        "When the AI CPU operator binary is loaded from a file, the loading mode " + std::to_string(mode) + " is invalid. "
+        + "The valid value range is [0: load only the JSON file, 1: load the CPU SO & JSON file]");
     // 2 only user for load from data
-    COND_RETURN_OUT_ERROR_MSG_CALL(!isLoadFromFile_ && (mode != 2), RT_ERROR_INVALID_VALUE,
-        "load from data scenario cpu kernel mode is invalid, mode=%d, should be 2", mode);
-
+    COND_RETURN_AND_MSG_OUTER(!isLoadFromFile_ && (mode != 2), RT_ERROR_INVALID_VALUE,
+        ErrorCode::EE1017, "rtsBinaryLoadFromData", "option.cpuKernelMode",
+        "When the AI CPU operator binary is loaded from data, the loading mode " + std::to_string(mode) + " is invalid. "
+        + "The valid value can only be 2: LoadFromData");
     switch (mode) {
         case 0: // 0: only need .json
         case 1: // 1: need .so and .json

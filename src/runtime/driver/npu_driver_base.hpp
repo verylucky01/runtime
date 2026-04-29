@@ -128,6 +128,12 @@ drvError_t __attribute__((weak)) halUpdateAddress(uint64_t device_addr, uint64_t
 drvError_t __attribute__((weak)) halAsyncDmaCreate(uint32_t devId, struct halAsyncDmaInputPara *in,
     struct halAsyncDmaOutputPara *out);
 drvError_t __attribute__((weak)) halAsyncDmaDestory(uint32_t devId, struct halAsyncDmaDestoryPara *para);
+drvError_t __attribute__((weak)) halAsyncDmaCreate2D(uint32_t devId, struct halAsyncDmaInput2DPara *in, struct halAsyncDmaOutputPara *out);
+drvError_t __attribute__((weak)) halAsyncDmaDestroy2D(uint32_t devId, struct halAsyncDmaDestroy2DPara *para);
+drvError_t __attribute__((weak)) halAsyncDmaCreateBatch(uint32_t devId, struct halAsyncDmaInputBatchPara *in,
+    struct halAsyncDmaOutputPara *out);
+drvError_t __attribute__((weak)) halAsyncDmaDestroyBatch(uint32_t devId, struct halAsyncDmaDestroyBatchPara *para);
+
 drvError_t __attribute__((weak)) halSqTaskArgsAsyncCopy(uint32_t devId, struct halSqTaskArgsInfo *info);
 drvError_t __attribute__((weak)) halResAddrMap(unsigned int devId, struct res_addr_info *res_info,
     unsigned long *va, unsigned int *len);

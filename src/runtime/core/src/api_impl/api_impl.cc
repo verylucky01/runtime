@@ -8343,7 +8343,7 @@ rtError_t ApiImpl::ValidateMemCpyParamsAndAttributes(void* dst, size_t destMax, 
     realSrcLoc = (srcAttr.location.type == RT_MEMORY_LOC_UNREGISTERED) ? RT_MEMORY_LOC_HOST : srcAttr.location.type;
     COND_RETURN_ERROR_MSG_INNER(
         error != RT_ERROR_NONE, error, "check attributes failed, attributes of src locationType=%d, dst locationType=%d, "
-        "actually srcs locationType=%d(%s), dsts locationType=%d(%s).",
+        "actually dst locationType=%d(%s), src locationType=%d(%s).",
         memAttr.srcLoc.type, memAttr.dstLoc.type, realDstLoc, MemLocationTypeToStr(realDstLoc),
         realSrcLoc, MemLocationTypeToStr(realSrcLoc));
 

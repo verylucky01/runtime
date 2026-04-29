@@ -143,7 +143,7 @@ drvError_t drvDriverStubInit(void)
         (void)drvMemMgmtInit();
 #ifndef __DRV_CFG_DEV_PLATFORM_ESL__
         // interface for decoupling,because tsch depends on runtime while st
-        tsRegDrvReportIrqTriger(drvReportIrqTriger);
+        tsRegDrvReportIrqTriger(drvReportIrqTrigger);
         char camodelLogPath[MAX_ENV_PATH_LEN] = { 0 };
         const char *camodelLogPathValue = NULL;
         MM_SYS_GET_ENV(MM_ENV_CAMODEL_LOG_PATH, camodelLogPathValue);

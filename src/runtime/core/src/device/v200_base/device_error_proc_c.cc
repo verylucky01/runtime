@@ -328,16 +328,6 @@ static const std::unordered_map<uint32_t, std::string> ubRasEventIdAndDesc = {
     {UB_POISON_ERROR_EVENT_ID, "node type=UB, sensor type=RAS State, event state=bus error, probably caused by software"},
 };
 
-static uint32_t GetRasCodeFromEvent(const rtDmsFaultEvent &event)
-{
-    uint32_t rasCode = 0;
-    rasCode |= static_cast<uint32_t>(event.rasCode[0]) << 24;
-    rasCode |= static_cast<uint32_t>(event.rasCode[1]) << 16;
-    rasCode |= static_cast<uint32_t>(event.rasCode[2]) << 8;
-    rasCode |= static_cast<uint32_t>(event.rasCode[3]);
-    return rasCode;
-}
-
 static bool PrintRasEvents(const Device * const dev, const rtDmsFaultEvent * const faultEventInfo, const uint32_t eventCount)
 {
     UNUSED(dev);

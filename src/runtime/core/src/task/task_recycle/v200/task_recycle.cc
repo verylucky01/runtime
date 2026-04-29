@@ -66,7 +66,7 @@ void ProcLogicCqUntilEmpty(const Stream *const stm)
         rtError_t error = ((RawDevice*)(dev))->Engine_()->ReportHeartBreakProcV2();
         COND_PROC_RETURN_ERROR_MSG_CALL(ERR_MODULE_DRV, error == RT_ERROR_LOST_HEARTBEAT,,
             RT_LOG_INNER_DETAIL_MSG(RT_DRV_INNER_ERROR, {"device_id"}, {std::to_string(dev->Id_())});,
-            "Device[%u] lost heartbeart.", dev->Id_());
+            "Device %u loses the heartbeat.", dev->Id_());
 
         error = devDrv->LogicCqReportV2(waitInfo, RtPtrToPtr<uint8_t *, rtLogicCqReport_t *>(reportInfo), allocCnt, cnt);
         if (unlikely(((error != RT_ERROR_NONE) && (error != RT_ERROR_SOCKET_CLOSE)) || (cnt == 0U))) {
@@ -136,7 +136,7 @@ rtError_t TryRecycleTask(Stream * const stm)
     uint16_t tail = 0U;
     if (stm->StreamSyncTryLock(3U)) {   // 3ms
         const rtError_t error = GetDrvSqHead(stm, sqHead);
-        COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, stm->StreamSyncUnLock();,
+        COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, stm->StreamSyncUnLock(),
             "GetDrvSqHead failed, retCode=%#x.", static_cast<uint32_t>(error));
         // recycle per task, if recycleFlag is true
         if (stm->GetRecycleFlag()) {
@@ -191,7 +191,7 @@ rtError_t TaskReclaimByStream(const Stream *const stm, const bool limited, const
     // get device rtsq head by drv interface
     uint16_t sqHead = 0U;
     error = GetDrvSqHead(stm, sqHead, needLog);
-    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "GetDrvSqHead failed, retCode=%#x.",
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "GetDrvSqHead failed, retCode=%#x.",
         static_cast<uint32_t>(error));
     error = SendingProcReport(stm, limited, sqHead);
     return error;

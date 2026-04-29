@@ -10,6 +10,7 @@
 
 #include "cmo_task.h"
 #include "model.hpp"
+#include "error_message_manage.hpp"
 
 namespace cce {
 namespace runtime {
@@ -32,11 +33,11 @@ rtError_t CmoTaskInit(TaskInfo *taskInfo, const rtCmoTaskInfo_t *const cmoTaskIn
             // sqe info copy
             const errno_t error = memcpy_s(
                 &cmoTsk->cmoSqeInfo, sizeof(rtCmoTaskInfo_t), cmoTaskInfo, sizeof(rtCmoTaskInfo_t));
-            if (error != EOK) {
-                RT_LOG(RT_LOG_ERROR, "copy to CMO Sqe info failed, ret=%d, src size=%zu(bytes), "
-                    "dst size=%zu(bytes)", error, sizeof(rtCmoTaskInfo_t), sizeof(rtCmoTaskInfo_t));
-                return RT_ERROR_SEC_HANDLE;
-            }
+            COND_RETURN_AND_MSG_OUTER((error != EOK), RT_ERROR_SEC_HANDLE, ErrorCode::EE1020,
+                __func__, "memcpy_s", std::to_string(error), strerror(error), "src=" +
+                std::to_string(reinterpret_cast<uintptr_t>(cmoTaskInfo)) + ", dest=" + 
+                std::to_string(reinterpret_cast<uintptr_t>(&cmoTsk->cmoSqeInfo)) + ", dest_max=" +
+                std::to_string(sizeof(rtCmoTaskInfo_t)) + ", count=" + std::to_string(sizeof(rtCmoTaskInfo_t)) + ".");
 
             RT_LOG(RT_LOG_DEBUG, "CmoTask Init, opCode=%u, length=%u", cmoTsk->cmoSqeInfo.opCode,
                 cmoTsk->cmoSqeInfo.lengthInner);
@@ -46,7 +47,8 @@ rtError_t CmoTaskInit(TaskInfo *taskInfo, const rtCmoTaskInfo_t *const cmoTaskIn
             return RT_ERROR_FEATURE_NOT_SUPPORT;
         }
     } else if (cmoModel == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "CMO task stream is not in model.");
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "The stream that delivers the CMO task is not in the model,"
+            " device_id=%u, stream_id=%d.", taskInfo->stream->Device_()->Id_(), taskInfo->stream->Id_());
         return RT_ERROR_MODEL_NULL;
     } else {
         // no operation
@@ -55,11 +57,10 @@ rtError_t CmoTaskInit(TaskInfo *taskInfo, const rtCmoTaskInfo_t *const cmoTaskIn
     CmoTaskInfo *cmoTsk = &taskInfo->u.cmoTask;
     // sqe info copy
     const errno_t error = memcpy_s(&cmoTsk->cmoSqeInfo, sizeof(rtCmoTaskInfo_t), cmoTaskInfo, sizeof(rtCmoTaskInfo_t));
-    if (error != EOK) {
-        RT_LOG(RT_LOG_ERROR, "copy to CMO Sqe info failed, ret=%d, src size=%zu(bytes), dst size=%zu(bytes)",
-            error, sizeof(rtCmoTaskInfo_t), sizeof(rtCmoTaskInfo_t));
-        return RT_ERROR_SEC_HANDLE;
-    }
+    COND_RETURN_AND_MSG_OUTER((error != EOK), RT_ERROR_SEC_HANDLE, ErrorCode::EE1020,
+        __func__, "memcpy_s", std::to_string(error), strerror(error), "src=" + std::to_string(reinterpret_cast<uintptr_t>(cmoTaskInfo)) +
+        ", dest=" + std::to_string(reinterpret_cast<uintptr_t>(&cmoTsk->cmoSqeInfo)) + ", dest_max=" + std::to_string(sizeof(rtCmoTaskInfo_t)) +
+        ", count=" + std::to_string(sizeof(rtCmoTaskInfo_t)) + ".");
 
     const rtError_t ret = cmoModel->CmoIdAlloc(cmoTsk->cmoSqeInfo.logicId, cmoTsk->cmoid);
     ERROR_RETURN(ret, "Failed to alloc cmo id.");
@@ -78,11 +79,9 @@ rtError_t CmoAddrTaskInit(TaskInfo *taskInfo, void *cmoAddrInfo, const rtCmoOpCo
     Stream * const stream = taskInfo->stream;
     Model *cmoModel = stream->Model_();
 
-    if (cmoModel == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "CMO Addr task stream is not in model. device_id=%d, stream_id=%d, task_id=%hu.",
-            static_cast<int32_t>(stream->Device_()->Id_()), stream->Id_(), taskInfo->id);
-        return RT_ERROR_MODEL_NULL;
-    }
+    COND_RETURN_ERROR_MSG_INNER((cmoModel == nullptr), RT_ERROR_MODEL_NULL,
+        "The stream that delivers the CmoAddr task is not in the model, deviceId=%u, streamId=%d, taskId=%u.",
+        taskInfo->stream->Device_()->Id_(), taskInfo->stream->Id_(), taskInfo->id);
 
     CmoAddrTaskInfo *cmoAddrTask = &(taskInfo->u.cmoAddrTaskInfo);
     cmoAddrTask->cmoAddrInfo = cmoAddrInfo;

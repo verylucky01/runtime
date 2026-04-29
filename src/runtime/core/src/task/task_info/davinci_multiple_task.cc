@@ -36,13 +36,12 @@ rtError_t DavinciMultipleTaskInit(TaskInfo* taskInfo, const void *const multiple
     multiTaskInfo->sqeNum = info->taskNum;
     multiTaskInfo->cmdListVec = new (std::nothrow) std::vector<void *>();
     multiTaskInfo->flag = flag;
-    COND_RETURN_ERROR_MSG_INNER(multiTaskInfo->cmdListVec == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-        "multiTaskInfo->cmdListVec new memory fail!");
+    COND_RETURN_AND_MSG_OUTER(multiTaskInfo->cmdListVec == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013,
+        std::to_string(sizeof(std::vector<void *>)));
 
     multiTaskInfo->argHandleVec = new (std::nothrow) std::vector<void *>();
-    COND_PROC_RETURN_ERROR_MSG_INNER(multiTaskInfo->argHandleVec == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-        DELETE_O(multiTaskInfo->cmdListVec),
-        "multiTaskInfo->argHandleVec new memory fail!");
+    COND_PROC_RETURN_AND_MSG_OUTER(multiTaskInfo->argHandleVec == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013,
+        DELETE_O(multiTaskInfo->cmdListVec), std::to_string(sizeof(std::vector<void *>)));
 
     return RT_ERROR_NONE;
 }
@@ -98,8 +97,9 @@ void ConstructDvppSqe(TaskInfo * const taskInfo, rtStarsSqe_t *const command, si
     const errno_t error = memcpy_s(dvppSqe, sizeof(RtStarsDvppSqe), &(dvppTask.sqe), sizeof(dvppTask.sqe));
     if (error != EOK) {
         dvppSqe->sqeHeader.type = RT_STARS_SQE_TYPE_INVALID;
-        RT_LOG(RT_LOG_ERROR, "copy to starsSqe failed, ret=%d, src size=%zu, dst size=%zu",
-               error, sizeof(rtStarsCommonSqe_t), sizeof(dvppTask.sqe));
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call memcpy_s to copy dvppTask.sqe,"
+            " src=%p, dest=%p, dest_max=%zu, count=%zu, retCode=%#x.", &(dvppTask.sqe), dvppSqe,
+            sizeof(RtStarsDvppSqe), sizeof(dvppTask.sqe), error);
         return;
     }
 
@@ -366,7 +366,7 @@ rtError_t WaitAsyncCopyCompleteForDavinciMultipleTask(TaskInfo *taskInfo)
         }
         const rtError_t error = argHdl->argsAlloc->H2DMemCopyWaitFinish(argHdl->kerArgs);
         if (error != RT_ERROR_NONE) {
-            RT_LOG_INNER_MSG(RT_LOG_ERROR, "H2DMemCopyWaitFinish for args cpy result failed, retCode=%#x.", static_cast<uint32_t>(error));
+            RT_LOG(RT_LOG_ERROR, "Failed to call H2DMemCopyWaitFinish to copy args, retCode=%#x.", static_cast<uint32_t>(error));
             continue;
         }
     }

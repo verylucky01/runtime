@@ -35,7 +35,8 @@ rtError_t DynamicProfilingEnableTaskInit(TaskInfo * const taskInfo, const uint64
     const errno_t ret = memcpy_s(profilingEnableTaskInfo->eventMuxConfig, static_cast<size_t>(M_PROF_EVEID_NUM),
                                  profCfg->eventId, static_cast<size_t>(M_PROF_EVEID_NUM));
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE,
-        "Memcpy_s failed, max size=%d(bytes), src size=%d(bytes), retCode=%d.", M_PROF_EVEID_NUM, M_PROF_EVEID_NUM, ret);
+        "Failed to call memcpy_s to copy profCfg->eventId, src=%p, dest=%p, dest_max=%u, count=%u, retCode=%#x.",
+        profCfg->eventId, profilingEnableTaskInfo->eventMuxConfig, M_PROF_EVEID_NUM, M_PROF_EVEID_NUM, ret);
     profilingEnableTaskInfo->startCycle = profCfg->profStartCyc;
     profilingEnableTaskInfo->stopCycle = profCfg->profStopCyc;
     profilingEnableTaskInfo->userDefinedEnable = profCfg->isUsrDefProfEn;
@@ -55,8 +56,12 @@ void ToCommandBodyForDynamicProfilingEnableTask(TaskInfo * const taskInfo, rtCom
     const errno_t ret = memcpy_s(command->u.profilingEnable.eventMuxConfig,
                                  static_cast<size_t>(M_PROF_EVEID_NUM),
                                  profilingEnableTaskInfo->eventMuxConfig, static_cast<size_t>(M_PROF_EVEID_NUM));
-    COND_LOG_ERROR(ret != EOK, "Memcpy_s failed, retCode=%d, srcSize=%d(bytes), dstSize=%d(bytes).",
-        ret, M_PROF_EVEID_NUM, M_PROF_EVEID_NUM);
+    if (ret != EOK) {
+        RT_LOG_INNER_MSG(RT_LOG_ERROR,
+            "Failed to call memcpy_s to copy profilingEnableTaskInfo->eventMuxConfig, src=%p, dest=%p,"
+            " dest_max=%u, count=%u, retCode=%#x.", profilingEnableTaskInfo->eventMuxConfig,
+            command->u.profilingEnable.eventMuxConfig, M_PROF_EVEID_NUM, M_PROF_EVEID_NUM, ret);
+    }
     command->u.profilingEnable.startCycle = profilingEnableTaskInfo->startCycle;
     command->u.profilingEnable.stopCycle = profilingEnableTaskInfo->stopCycle;
     command->u.profilingEnable.userDefinedEnable = profilingEnableTaskInfo->userDefinedEnable;
@@ -114,7 +119,8 @@ rtError_t ProfilingEnableTaskInit(TaskInfo * const taskInfo, const uint64_t proc
     const errno_t ret = memcpy_s(profilingEnableTaskInfo->eventMuxConfig, static_cast<size_t>(M_PROF_EVEID_NUM),
                                  profCfg->eventId, static_cast<size_t>(M_PROF_EVEID_NUM));
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE,
-        "Memcpy_s failed, max size=%d(bytes), src size=%d(bytes).", M_PROF_EVEID_NUM, M_PROF_EVEID_NUM);
+        "Failed to call memcpy_s to copy profCfg->eventId, src=%p, dest=%p, dest_max=%u, count=%u, retCode=%#x.",
+        profCfg->eventId, profilingEnableTaskInfo->eventMuxConfig, M_PROF_EVEID_NUM, M_PROF_EVEID_NUM, ret);
     profilingEnableTaskInfo->startCycle = profCfg->profStartCyc;
     profilingEnableTaskInfo->stopCycle = profCfg->profStopCyc;
     profilingEnableTaskInfo->userDefinedEnable = profCfg->isUsrDefProfEn;
@@ -134,8 +140,12 @@ void ToCommandBodyForProfilingEnableTask(TaskInfo * const taskInfo, rtCommand_t 
     const errno_t ret = memcpy_s(command->u.profilingEnable.eventMuxConfig,
                                  static_cast<size_t>(M_PROF_EVEID_NUM),
                                  profilingEnableTaskInfo->eventMuxConfig, static_cast<size_t>(M_PROF_EVEID_NUM));
-    COND_LOG_ERROR(ret != EOK, "Memcpy_s failed, retCode=%d, srcSize=%d(bytes), dstSize=%d(bytes).",
-        ret, M_PROF_EVEID_NUM, M_PROF_EVEID_NUM);
+    if (ret != EOK) {
+         RT_LOG_INNER_MSG(RT_LOG_ERROR,
+            "Failed to call memcpy_s to copy profilingEnableTaskInfo->eventMuxConfig, src=%p, dest=%p,"
+            " dest_max=%u, count=%u, retCode=%#x.", profilingEnableTaskInfo->eventMuxConfig,
+            command->u.profilingEnable.eventMuxConfig, M_PROF_EVEID_NUM, M_PROF_EVEID_NUM, ret);
+    }
     command->u.profilingEnable.startCycle = profilingEnableTaskInfo->startCycle;
     command->u.profilingEnable.stopCycle = profilingEnableTaskInfo->stopCycle;
     command->u.profilingEnable.userDefinedEnable = profilingEnableTaskInfo->userDefinedEnable;

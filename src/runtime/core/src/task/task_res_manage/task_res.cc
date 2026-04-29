@@ -53,7 +53,8 @@ rtError_t TaskResManage::LoadInputOutputArgs(const Stream * const stm, void *&ke
         const errno_t ret = memcpy_s(kerArgs, size, args, size);
         TIMESTAMP_END(TaskResManage_LoadInputOutputArgs);
         COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_DRV_MEMORY,
-            "Pcie bar memcpy failed, kind=%d, ret=%#x.", RT_MEMCPY_HOST_TO_DEVICE, static_cast<uint32_t>(ret));
+            "Failed to call memcpy_s to copy args, src=%p, dest=%p, dest_max=%u, count=%u, kind=%d, retCode=%#x.",
+            args, kerArgs, size, size, RT_MEMCPY_HOST_TO_DEVICE, static_cast<uint32_t>(ret));
     }
     return RT_ERROR_NONE;
 }
@@ -71,7 +72,8 @@ rtError_t TaskResManage::LoadInputOutputArgs(const Stream * const stm, void *&ke
         const errno_t ret = memcpy_s(kerArgs, size, args, size);
         TIMESTAMP_END(TaskResManage_LoadInputOutputArgs);
         COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_DRV_MEMORY,
-            "Pcie bar memcpy failed, kind=%d, ret=%#x.", RT_MEMCPY_HOST_TO_DEVICE, static_cast<uint32_t>(ret));
+            "Failed to call memcpy_s to copy args, src=%p, dest=%p, dest_max=%u, count=%u, kind=%d, retCode=%#x.",
+            args, kerArgs, size, size, RT_MEMCPY_HOST_TO_DEVICE, static_cast<uint32_t>(ret));
     }
 
     return RT_ERROR_NONE;
@@ -122,11 +124,8 @@ void* TaskResManage::MallocPcieBarBuffer(const uint32_t size, Device* const dev,
         return nullptr;
     }
     ret = dev->Driver_()->PcieHostRegister(addr, static_cast<uint64_t>(size), dev->Id_(), outAddr);
-    if (ret != RT_ERROR_NONE) {
-        (void)dev->Driver_()->DevMemFree(addr, dev->Id_());
-        RT_LOG(RT_LOG_ERROR, "Pcie Host Register failed, retCode=%#x, size=%u, dev_id=%u.", ret, size, dev->Id_());
-        return nullptr;
-    }
+    COND_PROC_RETURN_ERROR_MSG_INNER(ret != RT_ERROR_NONE, nullptr, (void)dev->Driver_()->DevMemFree(addr, dev->Id_()),
+        "PcieHostRegister falied, retCode=%#x, size=%u, dev_id=%u.", ret, size, dev->Id_());
     return addr;
 }
 
@@ -221,10 +220,8 @@ uint16_t TaskResManage::GetTaskPoolSizeByChipType(const rtChipType_t chipType) c
 {
     DevProperties prop;
     rtError_t ret = GET_DEV_PROPERTIES(chipType, prop);
-    if (ret != RT_ERROR_NONE) { 
-        RT_LOG(RT_LOG_ERROR, "GetDevProperties failed, error code=%u.", ret);
-        return 0U;
-    }
+    COND_RETURN_ERROR_MSG_INNER(ret != RT_ERROR_NONE, 0U,
+        "GetDevProperties failed, chip type=%d.", chipType);
     if (prop.taskPoolSizeFromRtsqDepth) {
         return prop.rtsqDepth;
     }

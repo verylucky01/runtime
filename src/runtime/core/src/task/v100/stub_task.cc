@@ -100,7 +100,7 @@ rtError_t SyncGetDevMsg(Device * const dev, const void * const devMemAddr, const
     // new a stream for get exception info
     std::unique_ptr<Stream, void(*)(Stream*)> stm(StreamFactory::CreateStream(dev, 0U),
                                                   [](Stream* ptr) {ptr->Destructor();});
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, stm == nullptr, RT_ERROR_STREAM_NEW, "new Stream failed.");
+    COND_RETURN_AND_MSG_OUTER(stm == nullptr, RT_ERROR_STREAM_NEW, ErrorCode::EE1013, std::to_string(sizeof(Stream)));
     rtError_t error = stm->Setup();
     ERROR_RETURN_MSG_INNER(error, "stream setup failed, retCode=%#x.", static_cast<uint32_t>(error));
     const std::function<void()> streamTearDownFunc = [&stm]() {
@@ -123,17 +123,18 @@ rtError_t SyncGetDevMsg(Device * const dev, const void * const devMemAddr, const
     error = GetDevMsgTaskInit(tsk, devMemAddr, devMemSize, getDevMsgType);
     ERROR_PROC_RETURN_MSG_INNER(error,
                                 ((void)dev->GetTaskFactory()->Recycle(tsk));,
-                                "Failed to init task, stream_id=%d, task_id=%hu, retCode=%#x.",
-                                stm->Id_(), tsk->id, static_cast<uint32_t>(error));
+                                "Failed to init task, device_id=%u, stream_id=%d, task_id=%hu, retCode=%#x.",
+                                dev->Id_(), stm->Id_(), tsk->id, static_cast<uint32_t>(error));
     // submit task
     error = dev->SubmitTask(tsk);
     ERROR_PROC_RETURN_MSG_INNER(error,
                                 ((void)dev->GetTaskFactory()->Recycle(tsk));,
-                                "Failed to submit task, retCode=%#x, device id=%u",
+                                "Failed to submit task, retCode=%#x, device_id=%u.",
                                 static_cast<uint32_t>(error), dev->Id_());
     // stream synchronize
     error = stm->Synchronize();
-    ERROR_RETURN_MSG_INNER(error, "Failed to synchronize stream, retCode=%#x.", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to synchronize stream, device_id=%u, stream_id=%d, retCode=%#x.",
+        dev->Id_(), stm->Id_(), static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
 }
 

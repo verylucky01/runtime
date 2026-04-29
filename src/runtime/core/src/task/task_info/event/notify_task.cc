@@ -135,7 +135,7 @@ void ToCommandBodyForNotifyRecordTask(TaskInfo *taskInfo, rtCommand_t *const com
 static rtError_t GetIpcNotifyBaseAddrForNotifyRecordTask(TaskInfo *taskInfo, uint64_t &baseAddr)
 {
     Driver *const curDrv = Runtime::Instance()->driverFactory_.GetDriver(NPU_DRIVER);
-    NULL_PTR_RETURN_MSG(curDrv, RT_ERROR_DRV_NULL);
+    COND_RETURN_ERROR((curDrv == nullptr), RT_ERROR_DRV_NULL, "Check param failed, curDrv can not be null.");
 
     NotifyRecordTaskInfo *notifyRecord = &(taskInfo->u.notifyrecordTask);
     const Notify* const notify = notifyRecord->uPtr.notify;
@@ -175,12 +175,14 @@ static rtError_t GetIpcNotifyBaseAddrForNotifyRecordTask(TaskInfo *taskInfo, uin
         return RT_ERROR_NONE;
     }
     error = curDrv->GetTopologyType(localDevId, remoteDevId, remotePhyId, &topologyType);
-    ERROR_RETURN_MSG_INNER(error, "Get topology type fail, retCode=%#x, remoteDevId=%u, remotePhyId=%u", error, remoteDevId, remotePhyId);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Failed to get topology type, retCode=%#x, remoteDevId=%u, remotePhyId=%u.",
+        error, remoteDevId, remotePhyId);
     if ((topologyType == TOPOLOGY_HCCS) || (topologyType == TOPOLOGY_HCCS_SW) ||
         (topologyType == TOPOLOGY_SIO)) {
         notifyRecord->uInfo.singleBitNtfyInfo.isPcie = false;
         const rtError_t err = curDrv->GetChipIdDieId(localDevId, remoteDevId, remotePhyId, chipId, dieId);
-        ERROR_RETURN_MSG_INNER(err, "Get chipId and dieId fail, retCode=%#x, deviceId=%u, phyId=%u", err, remoteDevId, remotePhyId);
+        ERROR_RETURN_MSG_INNER(err, "Failed to get chipId and dieId, retCode=%#x, deviceId=%u, phyId=%u.", err, remoteDevId, remotePhyId);
 
         const uint64_t chipAddr = taskInfo->stream->Device_()->GetChipAddr();
         const uint64_t chipOffset = taskInfo->stream->Device_()->GetChipOffset();
@@ -197,7 +199,7 @@ static rtError_t GetIpcNotifyBaseAddrForNotifyRecordTask(TaskInfo *taskInfo, uin
         notifyRecord->uInfo.singleBitNtfyInfo.isPcie = true;
         uint32_t localPhyId = 0U;
         error = curDrv->GetDevicePhyIdByIndex(localDevId, &localPhyId);
-        ERROR_RETURN_MSG_INNER(error, "Get localDevId phyId fail, retCode=%#x, deviceId=%u", error, localDevId);
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Failed to get localDevId phyId, retCode=%#x, deviceId=%u.", error, localDevId);
         baseAddr = static_cast<uint64_t>(RT_STARS_PCIE_BASE_ADDR) +
             (static_cast<uint64_t>(remotePhyId) << static_cast<uint64_t>(RT_PCIE_REMOTE_DEV_OFFSET)) +
             (static_cast<uint64_t>(localPhyId) << static_cast<uint64_t>(RT_PCIE_LOCAL_DEV_OFFSET)) + STARS_NOTIFY_BASE_ADDR;
@@ -254,7 +256,7 @@ rtError_t GetIpcSqeWriteAddrForNotifyRecordTask(TaskInfo *taskInfo, uint64_t &ad
     if (taskInfo->stream->Device_()->GetDevProperties().starsResourceAddrCalculateMethod == 
         StarsResourceAddrCalculateMethod::STARS_RESOURCE_ADDR_CALCULATE_BY_DEVICE_INFO) {
         const rtError_t error = GetIpcNotifyBaseAddrForNotifyRecordTask(taskInfo, baseAddr);
-        ERROR_RETURN_MSG_INNER(error, "Get base addr fail, retCode=%#x", static_cast<uint32_t>(error));
+        ERROR_RETURN_MSG_INNER(error, "GetIpcNotifyBaseAddrForNotifyRecordTask failed, retCode=%#x.", static_cast<uint32_t>(error));
     }
 
     addr = baseAddr + (notifyTableId * STARS_NOTIFY_TABLE_OFFSET) + (notifyNum * STARS_NOTIFY_OFFSET);
@@ -369,7 +371,7 @@ void PrintErrorInfoForNotifyWaitTask(TaskInfo *const taskInfo, const uint32_t de
     const int32_t streamId = taskInfo->stream->Id_();
     Stream *const reportStream = GetReportStream(taskInfo->stream);
     STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_HCCL,
-        "Notify wait execute failed, device_id=%u, stream_id=%d, %s=%u, flip_num=%hu, "
+        "Notify wait execution failed, device_id=%u, stream_id=%d, %s=%u, flip_num=%hu, "
         "notify_id=%u, isCountNotify=%u.", devId, streamId, TaskIdDesc(), taskId, taskInfo->flipNum,
         taskInfo->u.notifywaitTask.notifyId, taskInfo->u.notifywaitTask.isCountNotify);
 }

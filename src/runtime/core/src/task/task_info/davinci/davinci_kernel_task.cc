@@ -769,30 +769,22 @@ static bool CheckArgsSize(TaskInfo* taskInfo, const uint32_t devId, const uint16
     const uint32_t aicpuKernelType = aicpuTaskInfo->aicpuKernelType;
 
     // check args
-    if (aicpuTaskInfo->comm.args == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "Get extend info failed, device_id=%u, stream_id=%d, task_id=%u, task args is NULL!",
-               devId, streamId, static_cast<uint32_t>(taskId));
-        return false;
-    }
+    COND_RETURN_ERROR_MSG_INNER(aicpuTaskInfo->comm.args == nullptr, false,
+        "CheckArgsSize failed because aicpuTaskInfo->comm.args cannot be a NULL pointer,"
+        " device_id=%u, stream_id=%d, task_id=%u.", devId, streamId, static_cast<uint32_t>(taskId));
     if (static_cast<tsAicpuKernelType>(aicpuKernelType) == TS_AICPU_KERNEL_FMK) {
         // check argsSize (uint32_t fwkKernelType, uint64_t extInfoLen, uint64_t extInfoAddr)
-        if (argsSize < (sizeof(uint32_t) + (sizeof(uint64_t) * 2U))) {
-            RT_LOG(RT_LOG_ERROR, "Get extend info failed, device_id=%u, stream_id=%d, task_id=%u,"
-                   " task args size %u is invalid, valid range is [%zu, %u].", devId, streamId,
-                   static_cast<uint32_t>(taskId), argsSize,
-                   (sizeof(uint32_t) + (sizeof(uint64_t) * 2U)), MAX_UINT32_NUM);
-            return false;
-        }
+        COND_RETURN_ERROR_MSG_INNER(argsSize < (sizeof(uint32_t) + (sizeof(uint64_t) * 2U)), false,
+            "CheckArgsSize failed because value %u for parameter argsSize is invalid. Expected value: [%zu, %u]."
+            " device_id=%u, stream_id=%d, task_id=%u.", argsSize, (sizeof(uint32_t) + (sizeof(uint64_t) * 2U)),
+            MAX_UINT32_NUM, devId, streamId, static_cast<uint32_t>(taskId));
     } else if ((static_cast<tsAicpuKernelType>(aicpuKernelType) == TS_AICPU_KERNEL_AICPU) ||
         (static_cast<tsAicpuKernelType>(aicpuKernelType) == TS_AICPU_KERNEL_CUSTOM_AICPU)) {
         // check argsSize (uint32_t length, uint32_t ioAddrNum, uint32_t extInfoLength, uint64_t extInfoAddr)
-        if (argsSize < (sizeof(uint32_t) * 3U + sizeof(uint64_t))) {
-            RT_LOG(RT_LOG_ERROR, "Get extend info failed, device_id=%u, stream_id=%d, task_id=%u,"
-                   " task args size %u is invalid, valid range is [%zu, %u].", devId, streamId,
-                   static_cast<uint32_t>(taskId), argsSize,
-                   (sizeof(uint32_t) * 3U  + sizeof(uint64_t)), MAX_UINT32_NUM);
-            return false;
-        }
+        COND_RETURN_ERROR_MSG_INNER(argsSize < (sizeof(uint32_t) * 3U + sizeof(uint64_t)), false,
+            "CheckArgsSize failed because value %u for parameter argsSize is invalid. Expected value: [%zu, %u]."
+            " device_id=%u, stream_id=%d, task_id=%u.", argsSize, (sizeof(uint32_t) * 3U  + sizeof(uint64_t)),
+            MAX_UINT32_NUM, devId, streamId, static_cast<uint32_t>(taskId));
     } else {
         // no operation
     }
@@ -863,12 +855,18 @@ void GetFirstExtendInfoForAicpuTask(TaskInfo* taskInfo, const uint32_t devId, st
     const uint32_t aicpuKernelType = aicpuTaskInfo->aicpuKernelType;
     uint64_t buffBytes = argsSize + alignBytes;
     std::unique_ptr<char_t[]> tmpBuff(new (std::nothrow) char_t[buffBytes]);
-    COND_RETURN_VOID(tmpBuff == nullptr, "args malloc failed, argsSize=%u.", argsSize);
+    if (tmpBuff == nullptr) {
+        RT_LOG_OUTER_MSG_WITH_FUNC(ErrorCode::EE1013, std::to_string(buffBytes * sizeof(char_t)));
+        return;
+    }
     auto tmpArgsAddr = RtPtrToValue(tmpBuff.get());
     tmpArgsAddr = (tmpArgsAddr + alignBytes - 1UL) & (~(alignBytes - 1UL));
     char_t *const dataArgs = RtValueToPtr<char_t*>(tmpArgsAddr);
     rtError_t error;
-    COND_RETURN_VOID(dataArgs == nullptr, "args malloc failed, argsSize=%u.", argsSize);
+    if (dataArgs == nullptr) {
+        RT_LOG_OUTER_MSG_WITH_FUNC(ErrorCode::EE1013, std::to_string(buffBytes * sizeof(char_t) - alignBytes + 1));
+        return;
+    }
     if (driver->GetRunMode() == RT_RUN_MODE_ONLINE) {
         error = driver->MemCopySync(dataArgs, static_cast<uint64_t>(argsSize),
                                     aicpuTaskInfo->comm.args, static_cast<uint64_t>(argsSize),
@@ -879,8 +877,7 @@ void GetFirstExtendInfoForAicpuTask(TaskInfo* taskInfo, const uint32_t devId, st
                                     RT_MEMCPY_DEVICE_TO_DEVICE);
     }
     if (error != RT_ERROR_NONE) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR,
-            "MemCopySync for args failed, device_id=%u, stream_id=%d, task_id=%u, retCode=%#x.",
+        RT_LOG(RT_LOG_ERROR, "MemCopySync for args failed, device_id=%u, stream_id=%d, task_id=%u, retCode=%#x.",
             devId, streamId, static_cast<uint32_t>(taskId), error);
         return;
     }
@@ -912,7 +909,7 @@ void GetFirstExtendInfoForAicpuTask(TaskInfo* taskInfo, const uint32_t devId, st
     // check extInfoLen (struct extInfo: int32_t infoType; uint32_t infoLen; char_t infoMsg[0])
     constexpr uint64_t extInfoStructLen = sizeof(int32_t) + sizeof(uint32_t);
     if (extInfoLen < extInfoStructLen) {
-        RT_LOG(RT_LOG_ERROR, "Get extend info for tf or aicpu kernel, device_id=%u, stream_id=%d, task_id=%u, "
+        RT_LOG(RT_LOG_ERROR, "Get extend info about the tf or aicpu kernel, device_id=%u, stream_id=%d, task_id=%u, "
             "extInfoLen=%" PRIu64 "(bytes), extInfoAddr=%" PRIu64 ". extInfoLen is invalid, valid range is "
             "[%" PRIu64 ", %" PRIu64 "]",
             devId, streamId, static_cast<uint32_t>(taskId), extInfoLen, extInfoAddr, extInfoStructLen,
@@ -925,15 +922,21 @@ void GetFirstExtendInfoForAicpuTask(TaskInfo* taskInfo, const uint32_t devId, st
 
     // copy extInfos from device, buffer need align to 64
     COND_RETURN_VOID(extInfoLen > (UINT64_MAX - alignBytes),
-        "Overflow occur when align to %" PRIu64 " for aicpu extend info, extend info bytes=%" PRIu64,
+        "Overflow occur when align to %" PRIu64 " for aicpu extend info, extendInfo=%" PRIu64 ".",
         alignBytes, extInfoLen);
     buffBytes = extInfoLen + alignBytes;
     tmpBuff.reset(new (std::nothrow) char_t[buffBytes]);
-    COND_RETURN_VOID(tmpBuff == nullptr, "malloc extInfos failed, extInfoLen=%" PRIu64 "(bytes).", extInfoLen);
+    if (tmpBuff == nullptr) {
+        RT_LOG_OUTER_MSG_WITH_FUNC(ErrorCode::EE1013, std::to_string(buffBytes * sizeof(char_t)));
+        return;
+    }
     auto tmpExtInfosAddr = RtPtrToValue(tmpBuff.get());
     tmpExtInfosAddr = (tmpExtInfosAddr + alignBytes - 1UL) & (~(alignBytes - 1UL));
     char_t *const extInfos = RtValueToPtr<char_t*>(tmpExtInfosAddr);
-    COND_RETURN_VOID(extInfos == nullptr, "malloc extInfos failed, extInfoLen=%" PRIu64 "(bytes)", extInfoLen);
+    if (extInfos == nullptr) {
+        RT_LOG_OUTER_MSG_WITH_FUNC(ErrorCode::EE1013, std::to_string(buffBytes * sizeof(char_t)));
+        return;
+    }
     if (driver->GetRunMode() == RT_RUN_MODE_ONLINE) {
         error = driver->MemCopySync(static_cast<void *>(extInfos), extInfoLen,
                                     RtValueToPtr<void *>(extInfoAddr), extInfoLen,
@@ -944,8 +947,8 @@ void GetFirstExtendInfoForAicpuTask(TaskInfo* taskInfo, const uint32_t devId, st
                                     RT_MEMCPY_DEVICE_TO_DEVICE);
     }
     if (error != RT_ERROR_NONE) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "MemCopySync for extInfos failed, device_id=%u, stream_id=%d, task_id=%u.",
-                         devId, streamId, static_cast<uint32_t>(taskId));
+        RT_LOG(RT_LOG_ERROR, "MemCopySync for extInfos failed, device_id=%u, stream_id=%d, task_id=%u.",
+            devId, streamId, static_cast<uint32_t>(taskId));
         return;
     }
 
@@ -994,7 +997,7 @@ static void PrintAicpuErrorInfo(TaskInfo* taskInfo, const uint32_t devId)
     if ((aicpuKernelType == TS_AICPU_KERNEL_AICPU) ||
         (aicpuKernelType == TS_AICPU_KERNEL_CUSTOM_AICPU)) {
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_AICPU,
-            "Aicpu kernel execute failed, device_id=%u, stream_id=%d, %s=%u, fault op_name=%s.",
+            "AI CPU kernel execution failed, device_id=%u, stream_id=%d, %s=%u, fault op_name=%s.",
             devId, streamId, TaskIdDesc(), taskId, taskInfo->stream->GetTaskTag(taskInfo->id).c_str());
         return;
     }
@@ -1008,12 +1011,12 @@ static void PrintAicpuErrorInfo(TaskInfo* taskInfo, const uint32_t devId)
     kernelName = (kernel != nullptr) ? kernel->GetCpuOpType() : kernelName;
     soName = (kernel != nullptr) ? kernel->GetCpuKernelSo() : soName;
 
-    RT_LOG_CALL_MSG(ERR_MODULE_AICPU, "Aicpu kernel execute failed, device_id=%u,stream_id=%d,"
-        "%s=%u, soName=%s, funcName=%s, kernelName=%s",
+    RT_LOG_CALL_MSG(ERR_MODULE_AICPU, "AI CPU kernel execution failed, device_id=%u,stream_id=%d,"
+        "%s=%u, soName=%s, funcName=%s, kernelName=%s.",
         devId, streamId, TaskIdDesc(), taskId, soName.c_str(), funcName.c_str(), kernelName.c_str());
 
     STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_AICPU,
-        "Aicpu kernel execute failed, device_id=%u, stream_id=%d, %s=%u, flip_num=%hu, kernel_type=%u, "
+        "AI CPU kernel execution failed, device_id=%u, stream_id=%d, %s=%u, flip_num=%hu, kernel_type=%u, "
         "fault op_name=%s, extend_info=%s.", devId, streamId, TaskIdDesc(), taskId,
         taskInfo->flipNum, aicpuKernelType,
         taskInfo->stream->GetTaskTag(taskInfo->id).c_str(), extendInfo.c_str());
@@ -1027,7 +1030,7 @@ rtError_t GetMixCtxInfo(TaskInfo* taskInfo)
 
     if (aicTaskInfo->descAlignBuf == nullptr) {
         RT_LOG(RT_LOG_ERROR, "descAlignBuf is invalid, device_id=%u, stream_id=%d, task_id=%u.",
-            dev->Id_(), taskInfo->stream->Id_(), taskInfo->id);
+                dev->Id_(), taskInfo->stream->Id_(), taskInfo->id);
         return RTS_INNER_ERROR;
     }
     Driver * const devDrv = dev->Driver_();
@@ -1051,7 +1054,7 @@ rtError_t GetArgsInfo(TaskInfo* taskInfo)
     const uint64_t tilingKey = aicTaskInfo->tilingKey;
     void *hostMem = nullptr;
     COND_RETURN_ERROR_MSG_INNER((aicTaskInfo->comm.args == nullptr) || (aicTaskInfo->comm.argsSize == 0U),
-        RT_ERROR_INVALID_VALUE, "Get args info failed, address size=%u", aicTaskInfo->comm.argsSize);
+        RT_ERROR_INVALID_VALUE, "GetArgsInfo failed, address size=%u.", aicTaskInfo->comm.argsSize);
     const auto dev = taskInfo->stream->Device_();
     rtError_t error = dev->Driver_()->HostMemAlloc(&hostMem, static_cast<uint64_t>(aicTaskInfo->comm.argsSize) + 1U,
         dev->Id_());
@@ -1059,8 +1062,8 @@ rtError_t GetArgsInfo(TaskInfo* taskInfo)
                  static_cast<uint32_t>(error));
     error = dev->Driver_()->MemCopySync(hostMem, static_cast<uint64_t>(aicTaskInfo->comm.argsSize + 1U),
         aicTaskInfo->comm.args, static_cast<uint64_t>(aicTaskInfo->comm.argsSize), RT_MEMCPY_DEVICE_TO_HOST);
-    COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, (void)dev->Driver_()->HostMemFree(hostMem);,
-        "Memcpy failed, size=%u, type=%d(RT_MEMCPY_DEVICE_TO_HOST), retCode=%#x",
+    COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, (void)dev->Driver_()->HostMemFree(hostMem),
+        "Memcpy failed, size=%u, type=%d(RT_MEMCPY_DEVICE_TO_HOST), retCode=%#x.",
         aicTaskInfo->comm.argsSize, static_cast<int32_t>(RT_MEMCPY_DEVICE_TO_HOST), static_cast<uint32_t>(error));
     // args info
     const uint32_t totalLen = aicTaskInfo->comm.argsSize / static_cast<uint32_t>(sizeof(void *));
@@ -1171,7 +1174,7 @@ void PrintErrorInfoForDavinciTask(TaskInfo* taskInfo, const uint32_t devId)
         kernelInfoExt = kernelInfoExt.empty() ? ("none") : kernelInfoExt;
         if (unlikely(programPtr == nullptr)) {
             STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_TBE,
-                "[DFX_INFO]Aicore kernel execute failed, device_id=%u, stream_id=%d, report_stream_id=%d, task_id=%u,"
+                "[DFX_INFO]AI Core kernel execution failed, device_id=%u, stream_id=%d, report_stream_id=%d, task_id=%u,"
                 " flip_num=%hu, fault kernel_name=%s, fault kernel info ext=%s, program is NULL!", devId, streamId,
                 reportStream->Id_(), taskId, taskInfo->flipNum, kernelNameStr.c_str(), kernelInfoExt.c_str());
             return;
@@ -1190,7 +1193,7 @@ void PrintErrorInfoForDavinciTask(TaskInfo* taskInfo, const uint32_t devId)
         Context *const contextPtr = Runtime::Instance()->GetPriCtxByDeviceId(devId, tsId);
         if (unlikely(contextPtr == nullptr)) {
             STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_TBE,
-                "[DFX_INFO]Aicore kernel execute failed, device_id=%u, stream_id=%d, report_stream_id=%d, task_id=%u,"
+                "[DFX_INFO]AI Core kernel execution failed, device_id=%u, stream_id=%d, report_stream_id=%d, task_id=%u,"
                 " flip_num=%hu, fault kernel_name=%s, fault kernel info ext=%s, ctx is NULL!", devId, streamId,
                 reportStream->Id_(), taskId, taskInfo->flipNum, kernelNameStr.c_str(), kernelInfoExt.c_str());
             return;
@@ -1198,7 +1201,7 @@ void PrintErrorInfoForDavinciTask(TaskInfo* taskInfo, const uint32_t devId)
         Module *const modulePtr = contextPtr->GetModule(programPtr);
         if (unlikely(modulePtr == nullptr)) {
             STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_TBE,
-                "[DFX_INFO]Aicore kernel execute failed, device_id=%u, stream_id=%d, report_stream_id=%d, task_id=%u,"
+                "[DFX_INFO]AI Core kernel execution failed, device_id=%u, stream_id=%d, report_stream_id=%d, task_id=%u,"
                 " flip_num=%hu, fault kernel_name=%s, fault kernel info ext=%s, module is nullptr!", devId, streamId,
                 reportStream->Id_(), taskId, taskInfo->flipNum, kernelNameStr.c_str(), kernelInfoExt.c_str());
             return;
@@ -1206,7 +1209,7 @@ void PrintErrorInfoForDavinciTask(TaskInfo* taskInfo, const uint32_t devId)
         const auto error = modulePtr->CalModuleHash(hashKeyNum);
         const std::string hashInfo = (error != RT_ERROR_NONE) ? "(no result)" : (std::to_string(hashKeyNum).c_str());
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_TBE,
-            "[DFX_INFO]Aicore kernel execute failed, device_id=%u, stream_id=%d, report_stream_id=%d, task_id=%u, "
+            "[DFX_INFO]AI Core kernel execution failed, device_id=%u, stream_id=%d, report_stream_id=%d, task_id=%u, "
             "flip_num=%hu, fault kernel_name=%s, fault kernel info ext=%s, program id=%u, hash=%s.", devId, streamId,
             reportStream->Id_(), taskId, taskInfo->flipNum, kernelNameStr.c_str(), kernelInfoExt.c_str(),
             programPtr->Id_(), hashInfo.c_str());
@@ -1253,14 +1256,14 @@ void PreCheckTaskErr(TaskInfo* taskInfo, const uint32_t devId)
             (errorCode != TS_ERROR_AICPU_EXCEPTION) && (errorCode != TS_ERROR_END_OF_SEQUENCE) &&
             (errorCode != TS_ERROR_AICPU_DATADUMP_RSP_ERR) && (errorCode != TS_ERROR_AICPU_MODEL_RSP_ERR) &&
             (errorCode != TS_ERROR_AICPU_OVERFLOW) && (errorCode != TS_ERROR_AICPU_INFO_LOAD_RSP_ERR)) {
-            RT_LOG_CALL_MSG(moduleType, "Kernel task happen error, receive aicpu failed msg, aicpu"
-                " error code=0x%x, [%s].", errorCode, GetTsErrCodeMap(errorCode, &rtErrCode));
+            RT_LOG_CALL_MSG(moduleType, "An error occurred in the kernel task, and error message was received from AI CPU,"
+                " AI CPU error code=0x%x, [%s].", errorCode, GetTsErrCodeMap(errorCode, &rtErrCode));
         } else if (CheckErrPrint(errorCode)) {
             if ((type == TS_TASK_TYPE_KERNEL_AICPU) && (errorCode == TS_ERROR_AICPU_TIMEOUT)) {
-                RT_LOG_OUTER_MSG(RT_AICPU_TIMEOUT_ERROR, "Kernel task happen error, retCode=%#x, [%s].",
+                RT_LOG_OUTER_MSG(RT_AICPU_TIMEOUT_ERROR, "An error occurred in the kernel task, retCode=%#x, [%s].",
                     errorCode, GetTsErrCodeMap(errorCode, &rtErrCode));
             } else {
-                RT_LOG_CALL_MSG(moduleType, "Kernel task happen error, retCode=%#x, [%s].",
+                RT_LOG_CALL_MSG(moduleType, "An error occurred in the kernel task, retCode=%#x, [%s].",
                     errorCode, GetTsErrCodeMap(errorCode, &rtErrCode));
             }
         } else {

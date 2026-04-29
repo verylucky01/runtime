@@ -684,14 +684,16 @@ rtError_t rtsCmoAsyncWithBarrier(void *srcAddrPtr, size_t srcLen, rtCmoOpCode cm
     // when invalid op, logicId must set >0, other ops logicId must set 0.
     switch (cmoType){
         case RT_CMO_INVALID:
-            COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(logicId == 0, RT_ERROR_INVALID_VALUE, ErrorCode::EE1001,
-                "Parameter logicId is invalid. If parameter cmoType is equal to " + std::to_string(cmoType) + ", parameter logicId cannot be 0.");
+            COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(logicId == 0, RT_ERROR_INVALID_VALUE, ErrorCode::EE1011,
+                __func__, "0", "logicId", "If parameter cmoType is equal to RT_CMO_INVALID"
+                ", the value of parameter logicId cannot be 0");
             break;
         case RT_CMO_PREFETCH:
         case RT_CMO_WRITEBACK:
         case RT_CMO_FLUSH:
-            COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(logicId != 0, RT_ERROR_INVALID_VALUE, ErrorCode::EE1001,
-                "Parameter logicId is invalid. If parameter cmoType is equal to " + std::to_string(cmoType) + ", the value of parameter logicId should be 0.");
+            COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(logicId != 0, RT_ERROR_INVALID_VALUE, ErrorCode::EE1011,
+                __func__, std::to_string(logicId), "If parameter cmoType is equal to" 
+                " RT_CMO_PREFETCH, RT_CMO_WRITEBACK, or RT_CMO_FLUSH, the value of parameter logicId should be 0");
             break;
         default:
             RT_LOG(RT_LOG_WARNING, "cmoType(%d) does not support, support[PREFETCH, WRITEBACK, INVALID, FLUSH]",
@@ -720,7 +722,7 @@ rtError_t rtsLaunchBarrierTask(rtBarrierTaskInfo_t *taskInfo, rtStream_t stm, ui
         auto cmoInfo = taskInfo->cmoInfo[i];
         // if cmoType!=invalid return error
         COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(cmoInfo.cmoType != RT_CMO_INVALID, RT_ERROR_INVALID_VALUE,
-            ErrorCode::EE1006, __func__, "taskInfo->cmoInfo[" + std::to_string(i) + "].cmoType=" + std::to_string(RT_CMO_INVALID));
+            ErrorCode::EE1006, __func__, "taskInfo->cmoInfo[" + std::to_string(i) + "].cmoType=RT_CMO_INVALID");
         COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER_WITH_PARAM(cmoInfo.logicId == 0, RT_ERROR_INVALID_VALUE, cmoInfo.logicId, "not equal to 0");
     }
     

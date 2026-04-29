@@ -41,7 +41,11 @@
 #include "task_execute_time.h"
 #include "capture_model_utils.hpp"
 #include "rt_utest_config_define.hpp"
+#include "debug_task.h"
+#include "task_info.hpp"
+#include "task_info_v100.h"
 #include "task_res.hpp"
+#include "stars_common_task.h"
 #include "dvpp_c.hpp"
 using namespace testing;
 using namespace cce::runtime;
@@ -1641,4 +1645,87 @@ TEST_F(StarsTaskTest, DoCompleteStarsModelExcuteError)
     EXPECT_EQ(ret, RT_ERROR_NONE);
     ret = rtModelDestroy(modelHandle);
     EXPECT_EQ(ret, RT_ERROR_NONE);
+}
+
+
+TEST_F(StarsTaskTest, PushBackErrInfoForFftsPlusTask)
+{
+    TaskInfo taskInfo = {};
+    const void *errInfo = new std::vector<rtFftsPlusTaskErrInfo_t>(0);
+    uint32_t len = 10;
+    MOCKER(memcpy_s).stubs().will(returnValue(1));
+    PushBackErrInfoForFftsPlusTask(&taskInfo, errInfo, len);
+    delete errInfo;
+}
+
+TEST_F(StarsTaskTest, PushBackErrInfo)
+{
+    PushBackErrInfo(nullptr, nullptr, 1);
+}
+
+TEST_F(StarsTaskTest, ConstructSqeForStarsCommonTask)
+{
+    TaskInfo taskInfo = {};
+    StarsCommonTaskInfo starsCommTask = {};
+    taskInfo.u.starsCommTask = starsCommTask;
+    taskInfo.stream = stream_;
+    taskInfo.id = 1;
+    
+    rtStarsSqe_t command = {};
+    
+    MOCKER(memcpy_s).stubs().will(returnValue(1));
+    
+    ConstructSqeForStarsCommonTask(&taskInfo, &command);
+    
+    EXPECT_EQ(command.commonSqe.sqeHeader.type, RT_STARS_SQE_TYPE_INVALID);
+}
+
+TEST_F(StarsTaskTest, RecycleTaskResourceForMemcpyAsyncTask)
+{
+    TaskInfo taskInfo = {};
+    taskInfo.stream = stream_;
+    
+    MemcpyAsyncTaskInfo *memcpyTask = &taskInfo.u.memcpyAsyncTaskInfo;
+    memcpyTask->desPtr = malloc(64);
+    memcpyTask->originalDes = malloc(64);
+    memcpyTask->destPtr = malloc(64);
+    memcpyTask->size = 64;
+    
+    MOCKER(memcpy_s).stubs().will(returnValue(1));
+    
+    RecycleTaskResourceForMemcpyAsyncTask(&taskInfo);
+    
+    free(memcpyTask->desPtr);
+    free(memcpyTask->originalDes);
+    free(memcpyTask->destPtr);
+}
+
+TEST_F(StarsTaskTest, ToCommandBodyForDynamicProfilingEnableTask)
+{
+    TaskInfo taskInfo = {};
+    taskInfo.stream = stream_;
+    
+    ProfilingEnableTaskInfo *profTask = &taskInfo.u.profilingEnableTaskInfo;
+    profTask->pid = 1234;
+    
+    rtCommand_t command = {};
+    
+    MOCKER(memcpy_s).stubs().will(returnValue(1));
+    
+    ToCommandBodyForDynamicProfilingEnableTask(&taskInfo, &command);
+}
+
+TEST_F(StarsTaskTest, ToCommandBodyForProfilingEnableTask)
+{
+    TaskInfo taskInfo = {};
+    taskInfo.stream = stream_;
+    
+    ProfilingEnableTaskInfo *profTask = &taskInfo.u.profilingEnableTaskInfo;
+    profTask->pid = 1234;
+    
+    rtCommand_t command = {};
+    
+    MOCKER(memcpy_s).stubs().will(returnValue(1));
+    
+    ToCommandBodyForProfilingEnableTask(&taskInfo, &command);
 }

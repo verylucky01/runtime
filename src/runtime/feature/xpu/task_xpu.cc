@@ -95,7 +95,7 @@ rtError_t XpuSendTask(TaskInfo *taskInfo, Stream * const stm)
         
         const int32_t ret = MsprofReportCompactInfo(0, &compactInfo, static_cast<uint32_t>(sizeof(MsprofCompactInfo)));
         if (ret != MSPROF_ERROR_NONE) {
-            RT_LOG_CALL_MSG(ERR_MODULE_PROFILE, "Profiling reporter report task_track failed, ret=%d.", ret);
+            RT_LOG_CALL_MSG(ERR_MODULE_PROFILE, "The Profiling reporter failed to report task_track, ret=%d.", ret);
             return ret;
         }
     }

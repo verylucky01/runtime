@@ -507,6 +507,7 @@ rtError_t rtAicpuKernelLaunchExWithArgs(const uint32_t kernelType, const char_t 
         (kernelType != KERNEL_TYPE_AICPU) &&
         (kernelType != KERNEL_TYPE_AICPU_CUSTOM) &&
         (kernelType != KERNEL_TYPE_AICPU_KFC)) {
+        RT_LOG_OUTER_MSG_INVALID_PARAM(kernelType, "KERNEL_TYPE_FWK, KERNEL_TYPE_AICPU, KERNEL_TYPE_AICPU_CUSTOM, KERNEL_TYPE_AICPU_KFC");
         REPORT_FUNC_ERROR_REASON(RT_ERROR_INVALID_VALUE);
         return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_INVALID_VALUE);
     }
@@ -565,13 +566,15 @@ rtError_t rtConfigureCall(uint32_t numBlocks, rtSmDesc_t *smDesc, rtStream_t stm
         launchArg.smUsed = true;
         ret = memcpy_s(&launchArg.smDesc, sizeof(launchArg.smDesc), smDesc,
                        sizeof(launchArg.smDesc));
-        COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(ret != EOK, RT_ERROR_SEC_HANDLE,
-            "Call memcpy_s failed, copy size is %zu.", sizeof(launchArg.smDesc));
+        COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(ret != EOK, RT_ERROR_SEC_HANDLE, ErrorCode::EE1020, __func__,
+            "memcpy_s", std::to_string(ret), strerror(ret), "src=" + std::to_string(reinterpret_cast<uintptr_t>(smDesc)) + ", dest=" +
+            std::to_string(reinterpret_cast<uintptr_t>(&launchArg.smDesc)) + ", dest_max=" + std::to_string(sizeof(launchArg.smDesc)) +
+            ", count=" + std::to_string(sizeof(launchArg.smDesc)) + ".");
     } else {
         launchArg.smUsed = false;
         ret = memset_s(&launchArg.smDesc, sizeof(launchArg.smDesc), 0, sizeof(launchArg.smDesc));
-        COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(ret != EOK, RT_ERROR_SEC_HANDLE, "Call memset_s failed, set size is %zu.",
-                                           sizeof(launchArg.smDesc));
+        COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(ret != EOK, RT_ERROR_SEC_HANDLE,
+            "Failed to call memset_s, size=%zu, retCode=%#x.", sizeof(launchArg.smDesc), ret);
     }
     launchArg.isConfig = true;
     return ACL_RT_SUCCESS;
@@ -3178,7 +3181,8 @@ RTS_API rtError_t rtSetDeviceSatMode(rtFloatOverflowMode_t floatOverflowMode)
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
     DevProperties prop;
     rtError_t error = GET_DEV_PROPERTIES(rtInstance->GetChipType(), prop);
-    ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(error != RT_ERROR_NONE, error,
+        "GetDevProperties failed, chipType=%u.", rtInstance->GetChipType());
 
     if ((floatOverflowMode >= RT_OVERFLOW_MODE_SATURATION) && (floatOverflowMode < RT_OVERFLOW_MODE_UNDEF)) {
         const uint32_t mode = 1U << floatOverflowMode;
@@ -3850,7 +3854,7 @@ rtError_t rtNeedDevVA2PA(bool *need)
     DevProperties devProperty {};
     rtError_t error = GET_DEV_PROPERTIES(chipType, devProperty);
     COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(error != RT_ERROR_NONE, RT_ERROR_DRV_INVALID_DEVICE,
-        "Failed to get dev properties, chipType = %u", chipType);
+        "GetDevProperties failed, chipType=%u.", chipType);
     if (devProperty.isSupportDevVA2PA) {
         *need = true;
     }
@@ -3867,7 +3871,7 @@ rtError_t rtDevVA2PA(uint64_t devAddr, uint64_t len, rtStream_t stm, bool isAsyn
     DevProperties devProperty {};
     rtError_t error = GET_DEV_PROPERTIES(chipType, devProperty);
     COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(error != RT_ERROR_NONE, RT_ERROR_DRV_INVALID_DEVICE,
-        "Failed to get dev properties, chipType = %u", chipType);
+        "GetDevProperties failed, chipType=%u.", chipType);
     if (!(devProperty.isSupportDevVA2PA)) {
         RT_LOG(RT_LOG_ERROR, "Chip type(%d) does not support.", static_cast<int32_t>(rtInstance->GetChipType()));
         return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_FEATURE_NOT_SUPPORT);
@@ -4031,9 +4035,8 @@ rtError_t rtGetLastError(rtLastErrLevel_t level)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    COND_RETURN_ERROR((level > RT_CONTEXT_LEVEL) || (level < RT_THREAD_LEVEL), ACL_ERROR_RT_PARAM_INVALID,
-        "Invalid level, current level=%d, valid range is [%d, %d].", level,
-        RT_CONTEXT_LEVEL, RT_THREAD_LEVEL);
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM((level > RT_CONTEXT_LEVEL) || (level < RT_THREAD_LEVEL), ACL_ERROR_RT_PARAM_INVALID,
+        level, "[RT_THREAD_LEVEL, RT_CONTEXT_LEVEL]");
     const rtError_t error = apiInstance->GetLastErr(level);
     return error;
 }
@@ -4043,9 +4046,8 @@ rtError_t rtPeekAtLastError(rtLastErrLevel_t level)
 {
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
-    COND_RETURN_ERROR((level > RT_CONTEXT_LEVEL) || (level < RT_THREAD_LEVEL), ACL_ERROR_RT_PARAM_INVALID,
-        "Invalid level, current level=%d, valid range is [%d, %d].", level,
-        RT_CONTEXT_LEVEL, RT_THREAD_LEVEL);
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM((level > RT_CONTEXT_LEVEL) || (level < RT_THREAD_LEVEL), ACL_ERROR_RT_PARAM_INVALID,
+        level, "[RT_THREAD_LEVEL, RT_CONTEXT_LEVEL]");
     const rtError_t error = apiInstance->PeekLastErr(level);
     return error;
 }
@@ -4104,8 +4106,10 @@ rtError_t rtsProfTrace(void *userdata, int32_t length, rtStream_t stream)
 
     rtProfTraceUserData data = {0, 0, 0};
     errno_t ret = memcpy_s(&data, dataSize, userdata, length);
-    COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(ret != EOK, RT_ERROR_SEC_HANDLE,
-        "Call memcpy_s failed in rtsProfTrace, copy size is %d", dataSize);
+    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(ret != EOK, RT_ERROR_SEC_HANDLE, ErrorCode::EE1020, __func__, "memcpy_s",
+        std::to_string(ret), strerror(ret), "src=" + std::to_string(reinterpret_cast<uintptr_t>(userdata)) + ", dest=" +
+        std::to_string(reinterpret_cast<uintptr_t>(&data)) + ", dest_max=" + std::to_string(dataSize) + ", count=" +
+        std::to_string(length) + ".");
 
     RT_VALIDATE_AND_UNWRAP_OBJECT(stream, Stream, exeStream);
     const rtError_t error = apiInstance->ProfilerTraceEx(data.id, data.modelId, data.tagId, exeStream);

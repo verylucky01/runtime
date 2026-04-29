@@ -177,7 +177,7 @@ rtError_t SyncTaskForSeparateSendAndRecycle(Stream * const stm, const uint32_t t
         "dev drv is null, device_id=%u, stream_id=%u.", dev->Id_(), streamId);
     COND_RETURN_ERROR_MSG_INNER(
         (dev->GetDeviceStatus() == RT_ERROR_DEVICE_TASK_ABORT), RT_ERROR_DEVICE_TASK_ABORT,
-        "Device is in abort status.");
+        "Device is in the abort state.");
     RT_LOG(RT_LOG_INFO, "device_id=%d, stream_id=%d, taskResPos=%u timeout=%u.",
            stm->Device_()->Id_(), stm->Id_(), taskResPos, timeout);
 
@@ -205,10 +205,10 @@ rtError_t SyncTask(Stream * const stm, const uint32_t taskResPos, int32_t timeou
         "dev drv is null, device_id=%u, stream_id=%u.", dev->Id_(), streamId);
     COND_RETURN_ERROR_MSG_INNER(
         (dev->GetDeviceStatus() == RT_ERROR_DEVICE_TASK_ABORT), RT_ERROR_DEVICE_TASK_ABORT,
-        "stream is in device task abort status, sync task fail, device_id=%u, stream_id=%d",
+        "The stream is in device task abort state, SyncTask failed, device_id=%u, stream_id=%d.",
         dev->Id_(), streamId);
-    COND_RETURN_ERROR((stm->GetAbortStatus() == RT_ERROR_STREAM_ABORT), RT_ERROR_STREAM_ABORT_SYNC_TASK_FAIL,
-        "stream is in stream abort status, sync task fail, device_id=%u, stream_id=%d",
+    COND_RETURN_ERROR_MSG_INNER((stm->GetAbortStatus() == RT_ERROR_STREAM_ABORT), RT_ERROR_STREAM_ABORT_SYNC_TASK_FAIL,
+        "The stream is in stream abort state, SyncTask failed, device_id=%u, stream_id=%d.",
         dev->Id_(), streamId);
     mmTimespec beginTimeSpec = mmGetTickCount();
     const uint64_t beginCnt = ((static_cast<uint64_t>(beginTimeSpec.tv_sec) * RT_MS_PER_S) +

@@ -126,28 +126,21 @@ static rtError_t ExpandHostSqeBufferLocked(Stream * const stm)
 
     uint32_t newSize = stm->GetSqeBufferSize() + STREAM_SQE_BUFFER_INIT_SIZE;
     uint8_t *newBuffer = new (std::nothrow) uint8_t[newSize];
-    COND_RETURN_ERROR(newBuffer == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-        "new sqeBuffer failed, newSize=%u", newSize);
+    COND_RETURN_AND_MSG_OUTER(newBuffer == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+        ErrorCode::EE1013, std::to_string(sizeof(uint8_t) * newSize));
 
     errno_t ret = memset_s(newBuffer, newSize, 0U, newSize);
-    if (ret != EOK) {
-        delete[] newBuffer;
-        RT_LOG(RT_LOG_ERROR, "Memset new sqeBuffer failed, master_stream_id=%d, cur_stream_id=%d, retCode=%d.",
-            stm->GetExposedStreamId(), stm->Id_(), ret);
-        return RT_ERROR_MEMORY_ALLOCATION;
-    }
+    COND_PROC_RETURN_ERROR_MSG_INNER(ret != EOK, RT_ERROR_MEMORY_ALLOCATION, delete[] newBuffer,
+        "Failed to call memset_s, size=%u, retCode=%#x.", newSize, ret);
 
     // 复制原有数据
     uint8_t *oldBuffer = stm->GetSqeBuffer();
     if (oldBuffer != nullptr) {
         ret = memcpy_s(newBuffer, newSize,
             oldBuffer, ctx->curStreamSqeCount * sizeof(rtDavidSqe_t));
-        if (ret != EOK) {
-            DELETE_A(newBuffer);
-            RT_LOG(RT_LOG_ERROR, "memcpy_s sqeBuffer failed, master_stream_id=%d, cur_stream_id=%d, retCode=%d.",
-                stm->GetExposedStreamId(), stm->Id_(), ret);
-            return RT_ERROR_MEMORY_ALLOCATION;
-        }
+        COND_PROC_RETURN_ERROR_MSG_INNER(ret != EOK, RT_ERROR_MEMORY_ALLOCATION, DELETE_A(newBuffer),
+            "Failed to call memcpy_s to copy sqeBuffer, src=%p, dest=%p, dest_max=%u, count=%zu, retCode=%#x.",
+            oldBuffer, newBuffer, newSize, ctx->curStreamSqeCount * sizeof(rtDavidSqe_t), ret);
         DELETE_A(oldBuffer);
     }
 
@@ -518,7 +511,7 @@ static rtError_t AllocTaskAndSendDavid(TaskInfo *submitTask, Stream * const stm)
         stm->StreamSyncUnLock();
         error = stm->CheckContextTaskSend(submitTask);
         COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "context is abort, status=%#x.", static_cast<int32_t>(error));
-        COND_RETURN_ERROR_MSG_INNER((stm->abortStatus_ != RT_ERROR_NONE), stm->abortStatus_, "stream in abort status.");
+        COND_RETURN_ERROR_MSG_INNER((stm->abortStatus_ != RT_ERROR_NONE), stm->abortStatus_, "stream is in abort state.");
         stm->StreamLock();
         error = taskResMang->AllocTaskInfoAndPos(sendSqeNum, pos, &taskInfo);
     }
@@ -625,11 +618,9 @@ static rtError_t WriteAutoSplitSqeToHostBuffer(TaskInfo *taskInfo, Stream * cons
     uint8_t *hostSqPos = sqeBuffer + hostPos * sizeof(rtDavidSqe_t);
     const errno_t ret = memcpy_s(hostSqPos, taskInfo->sqeNum * sizeof(rtDavidSqe_t),
         sqeAddr, taskInfo->sqeNum * sizeof(rtDavidSqe_t));
-    if (ret != EOK) {
-        RT_LOG(RT_LOG_ERROR, "memcpy_s to host SQ buffer failed, stream_id=%d, task_id=%u, error=%d",
-            stm->Id_(), taskInfo->id, ret);
-        return RT_ERROR_INVALID_VALUE;
-    }
+    COND_RETURN_AND_MSG_INNER(ret != EOK, RT_ERROR_INVALID_VALUE,
+        "Failed to call memcpy_s to copy sqeAddr, src=%p, dest=%p, dest_max=%zu, count=%zu, retCode=%#x.",
+        sqeAddr, hostSqPos, taskInfo->sqeNum * sizeof(rtDavidSqe_t), taskInfo->sqeNum * sizeof(rtDavidSqe_t), ret);
     RT_LOG(RT_LOG_DEBUG, "Auto-split SQE written to host buffer, stream_id=%d, task_id=%u, sqeNum=%u, hostPos=%u",
         stm->Id_(), taskInfo->id, taskInfo->sqeNum, hostPos);
     return RT_ERROR_NONE;
@@ -682,9 +673,11 @@ rtError_t DavidSendTask(TaskInfo *taskInfo, Stream * const stm)
             taskInfo->sqeNum * sizeof(rtStarsSqe_t), RtPtrToPtr<void *, rtDavidSqe_t *>(sqeAddr), 
             taskInfo->sqeNum * sizeof(rtStarsSqe_t));
         if (ret != EOK) {
-            RT_LOG(RT_LOG_ERROR, "memcpy_s failed, device_id=%u, ts_id=%u, sq_id=%u, cq_id=%u,"
-                " stream_id=%d, task_id=%hu, task_type=%u(%s), error=%d",
-                devId, tsId, sqId, cqId, stm->Id_(), taskInfo->id,
+            RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call memcpy_s to copy sqeAddr, src=%p, dest=%p,"
+                " dest_max=%zu, count=%zu, device_id=%u, ts_id=%u, sq_id=%u, cq_id=%u, stream_id=%d,"
+                " task_id=%hu, task_type=%u(%s), retCode=%#x.", sqeAddr,
+                RtPtrToPtr<void *>(stm->GetSqeBuffer() + sizeof(rtStarsSqe_t) * taskInfo->pos), taskInfo->sqeNum * sizeof(rtStarsSqe_t),
+                taskInfo->sqeNum * sizeof(rtStarsSqe_t), devId, tsId, sqId, cqId, stm->Id_(), taskInfo->id,
                 static_cast<uint32_t>(taskInfo->type), taskInfo->typeName, ret);
             error = RT_ERROR_INVALID_VALUE;
         }

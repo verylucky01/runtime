@@ -34,8 +34,9 @@ void ConstructSqeForStarsCommonTask(TaskInfo* taskInfo, rtStarsSqe_t *const comm
         sizeof(starsCommTask->commonStarsSqe.commonSqe));
     if (error != EOK) {
         command->commonSqe.sqeHeader.type = RT_STARS_SQE_TYPE_INVALID;
-        RT_LOG(RT_LOG_ERROR, "copy to starsSqe failed,ret=%d,src size=%zu,dst size=%zu",
-               error, sizeof(starsCommTask->commonStarsSqe.commonSqe), sizeof(rtStarsSqe_t));
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call memcpy_s to copy starsCommTask->commonStarsSqe.commonSqe,"
+            " src=%p, dest=%p, dest_max=%zu, count=%zu, retCode=%#x.", &starsCommTask->commonStarsSqe.commonSqe, command,
+            sizeof(rtStarsSqe_t), sizeof(starsCommTask->commonStarsSqe.commonSqe), error);
     }
     PrintSqe(command, "StarsCommonTask");
     RT_LOG(RT_LOG_INFO, "StarsCommonTask stream_id:%d,task_id:%hu", taskInfo->stream->Id_(), taskInfo->id);
@@ -114,8 +115,8 @@ void PrintErrorInfoForStarsCommonTask(TaskInfo* taskInfo, const uint32_t devId)
         errModule = ERR_MODULE_FE;
         PrintDsaErrorInfoForStarsCommonTask(taskInfo);
     }
-    STREAM_REPORT_ERR_MSG(reportStream, errModule, "Task execute failed,device_id=%u,stream_id=%d,%s=%hu,"
-        "flip_num=%hu,task_type=%d(%s).", devId, streamId, TaskIdDesc(), taskInfo->id, taskInfo->flipNum,
+    STREAM_REPORT_ERR_MSG(reportStream, errModule, "Task execution failed, device_id=%u, stream_id=%d, %s=%hu,"
+        "flip_num=%hu, task_type=%d(%s).", devId, streamId, TaskIdDesc(), taskInfo->id, taskInfo->flipNum,
         static_cast<int32_t>(taskInfo->type), taskInfo->typeName);
 }
 

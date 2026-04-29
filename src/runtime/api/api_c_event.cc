@@ -141,8 +141,7 @@ rtError_t rtsNotifyCreate(rtNotify_t *notify, uint64_t flag)
 {
     GLOBAL_STATE_WAIT_IF_LOCKED();
     if (flag != RT_NOTIFY_FLAG_DEFAULT && flag != RT_NOTIFY_FLAG_DOWNLOAD_TO_DEV) {
-        RT_LOG_OUTER_MSG_INVALID_PARAM(flag,
-            std::to_string(RT_NOTIFY_FLAG_DEFAULT) + " or " + std::to_string(RT_NOTIFY_FLAG_DOWNLOAD_TO_DEV));
+        RT_LOG_OUTER_MSG_INVALID_PARAM(flag, "RT_NOTIFY_FLAG_DEFAULT or RT_NOTIFY_FLAG_DOWNLOAD_TO_DEV");
         return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_INVALID_VALUE);
     }
     int32_t deviceId = 0;

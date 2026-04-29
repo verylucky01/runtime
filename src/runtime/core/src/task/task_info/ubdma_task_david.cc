@@ -45,7 +45,9 @@ void ConstructDavidSqeForUbDirectSendTask(TaskInfo *taskInfo, rtDavidSqe_t * con
         }
         const errno_t ret = memcpy_s(sqeAddr, sizeof(rtDavidSqe_t), wqe + (i * ubWqesize), ubWqesize);
         if (ret != EOK) {
-            RT_LOG(RT_LOG_INFO, "Memcpy_s failed,i=%lu, retCode=%d,Size=%d(bytes).", i, ret, ubWqesize);
+            RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call memcpy_s to copy wqe,"
+                " src=%p, dest=%p, dest_max=%zu, count=%zu, retCode=%#x.", wqe + (i * ubWqesize), sqeAddr,
+                sizeof(rtDavidSqe_t), ubWqesize, ret);
             sqe->header.type = RT_DAVID_SQE_TYPE_END;
             break;
         }

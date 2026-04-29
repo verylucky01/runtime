@@ -99,17 +99,17 @@ rtError_t ModelTaskUpdateInit(TaskInfo *taskInfo, uint16_t desStreamId, uint32_t
         rtError_t error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
             static_cast<int32_t>(taskInfo->stream->Device_()->Id_()),
             reinterpret_cast<uintptr_t>(para->tilingKeyAddr), &tilingKeyOffset);
-        ERROR_RETURN_MSG_INNER(error, "MemAddressTranslate error=%d", error);
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "MemAddressTranslate failed, error=%d.", error);
 
         error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
             static_cast<int32_t>(taskInfo->stream->Device_()->Id_()),
             reinterpret_cast<uintptr_t>(para->blockDimAddr), &blockDimOffset);
-        ERROR_RETURN_MSG_INNER(error, "MemAddressTranslate error=%d", error);
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "MemAddressTranslate failed, error=%d.", error);
 
         error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
             static_cast<int32_t>(taskInfo->stream->Device_()->Id_()),
             reinterpret_cast<uintptr_t>(devCopyMem), &tilingTaboffset);
-        ERROR_RETURN_MSG_INNER(error, "MemAddressTranslate error=%d", error);
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "MemAddressTranslate failed, error=%d.", error);
 
         if ((para->fftsPlusTaskInfo != nullptr) && (para->fftsPlusTaskInfo->descBuf != nullptr)) {
             error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
@@ -119,7 +119,7 @@ rtError_t ModelTaskUpdateInit(TaskInfo *taskInfo, uint16_t desStreamId, uint32_t
         } else {
             error = SetMixDescBufOffset(taskInfo, desStreamId, destaskId, &descBufOffset);
         }
-        ERROR_RETURN_MSG_INNER(error, "descBuf MemAddressTranslate error=%d", error);
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "DescBuf MemAddressTranslate failed, error=%d.", error);
 
         mdlUpdateTaskInfo->descBufOffset = descBufOffset;
         mdlUpdateTaskInfo->tilingKeyOffset = tilingKeyOffset;

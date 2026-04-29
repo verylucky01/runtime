@@ -54,8 +54,8 @@ void PrintErrorInfoForModelToAicpuTask(TaskInfo* taskInfo, const uint32_t devId)
     const int32_t streamId = taskInfo->stream->Id_();
     Stream *const reportStream = GetReportStream(taskInfo->stream);
     STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_AICPU,
-        "Model to aicpu task execute failed, device_id=%u,stream_id=%d,%s=%u,flip_num=%hu, "
-        "model_id=%u,cmd_type=%u,executor_flag=%u",
+        "ModelToAicpu task execution failed, device_id=%u, stream_id=%d, %s=%u, flip_num=%hu, "
+        "model_id=%u, cmd_type=%u, executor_flag=%u.",
         devId, streamId, TaskIdDesc(), taskId, taskInfo->flipNum, taskInfo->u.modelToAicpuTask.modelId,
         taskInfo->u.modelToAicpuTask.cmdType, taskInfo->u.modelToAicpuTask.executorFlag);
 }

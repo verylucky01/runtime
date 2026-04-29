@@ -161,11 +161,18 @@
         RT_LOG_OUTER_MSG_IMPL(ERRCODE, ##__VA_ARGS__); \
         return RTERRCODE; \
     }
+
 //EE9999 错误码使用
 #define COND_RETURN_AND_MSG_INNER(COND, RTERRCODE, format, ...) \
     if (unlikely(COND)) { \
         RT_LOG_INNER_MSG(RT_LOG_ERROR, format, ##__VA_ARGS__); \
         return RTERRCODE; \
+    }
+
+//EE9999 错误码使用
+#define COND_AND_MSG_INNER(COND, format, ...) \
+    if (unlikely(COND)) { \
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, format, ##__VA_ARGS__); \
     }
 
 #define NULL_PTR_PROC_RETURN_ERROR_MSG_CALL(MODULE_TYPE, PTR, ERR, PROC) \

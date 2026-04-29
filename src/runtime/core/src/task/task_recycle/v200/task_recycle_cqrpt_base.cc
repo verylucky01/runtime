@@ -97,8 +97,8 @@ static rtError_t PollingSqDisable(const rtLogicCqReport_t *logicCq, Stream * con
         if ((cnt++ % RT_GET_HEAD_CYCLE_NUM) == 0U) {
             queryCnt++;
             error = devDrv->GetSqEnable(devId, tsId, logicCq->sqId, enable);
-            COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
-                failStm->SetStreamStatus(StreamStatus::ABNORMAL);,
+            COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error,
+                failStm->SetStreamStatus(StreamStatus::ABNORMAL),
                 "Failed to get sq enable, device_id=%u, stream_id=%d, retCode=%#x.",
                 dev->Id_(), failStm->Id_(), static_cast<uint32_t>(error));
             if ((cnt % RT_QUERY_CNT_NUM) == 0U) {
@@ -161,7 +161,8 @@ rtError_t StarsResumeRtsq(const rtLogicCqReport_t *logicCq, const TaskInfo * con
 
     RT_LOG(RT_LOG_WARNING, "Begin to query sq status, stream_id=%d.", failStm->Id_());
     error = PollingSqDisable(logicCq, failStm);
-    ERROR_RETURN_MSG_INNER(error, "polling sq disable failed, retCode=%#x.", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to query the SQ disabling status in polling mode, retCode=%#x.",
+        static_cast<uint32_t>(error));
 
     if (taskInfo->type == static_cast<uint16_t>(TS_TASK_TYPE_MULTIPLE_TASK)) {
         head = (dynamic_cast<TaskResManageDavid *>(failStm->taskResMang_))->GetTaskPosHead() +
@@ -178,7 +179,8 @@ rtError_t StarsResumeRtsq(const rtLogicCqReport_t *logicCq, const TaskInfo * con
         "stream is in stream abort status, device_id=%u, stream_id=%d",
         devId, failStm->Id_());
     error = devDrv->SetSqHead(devId, tsId, static_cast<uint32_t>(logicCq->sqId), head);
-    ERROR_RETURN_MSG_INNER(error, "set sq head failed, stream_id=%d, sq_id=%hu, device_id=%u, retCode=%#x.",
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Failed to set sq head, stream_id=%d, sq_id=%hu, device_id=%u, retCode=%#x.",
         failStm->Id_(), logicCq->sqId, devId, static_cast<uint32_t>(error));
 
     if (failStm->GetFailureMode() == ABORT_ON_FAILURE) {
@@ -188,9 +190,9 @@ rtError_t StarsResumeRtsq(const rtLogicCqReport_t *logicCq, const TaskInfo * con
     }
 
     error = devDrv->EnableSq(devId, tsId, static_cast<uint32_t>(logicCq->sqId));
-    COND_PROC_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
-        failStm->SetStreamStatus(StreamStatus::ABNORMAL);,
-        "Enable sq failed, stream_id=%d, sq_id=%hu, device_id=%u, retCode=%#x.",
+    COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error,
+        failStm->SetStreamStatus(StreamStatus::ABNORMAL),
+        "Failed to enable sq, stream_id=%d, sq_id=%hu, device_id=%u, retCode=%#x.",
         failStm->Id_(), logicCq->sqId, devId, static_cast<uint32_t>(error));
 
     RT_LOG(RT_LOG_WARNING, "Resume stream_id=%d, sq_id=%hu, sq_head=%hu, task_id=%hu, taskType=%hu, head=%u.",

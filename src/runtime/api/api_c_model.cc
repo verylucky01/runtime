@@ -73,14 +73,14 @@ rtError_t rtsModelBindStream(rtModel_t mdl, rtStream_t stm, uint32_t flag)
 {
     GLOBAL_STATE_WAIT_IF_LOCKED();
     COND_RETURN_AND_MSG_OUTER_WITH_PARAM(((flag != RT_MODEL_STREAM_FLAG_HEAD) && (flag != RT_MODEL_STREAM_FLAG_DEFAULT)),
-        ACL_ERROR_RT_PARAM_INVALID, flag, std::to_string(RT_MODEL_STREAM_FLAG_HEAD) + " or " + std::to_string(RT_MODEL_STREAM_FLAG_DEFAULT));
+        ACL_ERROR_RT_PARAM_INVALID, flag, "RT_MODEL_STREAM_FLAG_HEAD or RT_MODEL_STREAM_FLAG_DEFAULT");
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     RT_VALIDATE_AND_UNWRAP_OBJECT(mdl, Model, realModel);
     RT_VALIDATE_AND_UNWRAP_OBJECT(stm, Stream, bindStream);
     COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((bindStream != nullptr) &&
         ((bindStream->Flags() & RT_STREAM_PERSISTENT) == 0), RT_ERROR_INVALID_VALUE,
-        ErrorCode::EE1001, "Non-persistent stream cannot be bound to a model.");
+        ErrorCode::EE1017, __func__, "stm", "Non-persistent stream cannot be bound to a model");
     if ((bindStream != nullptr) && (bindStream->GetModelNum() != 0)) {
         RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1007, bindStream->Id_(),
             "The stream is bound to more than one mdlRI. Size: " + std::to_string(bindStream->GetModelNum()));

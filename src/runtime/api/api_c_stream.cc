@@ -504,7 +504,7 @@ rtError_t rtsStreamGetAttribute(rtStream_t stm, rtStreamAttr stmAttrId, rtStream
         }
         default: 
             RT_LOG_OUTER_MSG_INVALID_PARAM(stmAttrId,
-               "[" + std::to_string(RT_STREAM_ATTR_FAILURE_MODE) + ", " + std::to_string(RT_STREAM_ATTR_MAX) + ")");         
+                "[" + std::to_string(RT_STREAM_ATTR_FAILURE_MODE) + ", " + std::to_string(RT_STREAM_ATTR_MAX) + ")");
             error = RT_ERROR_INVALID_VALUE;
             break;
     }
@@ -635,8 +635,8 @@ rtError_t rtsStreamAbort(rtStream_t stm)
 VISIBILITY_DEFAULT
 rtError_t rtsStreamSynchronize(rtStream_t stm, int32_t timeout)
 {
-    COND_RETURN_AND_MSG_OUTER((timeout < -1) || (timeout == 0), ACL_ERROR_RT_PARAM_INVALID, 
-        ErrorCode::EE1006, __func__, "timeout=" + std::to_string(timeout));
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM((timeout < -1) || (timeout == 0), ACL_ERROR_RT_PARAM_INVALID, 
+        timeout, "equal to -1 or greater than 0");
     if (timeout == -1) {
         return rtStreamSynchronize(stm);
     }

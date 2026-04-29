@@ -189,8 +189,8 @@ rtError_t FillFftsPlusSqe(TaskInfo* taskInfo, const void * const devMem)
     }
     if (fftsPlusTask->errInfo == nullptr) {
         fftsPlusTask->errInfo = new (std::nothrow) std::vector<rtFftsPlusTaskErrInfo_t>();
-        COND_RETURN_ERROR_MSG_INNER(fftsPlusTask->errInfo == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-            "fftsPlusTask->errInfo new memory fail!");
+        COND_RETURN_AND_MSG_OUTER(fftsPlusTask->errInfo == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+            ErrorCode::EE1013, std::to_string(sizeof(std::vector<rtFftsPlusTaskErrInfo_t>)));
     }
 
     return RT_ERROR_NONE;
@@ -249,7 +249,7 @@ static rtError_t FftsPlusTmpAllocH2D(TaskInfo* taskInfo, const rtFftsPlusTaskInf
     TIMESTAMP_END(FftsPlusTaskH2Dcpy);
     if (ret != RT_ERROR_NONE) {
         DeallocFftsPlusDescMem(taskInfo);
-        RT_LOG_INNER_MSG(RT_LOG_ERROR, "MemCopySync for args failed, retCode=%#x.", static_cast<uint32_t>(ret));
+        RT_LOG(RT_LOG_ERROR, "MemCopySync for args failed, retCode=%#x.", static_cast<uint32_t>(ret));
         return ret;
     }
     return RT_ERROR_NONE;
@@ -282,8 +282,8 @@ static rtError_t FftsPlusTaskFillArgsAddr(TaskInfo* taskInfo, const rtFftsPlusTa
 
     if ((argsHandleInfoNum != 0) && (fftsPlusTaskInfo->argsHandleInfoPtr != nullptr)) {
         taskInfo->u.fftsPlusTask.argsHandleInfoPtr = new (std::nothrow) std::vector<void *>();
-        COND_RETURN_ERROR_MSG_INNER(taskInfo->u.fftsPlusTask.argsHandleInfoPtr == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-            "alloc Mem Failed, device_id=%u, stream_id=%d", dev->Id_(), taskInfo->stream->Id_());
+        COND_RETURN_AND_MSG_OUTER(taskInfo->u.fftsPlusTask.argsHandleInfoPtr == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+            ErrorCode::EE1013, std::to_string(sizeof(std::vector<void *>)));
         for (uint32_t i = 0U; i < argsHandleInfoNum; i++) {
             const Handle * const argHdl = static_cast<Handle *>(fftsPlusTaskInfo->argsHandleInfoPtr[i]);
             if (argHdl == nullptr) {
@@ -452,8 +452,9 @@ static void ConstructFftsPlusSqe(TaskInfo* taskInfo, rtStarsSqe_t * const comman
     const errno_t error = memcpy_s(command, sizeof(rtStarsSqe_t), &fftPlusTask->fftsSqe, sizeof(fftPlusTask->fftsSqe));
     if (error != EOK) {
         command->fftsPlusSqe.sqeHeader.type = RT_STARS_SQE_TYPE_INVALID;
-        RT_LOG(RT_LOG_ERROR, "copy to starsSqe failed, ret=%d, src size=%zu(bytes), dst size=%zu(bytes)",
-               error, sizeof(fftPlusTask->fftsSqe), sizeof(rtStarsSqe_t));
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call memcpy_s to copy fftPlusTask->fftsSqe, src=%p, dest=%p,"
+            " dest_max=%zu, count=%zu, retCode=%#x.", &fftPlusTask->fftsSqe, command, sizeof(rtStarsSqe_t),
+            sizeof(fftPlusTask->fftsSqe), error);
     }
 
     PrintSqe(command, "FftsPlus");
@@ -576,7 +577,7 @@ static bool ReportFftsPlusCurrentContextDetail(TaskInfo *taskInfo, const uint32_
     if (ret != RT_ERROR_NONE) {
         Stream *const reportStream = GetReportStream(taskInfo->stream);
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
-            "fftsplus context copy failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
+            "FftsPlus context copy failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
             "thread_id=%u, err_type=%u[%s], error_code=%u, retCode=%#x.", devId, taskInfo->stream->Id_(),
             taskInfo->id, info.contextId, info.threadId, info.errType,
             GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode, ret);
@@ -632,12 +633,12 @@ void PrintAicAivErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const rtFftsPlusTas
     const rtError_t ret = CopyFftsPlusContextToHost(taskInfo, info.contextId, &contextInfo);
     if (ret != RT_ERROR_NONE) {
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
-            "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
+            "FftsPlus task execution failed, dev_id=%u, stream_id=%d, task_id=%u, "
             "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, taskInfo->stream->Id_(),
             taskInfo->id, info.contextId, info.threadId, info.errType,
             GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode);
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
-            "fftsplus context copy failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
+            "FftsPlus context copy failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
             "thread_id=%u, err_type=%u[%s], error_code=%u, retCode=%#x.", devId, taskInfo->stream->Id_(),
             taskInfo->id, info.contextId, info.threadId, info.errType,
             GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode, ret);
@@ -669,15 +670,15 @@ void PrintAicAivErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const rtFftsPlusTas
     }
     if (!kernelName.empty()) {
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
-            "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
+            "FftsPlus task execution failed, dev_id=%u, stream_id=%d, task_id=%u, context_id=%u, "
             "thread_id=%u, err_type=%u[%s], error_code=%u, pc start=%#" PRIx64 ". "
-            "fault kernel_name=%s, blockDim=%u", devId,
+            "fault kernel_name=%s, blockDim=%u.", devId,
             taskInfo->stream->Id_(), taskInfo->id, info.contextId, info.threadId, info.errType,
             GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode,
             info.pcStart, kernelName.c_str(), blockDim);
     } else {
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
-            "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
+            "FftsPlus task execution failed, dev_id=%u, stream_id=%d, task_id=%u, "
             "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, taskInfo->stream->Id_(),
             taskInfo->id, info.contextId, info.threadId, info.errType,
             GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode);
@@ -689,7 +690,7 @@ static void PrintSdmaErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const rtFftsPl
 {
     Stream *const reportStream = GetReportStream(taskInfo->stream);
     STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
-        "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
+        "FftsPlus task execution failed, dev_id=%u, stream_id=%d, task_id=%u, "
         "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, taskInfo->stream->Id_(),
         taskInfo->id, info.contextId, info.threadId, info.errType,
         GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode);
@@ -704,7 +705,7 @@ void PrintDsaErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const rtFftsPlusTaskEr
     (void)PrintDsaErrorInfoForStarsCommonTask(&dsaTaskInfo);
     Stream *const reportStream = GetReportStream(taskInfo->stream);
     STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_FE,
-        "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
+        "FftsPlus task execution failed, dev_id=%u, stream_id=%d, task_id=%u, "
         "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, taskInfo->stream->Id_(),
         taskInfo->id, info.contextId, info.threadId, info.errType,
         GetErrMsgStrForFftsPlusTask(info.errType).c_str(), taskInfo->errorCode);
@@ -818,7 +819,7 @@ void PrintErrorInfoForFftsPlusTask(TaskInfo* taskInfo, const uint32_t devId)
             // 这样即使不属于 AIC/AIV、SDMA、DSA，也还能继续做定界。
             Stream *const reportStream = GetReportStream(taskInfo->stream);
             STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS,
-                "fftsplus task execute failed, dev_id=%u, stream_id=%d, task_id=%u, "
+                "FftsPlus task execution failed, dev_id=%u, stream_id=%d, task_id=%u, "
                 "context_id=%u, thread_id=%u, err_type=%u[%s], error_code=%u.", devId, streamId, taskId,
                 loop.contextId, loop.threadId, loop.errType, GetErrMsgStrForFftsPlusTask(loop.errType).c_str(),
                 taskInfo->errorCode);
@@ -871,7 +872,8 @@ void PushBackErrInfoForFftsPlusTask(TaskInfo* taskInfo, const void *errInfo, uin
     }
     rtFftsPlusTaskErrInfo_t taskErrInfo;
     if (memcpy_s(&taskErrInfo, sizeof(rtFftsPlusTaskErrInfo_t), errInfo, len) != EOK) {
-        RT_LOG(RT_LOG_ERROR, "fftsplus copy fail, input len=%u(bytes)", len);
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call memcpy_s to copy errInfo, src=%p, dest=%p,"
+            " dest_max=%zu, count=%u.", errInfo, &taskErrInfo, sizeof(rtFftsPlusTaskErrInfo_t), len);
         return;
     }
     taskInfo->u.fftsPlusTask.errInfo->push_back(taskErrInfo);

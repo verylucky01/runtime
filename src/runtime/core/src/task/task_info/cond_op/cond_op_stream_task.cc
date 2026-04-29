@@ -38,7 +38,7 @@ rtError_t InitFuncCallParaForStreamSwitchTaskV1(TaskInfo* taskInfo, rtStarsStrea
     // 此处应该使用device中的函数，但由于UT中动态切换芯片类型，为保证UT通过使用宏
     auto error = GET_DEV_PROPERTIES(chipType, props);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, RT_ERROR_INVALID_VALUE,
-        "Failed to get properties");
+        "GetDevProperties failed, chip type=%d.", chipType);
 
     if (props.isSupportInitFuncCallPara) {
         fcPara.rtSqFsmStateAddr = props.rtsqVirtualAddr.rtSqFsmStateAddr;
@@ -97,7 +97,7 @@ rtError_t InitFuncCallParaForStreamSwitchTaskV2(TaskInfo* taskInfo, rtStarsStrea
     // 此处应该使用device中的函数，但由于UT中动态切换芯片类型，为保证UT通过使用宏
     auto error = GET_DEV_PROPERTIES(chipType, props);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, RT_ERROR_INVALID_VALUE,
-        "Failed to get properties");
+        "GetDevProperties failed, chip type=%d.", chipType);
 
     if (props.isSupportInitFuncCallPara) {
         fcPara.rtSqFsmStateAddr = props.rtsqVirtualAddr.rtSqFsmStateAddr;
@@ -258,13 +258,14 @@ rtError_t StreamSwitchTaskInitV1(TaskInfo *taskInfo, const void *const ptrAddr,
     uint64_t physicPtr = 0UL;
     rtError_t error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
         static_cast<int32_t>(stm->Device_()->Id_()), streamSwitchTask->ptr, &physicPtr);
-    ERROR_RETURN_MSG_INNER(error, "Convert memory address[%#" PRIx64 "] from virtual to dma physic failed, retCode=%#x",
-                           streamSwitchTask->ptr, error);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Convert memory address[%#" PRIx64 "] from virtual to dma physic failed, retCode=%#x.",
+        streamSwitchTask->ptr, error);
     streamSwitchTask->phyPtr = physicPtr;
 
     if (stm->Device_()->IsStarsPlatform()) {
         error = PrepareSqeInfoForStreamSwitchTask(taskInfo);
-        ERROR_RETURN_MSG_INNER(error, "init for stars failed,retCode=%#x.", error);
+        ERROR_RETURN_MSG_INNER(error, "PrepareSqeInfoForStreamSwitchTask failed, retCode=%#x.", error);
     }
     return RT_ERROR_NONE;
 }
@@ -298,13 +299,14 @@ rtError_t StreamSwitchTaskInitV2(TaskInfo *taskInfo, const void *const ptrAddr,
     if (!stm->Device_()->IsDavidPlatform()) {
         uint64_t physicPtr = 0UL;
         error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(devId, streamSwitchTask->ptr, &physicPtr);
-        ERROR_RETURN_MSG_INNER(error, "Convert memory address to dma physic failed,retCode=%#x,ptr=%#" PRIx64 ".",
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+            "Convert memory address to dma physic failed, retCode=%#x, ptr=%#" PRIx64 ".",
             error, streamSwitchTask->ptr);
 
         uint64_t physicValuePtr = 0UL;
         error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(devId, RtPtrToValue(valPtr), &physicValuePtr);
-        ERROR_RETURN_MSG_INNER(error,
-            "Convert memory address to dma physic failed,retCode=%#x,valuePtr=%#" PRIx64 ".",
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+            "Convert memory address to dma physic failed, retCode=%#x, valuePtr=%#" PRIx64 ".",
             error, streamSwitchTask->valuePtr);
 
         streamSwitchTask->phyPtr = physicPtr;
@@ -313,7 +315,7 @@ rtError_t StreamSwitchTaskInitV2(TaskInfo *taskInfo, const void *const ptrAddr,
 
     if (stm->Device_()->IsStarsPlatform()) {
         error = PrepareSqeInfoForStreamSwitchTask(taskInfo);
-        ERROR_RETURN_MSG_INNER(error, "init for stars failed,retCode=%#x.", error);
+        ERROR_RETURN_MSG_INNER(error, "PrepareSqeInfoForStreamSwitchTask failed, retCode=%#x.", error);
     }
     return RT_ERROR_NONE;
 }
@@ -356,7 +358,7 @@ void PrintErrorInfoForStreamSwitchTask(TaskInfo* taskInfo, const uint32_t devId)
             dfx[2U] >> 48U, dfx[3U] >> 48U);
     }
     STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_GE,
-        "StreamSwitchTask execute failed,device_id=%u,stream_id=%d,%s=%u",
+        "StreamSwitchTask execution failed, device_id=%u, stream_id=%d, %s=%u.",
         devId, streamId, TaskIdDesc(), taskId);
 }
 
@@ -383,21 +385,23 @@ rtError_t StreamSwitchNTaskInit(TaskInfo *taskInfo, const void *const ptrAddr, c
     const int32_t devId = static_cast<int32_t>(stream->Device_()->Id_());
     Driver * const driver = taskInfo->stream->Device_()->Driver_();
     rtError_t error = driver->MemAddressTranslate(devId, streamSwitchNTask->ptr, &pptr);
-    ERROR_RETURN_MSG_INNER(error,
-                           "Convert memory address from virtual to dma physical failed,retCode=%#x,ptr=%#" PRIx64 ".",
-                           error, streamSwitchNTask->ptr);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Convert memory address from virtual to dma physical failed, retCode=%#x, ptr=%#" PRIx64 ".",
+        error, streamSwitchNTask->ptr);
 
     uint64_t physicValuePtr = 0UL;
     error = driver->MemAddressTranslate(devId, streamSwitchNTask->valuePtr, &physicValuePtr);
-    ERROR_RETURN_MSG_INNER(error, "Convert memory address from virtual to dma physical failed, retCode=%#x,"
-                                  " valuePtr=%#" PRIx64 ".", error, streamSwitchNTask->valuePtr);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Convert memory address from virtual to dma physical failed, retCode=%#x,"
+        " valuePtr=%#" PRIx64 ".", error, streamSwitchNTask->valuePtr);
 
     uint64_t physicTrueStreamPtr = 0UL;
     error = driver->MemAddressTranslate(devId, streamSwitchNTask->trueStreamPtr,
         &physicTrueStreamPtr);
-    ERROR_RETURN_MSG_INNER(error, "Convert memory address from virtual to dma physical failed,"
-                                  " retCode=%#x,trueStreamPtr=%#" PRIx64 ".", error,
-                                  streamSwitchNTask->trueStreamPtr);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Convert memory address from virtual to dma physical failed,"
+        " retCode=%#x, trueStreamPtr=%#" PRIx64 ".", error,
+        streamSwitchNTask->trueStreamPtr);
     streamSwitchNTask->phyPtr = pptr;
     streamSwitchNTask->phyValuePtr = physicValuePtr;
     streamSwitchNTask->phyTrueStreamPtr = physicTrueStreamPtr;
@@ -540,12 +544,12 @@ rtError_t MemAddrTransForStreamLabelSwitchByIndexTask(TaskInfo* taskInfo)
     const int32_t devId = static_cast<int32_t>(taskInfo->stream->Device_()->Id_());
     rtError_t error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(devId,
         RtPtrToValue(stmLblSwiByIdx->indexPtr), &physicIndexPtr);
-    ERROR_RETURN_MSG_INNER(error, "convert memory address from virtual to physic failed!");
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Convert memory address from virtual to physic failed.");
     stmLblSwiByIdx->phyIndexPtr = physicIndexPtr;
 
     error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(devId,
         RtPtrToValue(stmLblSwiByIdx->labelInfoPtr), &physicLabelInfoPtr);
-    ERROR_RETURN_MSG_INNER(error, "convert memory address from virtual to physic failed!");
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Convert memory address from virtual to physic failed.");
     stmLblSwiByIdx->phyLabelInfoPtr = physicLabelInfoPtr;
 
     RT_LOG(RT_LOG_DEBUG, "Mem Addr Translate, phyIndexPtr:%#" PRIx64
@@ -605,7 +609,7 @@ void PrintErrorInfoForStreamLabelSwitchByIndexTask(TaskInfo* taskInfo, const uin
     }
 
     STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_GE,
-        "LabelSwitchByIndex execute failed,device_id=%u, stream_id=%d, %s=%u",
+        "LabelSwitchByIndex execution failed, device_id=%u, stream_id=%d, %s=%u.",
         devId, streamId, TaskIdDesc(), taskId);
 }
 

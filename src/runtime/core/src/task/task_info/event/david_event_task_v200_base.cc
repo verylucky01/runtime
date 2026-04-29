@@ -176,11 +176,11 @@ void PrintErrorInfoForDavidEventWaitTask(TaskInfo * const taskInfo, const uint32
     if (taskInfo->errorCode == TS_ERROR_AICPU_TIMEOUT) {
         RT_LOG_OUTER_MSG(RT_AICPU_TIMEOUT_ERROR, "Aicpu execute fail, device_id=%u, stream_id=%d", devId, streamId);
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_AICPU_TIMEOUT,
-            "Task execute failed, device_id=%u, stream_id=%d, task_pos=%hu, flip_num=%hu, task_type=%d(%s).",
+            "Task execution failed, device_id=%u, stream_id=%d, task_pos=%hu, flip_num=%hu, task_type=%d(%s).",
             devId, streamId, taskInfo->id, taskInfo->flipNum, static_cast<int32_t>(taskInfo->type), taskInfo->typeName);
     } else {
         STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_HCCL,
-            "Task execute failed, device_id=%u, stream_id=%d, task_pos=%hu, flip_num=%hu, task_type=%d(%s).",
+            "Task execution failed, device_id=%u, stream_id=%d, task_pos=%hu, flip_num=%hu, task_type=%d(%s).",
             devId, streamId, taskInfo->id, taskInfo->flipNum, static_cast<int32_t>(taskInfo->type), taskInfo->typeName);
     }
 }

@@ -24,17 +24,13 @@ static constexpr pfnNanoTaskToSqe g_BufToFunc[MAX_TASK][RT_TASK_TYPE_MAX] = {
 rtError_t ConstructSqeByTaskInput(const rtTaskInput_t* const taskInput, uint32_t* taskLen)
 {
     const rtTaskBuffType_t taskBufferType = taskInput->compilerInfo.bufType;
-    if ((taskBufferType >= MAX_TASK) || (taskBufferType < HWTS_STATIC_TASK_DESC)) {
-        RT_LOG(RT_LOG_ERROR, "TaskBufferType=%d is not support", taskBufferType);
-        return RT_ERROR_INVALID_VALUE;
-    }
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM((taskBufferType >= MAX_TASK) || (taskBufferType < HWTS_STATIC_TASK_DESC),
+        RT_ERROR_INVALID_VALUE, taskInput->compilerInfo.bufType, "[HWTS_STATIC_TASK_DESC, MAX_TASK)");
 
     const rtTaskType_t type = taskInput->compilerInfo.taskType;
-    if ((type != RT_TASK_TYPE_KERNEL_NANO_AICORE) &&
-        (type != RT_TASK_TYPE_KERNEL_NANO_AICPU_HOSTFUNC)) {
-        RT_LOG(RT_LOG_ERROR, "TaskType=%d is not support.", type);
-        return RT_ERROR_INVALID_VALUE;
-    }
+    COND_RETURN_AND_MSG_OUTER((type != RT_TASK_TYPE_KERNEL_NANO_AICORE) && (type != RT_TASK_TYPE_KERNEL_NANO_AICPU_HOSTFUNC),
+        RT_ERROR_INVALID_VALUE, ErrorCode::EE1017, "rtTaskBuild", "taskInput->compilerInfo.taskType",
+        "The current task type does not support this operation");
     pfnNanoTaskToSqe funcHandle = g_BufToFunc[taskBufferType][type];
     if (funcHandle == nullptr) {
         return RT_ERROR_INVALID_VALUE;
@@ -49,20 +45,16 @@ rtError_t PreLoadPrefetchSqe::ConstructSqe(const rtParamBufDesc_t& paramBufDesc,
     const uint16_t prefetchBufSize = paramBufDesc.prefetchBufSize;
     const uint16_t paramBufSize  = paramBufDesc.paramBufSize;
 
-    if ((prefetchBufSize > maxDataLen) || (paramBufSize > maxDataLen)) {
-        RT_LOG(RT_LOG_ERROR, "prefetchBufSize [%hu] or paramBufSize [%hu] greater maxDataLen [%hu].",
-            prefetchBufSize, paramBufSize, maxDataLen);
-        return RT_ERROR_INVALID_VALUE;
-    }
+    COND_RETURN_ERROR_MSG_INNER((prefetchBufSize > maxDataLen) || (paramBufSize > maxDataLen), RT_ERROR_INVALID_VALUE,
+        "The value of prefetchBufSize %hu and paramBufSize %hu must be less than or equal to that of maxDataLen %hu.",
+        prefetchBufSize, paramBufSize, maxDataLen);
 
     const uint32_t totalSize = static_cast<uint32_t>((sizeof(rtPrefetchSqe_t) * prefetchBufSize) +
         (sizeof(rtPreLoadSqe_t)) * paramBufSize);
 
-    if (bufferLen < totalSize) {
-        RT_LOG(RT_LOG_ERROR, "prefetchBufSize [%u] and paramBufSize [%u] greater bufferLen [%u].",
-            sizeof(rtPrefetchSqe_t) * prefetchBufSize, paramBufSize * sizeof(uint64_t), bufferLen);
-        return RT_ERROR_INVALID_VALUE;
-    }
+    COND_RETURN_ERROR_MSG_INNER(bufferLen < totalSize, RT_ERROR_INVALID_VALUE,
+        "The value of bufferLen %u must be greater than or equal to that of totalSize %u.",
+        bufferLen, totalSize);
 
     for (uint16_t i = 0U; i < prefetchBufSize; i++) {
         prefetchSqe->opType = paramBufDesc.prefetchBufInfo[i].opType;
@@ -105,8 +97,10 @@ rtError_t ConstructHostFuncParamSqe(const rtTaskInput_t* const taskInput, uint32
     }
 
     const errno_t ret = memcpy_s(taskInput->dataBuffer, bufferLen, paramBufDesc.bufInfo, paramBufDesc.bufSize);
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE, "memcpy failed, retCode=%d", ret);
-    *taskLen = paramBufDesc.bufSize;
+    COND_RETURN_AND_MSG_OUTER(ret != EOK, RT_ERROR_SEC_HANDLE, ErrorCode::EE1020, __func__, "memcpy_s",
+        std::to_string(ret), strerror(ret), "src=" + std::to_string(reinterpret_cast<uintptr_t>(paramBufDesc.bufInfo)) +
+        ", dest=" + std::to_string(reinterpret_cast<uintptr_t>(taskInput->dataBuffer)) + ", dest_max=" +
+        std::to_string(bufferLen) + ", count=" + std::to_string(paramBufDesc.bufSize) + ".");
     RT_LOG(RT_LOG_INFO, "Construct host func prefetch Sqe success. taskLen=%u.", *taskLen);
     return RT_ERROR_NONE;
 }

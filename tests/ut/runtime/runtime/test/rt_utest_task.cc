@@ -30,6 +30,7 @@
 #include "profiling_task.h"
 #include "cond_op_stream_task.h"
 #include "cond_op_label_task.h"
+#include "host_task.hpp"
 #include "count_notify.hpp"
 #include "ffts_task.h"
 #include "kernel.hpp"
@@ -3224,4 +3225,153 @@ TEST_F(TaskTest, WaitAsyncCopyCompleteForUpdateTask)
     delete argAllocator;
     delete device;
     GlobalMockObject::verify();
+}
+
+TEST_F(TaskTest, StreamSwitchNTaskInit_1)
+{
+    TaskInfo taskInfo = {};
+    InitByStream(&taskInfo, stream_);
+    
+    uint32_t ptrData = 0;
+    uint32_t valueData = 0;
+    rtStream_t trueStream = nullptr;
+    rtError_t error = rtStreamCreate(&trueStream, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    
+    NpuDriver drv;
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::MemAddressTranslate).stubs().will(returnValue(RT_ERROR_INVALID_VALUE));
+    
+    error = StreamSwitchNTaskInit(&taskInfo, &ptrData, sizeof(ptrData), &valueData, 
+                                   rt_ut::UnwrapOrNull<Stream>(trueStream), 
+                                   sizeof(uint32_t), RT_SWITCH_INT32);
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+    
+    (void)rtStreamDestroy(trueStream);
+}
+
+TEST_F(TaskTest, StreamSwitchNTaskInit_2)
+{
+    TaskInfo taskInfo = {};
+    InitByStream(&taskInfo, stream_);
+    
+    uint32_t ptrData = 0;
+    uint32_t valueData = 0;
+    rtStream_t trueStream = nullptr;
+    rtError_t error = rtStreamCreate(&trueStream, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    
+    NpuDriver drv;
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::MemAddressTranslate)
+        .stubs()
+        .will(returnValue(RT_ERROR_NONE))
+        .then(returnValue(RT_ERROR_INVALID_VALUE));
+    
+    error = StreamSwitchNTaskInit(&taskInfo, &ptrData, sizeof(ptrData), &valueData, 
+                                   rt_ut::UnwrapOrNull<Stream>(trueStream), 
+                                   sizeof(uint32_t), RT_SWITCH_INT32);
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+    
+    (void)rtStreamDestroy(trueStream);
+}
+
+TEST_F(TaskTest, StreamSwitchNTaskInit_3)
+{
+    TaskInfo taskInfo = {};
+    InitByStream(&taskInfo, stream_);
+    
+    uint32_t ptrData = 0;
+    uint32_t valueData = 0;
+    rtStream_t trueStream = nullptr;
+    rtError_t error = rtStreamCreate(&trueStream, 0);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+    
+    NpuDriver drv;
+    // 前两次成功，第三次失败
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::MemAddressTranslate)
+        .stubs()
+        .will(returnValue(RT_ERROR_NONE))
+        .then(returnValue(RT_ERROR_NONE))
+        .then(returnValue(RT_ERROR_INVALID_VALUE));
+    
+    error = StreamSwitchNTaskInit(&taskInfo, &ptrData, sizeof(ptrData), &valueData, 
+                                   rt_ut::UnwrapOrNull<Stream>(trueStream), 
+                                   sizeof(uint32_t), RT_SWITCH_INT32);
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+    
+    (void)rtStreamDestroy(trueStream);
+}
+
+TEST_F(TaskTest, HostTaskMemCpy_WaitFinish_Failed)
+{
+    NpuDriver drv;
+    RawDevice *device = new RawDevice(0);
+    device->driver_ = &drv;
+    
+    char dst[64] = {0};
+    char src[64] = {0};
+    
+    HostTaskMemCpy hostTask(device, dst, sizeof(dst), src, sizeof(src), RT_MEMCPY_HOST_TO_DEVICE);
+    
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::MemCopyAsyncWaitFinish)
+        .stubs()
+        .will(returnValue(RT_ERROR_DRV_MEMORY));
+    
+    rtError_t error = hostTask.WaitFinish();
+    EXPECT_EQ(error, RT_ERROR_DRV_MEMORY);
+    
+    delete device;
+    GlobalMockObject::verify();
+}
+
+TEST_F(TaskTest, TaskFactory_Alloc_TryAgainAllocFailed)
+{
+    RawDevice *device = new RawDevice(0);
+    TaskFactory taskFactory(device);
+    rtError_t errCode = RT_ERROR_NONE;
+    
+    taskFactory.exitFlag_ = true;
+    
+    TaskInfo *task = taskFactory.Alloc(stream_, TS_TASK_TYPE_KERNEL_AICORE, errCode);
+    EXPECT_EQ(task, nullptr);
+    
+    delete device;
+}
+
+TEST_F(TaskTest, DebugRegisterForStreamTaskInit)
+{
+    TaskInfo task = {};
+    InitByStream(&task, stream_);
+    
+    uint64_t addr = 0x1000;
+    NpuDriver drv;
+    
+    Device *device = stream_->Device_();
+    MOCKER_CPP_VIRTUAL(device, &Device::IsSupportFeature)
+        .stubs()
+        .will(returnValue(false));
+    
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::MemAddressTranslate)
+        .stubs()
+        .will(returnValue(RT_ERROR_INVALID_VALUE));
+    
+    rtError_t error = DebugRegisterForStreamTaskInit(&task, 0, &addr, 1);
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+    
+    TaskUnInitProc(&task);
+}
+
+TEST_F(TaskTest, MemcpyAsyncTaskPrepare_HostMemAllocFailed)
+{
+    TaskInfo task = {};
+    InitByStream(&task, stream_);
+    
+    void *hostAddr = nullptr;
+    NpuDriver drv;
+    
+    MOCKER_CPP_VIRTUAL(drv, &NpuDriver::HostMemAlloc)
+        .stubs()
+        .will(returnValue(RT_ERROR_DRV_MEMORY));
+    
+    rtError_t error = MemcpyAsyncTaskPrepare(&task, &hostAddr);
+    EXPECT_EQ(error, RT_ERROR_DRV_MEMORY);
 }

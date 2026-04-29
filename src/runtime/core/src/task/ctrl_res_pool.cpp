@@ -67,16 +67,11 @@ rtError_t CtrlResEntry::Init(Device* const dev)
     resTailIndex_ = 0U;
 
     taskPool_ = new (std::nothrow) CtrlTaskPoolEntry[CTRL_TASK_POOL_SIZE];
-    if (taskPool_ == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "Init ctrl stream lite pool, new res fail! taskPool_ is nullptr.");
-        return RT_ERROR_MEMORY_ALLOCATION;
-    }
+    COND_RETURN_AND_MSG_OUTER(taskPool_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013,
+        std::to_string(CTRL_TASK_POOL_SIZE * sizeof(CtrlTaskPoolEntry)));
     taskList_ = new (std::nothrow) uint8_t[CTRL_TASK_POOL_SIZE];
-    if (taskList_ == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "Init ctrl stream lite pool, new res fail! taskList_ is nullptr.");
-        DELETE_A(taskPool_);
-        return RT_ERROR_MEMORY_ALLOCATION;
-    }
+    COND_PROC_RETURN_AND_MSG_OUTER(taskList_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013,
+        DELETE_A(taskPool_), std::to_string(CTRL_TASK_POOL_SIZE * sizeof(uint8_t)));
     taskBuffCellSize_ = TaskFactory::GetTaskMaxSize();
     if ((taskBuffCellSize_ & (CTRL_BUFF_ASSING_NUM - 1U)) > 0) {
         taskBuffCellSize_ += CTRL_BUFF_ASSING_NUM;
@@ -85,12 +80,8 @@ rtError_t CtrlResEntry::Init(Device* const dev)
 
     const uint64_t buffSize = static_cast<uint64_t>(taskBuffCellSize_ * CTRL_TASK_POOL_SIZE);
     taskBaseAddr_ = new (std::nothrow) uint8_t[buffSize];
-    if (taskBaseAddr_ == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "Init ctrl stream lite pool fail! size=%u", buffSize);
-        DELETE_A(taskPool_);
-        DELETE_A(taskList_);
-        return RT_ERROR_MEMORY_ALLOCATION;
-    }
+    COND_PROC_RETURN_AND_MSG_OUTER(taskBaseAddr_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013,
+        DELETE_A(taskPool_); DELETE_A(taskList_), std::to_string(buffSize * sizeof(uint8_t)));
     RT_LOG(RT_LOG_DEBUG, "[ctrlSq]taskBaseAddr_=0x%x taskBuffCellSize_=%u.", taskBaseAddr_, taskBuffCellSize_);
 
     for (uint32_t i = 0U; i < CTRL_TASK_POOL_SIZE; i++) {

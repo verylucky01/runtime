@@ -183,7 +183,8 @@ rtError_t GetDevMsgTaskInit(TaskInfo* taskInfo, const void * const devMemAddr,
             static_cast<int32_t>(taskInfo->stream->Device_()->Id_()),
             RtPtrToValue<void *>(getDevMsgTask->devMem),
             &(getDevMsgTask->offset));
-        ERROR_RETURN_MSG_INNER(error, "MemAddressTranslate address error=%#x,msg type=%d,msgBuffer length=%u",
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+            "MemAddressTranslate address error=%#x, msg type=%d, msgBuffer length=%u.",
             error, messageType, getDevMsgTask->msgBufferLen);
     }
 

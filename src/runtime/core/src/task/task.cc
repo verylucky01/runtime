@@ -60,8 +60,8 @@ rtError_t TaskFactory::Init()
 {
     allocator_ = new (std::nothrow)
         TaskAllocator(GetTaskMaxSize(), INIT_TASK_CAPACITY, device_->GetDevProperties().maxSupportTaskNum);
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, allocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-        "Init task factory failed, new TaskAllocator failed.");
+    COND_RETURN_AND_MSG_OUTER(allocator_ == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013,
+        std::to_string(sizeof(TaskAllocator)));
     RT_LOG(RT_LOG_DEBUG, "TaskFactory::Init ok, alloc size is %zu.", sizeof(TaskAllocator));
     return RT_ERROR_NONE;
 }
@@ -224,11 +224,11 @@ TaskInfo* TaskFactory::Alloc(Stream *stream, tsTaskType_t taskType, rtError_t &e
     if (!(stream->IsTaskSink())) {
         if (unlikely(id < 0)) {
             id = TryAgainAlloc(stream, errCode);
-            COND_RETURN_ERROR_MSG_INNER(exitFlag_ || (id < 0), nullptr, "Alloc task id failed, stream_id=%d.",
+            COND_RETURN_ERROR_MSG_INNER(exitFlag_ || (id < 0), nullptr, "Failed to alloc task id, stream_id=%d.",
                 stream->Id_());
         }
     } else {
-        COND_RETURN_ERROR_MSG_INNER(id < 0, nullptr, "Alloc task id failed, stream_id=%d.", stream->Id_());
+        COND_RETURN_ERROR_MSG_INNER(id < 0, nullptr, "Failed to alloc task id, stream_id=%d.", stream->Id_());
         stream->PushPersistentTaskID(static_cast<uint32_t>(id));
     }
 

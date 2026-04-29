@@ -164,7 +164,7 @@ rtError_t InitFuncCallParaForStreamActiveTask(TaskInfo* taskInfo, rtStarsStreamA
     DevProperties props;
     const auto error = GET_DEV_PROPERTIES(chipType, props);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, RT_ERROR_INVALID_VALUE,
-        "Failed to get properties");
+        "GetDevProperties failed, chip type=%d.", chipType);
     if (props.isSupportInitFuncCallPara) {
         fcPara.rtSqFsmStateAddr = props.rtsqVirtualAddr.rtSqFsmStateAddr;
         fcPara.rtSqEnableAddr = props.rtsqVirtualAddr.rtSqEnableAddr + sqVirtualAddr;
@@ -176,9 +176,9 @@ rtError_t InitFuncCallParaForStreamActiveTask(TaskInfo* taskInfo, rtStarsStreamA
             int64_t dieId;
             const uint32_t deviceId = streamActiveTask->activeStream->Device_()->Id_();
             rtError_t error = driver->GetDevInfo(deviceId, MODULE_TYPE_SYSTEM, INFO_TYPE_PHY_CHIP_ID, &chipId);
-            ERROR_RETURN_MSG_INNER(error, "Get chip failed!, device_id=%u", deviceId);
+            ERROR_RETURN_MSG_INNER(error, "Failed to get chip id, device_id=%u.", deviceId);
             error = driver->GetDevInfo(deviceId, MODULE_TYPE_SYSTEM, INFO_TYPE_PHY_DIE_ID, &dieId);
-            ERROR_RETURN_MSG_INNER(error, "Get die id failed!, device_id=%u", deviceId);
+            ERROR_RETURN_MSG_INNER(error, "Failed to get die id, device_id=%u.", deviceId);
 
             const uint64_t chipAddr = taskInfo->stream->Device_()->GetChipAddr();
             const uint64_t chipOffset = taskInfo->stream->Device_()->GetChipOffset();
@@ -324,7 +324,7 @@ void PrintErrorInfoForStreamActiveTask(TaskInfo* taskInfo, const uint32_t devId)
     }
 
     STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_GE,
-        "StreamActiveTask execute failed,device_id=%u,stream_id=%d,%s=%u",
+        "StreamActiveTask execution failed, device_id=%u, stream_id=%d, %s=%u.",
         devId, streamId, TaskIdDesc(), taskId);
 }
 

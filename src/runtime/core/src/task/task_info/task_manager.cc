@@ -328,7 +328,7 @@ void PrintErrorInfoCommon(TaskInfo *taskInfo, const uint32_t devId)
 {
     const int32_t streamId = taskInfo->stream->Id_();
     Stream *const reportStream = GetReportStream(taskInfo->stream);
-    STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS, "Task execute failed, device_id=%u,"
+    STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_RTS, "Task execution failed, device_id=%u,"
                           " stream_id=%d, %s=%hu, flip_num=%hu, task_type=%d.",
                           devId, streamId, TaskIdDesc(), taskInfo->id, taskInfo->flipNum,
                           static_cast<int32_t>(taskInfo->type));
@@ -580,8 +580,9 @@ void GetBinAndKernelNameExceptionArgs(const Kernel * const kernel, rtExceptionAr
 
     const errno_t ret = strcpy_s(const_cast<char *>(argsInfo->exceptionKernelInfo.kernelName),
         buffSize, kernelNameStr.c_str());
-    COND_PROC_RETURN_ERROR((ret != EOK), , DELETE_A(argsInfo->exceptionKernelInfo.kernelName);,
-        "strcpy_s failed, size=%zu, retCode=%d!", buffSize, ret);
+    COND_PROC_RETURN_ERROR_MSG_INNER((ret != EOK), , DELETE_A(argsInfo->exceptionKernelInfo.kernelName),
+        "Failed to call strcpy_s to copy %s, size=%u, retCode=%#x.",
+        kernelNameStr.c_str(), buffSize, ret);
 
     argsInfo->exceptionKernelInfo.kernelNameSize = kernelNameStr.length();
     argsInfo->exceptionKernelInfo.bin = programPtr;
@@ -794,7 +795,7 @@ TaskInfo *GetRealReportFaultTask(TaskInfo *taskInfo, const void *info)
 void PushBackErrInfo(TaskInfo* taskInfo, const void *errInfo, uint32_t len)
 {
     if (taskInfo == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "taskInfo is nullptr");
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "PushBackErrInfo failed because taskInfo cannot be a NULL pointer.");
         return;
     }
     const tsTaskType_t type = taskInfo->type;

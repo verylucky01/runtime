@@ -417,13 +417,14 @@ rtError_t rtGetDeviceIdByGeModelIdx(uint32_t geModelIdx, uint32_t *deviceId)
     uint32_t drvDeviceId;
     rtError_t error = ProfMapGeModelDevice::Instance().GetDeviceIdByGeModelIdx(geModelIdx, &drvDeviceId);
     if (error != RT_ERROR_NONE) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "The device of geModelIdx:%u does not exist.", geModelIdx);
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1011, __func__, std::to_string(geModelIdx), "geModelIdx",
+            "The device of geModelIdx does not exist");
         ERROR_RETURN_WITH_EXT_ERRCODE(error);
     }
     
     int32_t userDeviceId;
     error = rtGetUserDevIdByLogicDevId(static_cast<int32_t>(drvDeviceId), &userDeviceId);
-    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Get userDeviceId by drv devId:%u failed, retCode=%#x",
+    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Failed to get userDeviceId by drv devId:%u, retCode=%#x.",
         drvDeviceId, static_cast<uint32_t>(error));
     *deviceId = static_cast<uint32_t>(userDeviceId);
     return ACL_RT_SUCCESS;
@@ -529,8 +530,8 @@ rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     rtError_t error = RT_ERROR_NONE;
-    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((devFeatureType >= static_cast<int32_t>(RT_DEV_FEATURE_MAX)) || (devFeatureType < 0), 
-        RT_ERROR_INVALID_VALUE, ErrorCode::EE1001, "rtsDeviceGetCapability failed, invalid devFeatureType=" + std::to_string(devFeatureType) + ".");
+    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER_WITH_PARAM((devFeatureType >= static_cast<int32_t>(RT_DEV_FEATURE_MAX)) || (devFeatureType < 0),
+        RT_ERROR_INVALID_VALUE, __func__, std::to_string(devFeatureType), "devFeatureType", "[0, RT_DEV_FEATURE_MAX)");
 
     if (devFeatureType == static_cast<int32_t>(RT_FEATURE_TSCPU_TASK_UPDATE_SUPPORT_AIC_AIV)) {
         error = apiInstance->GetDeviceCapability(deviceId, static_cast<int32_t>(RT_MODULE_TYPE_TSCPU),
@@ -562,8 +563,7 @@ rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32
     } else {
         RT_LOG_OUTER_MSG_INVALID_PARAM(
            devFeatureType,
-           "[" + std::to_string(RT_FEATURE_TSCPU_TASK_UPDATE_SUPPORT_AIC_AIV) +
-            ", " + std::to_string(RT_DEV_FEATURE_MAX) + ")");
+           "[RT_FEATURE_TSCPU_TASK_UPDATE_SUPPORT_AIC_AIV, RT_DEV_FEATURE_MAX");
         return ACL_ERROR_RT_PARAM_INVALID;
     }
     return ACL_RT_SUCCESS;
@@ -957,7 +957,7 @@ rtError_t rtSetDeviceWithFlags(int32_t deviceId, uint64_t flags)
         error = apiInstanceNoTSD->SetDevice(deviceId);
     } else {
         RT_LOG_OUTER_MSG_INVALID_PARAM(
-           flags, std::to_string(RT_DEVICE_FLAG_DEFAULT) + " or " + std::to_string(RT_DEVICE_FLAG_NOT_START_CPU_SCHED));
+           flags, "RT_DEVICE_FLAG_DEFAULT or RT_DEVICE_FLAG_NOT_START_CPU_SCHED");
         error = RT_ERROR_INVALID_VALUE;
     }
     ERROR_RETURN_WITH_EXT_ERRCODE(error);

@@ -34,14 +34,14 @@ static rtError_t XpuGetDrvSqHead(const Stream * const stm, uint16_t &sqHead, boo
     const uint32_t sqId = stm->GetSqId();
     const uint32_t tsId = dev->DevGetTsId();
     const rtError_t error = dev->Driver_()->GetSqHead(dev->Id_(), tsId, sqId, sqHead, needLog);
-    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Query sq head failed, retCode=%#x.",
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "Failed to query sq head, retCode=%#x.",
         static_cast<uint32_t>(error));
     if (needLog) {
         RT_LOG(RT_LOG_DEBUG, "deviceId=%u, sq_id=%u, sqHead=%hu.", dev->Id_(), sqId, sqHead);
     }
     TaskResManageDavid *taskManager = dynamic_cast<TaskResManageDavid *>(stm->taskResMang_);
     COND_RETURN_ERROR_MSG_INNER(taskManager == nullptr, RT_ERROR_STREAM_INVALID, 
-        "stream_id=%d does not have task manager", stm->Id_());
+        "The stream %d does not have a corresponding task manager.", stm->Id_());
 
     const bool valid = taskManager->IsRecyclePosValid(sqHead);
     if (!valid) {

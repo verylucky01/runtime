@@ -192,8 +192,8 @@ rtError_t rtMbufCopyBufRef(rtMbufPtr_t memBuf, rtMbufPtr_t *newMemBuf)
 {
     ApiMbuf * const apiMbufInstance = ApiMbuf::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiMbufInstance);
-    NULL_PTR_RETURN_MSG(memBuf, ACL_ERROR_RT_PARAM_INVALID);
-    NULL_PTR_RETURN_MSG(newMemBuf, ACL_ERROR_RT_PARAM_INVALID);
+    NULL_PTR_RETURN_MSG_OUTER(memBuf, ACL_ERROR_RT_PARAM_INVALID);
+    NULL_PTR_RETURN_MSG_OUTER(newMemBuf, ACL_ERROR_RT_PARAM_INVALID);
     const rtError_t error = apiMbufInstance->MbufCopyBufRef(memBuf, newMemBuf);
     COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);

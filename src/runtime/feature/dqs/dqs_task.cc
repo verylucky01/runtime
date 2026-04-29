@@ -47,7 +47,8 @@ static rtError_t InitFuncCallParaForDqsEnqueueTask(TaskInfo* taskInfo, RtStarsDq
     StreamWithDqs *stm = dynamic_cast<StreamWithDqs *>(taskInfo->stream);
     NULL_PTR_RETURN_MSG(stm, RT_ERROR_STREAM_NULL);
     stars_dqs_ctrl_space_t *ctrlSpacePtr = stm->GetDqsCtrlSpace();
-    COND_RETURN_ERROR((ctrlSpacePtr == nullptr), RT_ERROR_INVALID_VALUE, "ctrl space is nullptr.");
+    COND_RETURN_ERROR_MSG_INNER((ctrlSpacePtr == nullptr), RT_ERROR_INVALID_VALUE,
+        "InitFuncCallParaForDqsEnqueueTask failed because ctrlSpacePtr cannot be a NULL pointer.");
 
     uint16_t *const execTimesSvm = stm->GetExecutedTimesSvm();
     fcPara.streamExecTimesAddr = RtPtrToValue(execTimesSvm);
@@ -707,7 +708,7 @@ rtError_t DqsEnqueueTaskInit(TaskInfo *taskInfo, const Stream * const stream, co
     InitDqsCommonTaskInfo(dqsEnqueueTask, sizeof(RtStarsDqsEnqueueFc), stream->GetSqId());
 
     const rtError_t error = PrepareSqeInfoForDqsEnqueueTask(taskInfo);
-    ERROR_RETURN_MSG_INNER(error, "Init for DqsEnqueueTask failed,retCode=%#x.", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to init DqsEnqueueTask, retCode=%#x.", static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
 }
 
@@ -721,7 +722,7 @@ static rtError_t DqsSingleDequeueTaskInit(TaskInfo *taskInfo, const Stream * con
     InitDqsCommonTaskInfo(dqsDequeueTask, sizeof(RtStarsDqsDequeueFc), stream->GetSqId());
 
     const rtError_t error = PrepareSqeInfoForDqsDequeueTask(taskInfo);
-    ERROR_RETURN_MSG_INNER(error, "Init for DqsDequeueTask failed,retCode=%#x.", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to init DqsDequeueTask, retCode=%#x.", static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
 }
 
@@ -735,7 +736,7 @@ static rtError_t DqsBatchDequeueTaskInit(TaskInfo *taskInfo, const Stream * cons
     InitDqsCommonTaskInfo(dqsBatchDequeueTask, sizeof(RtStarsDqsBatchDequeueFc), stream->GetSqId());
 
     const rtError_t error = PrepareSqeInfoForDqsBatchDequeueTask(taskInfo);
-    ERROR_RETURN_MSG_INNER(error, "Init for BatchDequeueTask failed,retCode=%#x.", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to init BatchDequeueTask, retCode=%#x.", static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
 }
 
@@ -765,7 +766,7 @@ rtError_t DqsZeroCopyTaskInit(TaskInfo *taskInfo, const Stream * const stream, c
     // 需要区分IN & OUT
     taskInfo->u.dqsZeroCopyTask.copyType = cfg->zeroCopyCfg->copyType;
     const rtError_t error = PrepareSqeInfoForDqsZeroCopyTask(taskInfo, cfg);
-    ERROR_RETURN_MSG_INNER(error, "Init for DqsZeroCopyTask failed, retCode=%#x.", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to init DqsZeroCopyTask, retCode=%#x.", static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
 }
 
@@ -780,8 +781,12 @@ void PrintErrorInfoForDqsZeroCopyTask(TaskInfo* taskInfo, const uint32_t devId)
     COND_RETURN_VOID(streamWithDqs == nullptr, "streamWithDqs is nullptr");
 
     stars_dqs_ctrl_space_t *ctrlSpace = streamWithDqs->GetDqsCtrlSpace();
-    COND_RETURN_VOID(ctrlSpace == nullptr,
-       "dqs control space is nullptr, stream_id=%d, deviceId=%u", streamWithDqs->Id_(), devId);
+    if (ctrlSpace == nullptr) {
+        RT_LOG_INNER_MSG(RT_LOG_ERROR,
+            "PrintErrorInfoForDqsZeroCopyTask failed because ctrlSpacePtr cannot be a NULL pointer, device_id=%u, stream_id=%d.",
+            devId, streamWithDqs->Id_());
+        return;
+    }
 }
 
 rtError_t DqsMbufFreeTaskInit(TaskInfo *taskInfo, const Stream * const stream, const DqsTaskConfig *const cfg)
@@ -794,7 +799,7 @@ rtError_t DqsMbufFreeTaskInit(TaskInfo *taskInfo, const Stream * const stream, c
     InitDqsCommonTaskInfo(&(taskInfo->u.dqsMbufFreeTask), sizeof(RtStarsDqsMbufFreeFc), stream->GetSqId());
 
     error = PrepareSqeInfoForDqsMbufFreeTask(taskInfo);
-    ERROR_RETURN_MSG_INNER(error, "Init for DqsMbufFreeTask failed,retCode=%#x.", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to init DqsMbufFreeTask, retCode=%#x.", static_cast<uint32_t>(error));
     return RT_ERROR_NONE;
 }
 
@@ -840,19 +845,23 @@ void PrintErrorInfoForDqsInterChipPreProcTask(TaskInfo* taskInfo, const uint32_t
     COND_RETURN_VOID(streamWithDqs == nullptr, "streamWithDqs is nullptr");
 
     stars_dqs_inter_chip_space_t *interChipSpace = streamWithDqs->GetDqsInterChipSpace();
-    COND_RETURN_VOID(interChipSpace == nullptr,
-        "dqs inter-chip space is nullptr, stream_id=%d, deviceId=%u", streamWithDqs->Id_(), devId);
+    if (interChipSpace == nullptr) {
+        RT_LOG_INNER_MSG(RT_LOG_ERROR,
+            "PrintErrorInfoForDqsInterChipPreProcTask failed because interChipSpace cannot be a NULL pointer, device_id=%u, stream_id=%d.",
+            devId, streamWithDqs->Id_());
+        return;
+    }
 }
 
 rtError_t DqsInterChipMemcpyTaskInit(TaskInfo *taskInfo, const uint32_t groupIdx, const DqsInterChipTaskType type)
 {
     void *memcpyAddrInfo = nullptr;
     rtError_t error = PrepareSqeInfoForDqsInterChipMemcpyTask(taskInfo, memcpyAddrInfo, groupIdx, type);
-    ERROR_RETURN_MSG_INNER(error, "Prepare sqe info for dqs inter-chip mem copy task failed, "
-        "groupIdx=%u, type=%u, retCode=%#x", groupIdx, static_cast<uint32_t>(type), static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to prepare the SQE information for the DQS inter-chip memory copy task, "
+        "groupIdx=%u, type=%u, retCode=%#x.", groupIdx, static_cast<uint32_t>(type), static_cast<uint32_t>(error));
 
     error = MemcpyAsyncTaskInitV1(taskInfo, memcpyAddrInfo, 0ULL);
-    ERROR_RETURN_MSG_INNER(error, "Dqs inter-chip mem copy task init failed, groupIdx=%u, type=%u, retCode=%#x",
+    ERROR_RETURN_MSG_INNER(error, "Failed to initialize DQS inter-chip memory copy task, groupIdx=%u, type=%u, retCode=%#x.",
         groupIdx, static_cast<uint32_t>(type), static_cast<uint32_t>(error));
 
     return RT_ERROR_NONE;
@@ -1303,7 +1312,7 @@ rtError_t DqsFrameAlignTaskInit(TaskInfo *taskInfo, const Stream * const stream,
     InitDqsCommonTaskInfo(dqsFrameAlignTask, sizeof(RtStarsDqsFrameAlignFc), stream->GetSqId());
 
     const rtError_t error = PrepareSqeInfoForDqsFrameAlignTask(taskInfo);
-    ERROR_RETURN_MSG_INNER(error, "Init for FrameAlignTask failed, retCode=%#x.", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to init for FrameAlignTask, retCode=%#x.", static_cast<uint32_t>(error));
 
     return RT_ERROR_NONE;
 }

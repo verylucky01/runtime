@@ -31,7 +31,12 @@ void SetResultForCreateStreamTask(TaskInfo * const taskInfo, const void *const d
         const uint32_t tschVersion = static_cast<uint32_t>(payLoad >> 12U);
         Device *const devicePtr = stream->Device_();
         const Stream *const defaultStream = devicePtr->PrimaryStream_();
-        COND_RETURN_VOID(defaultStream == nullptr, "default stream is NULL.");
+        if (defaultStream == nullptr) {
+            RT_LOG_INNER_MSG(RT_LOG_ERROR,
+                "SetResultForCreateStreamTask failed because defaultStream cannot be a NULL pointer, deviceId=%u.",
+                taskInfo->stream->Device_()->Id_());
+            return;
+        }
         if (stream->Id_() == defaultStream->Id_()) {
             devicePtr->SetTschVersion(tschVersion);
         }

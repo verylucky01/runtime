@@ -381,7 +381,7 @@ rtError_t rtsLaunchReduceAsyncTask(const rtReduceInfo_t *reduceInfo, const rtStr
     rtError_t ret = RT_ERROR_NONE;
     DevProperties properties;
     auto error = GET_DEV_PROPERTIES(rtInstance->GetChipType(), properties);
-    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "GetDevProperties failed.");
+    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "GetDevProperties failed, chip type=%d.", rtInstance->GetChipType());
     if (properties.reduceOverflow == ReduceOverflowType::REDUCE_OVERFLOW_TS_VERSION_REDUCE_V2_ID ||
         properties.reduceOverflow == ReduceOverflowType::REDUCE_OVERFLOW_TS_VERSION_REDUCV2_SUPPORT_DC) {
         void *overflowAddr = nullptr;
@@ -498,7 +498,8 @@ rtError_t rtsLaunchCmoAddrTask(rtCmoDesc_t cmoDesc, rtStream_t stm, rtCmoOpCode 
 
     DevProperties properties;
     auto error = GET_DEV_PROPERTIES(Runtime::Instance()->GetChipType(), properties);
-    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "GetDevProperties failed.");
+    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "GetDevProperties failed, chip type=%d.",
+        Runtime::Instance()->GetChipType());
     const uint64_t sizeMax = properties.cmoDDRStructInfoSize;
 
     return rtCmoAddrTaskLaunch(cmoDesc, sizeMax, cmoOpCode, stm, 0U);
@@ -566,7 +567,7 @@ rtError_t rtReduceAsyncV2(void *dst, uint64_t destMax, const void *src, uint64_t
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(rtInstance);
     DevProperties properties;
     auto error = GET_DEV_PROPERTIES(rtInstance->GetChipType(), properties);
-    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "GetDevProperties failed.");
+    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "GetDevProperties failed, chip type=%d.", rtInstance->GetChipType());
     if (properties.reduceOverflow != ReduceOverflowType::REDUCE_OVERFLOW_TS_VERSION_REDUCE_V2_ID &&
         properties.reduceOverflow != ReduceOverflowType::REDUCE_OVERFLOW_TS_VERSION_REDUCV2_SUPPORT_DC) {
         REPORT_FUNC_ERROR_REASON(RT_ERROR_FEATURE_NOT_SUPPORT);
@@ -767,8 +768,8 @@ rtError_t rtCmoAsync(void *srcAddrPtr, size_t srcLen, rtCmoOpCode_t cmoType, rtS
         "cmoType(%d) does not support, support[PREFETCH, WRITEBACK, INVALID, FLUSH], return.",
         static_cast<int32_t>(cmoType));
 
-    COND_RETURN_ERROR(srcAddrPtr == nullptr, ACL_ERROR_RT_PARAM_INVALID, "srcAddPtr is nullptr.");
-    COND_RETURN_ERROR(srcLen == 0, ACL_ERROR_RT_PARAM_INVALID, "srcLen must be bigger than 0, but srcLen is zero.");
+    NULL_PTR_RETURN_MSG_OUTER(srcAddrPtr, ACL_ERROR_RT_PARAM_INVALID);
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM((srcLen == 0), ACL_ERROR_RT_PARAM_INVALID, srcLen, "greater than 0");
 
     rtCmoTaskInfo_t taskInfo = {};
     taskInfo.opCode = cmoType;
@@ -862,7 +863,7 @@ rtError_t rtMemcpyAsyncWithOffset(void **dst, uint64_t dstMax, uint64_t dstDataO
     uint64_t cnt, uint64_t srcDataOffset, rtMemcpyKind kind, rtStream_t stm)
 {
     COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER_WITH_PARAM((kind != RT_MEMCPY_KIND_INNER_DEVICE_TO_DEVICE), 
-        RT_ERROR_INVALID_VALUE, kind, std::to_string(RT_MEMCPY_KIND_INNER_DEVICE_TO_DEVICE));
+        RT_ERROR_INVALID_VALUE, kind, "RT_MEMCPY_KIND_INNER_DEVICE_TO_DEVICE");
     return rtMemcpyD2DAddrAsync(RtPtrToPtr<void *>(dst), dstMax, dstDataOffset,
         RtPtrToPtr<void *>(src), cnt, srcDataOffset, stm);
 }
@@ -1445,8 +1446,10 @@ rtError_t rtGetSocSpec(const char* label, const char* key, char* val, const uint
         "maxLen should be larger than size of query result");
 
     const errno_t rtn = memcpy_s(val, maxLen, result.c_str(), result.size() + 1U);
-    COND_RETURN_ERROR_WITH_EXT_ERRCODE((ret != EOK), RT_ERROR_INVALID_VALUE,
-        "Get soc spec, memcpy failed, retCode=%#x", static_cast<uint32_t>(rtn));
+    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((rtn != EOK), RT_ERROR_INVALID_VALUE,
+        ErrorCode::EE1020, __func__, "memcpy_s", std::to_string(rtn), strerror(rtn),
+        "src=" + result + ", dest=" + std::to_string(reinterpret_cast<uintptr_t>(val)) + ", dest_max=" +
+        std::to_string(maxLen) + ", count=" + std::to_string(result.size() + 1U) + ".");
     return ACL_RT_SUCCESS;
 }
 

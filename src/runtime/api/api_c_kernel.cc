@@ -95,8 +95,8 @@ rtError_t rtsLaunchCpuKernel(const rtFuncHandle funcHandle, uint32_t numBlocks, 
 
     Kernel * const kernel = RtPtrToPtr<Kernel *>(funcHandle);
     const KernelRegisterType regType = kernel->GetKernelRegisterType();
-    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(regType != RT_KERNEL_REG_TYPE_CPU, RT_ERROR_INVALID_VALUE, ErrorCode::EE1001,
-        "current api only support cpu kernel");
+    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER(regType != RT_KERNEL_REG_TYPE_CPU, RT_ERROR_INVALID_VALUE, ErrorCode::EE1017,
+        __func__, "kernel", "current API only support CPU kernel");
     const auto watchDogHandle = ThreadLocalContainer::GetOrCreateWatchDogHandle();
     (void)AwdStartThreadWatchdog(watchDogHandle);
     RtArgsWithType argsWithType = {};
@@ -341,14 +341,18 @@ rtError_t rtsKernelArgsParaUpdate(rtArgsHandle argsHandle, rtParaHandle paraHand
     RtArgsHandle *handle = RtPtrToPtr<RtArgsHandle *>(argsHandle);
     ParaDetail *pHandle = RtPtrToPtr<ParaDetail *>(paraHandle);
     // 0 is Common param, 1 is place holder param
-    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((pHandle->type != 0U) || (pHandle->paraSize != paraSize), RT_ERROR_INVALID_VALUE,
-        ErrorCode::EE1001, "invalid param, paraHandle type is " + std::to_string(pHandle->type) + ", dest paraSize is " 
-        + std::to_string(pHandle->paraSize) + ", input paraSize is " + std::to_string(paraSize) + ".");
+    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((pHandle->type != 0U), RT_ERROR_INVALID_VALUE, ErrorCode::EE1003,
+        __func__, std::to_string(pHandle->type), "pHandle->type", "0");
+    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((pHandle->paraSize != paraSize), RT_ERROR_INVALID_VALUE, ErrorCode::EE1017,
+        __func__, "paraHandle->paraSize or paraSize", "The value of paraHandle->paraSize " +
+        std::to_string(pHandle->paraSize) + " must be equal to that of paraSize " + std::to_string(paraSize));
 
     const uint64_t offset = RtPtrToValue(handle->buffer) + pHandle->paraOffset;
     const errno_t ret = memcpy_s(RtValueToPtr<void *>(offset), paraSize, para, paraSize);
     COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((ret != EOK), RT_ERROR_INVALID_VALUE,
-        ErrorCode::EE1001, "args para update, memcpy failed, retCode=" + std::to_string(ret));
+        ErrorCode::EE1020, __func__, "memcpy_s", std::to_string(ret), strerror(ret),
+        "src=" + std::to_string(reinterpret_cast<uintptr_t>(para)) + ", dest=" + std::to_string((offset)) +
+        ", dest_max=" + std::to_string(paraSize) + ", count=" + std::to_string(paraSize) + ".");
     handle->isParamUpdating = 1U;
 
     return ACL_RT_SUCCESS;

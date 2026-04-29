@@ -125,3 +125,18 @@ TEST_F(PrintErrorModelExecuteTaskFuncCallTest, default_case)
    PrintErrorModelExecuteTaskFuncCall(&taskInfo);
    delete model;
 }
+
+TEST_F(PrintErrorModelExecuteTaskFuncCallTest, PrintErrorModelExecuteTaskFuncCall)
+{
+    TaskInfo taskInfo = {};
+    Model *model = new Model();
+    ModelExecuteTaskInfo *modelExecuteTaskInfo = &(taskInfo.u.modelExecuteTaskInfo);
+    modelExecuteTaskInfo->model = model;
+    
+    modelExecuteTaskInfo->model->SetFuncCallSvmMem(0x1000ULL);
+    modelExecuteTaskInfo->model->SetFunCallMemSize(UINT64_MAX);
+    
+    PrintErrorModelExecuteTaskFuncCall(&taskInfo);
+    
+    delete model;
+}

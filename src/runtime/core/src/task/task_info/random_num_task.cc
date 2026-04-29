@@ -97,8 +97,8 @@ static inline rtError_t
     GetRandomNumDataSize(rtRandomNumDataType dataType, size_t &dataSize)
 {
     const auto iter = RANDOM_DATATYPE_SIZE_MAP.find(dataType);
-    COND_RETURN_ERROR_MSG_INNER(iter == RANDOM_DATATYPE_SIZE_MAP.end(), RT_ERROR_INVALID_VALUE,
-        "dataType[%d] is invalid, range=[0,%d)", dataType, RT_RANDOM_NUM_DATATYPE_MAX);
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM(iter == RANDOM_DATATYPE_SIZE_MAP.end(), RT_ERROR_INVALID_VALUE,
+        dataType, "[0, " + std::to_string(RT_RANDOM_NUM_DATATYPE_MAX) + ")");
 
     dataSize = iter->second;
 
@@ -107,16 +107,13 @@ static inline rtError_t
 
 static rtError_t CheckRandomParam(const rtRandomParaInfo_t &paramInfo, const std::string &paramName, size_t dataSize)
 {
-    if ((paramInfo.isAddr != RANDOM_VALUE_FLAG) && (paramInfo.isAddr != RANDOM_ADDR_FLAG)) { // 0: value, 1: addr
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR, "%s isAddr para is invalid, range=[0,1]", paramName.c_str());
-        return RT_ERROR_INVALID_VALUE;
-    }
+    UNUSED(paramName);
+    // 0: value, 1: addr
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM((paramInfo.isAddr != RANDOM_VALUE_FLAG) && (paramInfo.isAddr != RANDOM_ADDR_FLAG),
+        RT_ERROR_INVALID_VALUE, paramInfo.isAddr, std::to_string(RANDOM_VALUE_FLAG) + " or " + std::to_string(RANDOM_ADDR_FLAG));
 
-    if ((paramInfo.size == 0U) || (paramInfo.size > dataSize)) {
-        RT_LOG_OUTER_MSG(RT_INVALID_ARGUMENT_ERROR,
-            "%s size is exceed, current size=%hhu, range=[1,%zu]", paramName.c_str(), paramInfo.size, dataSize);
-        return RT_ERROR_INVALID_VALUE;
-    }
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM((paramInfo.size == 0U) || (paramInfo.size > dataSize), RT_ERROR_INVALID_VALUE,
+        paramInfo.size, "[1, " + std::to_string(dataSize) + "]");
 
     return RT_ERROR_NONE;
 }
@@ -128,14 +125,14 @@ static rtError_t CheckUniDisTaskInfo(const rtRandomNumTaskInfo_t *taskInfo, cons
     size_t realDataSize = (min.isAddr == RANDOM_ADDR_FLAG) ? sizeof(uint64_t) : dataSize;
     rtError_t error = CheckRandomParam(min, "min", realDataSize);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
-        "min check error info: dataType=%u, dataSize=%zu, isAddr=%hhu",
+        "CheckRandomParam call failed for the min parameter, dataType=%u, dataSize=%zu, isAddr=%hhu.",
         static_cast<uint32_t>(taskInfo->dataType), dataSize, min.isAddr);
 
     const rtRandomParaInfo_t max = uniDisParam.max;
     realDataSize = (max.isAddr == RANDOM_ADDR_FLAG) ? sizeof(uint64_t) : dataSize;
     error = CheckRandomParam(max, "max", realDataSize);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
-        "max check error info: dataType=%u, dataSize=%zu, isAddr=%hhu",
+        "CheckRandomParam call failed for the max parameter, dataType=%u, dataSize=%zu, isAddr=%hhu.",
         static_cast<uint32_t>(taskInfo->dataType), dataSize, max.isAddr);
 
     return RT_ERROR_NONE;
@@ -149,9 +146,8 @@ static rtError_t CheckoutDropoutBitmaskTaskInfo(const rtRandomNumTaskInfo_t *tas
     const size_t realDataSize = (ration.isAddr == RANDOM_ADDR_FLAG) ? sizeof(uint64_t) : dataSize;
     const rtError_t error = CheckRandomParam(ration, "dropoutRation", realDataSize);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
-        "dropoutRation check error info:dataType=%u, dataSize=%zu, isAddr=%hhu",
-        static_cast<uint32_t>(taskInfo->dataType), dataSize,
-        ration.isAddr);
+        "CheckRandomParam call failed for the dropoutRation parameter, dataType=%u, dataSize=%zu, isAddr=%hhu.",
+        static_cast<uint32_t>(taskInfo->dataType), dataSize, ration.isAddr);
 
     return RT_ERROR_NONE;
 }
@@ -163,14 +159,14 @@ static rtError_t CheckNorDisTaskInfo(const rtRandomNumTaskInfo_t *taskInfo, cons
     size_t realDataSize = (mean.isAddr == RANDOM_ADDR_FLAG) ? sizeof(uint64_t) : dataSize;
     rtError_t error = CheckRandomParam(mean, "mean", realDataSize);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
-        "mean check error info: dataType=%u, dataSize=%zu, isAddr=%hhu",
+        "CheckRandomParam call failed for the mean parameter, dataType=%u, dataSize=%zu, isAddr=%hhu.",
         static_cast<uint32_t>(taskInfo->dataType), dataSize, mean.isAddr);
 
     const rtRandomParaInfo_t stddev = norDisParam.stddev;
     realDataSize = (stddev.isAddr == RANDOM_ADDR_FLAG) ? sizeof(uint64_t) : dataSize;
     error = CheckRandomParam(stddev, "stddev", realDataSize);
     COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error,
-        "stddev check error info: dataType=%u, dataSize=%zu, isAddr=%hhu",
+        "CheckRandomParam call failed for the stddev parameter, dataType=%u, dataSize=%zu, isAddr=%hhu.",
         static_cast<uint32_t>(taskInfo->dataType), dataSize, stddev.isAddr);
 
     return RT_ERROR_NONE;
@@ -192,8 +188,10 @@ static rtError_t SetDropoutBitmaskDiffSqeInfo(const rtRandomNumTaskInfo_t *taskI
     const errno_t rc = memcpy_s(RtPtrToPtr<void *, uint64_t*>(&randomParam.firstParam),
         RANDOM_SINGLE_PARAM_MAX_SIZE, RtPtrToPtr<const void *, const uint8_t *>(paraInfo.valueOrAddr), paraInfo.size);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM,
-        rc != EOK, RT_ERROR_SEC_HANDLE, "Memcpy_s failed, retCode=%d, size=%hhu",
-        rc, paraInfo.size);
+        rc != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy paraInfo.valueOrAddr, src=%p, dest=%p, dest_max=%u, count=%u, retCode=%#x.",
+        RtPtrToPtr<const void *, const uint8_t *>(paraInfo.valueOrAddr), RtPtrToPtr<void *, uint64_t*>(&randomParam.firstParam),
+        RANDOM_SINGLE_PARAM_MAX_SIZE, paraInfo.size, rc);
 
     return RT_ERROR_NONE;
 }
@@ -221,16 +219,21 @@ static rtError_t SetUniDisDiffSqeInfo(const rtRandomNumTaskInfo_t *taskInfo, rtS
     errno_t rc = memcpy_s(RtPtrToPtr<void *, uint64_t*>(&randomParam.firstParam),
         RANDOM_SINGLE_PARAM_MAX_SIZE, RtPtrToPtr<const void *, const uint8_t *>(paraInfo.min.valueOrAddr),
         paraInfo.min.size);
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, rc != EOK, RT_ERROR_SEC_HANDLE,
-        "Memcpy_s failed, retCode=%d, size=%hhu", rc, paraInfo.min.size);
+    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM,
+        rc != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy paraInfo.min.valueOrAddr, src=%p, dest=%p, dest_max=%u, count=%u, retCode=%#x.",
+        RtPtrToPtr<const void *, const uint8_t *>(paraInfo.min.valueOrAddr), RtPtrToPtr<void *, uint64_t*>(&randomParam.firstParam),
+        RANDOM_SINGLE_PARAM_MAX_SIZE, paraInfo.min.size, rc);
     RT_LOG(RT_LOG_INFO, "min val=0x%llx, size=%hhu", randomParam.firstParam, paraInfo.min.size);
 
     rc = memcpy_s(RtPtrToPtr<void *, uint64_t*>(&randomParam.secondParam),
         RANDOM_SINGLE_PARAM_MAX_SIZE, RtPtrToPtr<const void *, const uint8_t *>(paraInfo.max.valueOrAddr),
         paraInfo.max.size);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM,
-        rc != EOK, RT_ERROR_SEC_HANDLE, "Memcpy_s failed, retCode=%d, size=%hhu",
-        rc, paraInfo.max.size);
+        rc != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy paraInfo.max.valueOrAddr, src=%p, dest=%p, dest_max=%u, count=%u, retCode=%#x.",
+        RtPtrToPtr<const void *, const uint8_t *>(paraInfo.max.valueOrAddr), RtPtrToPtr<void *, uint64_t*>(&randomParam.secondParam),
+        RANDOM_SINGLE_PARAM_MAX_SIZE, paraInfo.max.size, rc);
     RT_LOG(RT_LOG_INFO, "max val=0x%llx, size=%hhu", randomParam.secondParam, paraInfo.max.size);
 
     return RT_ERROR_NONE;
@@ -255,15 +258,20 @@ static rtError_t SetNorDisDiffSqeInfo(const rtRandomNumTaskInfo_t *taskInfo, rtS
         RANDOM_SINGLE_PARAM_MAX_SIZE, RtPtrToPtr<const void *, const uint8_t *>(paraInfo.mean.valueOrAddr),
         paraInfo.mean.size);
     COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM,
-        rc != EOK, RT_ERROR_SEC_HANDLE, "Memcpy_s failed, retCode=%d, size=%hhu",
-        rc, paraInfo.mean.size);
+        rc != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy paraInfo.mean.valueOrAddr, src=%p, dest=%p, dest_max=%u, count=%u, retCode=%#x.",
+        RtPtrToPtr<const void *, const uint8_t *>(paraInfo.mean.valueOrAddr), RtPtrToPtr<void *, uint64_t*>(&randomParam.firstParam),
+        RANDOM_SINGLE_PARAM_MAX_SIZE, paraInfo.mean.size, rc);
 
     RT_LOG(RT_LOG_INFO, "mean val=0x%llx, size=%hhu", randomParam.firstParam, paraInfo.mean.size);
     rc = memcpy_s(RtPtrToPtr<void *, uint64_t*>(&randomParam.secondParam),
         RANDOM_SINGLE_PARAM_MAX_SIZE, RtPtrToPtr<const void *, const uint8_t *>(paraInfo.stddev.valueOrAddr),
         paraInfo.stddev.size);
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, rc != EOK, RT_ERROR_SEC_HANDLE,
-        "Memcpy_s failed, retCode=%d, size=%hhu", rc, paraInfo.stddev.size);
+    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM,
+        rc != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy paraInfo.stddev.valueOrAddr, src=%p, dest=%p, dest_max=%u, count=%u, retCode=%#x.",
+        RtPtrToPtr<const void *, const uint8_t *>(paraInfo.stddev.valueOrAddr), RtPtrToPtr<void *, uint64_t*>(&randomParam.secondParam),
+        RANDOM_SINGLE_PARAM_MAX_SIZE, paraInfo.stddev.size, rc);
     RT_LOG(RT_LOG_INFO, "stddev val=0x%llx, size=%hhu", randomParam.secondParam, paraInfo.stddev.size);
 
     return RT_ERROR_NONE;
@@ -313,15 +321,17 @@ static rtError_t SetRandomSqeCommonInfo(const rtRandomNumTaskInfo_t * const task
     uint64_t randomSeed = 0ULL;
     errno_t ret =
         memcpy_s(&randomSeed, sizeof(uint64_t), taskInfo->randomSeed.valueOrAddr, taskInfo->randomSeed.size);
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM,
-        ret != EOK, RT_ERROR_SEC_HANDLE, "memcpy_s failed, retCode=%d, size=%hhu", ret, taskInfo->randomSeed.size);
+    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy taskInfo->randomSeed.valueOrAddr, src=%p, dest=%p, dest_max=%zu, count=%u, retCode=%#x.",
+        taskInfo->randomSeed.valueOrAddr, &randomSeed, sizeof(uint64_t), taskInfo->randomSeed.size, ret);
     sqe.dsaCfgSeedLow = static_cast<uint32_t>(static_cast<uint64_t>(MASK_32_BIT) & randomSeed);
     sqe.dsaCfgSeedHigh = static_cast<uint32_t>(randomSeed >> static_cast<uint64_t>(UINT32_BIT_NUM));
 
     uint64_t randomNum = 0ULL;
     ret = memcpy_s(&randomNum, sizeof(uint64_t), taskInfo->randomNum.valueOrAddr, taskInfo->randomNum.size);
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM,
-        ret != EOK, RT_ERROR_SEC_HANDLE, "memcpy_s failed, retCode=%d, size=%hhu", ret, taskInfo->randomNum.size);
+    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy taskInfo->randomNum.valueOrAddr, src=%p, dest=%p, dest_max=%zu, count=%u, retCode=%#x.",
+        taskInfo->randomNum.valueOrAddr, &randomNum, sizeof(uint64_t), taskInfo->randomNum.size, ret);
     sqe.dsaCfgNumberLow = static_cast<uint32_t>(static_cast<uint64_t>(MASK_32_BIT) & randomNum);
     sqe.dsaCfgNumberHigh= static_cast<uint32_t>(randomNum >> static_cast<uint64_t>(UINT32_BIT_NUM));
 
@@ -373,10 +383,10 @@ rtError_t GetDsaSqeByRandomNumTask(const rtRandomNumTaskInfo_t *taskInfo, TaskIn
     starsCommonTask->randomDevAddr = devMem;
     RandomParamCfgInfo randomParam = {};
     error = SetRandomSqeDiffInfo(taskInfo, sqe, randomParam);
-    ERROR_GOTO_MSG_INNER(error, ERROR_FREE, "set dsa sqe diff info failed, retCode=%#x", static_cast<uint32_t>(error));
+    ERROR_GOTO_MSG_INNER(error, ERROR_FREE, "SetRandomSqeDiffInfo failed, retCode=%#x.", static_cast<uint32_t>(error));
 
     error = SetRandomSqeCommonInfo(taskInfo, commonTask, sqe, randomParam, devMem);
-    ERROR_GOTO_MSG_INNER(error, ERROR_FREE, "set dsa sqe common info failed, retCode=%#x", static_cast<uint32_t>(error));
+    ERROR_GOTO_MSG_INNER(error, ERROR_FREE, "SetRandomSqeDiffInfo failed, retCode=%#x.", static_cast<uint32_t>(error));
 
     return RT_ERROR_NONE;
 
@@ -392,17 +402,17 @@ ERROR_FREE:
 static inline rtError_t CheckDataTypeByFuncType(rtRandomNumDataType dataType, rtRandomNumFuncType funcType)
 {
     const auto iter = FUNCTYPE_DATATYPE_MAP.find(funcType);
-    COND_RETURN_ERROR_MSG_INNER(iter == FUNCTYPE_DATATYPE_MAP.end(), RT_ERROR_INVALID_VALUE,
-        "funcType[%d] is invalid, range=[0,%d)", funcType, RT_RANDOM_NUM_FUNC_TYPE_MAX);
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM(iter == FUNCTYPE_DATATYPE_MAP.end(), RT_ERROR_INVALID_VALUE,
+        funcType, "[0, " + std::to_string(RT_RANDOM_NUM_FUNC_TYPE_MAX) + ")");
 
     const auto strMapIter = FUNCTYPE_DATATYPE_STR_MAP.find(funcType);
-    COND_RETURN_ERROR_MSG_INNER(strMapIter == FUNCTYPE_DATATYPE_STR_MAP.end(), RT_ERROR_INVALID_VALUE,
-        "funcType[%d] is invalid, range=[0,%d)", funcType, RT_RANDOM_NUM_FUNC_TYPE_MAX);
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM(strMapIter == FUNCTYPE_DATATYPE_STR_MAP.end(), RT_ERROR_INVALID_VALUE,
+        funcType, "[0, " + std::to_string(RT_RANDOM_NUM_FUNC_TYPE_MAX) + ")");
 
     auto sets = iter->second;
     std::string dataStr = strMapIter->second;
-    COND_RETURN_ERROR_MSG_INNER(sets.count(dataType) == 0U, RT_ERROR_INVALID_VALUE,
-        "The dataType[%d] of funcType[%d] is invalid, range=[%s]", dataType, funcType, dataStr.c_str());
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM(sets.count(dataType) == 0U, RT_ERROR_INVALID_VALUE,
+        dataType, dataStr.c_str());
 
     return RT_ERROR_NONE;
 }
@@ -411,13 +421,13 @@ rtError_t CheckRandomNumTaskInfo(const rtRandomNumTaskInfo_t *taskInfo)
 {
     const rtRandomNumFuncType funcType = taskInfo->randomNumFuncParaInfo.funcType;
     rtError_t error = CheckDataTypeByFuncType(taskInfo->dataType, funcType);
-    ERROR_RETURN_MSG_INNER(error,"check data type by funcType failed,dataType=%d,funcType=%d,retCode=%#x",
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "Failed to check data type by funcType, dataType=%d, funcType=%d, retCode=%#x",
         taskInfo->dataType, funcType, static_cast<uint32_t>(error));
 
     size_t dataSize = 0U;
     error = GetRandomNumDataSize(taskInfo->dataType, dataSize);
-    ERROR_RETURN_MSG_INNER(error,
-        "get random num data size failed, dataType=%d, retCode=%d", taskInfo->dataType, error);
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error,
+        "Failed to get random num data size, dataType=%d, retCode=%d.", taskInfo->dataType, error);
 
     NULL_PTR_RETURN_MSG_OUTER(taskInfo->randomCounterAddr, RT_ERROR_INVALID_VALUE);
     NULL_PTR_RETURN_MSG_OUTER(taskInfo->randomResultAddr, RT_ERROR_INVALID_VALUE);
@@ -425,11 +435,13 @@ rtError_t CheckRandomNumTaskInfo(const rtRandomNumTaskInfo_t *taskInfo)
     // 随机种子和随机数个数均为64bit
     const rtRandomParaInfo_t seed = taskInfo->randomSeed;
     error = CheckRandomParam(seed, "randomSeed", sizeof(uint64_t));
-    ERROR_RETURN_MSG_INNER(error, "randomSeed check failed, retCode=%#x", static_cast<uint32_t>(error));
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error,
+        "Check randomSeed failed, retCode=%#x.", static_cast<uint32_t>(error));
 
     const rtRandomParaInfo_t num = taskInfo->randomNum;
     error = CheckRandomParam(num, "randomNum", sizeof(uint64_t));
-    ERROR_RETURN_MSG_INNER(error, "randomNum check failed, retCode=%#x", static_cast<uint32_t>(error));
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error,
+        "Check randomNum failed, retCode=%#x.", static_cast<uint32_t>(error));
 
     // 通过funcType检查Random param
     switch (funcType) {
@@ -449,7 +461,7 @@ rtError_t CheckRandomNumTaskInfo(const rtRandomNumTaskInfo_t *taskInfo)
             error = RT_ERROR_INVALID_VALUE;
             break;
     }
-    ERROR_RETURN_MSG_INNER(error, "check task info by func type failed, retCode=%#x", static_cast<uint32_t>(error));
+    ERROR_RETURN_MSG_INNER(error, "Failed to check taskInfo based on funcType, retCode=%#x.", static_cast<uint32_t>(error));
 
     return error;
 }

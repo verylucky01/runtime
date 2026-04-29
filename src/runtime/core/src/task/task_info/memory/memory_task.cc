@@ -54,11 +54,13 @@ rtError_t AllocCpyTmpMem(TaskInfo * const taskInfo, uint32_t &cpyType,
         }
         ERROR_RETURN(error, "Alloc src failed,size=%" PRIu64 "(bytes), device_id=%u, retCode=%#x",
                                size, stream->Device_()->Id_(), error);
-        COND_RETURN_ERROR_MSG_INNER(memcpyAsyncTaskInfo->srcPtr == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-                                    "Alloc copy malloc failed, src ptr is null.");
+        COND_RETURN_AND_MSG_OUTER(memcpyAsyncTaskInfo->srcPtr == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+            ErrorCode::EE1013, std::to_string(size));
         errno_t rc = memcpy_s(memcpyAsyncTaskInfo->srcPtr, size, src, size);
-        COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, rc != EOK, RT_ERROR_SEC_HANDLE,
-            "Memcpy_s failed, retCode is %d, size is %" PRIu64 "", rc, size);
+        COND_RETURN_AND_MSG_OUTER(rc != EOK, RT_ERROR_SEC_HANDLE, ErrorCode::EE1020, __func__, "memcpy_s",
+            std::to_string(rc), strerror(rc), "src=" + std::to_string(reinterpret_cast<uintptr_t>(src)) + ", dest=" +
+            std::to_string(reinterpret_cast<uintptr_t>(memcpyAsyncTaskInfo->srcPtr)) + ", dest_max=" + std::to_string(size) +
+            ", count=" + std::to_string(size) + ".");
         src = (void *)memcpyAsyncTaskInfo->srcPtr;
     } else if ((cpyType == RT_MEMCPY_DEVICE_TO_HOST_EX) || (cpyType == RT_MEMCPY_DEVICE_TO_HOST)) {
         cpyType = RT_MEMCPY_DEVICE_TO_HOST;
@@ -71,8 +73,8 @@ rtError_t AllocCpyTmpMem(TaskInfo * const taskInfo, uint32_t &cpyType,
         }
         ERROR_RETURN(error, "Alloc dest failed, size=%u(bytes), device_id=%u, retCode=%#x",
             size, stream->Device_()->Id_(), error);
-        COND_RETURN_ERROR_MSG_INNER(memcpyAsyncTaskInfo->desPtr == nullptr,
-                                    RT_ERROR_MEMORY_ALLOCATION, "Malloc dest ptr failed.");
+        COND_RETURN_AND_MSG_OUTER(memcpyAsyncTaskInfo->desPtr == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+            ErrorCode::EE1013, std::to_string(size));
         des = (void *)memcpyAsyncTaskInfo->desPtr;
         memcpyAsyncTaskInfo->isConcernedRecycle = true;
     }
@@ -96,7 +98,7 @@ rtError_t AllocCpyTmpMem(TaskInfo * const taskInfo, uint32_t &cpyType,
         cpyType = RT_MEMCPY_HOST_TO_DEVICE;
         COND_RETURN_ERROR_MSG_INNER(
             ((MAX_UINT64_NUM - addrSize) < ASYNC_MEMORY_SIZE), RT_ERROR_INVALID_VALUE,
-            "Malloc size too large, can't memory align! size=%" PRIu64 "(bytes)", addrSize);
+            "The requested memory is too large and cannot be aligned, size=%" PRIu64 "(bytes).", addrSize);
 
         if (stream->Device_()->IsAddrFlatDev()) {
             error = driver->HostMemAlloc(&memcpyAsyncTaskInfo->srcPtr, (addrSize + ASYNC_MEMORY_SIZE), stream->Device_()->Id_());
@@ -105,11 +107,8 @@ rtError_t AllocCpyTmpMem(TaskInfo * const taskInfo, uint32_t &cpyType,
         }
 
         ERROR_RETURN(error, "HostMemAlloc failed, retCode=%#x", static_cast<uint32_t>(error));
-        COND_PROC_RETURN_ERROR((memcpyAsyncTaskInfo->srcPtr == nullptr), RT_ERROR_MEMORY_ALLOCATION,
-            RT_LOG_INNER_DETAIL_MSG(RT_SYSTEM_INNER_ERROR, {"target", "size"},
-            {"srcAddress", std::to_string(addrSize + ASYNC_MEMORY_SIZE)});,
-            "alloc src address failed, malloc size is %" PRIu64,
-            addrSize + ASYNC_MEMORY_SIZE);
+        COND_RETURN_AND_MSG_OUTER(memcpyAsyncTaskInfo->srcPtr == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+            ErrorCode::EE1013, std::to_string(addrSize + ASYNC_MEMORY_SIZE));
 
         const uintptr_t offset = reinterpret_cast<uintptr_t>(memcpyAsyncTaskInfo->srcPtr) +
                                     static_cast<uint64_t>(ASYNC_MEMORY_ALIGN_SIZE) -
@@ -117,15 +116,17 @@ rtError_t AllocCpyTmpMem(TaskInfo * const taskInfo, uint32_t &cpyType,
                                     static_cast<uint64_t>(ASYNC_MEMORY_ALIGN_SIZE));
         const errno_t rc = memcpy_s(reinterpret_cast<void *>(offset), addrSize, srcAddr, addrSize);
         if (stream->Device_()->IsAddrFlatDev()) {
-            COND_PROC_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, rc != EOK, RT_ERROR_SEC_HANDLE,
-                (void)driver->HostMemFree(memcpyAsyncTaskInfo->srcPtr);
-                memcpyAsyncTaskInfo->srcPtr = nullptr;,
-                "Memcpy_s failed, retCode is %d, size is %" PRIu64, rc, addrSize);
+            COND_PROC_RETURN_AND_MSG_OUTER(rc != EOK, RT_ERROR_SEC_HANDLE, ErrorCode::EE1020,
+                (void)driver->HostMemFree(memcpyAsyncTaskInfo->srcPtr);memcpyAsyncTaskInfo->srcPtr = nullptr, __func__,
+                "memcpy_s", std::to_string(rc), strerror(rc), "src=" + std::to_string(reinterpret_cast<uintptr_t>(srcAddr)) +
+                ", dest=" + std::to_string(offset) + ", dest_max=" + std::to_string(addrSize) +
+                ", count=" + std::to_string(addrSize) + ".");
         } else {
-            COND_PROC_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, rc != EOK, RT_ERROR_SEC_HANDLE,
-                free(memcpyAsyncTaskInfo->srcPtr);
-                memcpyAsyncTaskInfo->srcPtr = nullptr;,
-                "Memcpy_s failed, retCode is %d, size is %" PRIu64, rc, addrSize);
+            COND_PROC_RETURN_AND_MSG_OUTER(rc != EOK, RT_ERROR_SEC_HANDLE, ErrorCode::EE1020,
+                free(memcpyAsyncTaskInfo->srcPtr);memcpyAsyncTaskInfo->srcPtr = nullptr, __func__, "memcpy_s",
+                std::to_string(rc), strerror(rc), "src=" + std::to_string(reinterpret_cast<uintptr_t>(srcAddr)) +
+                ", dest=" + std::to_string(offset) + ", dest_max=" + std::to_string(addrSize) +
+                ", count=" + std::to_string(addrSize) + ".");
         }
         srcAddr = reinterpret_cast<void *>(offset);
     } else if (cpyType == RT_MEMCPY_DEVICE_TO_HOST_EX) {
@@ -133,14 +134,11 @@ rtError_t AllocCpyTmpMem(TaskInfo * const taskInfo, uint32_t &cpyType,
         memcpyAsyncTaskInfo->originalDes = desAddr;
         COND_RETURN_ERROR_MSG_INNER(
             ((MAX_UINT64_NUM - addrSize) < ASYNC_MEMORY_SIZE), RT_ERROR_INVALID_VALUE,
-            "Malloc size too large, can't memory align! size=%" PRIu64 "(bytes), valid range is [0, %" PRIu64 "]",
-            addrSize, MAX_UINT64_NUM);
+            "The requested memory is too large and cannot be aligned, size=%" PRIu64 "(bytes)."
+            " Expected value: [0, %" PRIu64 "].", addrSize, MAX_UINT64_NUM);
         memcpyAsyncTaskInfo->desPtr = malloc(addrSize + ASYNC_MEMORY_SIZE);
-	    COND_PROC_RETURN_ERROR((memcpyAsyncTaskInfo->desPtr == nullptr), RT_ERROR_MEMORY_ALLOCATION,
-            RT_LOG_INNER_DETAIL_MSG(RT_SYSTEM_INNER_ERROR, {"target", "size"},
-            {"destAddress", std::to_string(addrSize + ASYNC_MEMORY_SIZE)});,
-            "Malloc dest address failed, malloc size is %" PRIu64,
-            (addrSize + ASYNC_MEMORY_SIZE));
+        COND_RETURN_AND_MSG_OUTER(memcpyAsyncTaskInfo->desPtr == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+            ErrorCode::EE1013, std::to_string(addrSize + ASYNC_MEMORY_SIZE));
         const uintptr_t offset = reinterpret_cast<uintptr_t>(memcpyAsyncTaskInfo->desPtr) +
                                  static_cast<uint64_t>(ASYNC_MEMORY_ALIGN_SIZE) -
                                  (reinterpret_cast<uintptr_t>(memcpyAsyncTaskInfo->desPtr) %
@@ -167,20 +165,16 @@ rtError_t AllocCpyTmpMemForDavid(TaskInfo * const taskInfo, uint32_t &cpyType,
         cpyType = RT_MEMCPY_HOST_TO_DEVICE;
         COND_RETURN_ERROR_MSG_INNER(
             ((MAX_UINT64_NUM - addrSize) < asyncMemorySize), RT_ERROR_INVALID_VALUE,
-            "Malloc size too large, can't memory align! size=%" PRIu64 "(bytes)", addrSize);
+            "The requested memory is too large and cannot be aligned, size=%" PRIu64 "(bytes).", addrSize);
         error = driver->HostMemAlloc(&memcpyAsyncTaskInfo->srcPtr, (addrSize + asyncMemorySize), stream->Device_()->Id_());
-        COND_PROC_RETURN_ERROR((memcpyAsyncTaskInfo->srcPtr == nullptr), RT_ERROR_MEMORY_ALLOCATION,
-            RT_LOG_INNER_DETAIL_MSG(RT_SYSTEM_INNER_ERROR, {"target", "size"},
-            {"srcAddress", std::to_string(addrSize + asyncMemorySize)});,
+        COND_RETURN_ERROR((memcpyAsyncTaskInfo->srcPtr == nullptr), RT_ERROR_MEMORY_ALLOCATION,
             "HostMemAlloc src address failed, malloc size is %" PRIu64, addrSize + asyncMemorySize);
         ERROR_RETURN(error, "HostMemAlloc host memory for args failed, retCode=%#x", static_cast<uint32_t>(error));
         const uintptr_t offset = reinterpret_cast<uintptr_t>(memcpyAsyncTaskInfo->srcPtr) +
             static_cast<uint64_t>(asyncMemoryAlignSize) -
             (reinterpret_cast<uintptr_t>(memcpyAsyncTaskInfo->srcPtr) % static_cast<uint64_t>(asyncMemoryAlignSize));
         error = driver->MemCopySync(reinterpret_cast<void *>(offset), addrSize, srcAddr, addrSize, RT_MEMCPY_HOST_TO_HOST);
-        COND_PROC_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, error != RT_ERROR_NONE, error,
-            (void)driver->HostMemFree(memcpyAsyncTaskInfo->srcPtr);
-            memcpyAsyncTaskInfo->srcPtr = nullptr;,
+        COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, (void)driver->HostMemFree(memcpyAsyncTaskInfo->srcPtr),
             "MemCopySync failed, retCode is %d, size is %" PRIu64, error, addrSize);
         srcAddr = reinterpret_cast<void *>(offset);
     } else if (cpyType == RT_MEMCPY_DEVICE_TO_HOST_EX) {
@@ -188,12 +182,10 @@ rtError_t AllocCpyTmpMemForDavid(TaskInfo * const taskInfo, uint32_t &cpyType,
         memcpyAsyncTaskInfo->originalDes = desAddr;
         COND_RETURN_ERROR_MSG_INNER(
             ((MAX_UINT64_NUM - addrSize) < asyncMemorySize), RT_ERROR_INVALID_VALUE,
-            "Malloc size too large, can't memory align! size=%" PRIu64 "(bytes), valid range is [0, %" PRIu64 "]",
-            addrSize, MAX_UINT64_NUM);
+            "The requested memory is too large and cannot be aligned, size=%" PRIu64 "(bytes)."
+            " Expected value: [0, %" PRIu64 "].", addrSize, MAX_UINT64_NUM);
         error = driver->HostMemAlloc(&memcpyAsyncTaskInfo->desPtr, (addrSize + asyncMemorySize), stream->Device_()->Id_());
-	    COND_PROC_RETURN_ERROR((memcpyAsyncTaskInfo->desPtr == nullptr), RT_ERROR_MEMORY_ALLOCATION,
-            RT_LOG_INNER_DETAIL_MSG(RT_SYSTEM_INNER_ERROR, {"target", "size"},
-            {"destAddress", std::to_string(addrSize + asyncMemorySize)});,
+	    COND_RETURN_ERROR((memcpyAsyncTaskInfo->desPtr == nullptr), RT_ERROR_MEMORY_ALLOCATION,
             "HostMemAlloc dest address failed, malloc size is %" PRIu64,
             (addrSize + asyncMemorySize));
         ERROR_RETURN(error, "HostMemAlloc host memory for args failed, retCode=%#x", static_cast<uint32_t>(error));
@@ -225,13 +217,14 @@ rtError_t AllocCpyTmpMemFor3588(TaskInfo * const taskInfo, uint32_t &cpyType,
             error = driver->DevMemAlloc(&(memcpyAsyncTaskInfo->srcPtr), size,
                                         RT_MEMORY_DEFAULT, stream->Device_()->Id_());
         }
-        COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE) || (memcpyAsyncTaskInfo->srcPtr == nullptr),
-                                    RT_ERROR_MEMORY_ALLOCATION,
-                                    "Alloc mem failed err=%#x,size=%" PRIu64 "(bytes),devId=%u.",
-                                    error, size, stream->Device_()->Id_());
+        COND_RETURN_ERROR((error != RT_ERROR_NONE) || (memcpyAsyncTaskInfo->srcPtr == nullptr), RT_ERROR_MEMORY_ALLOCATION,
+            "Failed to alloc memory, err=%#x, size=%" PRIu64 "(bytes), devId=%u.",
+            error, size, stream->Device_()->Id_());
         const errno_t rc = memcpy_s(memcpyAsyncTaskInfo->srcPtr, size, src, size);
-        COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, rc != EOK, RT_ERROR_SEC_HANDLE,
-            "Memcpy_s failed, retCode is %d, size is %" PRIu64 "", rc, size);
+        COND_RETURN_AND_MSG_OUTER(rc != EOK, RT_ERROR_SEC_HANDLE, ErrorCode::EE1020, __func__, "memcpy_s",
+            std::to_string(rc), strerror(rc), "src=" + std::to_string(reinterpret_cast<uintptr_t>(src)) + ", dest=" +
+            std::to_string(reinterpret_cast<uintptr_t>(memcpyAsyncTaskInfo->srcPtr)) + ", dest_max=" + std::to_string(size) + 
+            ", count=" + std::to_string(size) + ".");
         src = (void *)memcpyAsyncTaskInfo->srcPtr;
     } else if ((cpyType == RT_MEMCPY_DEVICE_TO_HOST_EX) || (cpyType == RT_MEMCPY_DEVICE_TO_HOST)) {
         cpyType = RT_MEMCPY_DEVICE_TO_HOST;
@@ -242,10 +235,10 @@ rtError_t AllocCpyTmpMemFor3588(TaskInfo * const taskInfo, uint32_t &cpyType,
             error = driver->DevMemAlloc(&(memcpyAsyncTaskInfo->desPtr), size,
                                         RT_MEMORY_DEFAULT, stream->Device_()->Id_());
         }
-        COND_RETURN_ERROR_MSG_INNER((error != RT_ERROR_NONE) || (memcpyAsyncTaskInfo->desPtr == nullptr),
-                                    RT_ERROR_MEMORY_ALLOCATION,
-                                    "Malloc dest ptr failed, err=%#x, size=%" PRIu64 "(bytes), devId:%u.",
-                                    error, size, stream->Device_()->Id_());
+        COND_RETURN_ERROR((error != RT_ERROR_NONE) || (memcpyAsyncTaskInfo->desPtr == nullptr),
+            RT_ERROR_MEMORY_ALLOCATION,
+            "Failed to malloc dest ptr, err=%#x, size=%" PRIu64 "(bytes), devId:%u.",
+            error, size, stream->Device_()->Id_());
         des = (void *)memcpyAsyncTaskInfo->desPtr;
         memcpyAsyncTaskInfo->isConcernedRecycle = true;
     } else {
@@ -321,8 +314,8 @@ rtError_t MemcpyAsyncTaskCommonInit(TaskInfo * const taskInfo)
     memcpyAsyncTaskInfo->memcpyAddrInfo = nullptr;
     if (memcpyAsyncTaskInfo->guardMemVec == nullptr) {
         memcpyAsyncTaskInfo->guardMemVec = new (std::nothrow) std::vector<std::shared_ptr<void>>();
-        COND_RETURN_ERROR_MSG_INNER(memcpyAsyncTaskInfo->guardMemVec == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-            "memcpyAsyncTaskInfo->guardMemVec new memory fail!");
+        COND_RETURN_AND_MSG_OUTER(memcpyAsyncTaskInfo->guardMemVec == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+            ErrorCode::EE1013, std::to_string(sizeof(std::vector<std::shared_ptr<void>>)));
         taskInfo->needPostProc = true;
     }
     return RT_ERROR_NONE;
@@ -360,8 +353,8 @@ rtError_t ConvertD2DCpyType(const Stream *const stm, uint32_t &cpyType, const vo
     const rtError_t error = driver->GetTransWayByAddr(RtPtrToUnConstPtr<void *>(srcAddr), desAddr, &transType);
     TIMESTAMP_END(rtMemcpyAsync_drvDeviceGetTransWay);
 
-    ERROR_RETURN_MSG_INNER(
-        error, "D2D memcpy async, get channel type failed, retCode=%#x.", static_cast<uint32_t>(error));
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "D2D memcpy async, get channel type failed, retCode=%#x.",
+        static_cast<uint32_t>(error));
 
     switch (transType) {
         case RT_MEMCPY_CHANNEL_TYPE_PCIe:
@@ -401,7 +394,7 @@ rtError_t ConvertCpyType(TaskInfo * const taskInfo, const uint32_t cpyType,
         RT_LOG(RT_LOG_INFO, "MemcpyAsyncTask::ConvertCpyType MEMCPY_DEVICE_TO_HOST, direct=%u.", copyTypeTmp);
     } else if (cpyType == RT_MEMCPY_DEVICE_TO_DEVICE) {
         const rtError_t error = ConvertD2DCpyType(taskInfo->stream, copyTypeTmp, srcAddr, desAddr);
-        ERROR_RETURN_MSG_INNER(error, "D2D memcpy async, ConvertD2DCpyType failed, retCode=%#x.", static_cast<uint32_t>(error));
+        ERROR_RETURN_MSG_INNER(error, "Failed to convert the D2D asynchronous copy type, retCode=%#x.", static_cast<uint32_t>(error));
     } else if (cpyType == RT_MEMCPY_SDMA_AUTOMATIC_ADD) {
         copyTypeTmp = RT_MEMCPY_DIR_SDMA_AUTOMATIC_ADD;
         RT_LOG(RT_LOG_INFO, "MemcpyAsyncTask::ConvertCpyType MEMCPY_DIR_SDMA_AUTOMATIC_ADD, direct= %u", copyTypeTmp);
@@ -505,7 +498,7 @@ rtError_t MemcpyAsyncTaskInitV2(TaskInfo * const taskInfo, void *const dst, cons
         memcpyAsyncTaskInfo->copyType = RT_MEMCPY_DIR_D2H;
     } else if (kind == RT_MEMCPY_DEVICE_TO_DEVICE){
         error = ConvertCpyType(taskInfo, kind, srcAddr, dst);
-        ERROR_RETURN_MSG_INNER(error, "Convert copy type failed, retCode=%#x, kind=%u", error, kind);
+        ERROR_RETURN_MSG_INNER(error, "Failed to convert the D2D asynchronous copy typeD2D, retCode=%#x, kind=%u.", error, kind);
     } else {
         // reserve
     }
@@ -566,7 +559,7 @@ rtError_t ConvertAsyncDma(TaskInfo * const taskInfo, TaskInfo * const updateTask
             input.destPtr = memcpyAsyncTaskInfo->destPtr;
             input.tsId = stream->Device_()->DevGetTsId();
         } else {
-            RT_LOG(RT_LOG_ERROR, "pcie does not support");
+            RT_LOG_INNER_MSG(RT_LOG_ERROR, "pcie is not supported.");
             return RT_ERROR_INVALID_VALUE;
         }
     }
@@ -577,7 +570,8 @@ rtError_t ConvertAsyncDma(TaskInfo * const taskInfo, TaskInfo * const updateTask
     AsyncDmaWqeOutputInfo output;
     (void)memset_s(&output, sizeof(AsyncDmaWqeOutputInfo), 0, sizeof(AsyncDmaWqeOutputInfo));
     const rtError_t error = driver->CreateAsyncDmaWqe(devId, input, &output, isUbMode, isSqeUpdate);
-    ERROR_RETURN_MSG_INNER(error, "drv create asyncDmaWqe failed, retCode=%#x.", static_cast<uint32_t>(error));
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Failed to call drv interface to create asyncDmaWqe, retCode=%#x.", static_cast<uint32_t>(error));
     if (isUbMode) {
         // 模型场景下驱动接口wqe返回空，wqeLen返回0，不使用这两个参数
         memcpyAsyncTaskInfo->ubDma.jettyId = output.jettyId;
@@ -589,8 +583,8 @@ rtError_t ConvertAsyncDma(TaskInfo * const taskInfo, TaskInfo * const updateTask
         if (output.wqeLen != 0) {
             const errno_t ret = memcpy_s(memcpyAsyncTaskInfo->ubDma.wqe.data(), sizeof(rtDavidSqe_t),
                 output.wqe, static_cast<size_t>(output.wqeLen));
-            COND_LOG_ERROR(ret != EOK, "Memcpy_s failed, retCode=%d, size=%zu(bytes).",
-                ret, static_cast<size_t>(output.wqeLen));
+            COND_AND_MSG_INNER(ret != EOK, "Failed to call memcpy_s to copy output.wqe, src=%p, dest=%p, dest_max=%zu, count=%zu,"
+                " retCode=%#x.", output.wqe, memcpyAsyncTaskInfo->ubDma.wqe.data(), sizeof(rtDavidSqe_t), static_cast<size_t>(output.wqeLen), ret);
         }
     } else {
          memcpyAsyncTaskInfo->dmaAddr = output.dmaAddr;
@@ -618,10 +612,11 @@ rtError_t MemcpyAsyncTaskInitV3(TaskInfo * const taskInfo, uint32_t cpyType, con
     } else {
         error = AllocCpyTmpMem(taskInfo, cpyType, srcAddr, desAddr, cpySize);
     }
-    ERROR_RETURN_MSG_INNER(error, "Alloc copy memory failed, retCode=%#x, size=%" PRIu64 "(bytes)", error, cpySize);
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "Failed to alloc copy memory, retCode=%#x, size=%" PRIu64 "(bytes)",
+        error, cpySize);
 
     error = ConvertCpyType(taskInfo, cpyType, srcAddr, desAddr);
-    ERROR_RETURN_MSG_INNER(error, "Convert copy type failed, retCode=%#x, size=%" PRIu64 "(bytes).",
+    COND_RETURN_ERROR(error != RT_ERROR_NONE, error, "Failed to convert copy type, retCode=%#x, size=%" PRIu64 "(bytes).",
         error, cpySize);
     memcpyAsyncTaskInfo->size = cpySize;
     if (cfgInfo != nullptr) {
@@ -650,10 +645,10 @@ rtError_t MemcpyAsyncTaskInitV3(TaskInfo * const taskInfo, uint32_t cpyType, con
         uint64_t sourceAddr;
         uint64_t destAddr;
         error = driver->MemAddressTranslate(devId, reinterpret_cast<uintptr_t>(srcAddr), &sourceAddr);
-        ERROR_RETURN_MSG_INNER(error,
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
             "Convert D2D source memory address from virtual to physic failed, retCode=%#x.", error);
         error = driver->MemAddressTranslate(devId, reinterpret_cast<uintptr_t>(desAddr), &destAddr);
-        ERROR_RETURN_MSG_INNER(error,
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
             "Convert D2D dest memory address from virtual to dma physic failed, retCode=%#x.", error);
 
         memcpyAsyncTaskInfo->src = reinterpret_cast<void *>(static_cast<uintptr_t>(sourceAddr));
@@ -671,12 +666,12 @@ rtError_t MemcpyAsyncTaskInitV3(TaskInfo * const taskInfo, uint32_t cpyType, con
         }
         if (IsDavidUbDma(memcpyAsyncTaskInfo->copyType)) {
             error = ConvertAsyncDma(taskInfo, nullptr);
-            ERROR_RETURN_MSG_INNER(error, "ConvertAsyncDma failed, retCode=%#x.", error);
+            COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "ConvertAsyncDma failed, retCode=%#x.", error);
             taskInfo->needPostProc = true;
         } else if (IsPcieDma(memcpyAsyncTaskInfo->copyType) && (driver->GetRunMode() == RT_RUN_MODE_ONLINE)) {
             error = driver->MemConvertAddr(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(srcAddr)),
                 static_cast<uint64_t>(reinterpret_cast<uintptr_t>(desAddr)), cpySize, &(memcpyAsyncTaskInfo->dmaAddr));
-            ERROR_RETURN_MSG_INNER(error,
+            COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
                 "Convert memory address from virtual to dma physical failed, retCode=%#x.", error);
             memcpyAsyncTaskInfo->size = memcpyAsyncTaskInfo->dmaAddr.fixed_size;
             taskInfo->needPostProc = true;
@@ -693,7 +688,7 @@ rtError_t MemcpyAsyncTaskInitV3(TaskInfo * const taskInfo, uint32_t cpyType, con
         error = driver->MemConvertAddr(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(srcAddr)),
             static_cast<uint64_t>(reinterpret_cast<uintptr_t>(desAddr)), cpySize, &(memcpyAsyncTaskInfo->dmaAddr));
         TIMESTAMP_END(rtMemcpyAsync_drvMemConvertAddr);
-        ERROR_RETURN_MSG_INNER(error,
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
             "Convert memory address from virtual to dma physical failed, retCode=%#x.", error);
         // dmaAddr.fixed_size may not be equal to size
         memcpyAsyncTaskInfo->size = memcpyAsyncTaskInfo->dmaAddr.fixed_size;
@@ -868,9 +863,12 @@ void PrintErrorInfoForMemcpyAsyncTask(TaskInfo * const taskInfo, const uint32_t 
     char_t errMsg[MSG_LENGTH] = {};
     char_t * const errStr = errMsg;
     int32_t countNum = sprintf_s(errStr, static_cast<size_t>(MSG_LENGTH),
-        "Memory async copy failed, device_id=%u, stream_id=%d, task_id=%u, flip_num=%hu, ",
+        "Asynchronous memory copy failed, device_id=%u, stream_id=%d, task_id=%u, flip_num=%hu, ",
         devId, streamId, taskInfo->id, taskInfo->flipNum);
-    COND_RETURN_VOID((countNum < 0) || (countNum > MSG_LENGTH), "sprintf_s failed, count=%d", countNum)
+    if ((countNum < 0) || (countNum > MSG_LENGTH)) {
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call sprintf_s, count=%d.", countNum);
+        return;
+    }
 
     Stream *const reportStream = GetReportStream(stream);
     if ((driver->GetRunMode() == RT_RUN_MODE_ONLINE) && (copyType != RT_MEMCPY_DIR_D2D_SDMA) &&
@@ -944,8 +942,12 @@ void RecycleTaskResourceForMemcpyAsyncTask(TaskInfo * const taskInfo)
         (memcpyAsyncTaskInfo->originalDes != nullptr) && (memcpyAsyncTaskInfo->destPtr != nullptr)) {
         const errno_t rc = memcpy_s(memcpyAsyncTaskInfo->originalDes, memcpyAsyncTaskInfo->size,
                                     memcpyAsyncTaskInfo->destPtr, memcpyAsyncTaskInfo->size);
-        COND_RETURN_VOID(rc != EOK, "memcpy_s failed, retCode=%d srcSize=%" PRIu64 ", dstSize=%" PRIu64,
-            rc, memcpyAsyncTaskInfo->size, memcpyAsyncTaskInfo->size);
+        if (rc != EOK) {
+            RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call memcpy_s to copy memcpyAsyncTaskInfo->destPtr,"
+                " src=%p, dest=%p, dest_max=%" PRIu64 ", count=%" PRIu64 ", retCode=%#x.", memcpyAsyncTaskInfo->destPtr, 
+                memcpyAsyncTaskInfo->originalDes, memcpyAsyncTaskInfo->size, memcpyAsyncTaskInfo->size, rc);
+            return;
+        }
     }
 }
 
@@ -1106,7 +1108,8 @@ rtError_t MixKernelUpdatePrepare(TaskInfo * const updateTask, void ** const host
     rtFftsPlusMixAicAivCtx_t fftsCtx = {};
 
     rtError_t error = driver->HostMemAlloc(hostAddr, allocSize, devId);
-    ERROR_RETURN_MSG_INNER(error, "alloc host memory failed, retCode=%#x.", error);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+            "Failed to alloc host memory, retCode=%#x.", error);
 
     uint32_t minStackSize = 0U;
     FillFftsAicAivCtxForDavinciTask(updateTask, &fftsCtx, minStackSize);
@@ -1167,7 +1170,8 @@ rtError_t NormalKernelUpdatePrepare(TaskInfo * const updateTask, void ** const h
 
     /* alloc host memory */
     rtError_t error = driver->HostMemAlloc(hostAddr, allocSize, devId);
-    ERROR_RETURN_MSG_INNER(error, "alloc host memory failed, retCode=%#x.", error);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+            "Failed to alloc host memory, retCode=%#x.", error);
 
     /* construct new sqe */
     RT_LOG(RT_LOG_INFO, "update normal kernel, device_id=%u, stream_id=%d, task_id=%hu",
@@ -1448,9 +1452,8 @@ rtError_t MemWaitValueTaskInit(TaskInfo *taskInfo, const void * const devAddr,
     const uint32_t devId = stream->Device_()->Id_();
     void *addr = nullptr;
     ret = stream->Device_()->Driver_()->DevMemAlloc(&addr, static_cast<uint64_t>(sizeof(uint64_t)), RT_MEMORY_HBM, devId);
-    ERROR_PROC_RETURN_MSG_INNER(ret,
-        MemWaitTaskUnInit(taskInfo),
-        "Alloc mem failed, device_id=%u, retCode=%#x", devId, static_cast<uint32_t>(ret));
+    COND_PROC_RETURN_ERROR(ret != RT_ERROR_NONE, ret, MemWaitTaskUnInit(taskInfo),
+        "Failed to alloc memory, device_id=%u, retCode=%#x.", devId, static_cast<uint32_t>(ret));
 
     uint64_t initValue = 0UL;
     (void)stream->Device_()->Driver_()->MemCopySync(addr, sizeof(uint64_t), static_cast<const void *>(&initValue),
@@ -1497,7 +1500,8 @@ rtError_t MemcpyAsyncTaskPrepare(TaskInfo* const updateTask, void** const hostAd
     rtStarsSqe_t sqe = {};
  
     rtError_t error = driver->HostMemAlloc(hostAddr, allocSize, devId);
-    ERROR_RETURN_MSG_INNER(error, "alloc host memory failed, retCode=%#x.", error);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Failed to alloc host memory, retCode=%#x.", error);
  
     /* construct new sqe */
     RT_LOG(RT_LOG_INFO, "update task, device_id=%u, stream_id=%d, task_id=%hu",
@@ -1519,13 +1523,14 @@ rtError_t UpdateLabelSwitchTask(TaskInfo * const updateTask)
     const int32_t devId = static_cast<int32_t>(updateTask->stream->Device_()->Id_());
     rtError_t error = updateTask->stream->Device_()->Driver_()->MemAddressTranslate(
         devId, streamSwitchTask->ptr, &physicPtr);
-    ERROR_RETURN_MSG_INNER(error, "Convert memory address to dma physic failed,retCode=%#x,ptr=%#" PRIx64 ".",
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "Convert memory address to dma physic failed,retCode=%#x,ptr=%#" PRIx64 ".",
         error, streamSwitchTask->ptr);
  
     uint64_t physicValuePtr = 0UL;
     error = updateTask->stream->Device_()->Driver_()->MemAddressTranslate(
         devId, streamSwitchTask->valuePtr, &physicValuePtr);
-    ERROR_RETURN_MSG_INNER(error,
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
         "Convert memory address to dma physic failed,retCode=%#x,valuePtr=%#" PRIx64 ".",
         error, streamSwitchTask->valuePtr);
  
@@ -1584,17 +1589,18 @@ static rtError_t UpdateModelUpdateTask(TaskInfo * const taskInfo)
     rtError_t error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
         static_cast<int32_t>(taskInfo->stream->Device_()->Id_()),
         RtPtrToPtr<uintptr_t>(mdlUpdateTaskInfo->tilingKeyAddr), &tilingKeyOffset);
-    ERROR_RETURN_MSG_INNER(error, "tilingKeyAddr MemAddressTranslate error=%d", error);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error,
+        "tilingKeyAddr MemAddressTranslate error=%d.", error);
 
     error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
         static_cast<int32_t>(taskInfo->stream->Device_()->Id_()),
         RtPtrToPtr<uintptr_t>(mdlUpdateTaskInfo->blockDimAddr), &blockDimOffset);
-    ERROR_RETURN_MSG_INNER(error, "blockDimAddr MemAddressTranslate error=%d", error);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "blockDimAddr MemAddressTranslate error=%d", error);
 
     error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
         static_cast<int32_t>(taskInfo->stream->Device_()->Id_()),
         RtPtrToPtr<uintptr_t>(devCopyMem), &tilingTaboffset);
-    ERROR_RETURN_MSG_INNER(error, "devCopyMem MemAddressTranslate error=%d", error);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "devCopyMem MemAddressTranslate error=%d.", error);
 
     if (mdlUpdateTaskInfo->fftsPlusTaskDescBuf != nullptr) {
         error = taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
@@ -1603,7 +1609,7 @@ static rtError_t UpdateModelUpdateTask(TaskInfo * const taskInfo)
     } else {
         error = SetMixDescBufOffset(taskInfo, mdlUpdateTaskInfo->desStreamId, mdlUpdateTaskInfo->destaskId, &descBufOffset);
     }
-    ERROR_RETURN_MSG_INNER(error, "descBuf MemAddressTranslate error=%d", error);
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "descBuf MemAddressTranslate error=%d.", error);
 
     mdlUpdateTaskInfo->descBufOffset = descBufOffset;
     mdlUpdateTaskInfo->tilingKeyOffset = tilingKeyOffset;

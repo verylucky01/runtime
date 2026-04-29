@@ -5023,3 +5023,26 @@ TEST_F(DavidTaskTest, ClearFastRingBuffer_basic)
     errorProc->ProcClearFastRingBuffer();
     EXPECT_EQ(ctrlInfo->head, 1U);
 }
+
+TEST_F(DavidTaskTest, LoadArgsInfoForAicpuKernelTask_LoadFailed)
+{
+    rtError_t error = RT_ERROR_NONE;
+    TaskInfo kernTask = {};
+    InitByStream(&kernTask, stream_);
+    
+    uint64_t arg = 0x123456789;
+    rtArgsEx_t argsInfo = {};
+    argsInfo.isNoNeedH2DCopy = 1U;
+    argsInfo.args = &arg;
+    argsInfo.argsSize = 2048U;  // 超过 RTS_LITE_PCIE_BAR_COPY_SIZE_NEW (1024)，触发 Load 失败
+    
+    AicpuTaskInit(&kernTask, 1, 1);
+    kernTask.u.aicpuTaskInfo.argsInfo = &argsInfo;
+    stream_->isHasPcieBar_ = true;
+    stream_->taskResMang_->taskRes_[0].copyDev = (void *)1000;
+    
+    error = LoadArgsInfo(&kernTask, stream_, 0);
+    EXPECT_EQ(error, RT_ERROR_INVALID_VALUE);
+    
+    TaskUnInitProc(&kernTask);
+}

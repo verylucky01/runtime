@@ -202,7 +202,7 @@ rtError_t rtGeneralCtrlInner(uintptr_t *ctl, uint32_t num, uint32_t type)
         type, "less than " + std::to_string(RT_GNL_CTRL_TYPE_MAX));
 
     COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((g_genCtrPro[type].funcCall == nullptr), RT_ERROR_INVALID_VALUE,
-        ErrorCode::EE1001, "current type[" + std::to_string(type) + "] func call is nullptr.");
+        ErrorCode::EE1004, __func__, "current type " + std::to_string(type) + " func call");
 
     COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER_WITH_PARAM((num != static_cast<uint32_t>(g_genCtrPro[type].num)), RT_ERROR_INVALID_VALUE, 
         num, std::to_string(g_genCtrPro[type].num));

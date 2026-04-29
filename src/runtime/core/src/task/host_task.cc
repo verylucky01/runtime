@@ -20,8 +20,8 @@ rtError_t HostTaskMemCpy::AsyncCall()
     TIMESTAMP_BEGIN(rtMemcpyHostTask_MemCopyAsync);
     const rtError_t retCode = drv_->MemCopyAsync(dst_, destMax_, src_, cnt_, kind_, copyFd_);
     TIMESTAMP_END(rtMemcpyHostTask_MemCopyAsync);
-    ERROR_RETURN_MSG_INNER(retCode, "Asynchronous memcpy failed, kind = %d, retCode = %#x.",
-                           static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(retCode));
+    COND_RETURN_ERROR(retCode != RT_ERROR_NONE, retCode, "MemCopyAsync failed, kind=%d, retCode=%#x.",
+        static_cast<int32_t>(RT_MEMCPY_HOST_TO_DEVICE), static_cast<uint32_t>(retCode));
     RT_LOG(RT_LOG_INFO, "HostTaskMemCpy AsyncCall success. destMax=%" PRIu64 ", size=%" PRIu64
         ", kind=%u copyFd_=%" PRIu64, destMax_, cnt_, static_cast<uint32_t>(kind_), copyFd_);
 
@@ -31,8 +31,8 @@ rtError_t HostTaskMemCpy::AsyncCall()
 rtError_t HostTaskMemCpy::WaitFinish()
 {
     const rtError_t retCode = drv_->MemCopyAsyncWaitFinish(copyFd_);
-    ERROR_RETURN_MSG_INNER(retCode, "MemCopyAsyncWaitFinish for memcpyHost result failed, retCode = %#x.",
-                           static_cast<uint32_t>(retCode));
+    COND_RETURN_ERROR(retCode != RT_ERROR_NONE, retCode, "MemCopyAsyncWaitFinish for memcpyHost result failed, retCode=%#x.",
+        static_cast<uint32_t>(retCode));
     copyFd_ = 0ULL;
     return RT_ERROR_NONE;
 }

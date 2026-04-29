@@ -124,7 +124,7 @@ void PrintErrMsgToLog(ErrorCode errCode, const char *file, const int32_t line, c
 {
     const size_t expectedSize = GetParamNames(errCode).size();
     if (values.size() != expectedSize) {
-        RecordErrorLog(file, line, func,
+        RecordLog(DLOG_WARN, file, line, func,
             "Parameter count mismatch for error code %d. Expected %zu, got %zu." "\n",
             static_cast<int32_t>(errCode), expectedSize, values.size());
         return;
@@ -201,7 +201,7 @@ void PrintErrMsgToLog(ErrorCode errCode, const char *file, const int32_t line, c
         // Resource_Error_Insufficient_Host_Memory
         case ErrorCode::EE1013:
             RecordErrorLog(file, line, func,
-                "Failed to allocate %s host memory for RTS. ErrorCode=EE1013." "\n",
+                "Failed to allocate %s bytes host memory for Runtime. ErrorCode=EE1013." "\n",
                 values[0].c_str());
             break;
         // File_Operation_Error_Parse

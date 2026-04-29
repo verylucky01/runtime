@@ -30,7 +30,7 @@ rtError_t rtsCtxCreate(rtContext_t *createCtx, uint64_t flags, int32_t devId)
     Api * const apiInstance = Api::Instance();
     NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
     COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER_WITH_PARAM((flags > static_cast<uint64_t>(RT_CONTEXT_NORMAL_MODE)), 
-        RT_ERROR_INVALID_VALUE, flags, "less than or equal to 0");
+        RT_ERROR_INVALID_VALUE, flags, "0");
 
     const rtError_t error = apiInstance->ContextCreate(RtPtrToPtr<Context **>(createCtx), devId);
     ERROR_RETURN_WITH_EXT_ERRCODE(error);

@@ -54,12 +54,17 @@ static rtError_t SaveFuncCallDataForModelExecuteTask(TaskInfo * const taskInfo,
 
     rtError_t ret = memcpy_s(dstMem, (headSqArrMax * sizeof(uint64_t)),
                              headSq.data(), (headSqArrMax * sizeof(uint64_t)));
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE, "Memcpy_s headSqArr failed.");
+    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy headSq.data(), src=%p, dest=%p, dest_max=%zu, count=%zu, retCode=%#x.",
+        headSq.data(), dstMem, headSqArrMax * sizeof(uint64_t), headSqArrMax * sizeof(uint64_t), ret);
+    
 
     dstMem = dstMem + headSqArrMax * sizeof(uint64_t);
     ret = memcpy_s(dstMem, (streamSvmArrMax * sizeof(uint64_t)), streamSvmAddr.data(),
         (streamSvmArrMax * sizeof(uint64_t)));
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE, "Memcpy_s streamSvmAddrArr failed.");
+    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, ret != EOK, RT_ERROR_SEC_HANDLE,
+        "Failed to call memcpy_s to copy streamSvmAddr.data(), src=%p, dest=%p, dest_max=%zu, count=%zu, retCode=%#x.",
+        streamSvmAddr.data(), dstMem, streamSvmArrMax * sizeof(uint64_t), streamSvmArrMax * sizeof(uint64_t), ret);
     return RT_ERROR_NONE;
 }
 
@@ -190,16 +195,16 @@ rtError_t AllocFuncCallMemForModelExecuteTask(TaskInfo * const taskInfo, rtStars
 
     const uint64_t headSqArrMax = headSqArr.size();
     const uint64_t streamSvmArrMax = streamSvmAddrArr.size();
-    COND_RETURN_ERROR((headSqArrMax == 0ULL), RT_ERROR_MODEL_EXECUTOR, "model stream para error, headSqArrMax=%" PRIu64,
-                      headSqArrMax);
+    COND_RETURN_ERROR_MSG_INNER((headSqArrMax == 0ULL), RT_ERROR_MODEL_EXECUTOR,
+        "The head stream of the model does not have the corresponding SQ id, headSqArrMax=%" PRIu64 ".", headSqArrMax);
 
     const uint64_t funCallMemSize =
         sizeof(RtStarsModelExeFuncCall) + (headSqArrMax + streamSvmArrMax) * sizeof(uint64_t);
     model->SetFunCallMemSize(funCallMemSize);
 
     model->SetFuncCallHostMem(malloc(funCallMemSize));
-    COND_RETURN_ERROR_MSG_CALL(ERR_MODULE_SYSTEM, model->GetFuncCallHostMem() == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-                               "alloc funcCall memory failed.");
+    COND_RETURN_AND_MSG_OUTER(model->GetFuncCallHostMem() == nullptr, RT_ERROR_MEMORY_ALLOCATION, ErrorCode::EE1013,
+        std::to_string(funCallMemSize));
 
     RT_LOG(RT_LOG_INFO, "funcCallHostMem=%#" PRIx64 ", funCallMemSize=%#" PRIx64, model->GetFuncCallHostMem(),
            model->GetFunCallMemSize());
@@ -319,11 +324,10 @@ rtError_t PrepareSqeInfoForModelExecuteTask(TaskInfo * const taskInfo)
             ConstrucModelExeFuncCall(funcCallPara, funcCall);
             ret = memcpy_s(model->GetFuncCallHostMem(), sizeof(RtStarsModelExeFuncCall),
                 reinterpret_cast<void *>(&funcCall), sizeof(RtStarsModelExeFuncCall));
-            if(unlikely(ret != EOK)){
-                (void)FreeFuncCallHostMemAndSvmMem(taskInfo);
-                RT_LOG_CALL_MSG(ERR_MODULE_SYSTEM, "Memcpy_s failed.");
-                return RT_ERROR_SEC_HANDLE;
-            }
+            COND_PROC_RETURN_ERROR_MSG_INNER(ret != EOK, RT_ERROR_SEC_HANDLE, (void)FreeFuncCallHostMemAndSvmMem(taskInfo),
+                "Failed to call memcpy_s to copy funcCall, src=%p, dest=%p, dest_max=%zu, count=%zu, retCode=%#x.",
+                reinterpret_cast<void *>(&funcCall), model->GetFuncCallHostMem(), sizeof(RtStarsModelExeFuncCall),
+                sizeof(RtStarsModelExeFuncCall), ret);
             RT_LOG(RT_LOG_DEBUG,"model first execute.funcCallHostMem=%#" PRIx64, model->GetFuncCallHostMem());
 
             const rtMemcpyKind_t kind = (
@@ -368,8 +372,10 @@ void ModelExecuteTaskUnInit(TaskInfo * const taskInfo)
 rtError_t ModelExecuteTaskInit(TaskInfo * const taskInfo, Model *const modelPtr, const uint32_t modelIndex,
                                const uint32_t firstTaskIndex)
 {
-    COND_RETURN_ERROR_MSG_INNER(modelPtr == nullptr, RT_ERROR_MODEL_NULL,
-        "Init ModelExecuteTask failed, modelPtr null.");
+    if (modelPtr == nullptr) {
+        RT_LOG(RT_LOG_ERROR, "Failed to init ModelExecuteTask, modelPtr null.");
+        return RT_ERROR_MODEL_NULL;
+    }
 
     ModelExecuteTaskInfo *modelExecTaskInfo = &(taskInfo->u.modelExecuteTaskInfo);
 
@@ -441,8 +447,10 @@ void PrintErrorModelExecuteTaskFuncCall(TaskInfo *const task)
     }
     RT_LOG(RT_LOG_ERROR, "funcCallSvmMem=0x%llx, funCallMemSize=%u.", model->GetFuncCallSvmMem(), model->GetFunCallMemSize());
     uint8_t *starsModelExefuncCall = new (std::nothrow) uint8_t[model->GetFunCallMemSize()];
-    COND_RETURN_VOID(starsModelExefuncCall == nullptr, "FuncCall data malloc failed, funCallMemSize=%u.",
-        model->GetFunCallMemSize());
+    if (starsModelExefuncCall == nullptr) {
+        RT_LOG_OUTER_MSG_IMPL(ErrorCode::EE1013, std::to_string(sizeof(uint8_t) * (model->GetFunCallMemSize())));
+        return;
+    }
     const auto ret = task->stream->Device_()->Driver_()->MemCopySync(starsModelExefuncCall,
         model->GetFunCallMemSize(),
         reinterpret_cast<void *>(model->GetFuncCallSvmMem()),

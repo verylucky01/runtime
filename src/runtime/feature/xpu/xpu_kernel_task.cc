@@ -102,7 +102,7 @@ void XpuPrintAICpuErrorInfoForDavinciTask(TaskInfo *taskInfo, const uint32_t dev
     std::string kernelName = (kernel != nullptr) ? kernel->GetCpuOpType() : "";
     std::string soName = (kernel != nullptr) ? kernel->GetCpuKernelSo() : "";
 
-    RT_LOG_CALL_MSG(ERR_MODULE_AICPU, "Aicpu kernel execute failed, device_id=%u, stream_id=%d,"
+    RT_LOG_CALL_MSG(ERR_MODULE_AICPU, "Aicpu kernel execution failed, device_id=%u, stream_id=%d,"
         "%s=%u, soName=%s, funcName=%s, kernelName=%s, errorCode=%#x.",
         devId, streamId, TaskIdDesc(), taskId, soName.c_str(), funcName.c_str(), kernelName.c_str(), taskInfo->errorCode);
 }
@@ -118,7 +118,7 @@ void TprtDavinciTaskUnInit(TaskInfo *taskInfo)
         aicpuTaskInfo->funcName = nullptr;
         DELETE_O(aicpuTaskInfo->kernel);
     } else {
-        RT_LOG(RT_LOG_ERROR, "only support aicpu.");
+        RT_LOG(RT_LOG_ERROR, "Only task type AI CPU supports TprtDavinciTaskUnInit.");
     }
 }
 
@@ -137,7 +137,8 @@ void SetTprtResultForDavinciTask(TaskInfo* taskInfo, const TprtLogicCqReport_t &
         if (taskInfo->type == TS_TASK_TYPE_KERNEL_AICPU) {
             taskInfo->errorCode = aicpuErrMap[errorIndex];
             STREAM_REPORT_ERR_MSG(taskInfo->stream, ERR_MODULE_HCCL,
-                "AICPU Kernel task happen error, retCode=%#x, streamId=%d, taskId=%u.", taskInfo->errorCode, taskInfo->stream->Id_(), taskInfo->id);
+                "An error occurred in the AI CPU kernel task, retCode=%#x, streamId=%d, taskId=%u.",
+                taskInfo->errorCode, taskInfo->stream->Id_(), taskInfo->id);
         } else {
             RT_LOG(RT_LOG_ERROR, "only support aicpu, streamId=%d, taskId=%u.", taskInfo->stream->Id_(), taskInfo->id);
         }

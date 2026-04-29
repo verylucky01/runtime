@@ -62,15 +62,19 @@ rtError_t rtGetSocVersion(char_t *ver, const uint32_t maxLen)
     const std::string socName = GetSocVersionStr(isHetero);
     if (socName.empty()) {
         rc = memcpy_s(ver, static_cast<size_t>(maxLen), "UnknowSocType", sizeof("UnknowSocType"));
-        COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(rc != EOK, RT_ERROR_SEC_HANDLE,
-            "Call memcpy_s for soc type failed, max size is %u, copy size is %zu.", maxLen, sizeof("UnknowSocType"));
+        COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((rc != EOK), RT_ERROR_SEC_HANDLE,
+            ErrorCode::EE1020, __func__, "memcpy_s", std::to_string(rc), strerror(rc), "src=UnknowSocType, dest=" + 
+            std::to_string(reinterpret_cast<uintptr_t>(ver)) + ", dest_max=" + std::to_string(static_cast<size_t>(maxLen)) +
+            ", count=" + std::to_string(sizeof("UnknowSocType")) + ".");
         return GetRtExtErrCodeAndSetGlobalErr(RT_ERROR_INSTANCE_VERSION);
     }
 
     RT_LOG(RT_LOG_DEBUG, "soc version: %s", socName.c_str());
     rc = memcpy_s(ver, static_cast<size_t>(maxLen), socName.c_str(), socName.length() + 1U);
-    COND_RETURN_EXT_ERRCODE_AND_MSG_INNER(rc != EOK, RT_ERROR_SEC_HANDLE,
-        "Call memcpy_s for soc name failed, max size is %u, copy size is %zu.", maxLen, socName.length() + 1U);
+    COND_RETURN_EXT_ERRCODE_AND_MSG_OUTER((rc != EOK), RT_ERROR_SEC_HANDLE,
+        ErrorCode::EE1020, __func__, "memcpy_s", std::to_string(rc), strerror(rc), "src=" + socName +
+        ", dest=" + std::to_string(reinterpret_cast<uintptr_t>(ver)) + ", dest_max=" + std::to_string(static_cast<size_t>(maxLen)) +
+        ", count=" + std::to_string(socName.length() + 1U) + ".");
     RT_LOG(RT_LOG_INFO, "soc version is %s", ver);
     return ACL_RT_SUCCESS;
 }

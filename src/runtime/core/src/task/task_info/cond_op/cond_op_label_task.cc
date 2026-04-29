@@ -68,11 +68,9 @@ void SetLabelInfoForLabelSetTask(TaskInfo* taskInfo, const uint32_t pos)
     const rtError_t error = taskInfo->stream->Device_()->Driver_()->MemCopySync(devDstAddr,
         RT_CHIP_CLOUD_V2_LABEL_INFO_SIZE, static_cast<void *>(labelInfo), RT_CHIP_CLOUD_V2_LABEL_INFO_SIZE,
         RT_MEMCPY_HOST_TO_DEVICE);
-    if (error != RT_ERROR_NONE) {
-        RT_LOG_INNER_MSG(RT_LOG_ERROR,
-            "labelSetTask set label position in sq failed, label_id=%u, sq_id=%u, pos=%u, retCode=%#x",
-            static_cast<uint32_t>(labelId), sqId, pos, static_cast<uint32_t>(error));
-    }
+    COND_LOG_ERROR((error != RT_ERROR_NONE),
+        "LabelSetTask set label position in sq failed, label_id=%u, sq_id=%u, pos=%u, retCode=%#x.",
+        static_cast<uint32_t>(labelId), sqId, pos, static_cast<uint32_t>(error));
 }
 
 #endif
@@ -91,7 +89,7 @@ rtError_t LabelSwitchTaskInit(TaskInfo* taskInfo, const void *const ptr, const r
         taskInfo->stream->Device_()->Driver_()->MemAddressTranslate(
             static_cast<int32_t>(taskInfo->stream->Device_()->Id_()),
             RtPtrToValue(ptr), &physicPtr);
-    ERROR_RETURN_MSG_INNER(error, "Convert memory address from virtual to physic failed,retCode=%#x.", static_cast<uint32_t>(error));
+    COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Convert memory address from virtual to physic failed, retCode=%#x.", error);
 
     labelSwitchTask->pptr = physicPtr;
     labelSwitchTask->condition = cond;

@@ -46,7 +46,7 @@ TIMESTAMP_EXTERN(AicoreLoad);
 rtError_t AllocTaskAndSend(TaskInfo *submitTask, Stream *stm, uint32_t * const flipTaskId, int32_t timeout)
 {
     if  ((!stm->IsCtrlStream()) && ((stm->Id_() == -1) || (stm->Id_() == MAX_INT32_NUM))) {
-        RT_LOG_CALL_MSG(ERR_MODULE_GE, "stream is invalid, stream_id=%d.", stm->Id_());
+        RT_LOG_CALL_MSG(ERR_MODULE_RTS, "stream is invalid, device_id=%u, stream_id=%d.", stm->Device_()->Id_(), stm->Id_());
         submitTask->error = static_cast<uint32_t>(TASK_ERROR_SUBMIT_FAIL);
         return RT_ERROR_STREAM_INVALID;
     }
@@ -66,8 +66,8 @@ rtError_t LoadArgsInfoForAicoreKernelTask(TaskInfo *submitTask, Stream *stm, uin
     rtError_t error = RT_ERROR_NONE;
     if (argsInfo != nullptr) {
         error = stm->taskResMang_->Load(argsInfo, static_cast<uint32_t>(taskResId), stm, &result);
-        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Failed to load args, stream_id=%d,"
-            " retCode=%#x.", stm->Id_(), error);
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Failed to load args, device_id=%u, stream_id=%d,"
+            " retCode=%#x.", stm->Device_()->Id_(), stm->Id_(), error);
         SetAicoreArgs(submitTask, result.kerArgs, argsInfo->argsSize, result.handle);
     }
     return error;
@@ -82,14 +82,14 @@ static rtError_t LoadArgsInfoForAicpuKernelTask(TaskInfo * const submitTask, Str
     rtError_t error = RT_ERROR_NONE;
     if (argsInfo != nullptr) {
         error = stm->taskResMang_->Load(argsInfo, static_cast<uint32_t>(taskResId), stm, &result);
-        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Failed to load args, stream_id=%d,"
-            " retCode=%#x.", stm->Id_(), error);
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Failed to load args, device_id=%u, stream_id=%d,"
+            " retCode=%#x.", stm->Device_()->Id_(), stm->Id_(), error);
         SetAicpuArgs(submitTask, result.kerArgs, argsInfo->argsSize, result.handle);
     }
     if (aicpuArgsInfo != nullptr) {
         error = stm->taskResMang_->Load(aicpuArgsInfo, static_cast<uint32_t>(taskResId), stm, &result);
-        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Failed to load args, stream_id=%d,"
-            " retCode=%#x.", stm->Id_(), error);
+        COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Failed to load args, device_id=%u, stream_id=%d,"
+            " retCode=%#x.", stm->Device_()->Id_(), stm->Id_(), error);
         SetAicpuArgs(submitTask, result.kerArgs, aicpuArgsInfo->argsSize, result.handle);
 
         /* 如果aicpuArgsInfo->args中存在soName和kernnelName，则使用args中的devAddr；
@@ -133,15 +133,15 @@ rtError_t AllocTaskAndSendDc(TaskInfo *submitTask, Stream *stm, uint32_t * const
 {
     COND_RETURN_ERROR_MSG_INNER(((stm->Flags() & RT_STREAM_CP_PROCESS_USE) != 0U),
         RT_ERROR_STREAM_INVALID,
-        "Kernel launch with args failed, the stm[%u] can not be coprocessor stream flag=%u.",
-        stm->Id_(), stm->Flags());
+        "Kernel launch with args failed, the stm cannot be the stream whose flag is %u, stream_id=%u.",
+        stm->Flags(), stm->Id_());
     // 主动回收
     uint8_t failCount = 0U;
     Engine* engine = ((RawDevice*)(stm->Device_()))->Engine_();
     TIMESTAMP_BEGIN(TryRecycleTaskV1);
     rtError_t error = engine->TryRecycleTask(stm);
     TIMESTAMP_END(TryRecycleTaskV1);
-    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "Try recycle task failed, retCode=%#x.",
+    COND_RETURN_ERROR_MSG_INNER(error != RT_ERROR_NONE, error, "TryRecycleTask failed, retCode=%#x.",
         static_cast<uint32_t>(error));
 
     constexpr uint16_t perDetectTimes = 1000U;
@@ -554,10 +554,12 @@ rtError_t AllocTaskAndSendStars(TaskInfo *submitTask, Stream *stm, uint32_t * co
                             RtPtrToPtr<void *, rtStarsSqe_t *>(starsSqe),
                             sendSqeNum * sizeof(rtStarsSqe_t));
         if (ret != EOK) {
-            RT_LOG(RT_LOG_ERROR, "memcpy_s failed, device_id=%u, ts_id=%u, sq_id=%u, cq_id=%u,"
-                " stream_id=%d, task_id=%hu, task_type=%u(%s), error=%d",
-                devId, tsId, sqId, cqId, stm->Id_(), taskInfo->id,
-                static_cast<uint32_t>(taskInfo->type), taskInfo->typeName, ret);
+            RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call memcpy_s to copy starsSqe, src=%p, dest=%p,"
+                " dest_max=%zu, count=%zu, device_id=%u, ts_id=%u, sq_id=%u, cq_id=%u, stream_id=%d,"
+                " task_id=%hu, task_type=%u(%s), retCode=%#x.", RtPtrToPtr<void *, rtStarsSqe_t *>(starsSqe),
+                RtPtrToPtr<void *>(stm->GetSqeBuffer() + sizeof(rtStarsSqe_t) * taskInfo->pos),
+                sendSqeNum * sizeof(rtStarsSqe_t), sendSqeNum * sizeof(rtStarsSqe_t), devId, tsId, sqId,
+                cqId, stm->Id_(), taskInfo->id, static_cast<uint32_t>(taskInfo->type), taskInfo->typeName, ret);
             error = RT_ERROR_TASK_BASE;
         }
     }

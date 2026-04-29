@@ -37,8 +37,8 @@ rtError_t ReduceAsyncV2TaskInit(TaskInfo* const taskInfo, uint32_t cpyType, cons
     reduceAsyncV2TaskInfo->overflowAddr = overflowAddr;
     if (reduceAsyncV2TaskInfo->guardMemVec == nullptr) {
         reduceAsyncV2TaskInfo->guardMemVec = new (std::nothrow) std::vector<std::shared_ptr<void>>();
-        COND_RETURN_ERROR_MSG_INNER(reduceAsyncV2TaskInfo->guardMemVec == nullptr, RT_ERROR_MEMORY_ALLOCATION,
-            "reduceAsyncV2TaskInfo->guardMemVec new memory fail!");
+        COND_RETURN_AND_MSG_OUTER(reduceAsyncV2TaskInfo->guardMemVec == nullptr, RT_ERROR_MEMORY_ALLOCATION,
+            ErrorCode::EE1013, std::to_string(sizeof(std::vector<std::shared_ptr<void>>)));
     }
     return RT_ERROR_NONE;
 }
@@ -103,7 +103,10 @@ void PrintErrorInfoForReduceAsyncV2Task(TaskInfo * const taskInfo, const uint32_
     int32_t countNum = sprintf_s(errStr, static_cast<size_t>(MSG_LENGTH),
         "Reduce async v2 failed, device_id=%u, stream_id=%d, task_id=%u, flip_num=%hu, ",
         devId, streamId, taskId, taskInfo->flipNum);
-    COND_RETURN_VOID((countNum < 0) || (countNum > MSG_LENGTH), "spirntf_s failed, count=%d", countNum)
+    if ((countNum < 0) || (countNum > MSG_LENGTH)) {
+        RT_LOG_INNER_MSG(RT_LOG_ERROR, "Failed to call sprintf_s, count=%d.", countNum);
+        return;
+    }
 
     Stream * const reportStream = GetReportStream(stream);
     countNum += sprintf_s(errStr + countNum, (static_cast<size_t>(MSG_LENGTH) - static_cast<uint64_t>(countNum)),

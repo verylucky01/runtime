@@ -27,17 +27,17 @@ rtError_t BarrierTaskInit(TaskInfo *taskInfo, const rtBarrierTaskInfo_t *const b
 
     Model *barrierModel = stm->Model_();
     rtError_t error;
-    if (barrierModel == nullptr) {
-        RT_LOG(RT_LOG_ERROR, "Barrier task stream is not in model.");
-        return RT_ERROR_MODEL_NULL;
-    }
+    COND_RETURN_ERROR_MSG_INNER((barrierModel == nullptr), RT_ERROR_MODEL_NULL,
+        "The stream that delivers the barrier task is not in the model, deviceId=%u, streamId=%d, taskId=%u.",
+        taskInfo->stream->Device_()->Id_(), taskInfo->stream->Id_(), taskInfo->id);
 
     // sqe info copy
     taskInfo->u.barrierTask.barrierMsg.cmoIdNum = 0U;
     uint16_t tmpCmoId = 0U;
     for (uint8_t i = 0U; i < barrierTaskInfo->logicIdNum; i++) {
         error = barrierModel->GetCmoId(barrierTaskInfo->cmoInfo[i].logicId, tmpCmoId);
-        ERROR_RETURN_MSG_INNER(error, "Failed to get Barrier Task cmo id.");
+        ERROR_RETURN_MSG_INNER(error, "Failed to get CmoId, deviceId=%u, streamId=%d, taskId=%u.",
+            taskInfo->stream->Device_()->Id_(), taskInfo->stream->Id_(), taskInfo->id);
         taskInfo->u.barrierTask.barrierMsg.cmoInfo[i].cmoId = tmpCmoId;
         taskInfo->u.barrierTask.barrierMsg.cmoInfo[i].cmoType = barrierTaskInfo->cmoInfo[i].cmoType;
         taskInfo->u.barrierTask.barrierMsg.cmoIdNum++;

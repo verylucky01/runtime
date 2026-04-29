@@ -23,7 +23,7 @@ rtError_t FusionDumpAddrSetTaskInit(TaskInfo* taskInfo, const uint16_t modelInde
                                     const uint32_t fusionFlag)
 {
     COND_RETURN_ERROR_MSG_INNER((dumpDataSize == 0U), RT_ERROR_DUMP_ADDR_SET_FAILED,
-        "Init fusion dump address set task failed,dump size is 0.");
+        "FusionDumpAddrSetTaskInit failed, dumpDataSize is 0.");
 
     FusionDumpAddrSetTaskInfo *fusionDumpAddrSet = &(taskInfo->u.fusionDumpAddrSetTask);
     TaskCommonInfoInit(taskInfo);
@@ -84,7 +84,7 @@ void SetStarsResultForDataDumpLoadInfoTask(TaskInfo* taskInfo, const rtLogicCqRe
     if ((logicCq.errorType & RT_STARS_EXIST_ERROR) != 0U) {
         Stream *const reportStream = GetReportStream(taskInfo->stream);
         taskInfo->errorCode = logicCq.errorCode;
-        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_AICPU, "aicpu task happen error, retCode=%#x.",
+        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_AICPU, "An error occurred in the AI CPU task, retCode=%#x.",
             taskInfo->errorCode);
     }
 }
@@ -105,7 +105,7 @@ rtError_t DebugRegisterTaskInit(TaskInfo* taskInfo, const uint32_t mdlId,
         error = dev->Driver_()->MemAddressTranslate(
             static_cast<int32_t>(dev->Id_()),
             static_cast<uint64_t>(reinterpret_cast<uintptr_t>(address)), &pptr);
-        ERROR_RETURN_MSG_INNER(error, "Convert memory from virtual to dma physical failed!");
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Convert memory from virtual to dma physical failed.");
         RT_LOG(RT_LOG_DEBUG, "pptr offset=%#" PRIx64 ".", pptr);
         taskInfo->u.debugRegisterTask.addr = pptr;
     } else {
@@ -165,7 +165,7 @@ rtError_t DebugRegisterForStreamTaskInit(TaskInfo* taskInfo, const uint32_t stmI
         error = dev->Driver_()->MemAddressTranslate(
             static_cast<int32_t>(dev->Id_()),
             static_cast<uint64_t>(reinterpret_cast<uintptr_t>(address)), &pptr);
-        ERROR_RETURN_MSG_INNER(error, "Convert memory address from virtual to dma physical failed!");
+        COND_RETURN_ERROR((error != RT_ERROR_NONE), error, "Convert memory address from virtual to dma physical failed.");
         RT_LOG(RT_LOG_DEBUG, "pptr offset=%#" PRIx64, pptr);
         taskInfo->u.debugRegisterForStreamTask.addr = pptr;
     } else {
@@ -255,7 +255,7 @@ void SetStarsResultForAicpuInfoLoadTask(TaskInfo* taskInfo, const rtLogicCqRepor
     if ((logicCq.errorType & RT_STARS_EXIST_ERROR) != 0U) {
         Stream *const reportStream = GetReportStream(taskInfo->stream);
         taskInfo->errorCode = logicCq.errorCode;
-        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_AICPU, "aicpu task happen error, retCode=%#x.",
+        STREAM_REPORT_ERR_MSG(reportStream, ERR_MODULE_AICPU, "An error occurred in the AI CPU task, retCode=%#x.",
             taskInfo->errorCode);
     }
 }

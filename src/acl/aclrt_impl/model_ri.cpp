@@ -155,7 +155,11 @@ aclError aclmdlRIDebugJsonPrintImpl(aclmdlRI modelRI, const char *path, uint32_t
     ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(path);
     const rtError_t rtErr = rtModelDebugJsonPrint(static_cast<rtStream_t>(modelRI), path, flags);
     if (rtErr != RT_ERROR_NONE) {
-        ACL_LOG_CALL_ERROR("print model debug info failed, runtime result = %d", static_cast<int32_t>(rtErr));
+        if (rtErr == ACL_ERROR_RT_FEATURE_NOT_SUPPORT) {
+            ACL_LOG_WARN("print model debug info unSupported, runtime result = %d", rtErr);        
+        } else {
+            ACL_LOG_CALL_ERROR("print model debug info failed, runtime result = %d", rtErr);
+        }
         return ACL_GET_ERRCODE_RTS(rtErr);
     }
     ACL_LOG_INFO("successfully execute aclmdlRIDebugJsonPrint");

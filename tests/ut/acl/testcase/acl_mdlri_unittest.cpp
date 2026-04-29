@@ -128,6 +128,11 @@ TEST_F(UTEST_ACL_Modelri, TestaclmdlRIDebugJsonPrint)
         .WillOnce(Return(ACL_ERROR_RT_PARAM_INVALID));
     ret = aclmdlRIDebugJsonPrint(modelRI, "graph_dump.json", 0);
     EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), rtModelDebugJsonPrint(_,_,_))
+        .WillOnce(Return(ACL_ERROR_RT_FEATURE_NOT_SUPPORT));
+    ret = aclmdlRIDebugJsonPrint(modelRI, "graph_dump.json", 0);
+    EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
 }
 
 TEST_F(UTEST_ACL_Modelri, TestaclmdlRICaptureThreadExchangeMode)

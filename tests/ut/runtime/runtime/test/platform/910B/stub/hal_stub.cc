@@ -1985,6 +1985,16 @@ drvError_t halMemGetAddressRange(DVdeviceptr ptr, DVdeviceptr *pbase, size_t *ps
     return DRV_ERROR_NONE;
 }
 
+drvError_t halMemHandleSetAttribute(drv_mem_handle_t *handle, HandleAttrType type, HandleAttr attr)
+{
+    return DRV_ERROR_NONE;
+}
+
+drvError_t halMemHandleGetAttribute(drv_mem_handle_t *handle, HandleAttrType type, HandleAttr *attr)
+{
+    return DRV_ERROR_NONE;
+}
+
 drvError_t halMemPoolCreate(soma_mem_pool_t pool, soma_mem_pool_prop prop)
 {
     return DRV_ERROR_NONE;

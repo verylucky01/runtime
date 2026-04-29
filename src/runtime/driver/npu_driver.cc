@@ -1553,6 +1553,29 @@ rtError_t NpuDriver::MemGetAddressRange(void *ptr, void **pbase, size_t *psize)
     return RT_GET_DRV_ERRCODE(drvRet);
 }
 
+rtError_t NpuDriver::MemHandleSetAttribute(rtDrvMemHandle handle, HandleAttrType type, rtHandleAttr attr)
+{
+    COND_RETURN_WARN(&halMemHandleSetAttribute == nullptr, RT_ERROR_FEATURE_NOT_SUPPORT, "[drv api] halMemHandleSetAttribute does not exist");
+    HandleAttr handleAttr = {attr.memMapRoute, {0, 0, 0, 0}}; 
+    const drvError_t drvRet = halMemHandleSetAttribute(RtPtrToPtr<drv_mem_handle_t *>(handle), type, handleAttr);
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemHandleSetAttribute failed, drvRetCode=%d, type=%d, memMapRoute=%u, handleAttr.mem_map_route=%u.",
+            static_cast<int32_t>(drvRet), type, attr.memMapRoute, handleAttr.mem_map_route);
+    }
+    return RT_GET_DRV_ERRCODE(drvRet);
+}
+
+rtError_t NpuDriver::MemHandleGetAttribute(rtDrvMemHandle handle, HandleAttrType type, rtHandleAttr *attr)
+{
+    COND_RETURN_WARN(&halMemHandleGetAttribute == nullptr, RT_ERROR_FEATURE_NOT_SUPPORT, "[drv api] halMemHandleGetAttribute does not exist");
+    const drvError_t drvRet = halMemHandleGetAttribute(RtPtrToPtr<drv_mem_handle_t *>(handle), type, RtPtrToPtr<HandleAttr *>(attr));
+    if (drvRet != DRV_ERROR_NONE) {
+        DRV_ERROR_PROCESS(drvRet, "Call driver api halMemHandleGetAttribute failed, drvRetCode=%d, type=%d.",
+            static_cast<int32_t>(drvRet), type);
+    }
+    return RT_GET_DRV_ERRCODE(drvRet);
+}
+
 rtError_t NpuDriver::GetChipIdDieId(const uint32_t devId, const uint32_t remoteDevId, const uint32_t remotePhyId,
                                     int64_t &chipId, int64_t &dieId)
 {

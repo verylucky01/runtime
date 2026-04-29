@@ -88,6 +88,10 @@ extern "C" {
 // for uvm memory
 #define ACL_RT_MEM_ATTACH_GLOBAL 0x01U
 
+// for mem link
+#define ACL_RT_MEM_LINK_IDX_0 0U     // SIO
+#define ACL_RT_MEM_LINK_IDX_1 1U     // HCCS
+
 typedef enum aclrtRunMode {
     ACL_DEVICE,
     ACL_HOST,
@@ -5386,6 +5390,20 @@ ACL_FUNC_VISIBILITY aclError aclrtMemManagedPrefetchBatchAsync(const void** ptrs
     aclrtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
     aclrtStream stream);
 
+/** 
+ * @ingroup AscendCL
+ * @brief virPtrDst can be mapped to the physical address of virPtrSrc through different channels.
+ * @param [in] virPtrDst        virtual address
+ * @param [in] size             Memory size
+ * @param [in] virPtrSrc        Mapped virtual address
+ * @param [in] linkIdx          Link channel
+ *
+ * @retval ACL_SUCCESS The function is successfully executed.
+ * @retval ACL_ERROR_INVALID_PARAM for error input.
+ * @retval ACL_ERROR_RT_FEATURE_NOT_SUPPORT for not support feature.
+ * @retval OtherValues for other failure situation.
+ */
+ACL_FUNC_VISIBILITY aclError aclrtMemMapSelectedLink(void *virPtrDst, size_t size, void *virPtrSrc, uint32_t linkIdx);
 #ifdef __cplusplus
 }
 #endif

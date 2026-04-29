@@ -2877,6 +2877,20 @@ DLLEXPORT drvError_t halMemRegUbSegment(uint32_t devid, uint64_t va, uint64_t si
 */
 DLLEXPORT drvError_t halMemUnRegUbSegment(uint32_t devid, uint64_t va, uint64_t size);
 
+typedef enum {
+    HANDLE_ATTR_MEM_MAP_ROUTE = 0,
+    HANDLE_ATTR_TYPE_MAX
+} HandleAttrType;
+
+typedef struct {
+    unsigned int mem_map_route; /* 1:hccs  0:sio */
+    unsigned int rev[4];
+} HandleAttr;
+
+DLLEXPORT drvError_t halMemHandleSetAttribute(drv_mem_handle_t *handle, HandleAttrType type, HandleAttr attr);
+
+DLLEXPORT drvError_t halMemHandleGetAttribute(drv_mem_handle_t *handle, HandleAttrType type, HandleAttr *attr);
+
 struct MemPhyInfo {
 #ifndef __linux
     unsigned long long total;

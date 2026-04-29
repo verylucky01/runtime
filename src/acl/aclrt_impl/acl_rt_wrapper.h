@@ -320,6 +320,7 @@
     _(aclError, aclrtMemManagedPrefetchBatchAsync, (const void** ptrs, size_t* sizes, size_t count, aclrtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags, aclrtStream stream), (ptrs, sizes, count, prefetchLocs, prefetchLocIdxs, numPrefetchLocs, flags, stream)) \
     _(aclError, aclrtDeviceGetHostAtomicCapabilities, (uint32_t* capabilities, const aclrtAtomicOperation* operations, const uint32_t count, int32_t deviceId), (capabilities, operations, count, deviceId)) \
     _(aclError, aclrtDeviceGetP2PAtomicCapabilities, (uint32_t* capabilities, const aclrtAtomicOperation* operations, const uint32_t count, int32_t srcDeviceId, int32_t dstDeviceId), (capabilities, operations, count, srcDeviceId, dstDeviceId)) \
+    _(aclError, aclrtMemMapSelectedLink, (void *virPtrDst, size_t size, void *virPtrSrc, uint32_t linkIdx), (virPtrDst, size, virPtrSrc, linkIdx)) \
 
 // aclrtAllocator interface map list
 #define ACL_RT_ALLOCATOR_FUNC_MAP(_)  \

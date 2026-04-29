@@ -437,6 +437,54 @@ TEST_F(CloudV2IpcApiTest, MemGetAddressRange)
     EXPECT_EQ(error, RT_ERROR_NONE);
 }
 
+drvError_t halMemGetAddressRangeStub(DVdeviceptr ptr, DVdeviceptr *pbase, size_t *psize)
+{
+    if (pbase) {
+        *pbase = ptr;
+    }
+    if (psize) {
+        *psize = 32;
+    }
+    return DRV_ERROR_NONE;
+}
+
+drvError_t halMemRetainAllocationHandleStub(drv_mem_handle_t **handle, void *ptr)
+{
+    if (handle) {
+        *handle = (drv_mem_handle_t *)ptr;
+    }; 
+    return DRV_ERROR_NONE;
+}
+
+TEST_F(CloudV2IpcApiTest, MemMapSelectedLink)
+{
+    uint32_t mem1[8];
+    uint32_t mem2[8];
+    size_t size = 32;
+    uint32_t linkIdx = RT_MEM_LINK_IDX_1;
+
+    rtError_t error = rtMemMapSelectedLink(nullptr, size, (void *)mem2, linkIdx);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+
+    error = rtMemMapSelectedLink((void *)mem2, 0, (void *)mem2, linkIdx);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+
+    error = rtMemMapSelectedLink((void *)mem2, size, nullptr, linkIdx);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+
+    error = rtMemMapSelectedLink((void *)mem2, size, (void *)mem2, linkIdx + 1);
+    EXPECT_EQ(error, ACL_ERROR_RT_PARAM_INVALID);
+
+    MOCKER(halMemGetAddressRange).stubs().will(invoke(halMemGetAddressRangeStub));
+    MOCKER(halMemRetainAllocationHandle).stubs().will(invoke(halMemRetainAllocationHandleStub));
+    MOCKER(halMemHandleGetAttribute).stubs().will(returnValue(DRV_ERROR_NONE));
+    MOCKER(halMemHandleSetAttribute).stubs().will(returnValue(DRV_ERROR_NONE));
+    MOCKER(halMemMap).stubs().will(returnValue(DRV_ERROR_NONE));
+    MOCKER(halMemRelease).stubs().will(returnValue(DRV_ERROR_NONE));
+    error = rtMemMapSelectedLink((void *)mem2, size, (void *)mem2, linkIdx);
+    EXPECT_EQ(error, RT_ERROR_NONE);
+}
+
 TEST_F(CloudV2IpcApiTest, MemGetAllocationPropertiesFromHandle01)
 {
     size_t size = 1024*1024;//1mb

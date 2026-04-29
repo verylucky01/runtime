@@ -6230,6 +6230,16 @@ rtError_t ApiErrorDecorator::MemGetAddressRange(void *ptr, void **pbase, size_t 
     return impl_->MemGetAddressRange(ptr, pbase, psize);
 }
 
+rtError_t ApiErrorDecorator::MemMapSelectedLink(void *virPtrDst, size_t size, void *virPtrSrc, uint32_t linkIdx)
+{
+    NULL_PTR_RETURN_MSG_OUTER(virPtrDst, RT_ERROR_INVALID_VALUE);
+    NULL_PTR_RETURN_MSG_OUTER(virPtrSrc, RT_ERROR_INVALID_VALUE);
+    ZERO_RETURN_AND_MSG_OUTER(size);
+    COND_RETURN_AND_MSG_OUTER_WITH_PARAM(linkIdx > RT_MEM_LINK_IDX_1, RT_ERROR_INVALID_VALUE, linkIdx,
+        "[" + std::to_string(RT_MEM_LINK_IDX_0) + ", " + std::to_string(RT_MEM_LINK_IDX_1) + "]");
+    return impl_->MemMapSelectedLink(virPtrDst, size, virPtrSrc, linkIdx);
+}
+
 rtError_t ApiErrorDecorator::BinarySetExceptionCallback(Program *binHandle, void *callback, void *userData)
 {
     NULL_PTR_RETURN_MSG_OUTER(binHandle, RT_ERROR_INVALID_VALUE);

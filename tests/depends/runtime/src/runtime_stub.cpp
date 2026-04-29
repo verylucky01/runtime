@@ -1015,6 +1015,15 @@ rtError_t aclStub::rtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* siz
     return RT_ERROR_NONE;
 }
 
+rtError_t aclStub::rtMemMapSelectedLink(void *virPtrDst, size_t size, void *virPtrSrc, uint32_t linkIdx)
+{
+    (void)virPtrDst;
+    (void)size;
+    (void)virPtrSrc;
+    (void)linkIdx;
+    return RT_ERROR_NONE;
+}
+
 rtError_t aclStub::rtBinaryLoadWithoutTilingKey(const void *data, const uint64_t length, rtBinHandle *binHandle)
 {
   (void)data;
@@ -4450,4 +4459,9 @@ rtError_t rtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* sizes, size_
 {
     return MockFunctionTest::aclStubInstance().rtMemManagedPrefetchBatchAsync(ptrs, sizes, count, prefetchLocs, prefetchLocIdxs,
         numPrefetchLocs, flags, stream);
+}
+
+rtError_t rtMemMapSelectedLink(void *virPtrDst, size_t size, void *virPtrSrc, uint32_t linkIdx)
+{
+    return MockFunctionTest::aclStubInstance().rtMemMapSelectedLink(virPtrDst, size, virPtrSrc, linkIdx);
 }

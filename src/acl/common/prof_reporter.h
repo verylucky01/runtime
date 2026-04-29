@@ -306,6 +306,7 @@ namespace acl {
         AclrtMemcpyBatchV2,
         AclrtMemcpyBatchAsyncV2,
         AclrtCacheLastTaskExtendInfo,
+        AclrtMemMapSelectedLink,
         // this is the end, can not add after AclRtProfTypeEnd
         AclRtProfTypeEnd
     };

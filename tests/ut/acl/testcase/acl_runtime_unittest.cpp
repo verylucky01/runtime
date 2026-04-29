@@ -7641,3 +7641,38 @@ TEST_F(UTEST_ACL_Runtime, aclrtDeviceGetP2PAtomicCapabilities)
     ret = aclrtDeviceGetP2PAtomicCapabilities(capabilities, operations, count, srcDeviceId, dstDeviceId);
     EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
 }
+
+TEST_F(UTEST_ACL_Runtime, aclrtMemMapSelectedLinkTest)
+{
+    uint32_t mem1[8];
+    uint32_t mem2[8];
+    size_t size = 32;
+    uint32_t linkIdx = ACL_RT_MEM_LINK_IDX_1;
+
+    aclError ret = aclrtMemMapSelectedLink(nullptr, size, (void *)mem2, linkIdx);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemMapSelectedLink((void *)mem1, 0, (void *)mem2, linkIdx);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemMapSelectedLink((void *)mem1, size, nullptr, linkIdx);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+    ret = aclrtMemMapSelectedLink((void *)mem1, size, (void *)mem2, linkIdx + 1);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+    
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), rtMemMapSelectedLink(_, _, _, _))
+        .WillOnce(Return(ACL_ERROR_RT_PARAM_INVALID));
+    ret = aclrtMemMapSelectedLink((void *)mem1, size, (void *)mem2, linkIdx);
+    EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), rtMemMapSelectedLink(_, _, _, _))
+        .WillOnce(Return(ACL_ERROR_RT_FEATURE_NOT_SUPPORT));
+    ret = aclrtMemMapSelectedLink((void *)mem1, size, (void *)mem2, linkIdx);
+    EXPECT_EQ(ret, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), rtMemMapSelectedLink(_, _, _, _))
+        .WillOnce(Return(ACL_RT_SUCCESS));
+    ret = aclrtMemMapSelectedLink((void *)mem1, size, (void *)mem2, linkIdx);
+    EXPECT_EQ(ret, ACL_RT_SUCCESS);
+}

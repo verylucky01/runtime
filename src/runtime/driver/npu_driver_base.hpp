@@ -97,6 +97,8 @@ drvError_t __attribute__((weak)) halMemImportFromShareableHandleV2(
 drvError_t __attribute__((weak)) halMemRetainAllocationHandle(drv_mem_handle_t **handle, void* ptr);
 drvError_t __attribute__((weak)) halMemGetAllocationPropertiesFromHandle(struct drv_mem_prop *prop, drv_mem_handle_t *handle);
 drvError_t __attribute__((weak)) halMemGetAddressRange(DVdeviceptr ptr, DVdeviceptr *pbase, size_t *psize);
+drvError_t __attribute__((weak)) halMemHandleSetAttribute(drv_mem_handle_t *handle, HandleAttrType type, HandleAttr attr);
+drvError_t __attribute__((weak)) halMemHandleGetAttribute(drv_mem_handle_t *handle, HandleAttrType type, HandleAttr *attr);
 drvError_t __attribute__((weak)) halGetHostID(uint32_t *host_id);
 drvError_t __attribute__((weak)) halMemGetAllocationGranularity(const struct drv_mem_prop *prop,
     drv_mem_granularity_options option, size_t *granularity);

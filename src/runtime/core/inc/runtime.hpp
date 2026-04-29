@@ -781,6 +781,11 @@ public:
         return simtFifoMutex_;
     }
 
+    std::mutex& GetMemMapSelectedLinkMutex_()
+    {
+        return memMapSelectedLinkMutex_;
+    }
+
     // 目前只会在aclInit里面调用一次
     rtError_t SetSimdPrintFifoSize(uint32_t val); 
 
@@ -1055,6 +1060,7 @@ private:
 
     std::unordered_map<rtChipType_t, DevProperties> propertiesMap_;
     DevProperties curChipProperties_;
+    std::mutex memMapSelectedLinkMutex_;
 };
 }
 }

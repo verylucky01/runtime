@@ -922,6 +922,16 @@ rtError_t rtMemGetAddressRange(void *ptr, void **pbase, size_t *psize)
     return ACL_RT_SUCCESS;
 }
 
+VISIBILITY_DEFAULT
+RTS_API rtError_t rtMemMapSelectedLink(void *virPtrDst, size_t size, void *virPtrSrc, uint32_t linkIdx)
+{
+    Api * const apiInstance = Api::Instance();
+    NULL_RETURN_ERROR_WITH_EXT_ERRCODE(apiInstance);
+    const rtError_t error = apiInstance->MemMapSelectedLink(virPtrDst, size, virPtrSrc, linkIdx);
+    COND_RETURN_WITH_NOLOG(error == RT_ERROR_FEATURE_NOT_SUPPORT, ACL_ERROR_RT_FEATURE_NOT_SUPPORT);
+    ERROR_RETURN_WITH_EXT_ERRCODE(error);
+    return ACL_RT_SUCCESS;
+}
 #ifdef __cplusplus
 }
 #endif // __cplusplus

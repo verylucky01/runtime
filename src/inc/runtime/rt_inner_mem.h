@@ -17,6 +17,10 @@
 extern "C" {
 #endif
 
+// for mem link
+#define RT_MEM_LINK_IDX_0 0U     // SIO
+#define RT_MEM_LINK_IDX_1 1U     // HCCS
+
 typedef struct {
     uint32_t side;
     uint32_t devId;
@@ -83,6 +87,11 @@ typedef struct rtMemManagedLocation{
     rtMemManagedLocationType type;
     int32_t id;
 } rtMemManagedLocation;
+
+typedef struct {
+    unsigned int memMapRoute; /* 1:hccs  0:sio */
+    unsigned int rev[4];
+} rtHandleAttr;
 
 /**
 * @ingroup rt_mem
@@ -255,6 +264,19 @@ RTS_API rtError_t rtMemManagedPrefetchBatchAsync(const void** ptrs, size_t* size
     rtMemManagedLocation* prefetchLocs, size_t* prefetchLocIdxs, size_t numPrefetchLocs, uint64_t flags,
     rtStream_t stream);
 
+/** 
+ * @ingroup rt_mem
+ * @brief virPtrDst can be mapped to the physical address of virPtrSrc through different channels.
+ * @param [in] virPtrDst        virtual address.
+ * @param [in] size             Memory size.
+ * @param [in] virPtrSrc        Mapped virtual address.
+ * @param [in] linkIdx          Link channel.
+ * @return RT_ERROR_NONE for ok, errno for failed.
+ * @return RT_ERROR_INVALID_VALUE for error input.
+ * @return RT_ERROR_FEATURE_NOT_SUPPORT for not support.
+ * @return RT_ERROR_DRV_ERR for driver error.
+ */
+RTS_API rtError_t rtMemMapSelectedLink(void *virPtrDst, size_t size, void *virPtrSrc, uint32_t linkIdx);
 #if defined(__cplusplus)
 }
 #endif

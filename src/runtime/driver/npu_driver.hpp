@@ -17,6 +17,7 @@
 #include <unordered_set>
 #include "driver/ascend_hal.h"
 #include "npu_driver_base.hpp"
+#include "rt_inner_mem.h"
 
 namespace cce {
 namespace runtime {
@@ -610,6 +611,8 @@ public:
     static rtError_t MemRetainAllocationHandle(void* virPtr, rtDrvMemHandle *handle);
     static rtError_t MemGetAllocationPropertiesFromHandle(rtDrvMemHandle handle, rtDrvMemProp_t* prop);
     static rtError_t MemGetAddressRange(void *ptr, void **pbase, size_t *psize);
+    static rtError_t MemHandleSetAttribute(rtDrvMemHandle handle, HandleAttrType type, rtHandleAttr attr);
+    static rtError_t MemHandleGetAttribute(rtDrvMemHandle handle, HandleAttrType type, rtHandleAttr *attr);
     static rtError_t MapMem(void* devPtr, size_t size, size_t offset, rtDrvMemHandle handle, uint64_t flags);
     static rtError_t UnmapMem(void* devPtr);
     static rtError_t MemSetAccess(void *virPtr, size_t size, rtMemAccessDesc *desc, size_t count);

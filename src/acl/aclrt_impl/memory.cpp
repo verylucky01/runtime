@@ -2282,3 +2282,37 @@ aclError aclrtMemManagedPrefetchBatchAsyncImpl(const void** ptrs, size_t* sizes,
     ACL_REQUIRES_CALL_RTS_OK(rtErr, rtMemManagedPrefetchBatchAsync);
     return ACL_SUCCESS;
 }
+
+aclError aclrtMemMapSelectedLinkImpl(void *virPtrDst, size_t size, void *virPtrSrc, uint32_t linkIdx)
+{   
+    ACL_PROFILING_REG(acl::AclProfType::AclrtMemMapSelectedLink);
+    ACL_LOG_INFO("start to execute aclrtMemMapSelectedLink.");
+    ACL_REQUIRES_NOT_NULL_WITH_INNER_REPORT(virPtrDst);
+    ACL_REQUIRES_NOT_NULL_WITH_INNER_REPORT(virPtrSrc);
+    if (size == 0UL) {
+        ACL_LOG_ERROR("size is [%zu], size must be greater than zero", size);
+        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
+            std::vector<const char *>({"param", "value", "reason"}),
+            std::vector<const char *>({"size", std::to_string(size).c_str(), "size must be greater than zero"}));
+        return ACL_ERROR_INVALID_PARAM;
+    }
+    if (linkIdx > ACL_RT_MEM_LINK_IDX_1) {
+        ACL_LOG_ERROR("linkIdx is [%u], linkIdx in aclrtMemMapSelectedLink must be 0 or 1", linkIdx);
+        acl::AclErrorLogManager::ReportInputError(acl::INVALID_PARAM_MSG,
+            std::vector<const char *>({"param", "value", "reason"}),
+            std::vector<const char *>({"linkIdx", std::to_string(linkIdx).c_str(), "linkIdx in aclrtMemMapSelectedLink must be 0 or 1"}));
+        return ACL_ERROR_INVALID_PARAM;
+    }
+
+    const auto rtErr = rtMemMapSelectedLink(virPtrDst, size, virPtrSrc, linkIdx);
+    if (rtErr != RT_ERROR_NONE) {
+        if (rtErr == ACL_ERROR_RT_FEATURE_NOT_SUPPORT) {
+            ACL_LOG_WARN("call aclrtMemMapSelectedLink failed, runtime result = %d.", static_cast<int32_t>(rtErr));
+        } else {
+            ACL_LOG_CALL_ERROR("call aclrtMemMapSelectedLink failed, runtime result = %d.", static_cast<int32_t>(rtErr));
+        }   
+        return ACL_GET_ERRCODE_RTS(rtErr);
+    }
+    ACL_LOG_INFO("successfully execute aclrtMemMapSelectedLink");
+    return ACL_SUCCESS;
+}

@@ -302,6 +302,7 @@ namespace acl {
         {AclProfType::AclrtMemManagedPrefetchBatchAsync,        "aclrtMemManagedPrefetchBatchAsync"},
         {AclProfType::AclrtDeviceGetHostAtomicCapabilities,     "aclrtDeviceGetHostAtomicCapabilities"},
         {AclProfType::AclrtDeviceGetP2PAtomicCapabilities,      "aclrtDeviceGetP2PAtomicCapabilities"},
+        {AclProfType::AclrtMemMapSelectedLink,                  "aclrtMemMapSelectedLink"},
 };
 
 aclError RegisterType(const uint32_t index) {

@@ -65,6 +65,7 @@
 #include "rt_inner_stream.h"
 #include "rt_inner_device.h"
 #include "rt_inner_task.h"
+#include "rt_inner_mem.h"
 #include "kernel_dfx_info.hpp"
 #include "aicpu_c.hpp"
 #include "event_task.h"
@@ -8681,6 +8682,52 @@ rtError_t ApiImpl:: MemGetAddressRange(void *ptr, void **pbase, size_t *psize)
     rtError_t error = NpuDriver::MemGetAddressRange(ptr, pbase, psize);
     ERROR_RETURN(error, "Call MemGetAddressRange failed, ptr=%p", ptr);
     return error;
+}
+
+rtError_t ApiImpl::MemMapSelectedLink(void *virPtrDst, size_t size, void *virPtrSrc, uint32_t linkIdx)
+{
+    size_t totalSize = 0U;
+    void *base = nullptr;
+    size_t baseSize = 0U;
+    rtDrvMemHandle handle = nullptr;
+    rtError_t error = RT_ERROR_NONE;
+    void *virPtrOld = virPtrSrc;
+    void *virPtrNew = virPtrDst;
+    while (totalSize < size) {
+        Runtime *rt = Runtime::Instance();
+        std::unique_lock<std::mutex> lock(rt->GetMemMapSelectedLinkMutex_());
+        error = MemGetAddressRange(virPtrOld, &base, &baseSize);
+        ERROR_RETURN(error, "Call MemGetAddressRange failed, virPtrOld=%p", virPtrOld);
+        COND_RETURN_ERROR(virPtrOld != base, RT_ERROR_INVALID_VALUE,
+            "The address virPtrOld is not the starting address of its corresponding memory block. virPtrOld=%p, base=%p", virPtrOld, base);
+        error = MemRetainAllocationHandle(base, &handle); 
+        ERROR_RETURN(error, "Failed to obtain the handle from virtual pointer, ptr=%p, handle=%p.", base, handle);
+        COND_RETURN_ERROR(handle == nullptr, RT_ERROR_INVALID_VALUE, "virPtrSrc can not get handle, virPtrSrc=%p", virPtrSrc);
+
+        rtHandleAttr attrOrg;
+        rtHandleAttr attrNew;
+        error = NpuDriver::MemHandleGetAttribute(handle, HANDLE_ATTR_MEM_MAP_ROUTE, &attrOrg);
+        COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, FreePhysical(handle),
+            "Call MemHandleGetAttribute failed, handle=%p, type=%d.", handle, HANDLE_ATTR_MEM_MAP_ROUTE);
+        attrNew.memMapRoute = linkIdx;
+        error = NpuDriver::MemHandleSetAttribute(handle, HANDLE_ATTR_MEM_MAP_ROUTE, attrNew);
+        COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, FreePhysical(handle),
+            "Call MemHandleSetAttribute failed, handle=%p, type=%d, linkIdx=%u, attrNew.memMapRoute=%u.",
+            handle, HANDLE_ATTR_MEM_MAP_ROUTE, linkIdx, attrNew.memMapRoute);
+        error = MapMem(virPtrNew, baseSize, 0, handle, 0);
+        COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, FreePhysical(handle),
+            "Call MapMem failed, baseSize=%" PRIu64 ", ptr=%p.", baseSize, virPtrNew);
+        error = NpuDriver::MemHandleSetAttribute(handle, HANDLE_ATTR_MEM_MAP_ROUTE, attrOrg);
+        COND_PROC_RETURN_ERROR(error != RT_ERROR_NONE, error, FreePhysical(handle),
+            "Call MemHandleGetAttribute failed, handle=%p, type=%d.", handle, HANDLE_ATTR_MEM_MAP_ROUTE);
+
+        error = FreePhysical(handle);
+        ERROR_RETURN(error, "Call FreePhysical failed, handle=%p.", handle);
+        virPtrOld = (uint8_t*)virPtrOld + baseSize;
+        virPtrNew = (uint8_t*)virPtrNew + baseSize;
+        totalSize += baseSize;
+    }
+    return RT_ERROR_NONE;
 }
 
 rtError_t ApiImpl::BinarySetExceptionCallback(Program *binHandle, void *callback, void *userData)

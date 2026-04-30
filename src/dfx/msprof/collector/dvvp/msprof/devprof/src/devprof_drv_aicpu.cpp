@@ -391,8 +391,6 @@ void DevprofDrvAicpu::DeviceReportStop()
 
 void DevprofDrvAicpu::DoCallbackHandle(uint32_t moduleId, ProfCommandHandle commandHandle)
 {
-    /* We are not concerned with their execution results; by using detach threads to carry them out, even if they
-      encounter deadlocks, it will not affect main execution process. */
     if (command_.type == static_cast<uint32_t>(PROF_COMMANDHANDLE_TYPE_START)) {
         MSPROF_LOGI("Call module %u callback, command type %u", moduleId, command_.type);
         (void)commandHandle(static_cast<uint32_t>(PROF_CTRL_SWITCH),
@@ -414,14 +412,14 @@ int32_t DevprofDrvAicpu::ModuleRegisterCallback(uint32_t moduleId, ProfCommandHa
         return PROFILING_FAILED;
     }
 
-    std::lock_guard<std::mutex> lock(aicpuRegisterMutex_);
+    std::unique_lock<std::mutex> lock(aicpuRegisterMutex_, std::defer_lock);
+    lock.lock();
     moduleCallbacks_[moduleId].insert(commandHandle);
+    lock.unlock();
     MSPROF_LOGI("module %u register callback, current command type %u.", moduleId, command_.type);
     // if command_.type is not TYPE_MAX, 
     if (command_.type != PROF_COMMANDHANDLE_TYPE_MAX) {
-        auto callbackBind = std::bind(&DevprofDrvAicpu::DoCallbackHandle, this, moduleId, commandHandle);
-        std::thread callbackThread(callbackBind);
-        callbackThread.detach();
+        DoCallbackHandle(moduleId, commandHandle);
         MSPROF_LOGD("Registration callback %u successfully, waiting for the next operation.", moduleId);
     }
     return PROFILING_SUCCESS;

@@ -765,8 +765,10 @@ aclError GetCANNVersionInternal(const aclCANNPackageName name, aclCANNPackageVer
         }
         versionInfoPath = installPath + "/" + pkgNameAlternative + "/version.info";
         ACL_LOG_INFO("[Check]use Alternative versionInfoPath [%s].", versionInfoPath.c_str());
-        ACL_CHECK_INVALID_FILE_MSG_RET(!IsFileExist(versionInfoPath), versionInfoPath.c_str(), 
-            "Version info file does not exist", ACL_ERROR_INVALID_FILE);
+        if (!IsFileExist(versionInfoPath)) {
+            ACL_LOG_WARN("[Check]versionInfoPath [%s] does not exist.", versionInfoPath.c_str());
+            return ACL_ERROR_INVALID_FILE;
+        }
     }
 
     std::string versionInfo;
